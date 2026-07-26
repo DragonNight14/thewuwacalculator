@@ -261,6 +261,10 @@ function RtChrmCntn() {
     return () => window.removeEventListener('keydown', onKeyDown)
   }, [rtChrmMenu.actions])
 
+  const freqItems = useAppStore((state) => state.ui.itemFreq)
+  // debug
+  useEffect(() => console.log('These are your tracked item usage stats on this app:\n', freqItems), [])
+
   return (
     <ContextTrigger
       asChild
@@ -302,7 +306,7 @@ function RtChrmCntn() {
                     <span className="toolbar-icon-liquid toolbar-icon-liquid--primary" />
                     <span className="toolbar-icon-liquid toolbar-icon-liquid--secondary" />
                     <img
-                      src={`/assets/icons/${toolbarIconTheme}/${view.icon}.png`}
+                      src={`/assets/app/icons/${toolbarIconTheme}/${view.icon}.png`}
                       alt=""
                       className="toolbar-icon-image"
                       loading="lazy"
@@ -334,7 +338,7 @@ function RtChrmCntn() {
               </div>
               <div className="label-slot">
                 <span className="label-text">Pages</span>
-                <ChvrnDwn size={16} className="sidebar-rail-chevron" aria-hidden="true" />
+                <ChvrnDwn size="1rem" className="sidebar-rail-chevron" aria-hidden="true" />
               </div>
             </button>
 
@@ -351,7 +355,7 @@ function RtChrmCntn() {
                   onClick={() => navigateTo(to)}
                 >
                   <div className="icon-slot">
-                    <Icon size={20} className={iconClssName} />
+                    <Icon size="1.25rem" className={iconClssName} />
                   </div>
                   <div className="label-slot">
                     <span className="label-text">{label}</span>
@@ -379,7 +383,7 @@ function RtChrmCntn() {
                       >
                         <div className="icon-slot">
                           <img
-                            src={`/assets/icons/${toolbarIconTheme}/${view.icon}.png`}
+                            src={`/assets/app/icons/${toolbarIconTheme}/${view.icon}.png`}
                             alt={view.label}
                             style={{ width: '20px', height: '20px' }}
                             loading="lazy"
@@ -404,7 +408,7 @@ function RtChrmCntn() {
                   }}
                 >
                   <div className="icon-slot">
-                    <GiSchoolBag size={20} />
+                    <GiSchoolBag size="1.25rem" />
                   </div>
                   <div className="label-slot">
                     <span className="label-text">Inventory</span>
@@ -421,7 +425,7 @@ function RtChrmCntn() {
             >
               <div className="icon-slot">
                 {benchmarkViewMode === 'showcase' ?
-                  ( <TbPhotoStar size={20} /> ) : ( <MdBubbleChart size={20} /> )}
+                  ( <TbPhotoStar size="1.25rem" /> ) : ( <MdBubbleChart size="1.25rem" /> )}
               </div>
               <div className="label-slot">
                 <span className="label-text">{benchmarkViewMode === 'showcase' ? 'Showcase' : 'Benchmark'}</span>
@@ -434,7 +438,7 @@ function RtChrmCntn() {
               onClick={() => rtChrmMenu.actions.tgglOpt()}
             >
               <div className="icon-slot">
-                <FaMicrochip size={20} />
+                <FaMicrochip size="1.25rem" />
               </div>
               <div className="label-slot">
                 <span className="label-text">Optimizer</span>
@@ -452,7 +456,7 @@ function RtChrmCntn() {
               }}
             >
               <div className="icon-slot">
-                <RxCtvtLog size={20} />
+                <RxCtvtLog size="1.25rem" />
               </div>
               <div className="label-slot">
                 <span className="label-text">Status</span>
@@ -470,8 +474,8 @@ function RtChrmCntn() {
                 onClick={() => setTheme(ui.theme === 'dark' ? 'light' : 'dark')}
               >
                 <div className="icon-slot theme-toggle-icon">
-                  <FaSun className="icon-sun" size={20} />
-                  <RiMoonClrFil className="icon-moon" size={20} />
+                  <FaSun className="icon-sun" size="1.25rem" />
+                  <RiMoonClrFil className="icon-moon" size="1.25rem" />
                 </div>
                 <div className="label-slot">
                   <span className="label-text">{themeTglLbl}</span>
@@ -484,7 +488,7 @@ function RtChrmCntn() {
                 onClick={() => setBlurMode(!ui.blurMode)}
               >
                 <div className="icon-slot">
-                  <SldrHrzn size={20} />
+                  <SldrHrzn size="1.25rem" />
                 </div>
                 <div className="label-slot">
                   <span className="label-text">Blur {ui.blurMode ? 'On' : 'Off'}</span>
@@ -513,7 +517,7 @@ function RtChrmCntn() {
               }}
             >
               <div className="icon-slot">
-                <RiHeartsFill size={20} />
+                <RiHeartsFill size="1.25rem" />
               </div>
               <div className="label-slot">
                 <span className="label-text">Say Hi~!</span>
@@ -527,7 +531,7 @@ function RtChrmCntn() {
               className="sidebar-button kofi"
             >
               <div className="icon-slot">
-                <SiKofi size={20} />
+                <SiKofi size="1.25rem" />
               </div>
               <div className="label-slot">
                 <span className="label-text">Feed me...</span>
@@ -542,7 +546,7 @@ function RtChrmCntn() {
             >
               <div className="icon-slot">
                 <img
-                  src="/assets/icons/discord.svg"
+                  src="/assets/app/icons/discord.svg"
                   alt="Discord"
                   className="discord-icon"
                   style={{ maxWidth: '24px', maxHeight: '24px' }}
@@ -561,7 +565,7 @@ function RtChrmCntn() {
                 onClick={rtChrmMenu.actions.rstActRes}
               >
                 <div className="icon-slot">
-                  <RotateCcw size={20} className="reset-icon" />
+                  <RotateCcw size="1.25rem" className="reset-icon" />
                 </div>
                 <div className="label-slot">
                   <span className="label-text">Reset</span>

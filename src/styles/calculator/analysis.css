@@ -326,7 +326,7 @@
 }
 
 .damage-grid tbody tr[data-damage-kind='feature'] > th {
-  color: var(--damage-row-accent, var(--text));
+  color: color-mix(in srgb, var(--damage-row-accent) 78%, var(--text));
 }
 
 .damage-feature-label {

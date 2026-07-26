@@ -150,7 +150,7 @@ const ELEMENT_KEYS = new Set(['aero', 'glacio', 'spectro', 'fusion', 'electro', 
 
 export function statIconSrc(key: string): string | null {
   const file = STAT_KEY_ICON[key]
-  return file ? `/assets/stat-icons/${file}.png` : null
+  return file ? `/assets/game/stats/icons/${file}.png` : null
 }
 
 // Stable id for a stat across the card so flat/percent variants of the same stat
@@ -558,7 +558,7 @@ export function BenchSeqRail({ resId, sequence, hidden }: { resId: string; seque
           >
             <span
               className="bench-seq-glyph"
-              style={{ '--seq-mask': `url("/assets/resonators/skills/${resId}/sequence/${node}.webp")` } as CssVars}
+              style={{ '--seq-mask': `url("/assets/game/resonators/skills/${resId}/sequence/${node}.webp")` } as CssVars}
             />
           </span>
         )

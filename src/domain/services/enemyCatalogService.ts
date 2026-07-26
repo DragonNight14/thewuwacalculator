@@ -6,8 +6,10 @@
 
 import type { EnemyCatEnt, EnemyClassId, EnemyElemId } from '@/domain/entities/enemy'
 import { isEnemyClssI, normEnemyRes } from '@/domain/entities/enemy'
+import type { GameDataMode } from '@/domain/entities/gameDataMode'
+import { gameDataUrl, getGameDataMode } from '@/data/gameData'
 
-const ENEMY_DATA_URL = '/data/enemies.json'
+const ENEMY_DATA_PATH = 'enemies/catalog.json'
 
 interface RawEnemyCatE {
   Id?: number | string
@@ -43,7 +45,7 @@ type RawEnemyElem =
       id?: number | string | null
     }
 
-let enemyCatPrms: Promise<EnemyCatEnt[]> | null = null
+const enemyCatPrmsByMode: Partial<Record<GameDataMode, Promise<EnemyCatEnt[]>>> = {}
 
 // normalize a raw numeric element into a valid enemy element id
 function toEnemyElemI(value: RawEnemyElem): EnemyElemId | null {
@@ -118,11 +120,13 @@ function normEnemyCat(entry: RawEnemyCatE): EnemyCatEnt | null {
 
 // load and cache the enemy catalog from json
 export async function loadEnemyCat(): Promise<EnemyCatEnt[]> {
-  if (enemyCatPrms) {
-    return enemyCatPrms
+  const mode = getGameDataMode()
+  const existing = enemyCatPrmsByMode[mode]
+  if (existing) {
+    return existing
   }
 
-  enemyCatPrms = fetch(ENEMY_DATA_URL)
+  const enemyCatPrms = fetch(gameDataUrl(mode, ENEMY_DATA_PATH))
       .then(async (response) => {
         if (!response.ok) {
           throw new Error(`Enemy catalog request failed with ${response.status}`)
@@ -139,10 +143,11 @@ export async function loadEnemyCat(): Promise<EnemyCatEnt[]> {
             .sort((left, right) => left.name.localeCompare(right.name))
       })
       .catch((error) => {
-        enemyCatPrms = null
+        delete enemyCatPrmsByMode[mode]
         throw error
       })
 
+  enemyCatPrmsByMode[mode] = enemyCatPrms
   return enemyCatPrms
 }
 

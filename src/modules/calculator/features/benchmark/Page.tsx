@@ -76,6 +76,7 @@ import {
 import { BenchCssEditorDock, BenchCustomizePanel } from './Customize.tsx'
 import { buildTextSlotVars, collectCardFontFamilies, splitHoistedCss } from './cardStyleVars.ts'
 import { buildCardExport, parseCardImport, type CardExportTarget } from './cardTransfer.ts'
+import { readAppFile, xprtAppFile } from '@/shared/lib/fileCodec.ts'
 import { ensGglFamilyByName } from '@/modules/settings/model/typography.ts'
 import {
   BenchmarkResonatorRail, type BenchmarkRosterEntry, type BenchAttrGroup,
@@ -296,8 +297,14 @@ export function Benchmark() {
     setEditMode(null)
   }, [railResId, patchBenchCardStyle, patchBenchCardHidden])
 
-  const handleExportTarget = useCallback((target: CardExportTarget) => {
+  const handleExportTarget = useCallback(async (target: CardExportTarget) => {
     const { raw, filename, mime } = buildCardExport(target, cardStyle, cardHidden)
+    // css stays a plain text file; json exports honor the compressed-exports
+    // preference.
+    if (mime === 'application/json') {
+      await xprtAppFile(filename, raw)
+      return
+    }
     const blob = new Blob([raw], { type: mime })
     const url = URL.createObjectURL(blob)
     const link = document.createElement('a')
@@ -310,7 +317,7 @@ export function Benchmark() {
   const handleImportFile = useCallback(async (file: File) => {
     if (!railResId) return
     try {
-      const result = parseCardImport(file.name, await file.text())
+      const result = parseCardImport(file.name, await readAppFile(file))
       if (result.stylePatch) patchBenchCardStyle(railResId, result.stylePatch)
       if (result.hiddenPatch) patchBenchCardHidden(railResId, result.hiddenPatch)
       showToast({ content: `Imported ${result.label}.`, variant: 'success' })
@@ -334,8 +341,8 @@ export function Benchmark() {
         return {
           id,
           name: res?.name ?? toTitle(id),
-          profile: res?.profile ?? res?.sprite ?? '/assets/default.webp',
-          sprite: res?.sprite ?? res?.profile ?? '/assets/default.webp',
+          profile: res?.profile ?? res?.sprite ?? '/assets/game/default.webp',
+          sprite: res?.sprite ?? res?.profile ?? '/assets/game/default.webp',
           spriteCss: spriteVars(res),
           attribute,
           accent: ATTR_COLORS[attribute] ?? '#6b7cff',
@@ -492,7 +499,7 @@ export function Benchmark() {
       id: 'benchmark-res:copy',
       key: 'copy' as const,
       needsSel: true,
-      icon: <Copy size={14} />,
+      icon: <Copy size="0.5rem" />,
       label: ({ count }: { count: number }) => `Copy (${count})`,
       title: 'Copy selected resonators (Ctrl/Cmd+C)',
       run: async ({ ids }: { ids: string[] }) => {
@@ -503,7 +510,7 @@ export function Benchmark() {
       id: 'benchmark-res:cut',
       key: 'cut' as const,
       needsSel: true,
-      icon: <Scissors size={14} />,
+      icon: <Scissors size="0.5rem" />,
       label: ({ count }: { count: number }) => `Cut (${count})`,
       title: 'Cut selected resonators (Ctrl/Cmd+X)',
       run: async ({ ids }: { ids: string[] }) => {
@@ -525,7 +532,7 @@ export function Benchmark() {
       id: 'benchmark-res:delete',
       key: 'delete' as const,
       needsSel: true,
-      icon: <Trash2 size={14} />,
+      icon: <Trash2 size="0.5rem" />,
       danger: true,
       label: ({ count }: { count: number }) => `Delete (${count})`,
       title: 'Delete selected resonators (Delete)',
@@ -814,7 +821,7 @@ export function Benchmark() {
     id: 'benchmark-echo:copy',
     key: 'copy' as const,
     needsSel: true,
-    icon: <Copy size={14} />,
+    icon: <Copy size="0.5rem" />,
     label: ({ count }: { count: number }) => `Copy (${count})`,
     title: 'Copy selected echoes (Ctrl/Cmd+C)',
     run: async ({ vals }: { vals: EchoInstance[] }) => {
@@ -995,7 +1002,7 @@ export function Benchmark() {
         ? toTitle(railWeaponState.id)
         : 'No Weapon')
     const railWpnVslKey = getWpnVisKey(railWeapon?.weaponType ?? railSeed?.weaponType ?? null)
-    const railWeaponIcon = railWeapon?.icon ?? (railWpnVslKey ? `/assets/weapons/${railWpnVslKey}.webp` : null)
+    const railWeaponIcon = railWeapon?.icon ?? (railWpnVslKey ? `/assets/game/weapons/types/${railWpnVslKey}.webp` : null)
     const railSonataSets = railRuntime
       ? buildSonataPlan(railRuntime.build.echoes).map((entry) => ({
           setId: entry.id,
@@ -1023,13 +1030,13 @@ export function Benchmark() {
           id,
           name: res.name,
           rarity: res.rarity ?? 4,
-          sprite: res.sprite ?? res.profile ?? '/assets/default.webp',
+          sprite: res.sprite ?? res.profile ?? '/assets/game/default.webp',
           spriteCss: spriteVars(res),
           attribute: res.attribute,
           accent: ATTR_COLORS[res.attribute] ?? '#6b7cff',
           level: mateRt?.base.level ?? null,
           sequence: mateRt?.base.sequence ?? 0,
-          weaponIcon: mateWpn?.icon ?? (mateWpnKey ? `/assets/weapons/${mateWpnKey}.webp` : null),
+          weaponIcon: mateWpn?.icon ?? (mateWpnKey ? `/assets/game/weapons/types/${mateWpnKey}.webp` : null),
           weaponName: mateWpn?.name ?? null,
           weaponRarity: mateWpn?.rarity ?? null,
           weaponLevel: mateWpnState?.level ?? null,
@@ -1045,7 +1052,7 @@ export function Benchmark() {
       rarity: railSeed?.rarity ?? 4,
       accent: railSeed ? ATTR_COLORS[railSeed.attribute] ?? '#6b7cff' : '#6b7cff',
         attrIcon: getAttributeIconSrc(railSeed?.attribute),
-      portraitSrc: railSeed?.sprite ?? railSeed?.profile ?? '/assets/default.webp',
+      portraitSrc: railSeed?.sprite ?? railSeed?.profile ?? '/assets/game/default.webp',
       spriteCss: spriteVars(railSeed),
       weaponState: railWeaponState,
       weapon: railWeapon,

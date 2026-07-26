@@ -26,13 +26,13 @@ export function ChngPage() {
           linkedLatestWhatsNew ? (
             <Link to="/changelog/whatsnew" className="changelog-whatsnew-cta">
               <span className="changelog-whatsnew-cta__icon" aria-hidden="true">
-                <Radio size={18} />
+                <Radio size="1.125rem" />
               </span>
               <span className="changelog-whatsnew-cta__text">
                 <span className="changelog-whatsnew-cta__eyebrow">What's New · on air</span>
                 <span className="changelog-whatsnew-cta__title">{linkedLatestWhatsNew.title}</span>
               </span>
-              <ArrowRight size={16} className="changelog-whatsnew-cta__arrow" aria-hidden="true" />
+              <ArrowRight size="1rem" className="changelog-whatsnew-cta__arrow" aria-hidden="true" />
             </Link>
           ) : undefined
         }
@@ -76,13 +76,13 @@ export function ChngPage() {
                           className="changelog-whatsnew-cta changelog-whatsnew-cta--entry"
                         >
                           <span className="changelog-whatsnew-cta__icon" aria-hidden="true">
-                            <Radio size={16} />
+                            <Radio size="1rem" />
                           </span>
                           <span className="changelog-whatsnew-cta__text">
                             <span className="changelog-whatsnew-cta__eyebrow">What's New · archive</span>
                             <span className="changelog-whatsnew-cta__title">{linkedWhatsNew.title}</span>
                           </span>
-                          <ArrowRight size={16} className="changelog-whatsnew-cta__arrow" aria-hidden="true" />
+                          <ArrowRight size="1rem" className="changelog-whatsnew-cta__arrow" aria-hidden="true" />
                         </Link>
                       ) : null}
                     </div>

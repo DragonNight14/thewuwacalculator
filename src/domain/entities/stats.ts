@@ -97,6 +97,7 @@ export interface UnifiedBuffPool {
   atk: BaseStatBuff
   hp: BaseStatBuff
   def: BaseStatBuff
+  fixedStats: Partial<Record<'atk' | 'hp' | 'def', number>>
   attribute: AttrBuffs
   skillType: SkillTypeBuffs
   negativeEffect: NegEffectBuffs

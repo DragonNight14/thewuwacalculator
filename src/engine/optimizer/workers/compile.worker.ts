@@ -272,7 +272,7 @@ self.onmessage = async (event: MessageEvent<OptCompInMsg>) => {
           logOptimizer('[optimizer:compile-worker] fetching game data via initializeGameData()', {
             runId: message.runId,
           })
-          await initGameData()
+          await initGameData({ mode: message.payload.gameDataMode })
           logOptimizer('[optimizer:compile-worker] game data ready', { runId: message.runId })
         }
         gameDataReady = true

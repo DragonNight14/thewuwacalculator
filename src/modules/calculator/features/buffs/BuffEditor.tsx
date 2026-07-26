@@ -4,6 +4,7 @@
                payloads, and preset application for the active runtime.
 */
 
+import { readAppFile, xprtAppFile } from '@/shared/lib/fileCodec.ts'
 import type { ChangeEvent, ReactNode } from 'react'
 import { useCallback, useMemo, useRef } from 'react'
 import { CnfrMdl } from '@/shared/ui/ConfirmationModal.tsx'
@@ -462,7 +463,7 @@ export function BuffEditor({
       id: 'manual-buffs:copy',
       key: 'copy',
       needsSel: true,
-      icon: <Copy size={14} />,
+      icon: <Copy size="0.5rem" />,
       label: ({ count }) => `Copy (${count})`,
       title: 'Copy selection (Ctrl/Cmd+C)',
       run: async ({ vals }) => {
@@ -473,7 +474,7 @@ export function BuffEditor({
       id: 'manual-buffs:cut',
       key: 'cut',
       needsSel: true,
-      icon: <Scissors size={14} />,
+      icon: <Scissors size="0.5rem" />,
       label: ({ count }) => `Cut (${count})`,
       title: 'Cut selection (Ctrl/Cmd+X)',
       run: async ({ ids, vals }) => {
@@ -483,7 +484,7 @@ export function BuffEditor({
     {
       id: 'manual-buffs:duplicate',
       needsSel: true,
-      icon: <CopyPlus size={14} />,
+      icon: <CopyPlus size="0.5rem" />,
       label: ({ count }) => `Duplicate (${count})`,
       title: 'Duplicate selection',
       run: ({ vals }) => {
@@ -505,7 +506,7 @@ export function BuffEditor({
       key: 'delete',
       needsSel: true,
       danger: true,
-      icon: <Trash2 size={14} />,
+      icon: <Trash2 size="0.5rem" />,
       label: ({ count }) => `Delete (${count})`,
       title: 'Delete selection (Delete / Backspace)',
       run: ({ ids }) => {
@@ -674,7 +675,7 @@ export function BuffEditor({
     vsblModIds.length,
   ])
 
-  const xprtMnlBffs = () => {
+  const xprtMnlBffs = async () => {
     // exported payloads include the wrapper metadata expected by newer imports while still leaving the manual buff
     // object intact for older import helpers.
     const payload: MnlBffsXprtP = {
@@ -684,15 +685,7 @@ export function BuffEditor({
       exportedAt: new Date().toISOString(),
       manualBuffs,
     }
-    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' })
-    const url = URL.createObjectURL(blob)
-    const link = document.createElement('a')
-
-    link.href = url
-    link.download = `${runtime.id}-manual-buffs.json`
-    link.click()
-
-    window.setTimeout(() => URL.revokeObjectURL(url), 0)
+    await xprtAppFile(`${runtime.id}-manual-buffs.json`, JSON.stringify(payload))
   }
 
   const mprtMnlBffs = async (event: ChangeEvent<HTMLInputElement>) => {
@@ -705,7 +698,7 @@ export function BuffEditor({
     }
 
     try {
-      const rawText = await file.text()
+      const rawText = await readAppFile(file)
       const parsedJson = JSON.parse(rawText) as unknown
       const rslvPay = mprtPay(parsedJson)
       const prsdMnlBffs = mnlBffsSchm.safeParse(rslvPay)
@@ -1155,7 +1148,7 @@ export function BuffEditor({
                     }))
                   }}
                 >
-                  {modifier.enabled ? <Power size={16} /> : <PowerOff size={16} />}
+                  {modifier.enabled ? <Power size="0.5rem" /> : <PowerOff size="0.5rem" />}
                 </button>
                 <button
                   type="button"
@@ -1167,7 +1160,7 @@ export function BuffEditor({
                     dplcMnlMod(modifier)
                   }}
                 >
-                  <CopyPlus size={15} />
+                  <CopyPlus size="0.5rem" />
                 </button>
                 <button
                   type="button"
@@ -1179,7 +1172,7 @@ export function BuffEditor({
                     rmMnlMod(modifier.id)
                   }}
                 >
-                  <Trash2 size={15} />
+                  <Trash2 size="0.5rem" />
                 </button>
               </div>
             </div>
@@ -1231,7 +1224,7 @@ export function BuffEditor({
               aria-label="Presets"
               onClick={presetModal.show}
             >
-              <Sparkles size={15} />
+              <Sparkles size="0.5rem" />
             </button>
             <button
               type="button"
@@ -1239,7 +1232,7 @@ export function BuffEditor({
               title="Add modifier"
               onClick={addMnlMod}
             >
-              <Plus size={16} />
+              <Plus size="0.5rem" />
             </button>
           </div>
         </div>
@@ -1266,7 +1259,7 @@ export function BuffEditor({
           <input
             ref={mprtNptRef}
             type="file"
-            accept=".json,application/json"
+            accept=".json,.wwcalc,application/json"
             hidden
             onChange={mprtMnlBffs}
           />

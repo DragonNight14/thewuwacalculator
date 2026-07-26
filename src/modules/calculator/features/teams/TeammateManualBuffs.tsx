@@ -4,6 +4,7 @@
                transitions through the shared manual buff operations.
 */
 
+import { readAppFile, xprtAppFile } from '@/shared/lib/fileCodec.ts'
 import { type ChangeEvent, type CSSProperties as CssProps, type ReactNode, useMemo, useRef } from 'react'
 import { Bookmark, Copy, Plus, Trash2 } from 'lucide-react'
 import type { ResRuntime } from '@/domain/entities/runtime.ts'
@@ -187,7 +188,7 @@ export function TeammateManualBuffs({ runtime, onRtPdt }: { runtime: ResRuntime;
     }))
   }
 
-  const exportBuffs = () => {
+  const exportBuffs = async () => {
     const payload = {
       type: 'manual-buffs' as const,
       version: 1,
@@ -195,13 +196,7 @@ export function TeammateManualBuffs({ runtime, onRtPdt }: { runtime: ResRuntime;
       exportedAt: new Date().toISOString(),
       manualBuffs,
     }
-    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' })
-    const url = URL.createObjectURL(blob)
-    const link = document.createElement('a')
-    link.href = url
-    link.download = `${runtime.id}-manual-buffs.json`
-    link.click()
-    window.setTimeout(() => URL.revokeObjectURL(url), 0)
+    await xprtAppFile(`${runtime.id}-manual-buffs.json`, JSON.stringify(payload))
   }
 
   const importBuffs = async (event: ChangeEvent<HTMLInputElement>) => {
@@ -211,7 +206,7 @@ export function TeammateManualBuffs({ runtime, onRtPdt }: { runtime: ResRuntime;
       return
     }
     try {
-      const parsed = mnlBffsSchm.safeParse(mprtPay(JSON.parse(await file.text())))
+      const parsed = mnlBffsSchm.safeParse(mprtPay(JSON.parse(await readAppFile(file))))
       if (!parsed.success) {
         throw new Error(parsed.error.issues[0]?.message ?? 'Invalid manual buffs JSON.')
       }
@@ -503,10 +498,10 @@ export function TeammateManualBuffs({ runtime, onRtPdt }: { runtime: ResRuntime;
           </span>
           <span className="mcc-block-actions" role="group" aria-label="Modifier actions">
             <button type="button" className="mcc-block-action" onClick={presetModal.show}>
-              <Bookmark size={13} aria-hidden="true" /> Presets
+              <Bookmark size="0.5rem" aria-hidden="true" /> Presets
             </button>
             <button type="button" className="mcc-block-action" onClick={addMod}>
-              <Plus size={13} aria-hidden="true" /> Add
+              <Plus size="0.5rem" aria-hidden="true" /> Add
             </button>
           </span>
         </div>
@@ -540,7 +535,7 @@ export function TeammateManualBuffs({ runtime, onRtPdt }: { runtime: ResRuntime;
                         aria-label="Duplicate modifier"
                         onClick={() => duplicateMod(modifier)}
                       >
-                        <Copy size={13} aria-hidden="true" />
+                        <Copy size="0.5rem" aria-hidden="true" />
                       </button>
                       <button
                         type="button"
@@ -549,7 +544,7 @@ export function TeammateManualBuffs({ runtime, onRtPdt }: { runtime: ResRuntime;
                         aria-label="Delete modifier"
                         onClick={() => removeMod(modifier.id)}
                       >
-                        <Trash2 size={13} aria-hidden="true" />
+                        <Trash2 size="0.5rem" aria-hidden="true" />
                       </button>
                     </span>
                   </div>
@@ -579,7 +574,7 @@ export function TeammateManualBuffs({ runtime, onRtPdt }: { runtime: ResRuntime;
           <input
             ref={importRef}
             type="file"
-            accept="application/json"
+            accept=".json,.wwcalc,application/json"
             hidden
             onChange={importBuffs}
           />

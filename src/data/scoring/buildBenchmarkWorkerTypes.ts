@@ -9,24 +9,25 @@ import type {
   BenchmarkReportOpts,
   DefRotBenchIn,
 } from '@/data/scoring/buildBenchmark'
+import type { GameDataMode } from '@/domain/entities/gameDataMode'
 
-export interface BenchScoreJob {
+interface BenchJobBase {
   id: number
   key: string
+  gameDataMode?: GameDataMode
+}
+
+export interface BenchScoreJob extends BenchJobBase {
   type: 'score'
   payload: DefRotBenchIn
 }
 
-export interface BenchDetailJob {
-  id: number
-  key: string
+export interface BenchDetailJob extends BenchJobBase {
   type: 'benchmark'
   payload: DefRotBenchIn
 }
 
-export interface BenchReportJob {
-  id: number
-  key: string
+export interface BenchReportJob extends BenchJobBase {
   type: 'report'
   payload: DefRotBenchIn
   benchmark?: BuildBenchmark | null

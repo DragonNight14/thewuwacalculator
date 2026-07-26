@@ -31,7 +31,7 @@ export function EchoQpCmprdn({
           />
         </div>
         <div className="echo-equip-preview__arrow" aria-hidden="true">
-          <ArrowRight size={15} />
+          <ArrowRight size="0.5rem" />
         </div>
         <div className="echo-equip-preview__card">
           <span className="echo-equip-preview__label">Equip</span>

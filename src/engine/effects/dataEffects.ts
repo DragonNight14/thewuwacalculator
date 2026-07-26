@@ -393,6 +393,11 @@ function applyRtOp(
     return
   }
 
+  if (operation.type === 'set_final_stat') {
+    pool.fixedStats[operation.stat] = value
+    return
+  }
+
   if (operation.type === 'add_top_stat') {
     pool[operation.stat] += value
     return

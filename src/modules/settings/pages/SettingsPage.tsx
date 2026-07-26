@@ -3,6 +3,7 @@
   Description: renders the settings page.
 */
 
+import { readAppFile, xprtAppFile } from '@/shared/lib/fileCodec'
 import { useEffect, useMemo, useState } from 'react'
 import type { ChangeEvent, CSSProperties as CssProps } from 'react'
 import { useAppStore } from '@/domain/state/store'
@@ -41,6 +42,8 @@ import { useGglDrvAut } from '@/app/hooks/useGoogleDriveAuth'
 import { DATAXPRTCTNS, mkDataXprtFi, resMprtData } from '@/modules/settings/model/dataManagement'
 import { useTstStr } from '@/shared/util/toastStore.ts'
 import { toTitle } from '@/shared/lib/format'
+import { gameDataModeFromBeta, type GameDataMode } from '@/domain/entities/gameDataMode'
+import type { PersistedState } from '@/domain/entities/appState'
 import { CllpPageHeyf } from '@/shared/ui/CollapsiblePageHero'
 import { LiquidSelect, type SelectOption } from '@/shared/ui/LiquidSelect'
 import {
@@ -80,6 +83,157 @@ function waitForNextP(): Promise<void> {
   })
 }
 
+interface ModeCatalogIds {
+  resonators: Set<string>
+  weapons: Set<string>
+  echoes: Set<string>
+  sets: Set<string>
+  enemies: Set<string>
+}
+
+async function fetchJsonArray(path: string): Promise<unknown[]> {
+  const response = await fetch(path)
+  return await response.json() as unknown[]
+}
+
+function idSet(entries: unknown[]): Set<string> {
+  return new Set(entries.flatMap((entry) => {
+    if (!entry || typeof entry !== 'object' || !('id' in entry)) {
+      return []
+    }
+
+    const id = (entry as { id?: unknown }).id
+    return id == null ? [] : [String(id)]
+  }))
+}
+
+async function loadModeCatalogIds(mode: GameDataMode): Promise<ModeCatalogIds> {
+  const [resonators, weapons, echoes, sets, enemies] = await Promise.all([
+    fetchJsonArray(`/data/${mode}/resonators/catalog.json`),
+    fetchJsonArray(`/data/${mode}/weapons/catalog.json`),
+    fetchJsonArray(`/data/${mode}/echoes/catalog.json`),
+    fetchJsonArray(`/data/${mode}/sonata/sets.json`),
+    fetchJsonArray(`/data/${mode}/enemies/catalog.json`),
+  ])
+
+  return {
+    resonators: idSet(resonators),
+    weapons: idSet(weapons),
+    echoes: idSet(echoes),
+    sets: idSet(sets),
+    enemies: idSet(enemies),
+  }
+}
+
+function summarizeModeCleanup(
+    snapshot: PersistedState,
+    catalog: ModeCatalogIds,
+): string[] {
+  const counts = new Map<string, number>()
+  const add = (label: string, count = 1) => {
+    if (count > 0) {
+      counts.set(label, (counts.get(label) ?? 0) + count)
+    }
+  }
+  const hasRes = (id: string | null | undefined) => !!id && catalog.resonators.has(String(id))
+  const hasWeapon = (id: string | null | undefined) => !id || catalog.weapons.has(String(id))
+  const hasEcho = (id: string | null | undefined) => !!id && catalog.echoes.has(String(id))
+  const hasSet = (id: number | string | null | undefined) => id != null && catalog.sets.has(String(id))
+
+  const session = snapshot.calculator.session
+  if (!hasRes(session.activeResonatorId)) {
+    add('active resonator reset')
+  }
+  if (
+    session.enemyProfile.source === 'catalog'
+    && session.enemyProfile.id
+    && !catalog.enemies.has(String(session.enemyProfile.id))
+  ) {
+    add('enemy profile reset')
+  }
+
+  for (const profile of Object.values(snapshot.calculator.profiles)) {
+    if (!hasRes(profile.resonatorId)) {
+      add('profile hidden')
+      continue
+    }
+
+    if (!hasWeapon(profile.runtime.build.weapon.id)) {
+      add('profile weapon reset')
+    }
+    for (const echo of profile.runtime.build.echoes) {
+      if (!echo) continue
+      if (!hasEcho(echo.id)) add('equipped echo hidden')
+      else if (!hasSet(echo.set)) add('equipped echo set reset')
+    }
+    for (const teammateId of profile.runtime.team.slice(1)) {
+      if (teammateId && !hasRes(teammateId)) add('teammate slot hidden')
+    }
+    for (const teamRuntime of profile.runtime.teamRuntimes) {
+      if (teamRuntime && !hasRes(teamRuntime.id)) add('teammate runtime hidden')
+    }
+    for (const setId of Object.keys(profile.runtime.local.setConditionals.off)) {
+      if (!hasSet(setId)) add('set conditional ignored')
+    }
+  }
+
+  for (const entry of snapshot.calculator.inventoryEchoes) {
+    if (!hasEcho(entry.echo.id)) add('inventory echo hidden')
+    else if (!hasSet(entry.echo.set)) add('inventory echo set reset')
+  }
+  for (const entry of snapshot.calculator.inventoryBuilds) {
+    if (!hasRes(entry.resonatorId)) {
+      add('saved build hidden')
+      continue
+    }
+    if (!hasWeapon(entry.build.weapon.id)) add('saved build weapon reset')
+    for (const echo of entry.build.echoes) {
+      if (!echo) continue
+      if (!hasEcho(echo.id)) add('saved build echo hidden')
+      else if (!hasSet(echo.set)) add('saved build echo set reset')
+    }
+  }
+  for (const entry of snapshot.calculator.inventoryRotations) {
+    if (!hasRes(entry.resonatorId)) {
+      add('saved rotation hidden')
+      continue
+    }
+    for (const teammateId of entry.team?.slice(1) ?? []) {
+      if (teammateId && !hasRes(teammateId)) add('saved rotation teammate hidden')
+    }
+    if (entry.snapshot && !hasRes(entry.snapshot.resonatorId)) {
+      add('saved rotation snapshot ignored')
+    }
+  }
+  if (
+    snapshot.calculator.optimizerContext
+    && (
+      !hasRes(snapshot.calculator.optimizerContext.resonatorId)
+      || snapshot.calculator.optimizerContext.runtime.id !== snapshot.calculator.optimizerContext.resonatorId
+      || !hasRes(snapshot.calculator.optimizerContext.runtime.id)
+    )
+  ) {
+    add('optimizer context ignored')
+  }
+  for (const weaponId of Object.keys(snapshot.calculator.weaponSuggests.states)) {
+    if (!catalog.weapons.has(String(weaponId))) add('weapon suggestion config hidden')
+  }
+  for (const [resonatorId, suggestion] of Object.entries(snapshot.calculator.suggestionsByResonatorId)) {
+    if (!hasRes(resonatorId)) {
+      add('suggestion profile hidden')
+      continue
+    }
+    for (const preference of suggestion.random.setPreferences) {
+      if (!hasSet(preference.setId)) add('suggestion set preference ignored')
+    }
+    if (suggestion.random.mainEchoId && !hasEcho(suggestion.random.mainEchoId)) {
+      add('suggestion main echo ignored')
+    }
+  }
+
+  return Array.from(counts.entries()).map(([label, count]) => `${count} ${label}${count === 1 ? '' : 's'}`)
+}
+
 export function SettingsPage() {
   const ui = useAppStore((state) => state.ui)
   const setTheme = useAppStore((state) => state.setTheme)
@@ -94,6 +248,7 @@ export function SettingsPage() {
   const setNtrnNmtn = useAppStore((state) => state.setEntrAnim)
   const setCtxMenu = useAppStore((state) => state.setCtxMenu)
   const setUpdTst = useAppStore((state) => state.setUpdToast)
+  const setGameBetaData = useAppStore((state) => state.setGameBetaData)
   const setRcmmMenuT = useAppStore((state) => state.setRecMenus)
   const setBenchStates = useAppStore((state) => state.setBenchStates)
   const setMaxResInit = useAppStore((state) => state.setMaxResInit)
@@ -151,12 +306,63 @@ export function SettingsPage() {
       ? presets
       : [{ value: drftFontName, label: drftFontName }, ...presets]
   }, [drftFontName, selFontIsPrs])
+
+  const onGameDataModeTgl = (enabled: boolean) => {
+    void (async () => {
+      if (enabled === useAppStore.getState().ui.preferences.gameBetaData) {
+        return
+      }
+
+      const targetMode = gameDataModeFromBeta(enabled)
+      const snapshot = selectPersisted(useAppStore.getState())
+
+      try {
+        const cleanup = summarizeModeCleanup(snapshot, await loadModeCatalogIds(targetMode))
+
+        confirmation.confirm({
+          title: `Switch to ${targetMode} game data?`,
+          message: (
+            <div>
+              <p>The app will reload after switching data mode.</p>
+              {cleanup.length > 0 ? (
+                <>
+                  <p>Persisted entries missing from {targetMode} data will be hidden, ignored, or shown with defaults while this mode is loaded:</p>
+                  <ul>
+                    {cleanup.map((line) => (
+                      <li key={line}>{line}</li>
+                    ))}
+                  </ul>
+                </>
+              ) : (
+                <p>No missing persisted catalog entries were found for {targetMode} data.</p>
+              )}
+            </div>
+          ),
+          confirmLabel: 'Switch and reload',
+          cancelLabel: 'Stay here',
+          variant: cleanup.length > 0 ? 'danger' : 'info',
+          onConfirm: () => {
+            setGameBetaData(enabled)
+            saveAppState(selectPersisted(useAppStore.getState()), { domains: ['ui.layout'] })
+            window.location.reload()
+          },
+        })
+      } catch (error) {
+        showToast({
+          content: error instanceof Error ? error.message : `Failed to inspect ${targetMode} game data.`,
+          variant: 'error',
+        })
+      }
+    })()
+  }
+
   const prefGrps = mkPrefGrps({
     ui,
     setBlurMode,
     setNtrnAnim: setNtrnNmtn,
     setCtxMenu,
     setPdtTst: setUpdTst,
+    setGameBetaData: onGameDataModeTgl,
     setRcmmMenyu: setRcmmMenuT,
     setBenchStates,
     setMaxResInit,
@@ -164,6 +370,7 @@ export function SettingsPage() {
     setHistMax: setHistMax,
     setCmpcInv: setCmpcInv,
     setSeeQppd: setSeeQppd,
+    setCmprXprts: useAppStore.getState().setCmprXprts,
   })
 
   const mkCurSnapJso = () => {
@@ -227,14 +434,8 @@ export function SettingsPage() {
     }
   }, [drftFontName, drftFontUrl, ui.bodyFontName, ui.bodyFontUrl])
 
-  const dwnlJsonFile = (raw: string, filename: string) => {
-    const blob = new Blob([raw], { type: 'application/json' })
-    const url = URL.createObjectURL(blob)
-    const link = document.createElement('a')
-    link.href = url
-    link.download = filename
-    link.click()
-    URL.revokeObjectURL(url)
+  const dwnlJsonFile = async (raw: string, filename: string) => {
+    return xprtAppFile(filename, raw)
   }
 
   const clearAllData = () => {
@@ -243,25 +444,25 @@ export function SettingsPage() {
     window.location.href = '/'
   }
 
-  const onXprtSnap = () => {
+  const onXprtSnap = async () => {
     ensInvHydr()
     const raw = mkCurSnapJso()
     const filename = `wwcalc-backup-${new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19)}.json`
-    dwnlJsonFile(raw, filename)
+    const written = await dwnlJsonFile(raw, filename)
 
     setSnpsJson(raw)
     setSnpsRrr(null)
-    setSnpsStts(`Exported current snapshot to ${filename}.`)
+    setSnpsStts(`Exported current snapshot to ${written}.`)
   }
 
-  const onXprtDataBn = (kind: typeof DATAXPRTCTNS[number]['kind']) => {
+  const onXprtDataBn = async (kind: typeof DATAXPRTCTNS[number]['kind']) => {
     try {
       ensInvHydr()
       const result = mkDataXprtFi(useAppStore.getState(), kind)
-      dwnlJsonFile(result.raw, result.fileName)
+      const written = await dwnlJsonFile(result.raw, result.fileName)
       setSnpsJson(result.raw)
       setSnpsRrr(null)
-      setSnpsStts(`Exported ${result.label} to ${result.fileName}.`)
+      setSnpsStts(`Exported ${result.label} to ${written}.`)
     } catch (error) {
       setSnpsStts(null)
       setSnpsRrr(error instanceof Error ? error.message : 'Data export failed.')
@@ -458,7 +659,7 @@ export function SettingsPage() {
     const file = event.target.files?.[0]
     if (!file) return
 
-    const raw = await file.text()
+    const raw = await readAppFile(file)
     setSnpsJson(raw)
     setSnpsStts(null)
     setSnpsRrr(null)
@@ -505,7 +706,7 @@ export function SettingsPage() {
     const file = event.target.files?.[0]
     if (!file) return
 
-    const raw = await file.text()
+    const raw = await readAppFile(file)
     setLgcyMprtJ(raw)
     setLgcyMprtS(null)
     setLgcyMprtR(null)
@@ -901,7 +1102,7 @@ export function SettingsPage() {
               </div>
 
               <div className="settings-storage-badge">
-                <Layers size={12} />
+                <Layers size="0.75rem" />
                 Storage key: {APP_STORAGE_KEY}
               </div>
 
@@ -953,7 +1154,7 @@ export function SettingsPage() {
               <div className="settings-dropzone">
                 <input
                     type="file"
-                    accept=".json,application/json"
+                    accept=".json,.wwcalc,application/json"
                     onChange={onSnapFileCh}
                 />
                 <div className="settings-dropzone-text">
@@ -994,7 +1195,7 @@ export function SettingsPage() {
                 <div className="settings-dropzone">
                   <input
                       type="file"
-                      accept=".json,application/json"
+                      accept=".json,.wwcalc,application/json"
                       onChange={onLegFileChn}
                   />
                   <div className="settings-dropzone-text">

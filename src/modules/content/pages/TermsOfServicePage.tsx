@@ -20,7 +20,7 @@ export function TrmsOfSrvcPa() {
         layoutKey="terms-hero"
         trailing={
           <button type="button" className="page-back-btn" onClick={() => navigate(-1)}>
-            <ChevronLeft size={14} />
+            <ChevronLeft size="0.875rem" />
             Back
           </button>
         }

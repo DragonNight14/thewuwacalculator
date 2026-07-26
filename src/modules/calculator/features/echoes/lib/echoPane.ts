@@ -9,6 +9,7 @@ import { makeEchoUid } from '@/domain/entities/runtime.ts'
 import { getEchoById } from '@/domain/services/echoCatalogService.ts'
 import { ECHO_MAIN_STATS, ECHO_SIDE_STATS } from '@/data/gameData/catalog/echoStats.ts'
 import { formatStatKeyLabel, formatStatKeyValue, STAT_ICON_MAP } from '@/modules/calculator/model/statsView.ts'
+import { echoStatIconSrc } from '@/modules/calculator/features/echoes/lib/statGlyph.tsx'
 
 // map internal stat keys to the shorter ui display labels
 export function fmtEchoStatL(key: string): string {
@@ -22,7 +23,7 @@ export function fmtEchoStatV(key: string, value: number): string {
 
 // resolve the stat icon asset used by the echo pane's mask icon
 export function getEchoStatI(key: string): string | undefined {
-  return STAT_ICON_MAP[formatStatKeyLabel(key, 'bonus')]
+  return echoStatIconSrc(key) ?? STAT_ICON_MAP[formatStatKeyLabel(key, 'bonus')]
 }
 
 // build a default echo instance for a picked catalog echo and slot

@@ -8,9 +8,12 @@ import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import { BrowserRouter as BrwsRtr } from 'react-router-dom'
 import { initGameData } from '@/data/gameData/index'
+import { readPersistedGameDataMode } from '@/infra/persistence/gameDataMode'
 import '@/index.css'
 
-initGameData().then(async () => {
+const gameDataMode = readPersistedGameDataMode()
+
+initGameData({ mode: gameDataMode }).then(async () => {
   const [{ AppRoot }, { AppProviders }] = await Promise.all([
     import('@/app/AppRoot'),
     import('@/app/providers/AppProviders'),
@@ -25,6 +28,9 @@ initGameData().then(async () => {
       </BrwsRtr>
     </StrictMode>,
   )
+
+  // field telemetry loads after mount so it never delays first paint.
+  import('@/shared/lib/webVitals').then(({ initWebVitals }) => initWebVitals())
 }).catch((error) => {
   console.error('Failed to load game data:', error)
   const root = document.getElementById('root')!

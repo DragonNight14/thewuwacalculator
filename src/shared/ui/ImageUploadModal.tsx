@@ -103,7 +103,7 @@ function UploadBody({ title, initialCredit, onClose, onApply }: { title: string;
       <header className="iu-head">
           <h2 className="iu-title">{title}</h2>
           <button type="button" className="iu-close" aria-label="Close" onClick={onClose}>
-            <X size={16} aria-hidden="true" />
+            <X size="1rem" aria-hidden="true" />
           </button>
         </header>
 

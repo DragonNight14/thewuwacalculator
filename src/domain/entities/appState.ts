@@ -22,7 +22,6 @@ export type ThemeMode = 'light' | 'dark' | 'background'
 export type ThemePref = 'system' | ThemeMode
 export const HIST_MAX_OPTS = [5, 10, 25, 50, 75, 100] as const
 export type HistoryMax = typeof HIST_MAX_OPTS[number]
-export const PICK_FREQ_MAX = 3 as const
 export const PICK_FREQ_WEPS = [
   'broadblade',
   'sword',
@@ -34,9 +33,28 @@ export type PickFreqWeapon = typeof PICK_FREQ_WEPS[number]
 export const PICK_FREQ_TEAM = ['active', 'teammate1', 'teammate2'] as const
 export type PckrFreqTeam = typeof PICK_FREQ_TEAM[number]
 
+export interface PckrFreqItmS {
+  id: string
+  count: number
+  firstUsedAt: string | null
+  lastUsedAt: string | null
+  previousUsedAt: string | null
+  firstUseSeq: number
+  lastUseSeq: number
+  usesByDay: Record<string, number>
+  firstActiveResonatorId: string | null
+  lastActiveResonatorId: string | null
+  previousActiveResonatorId: string | null
+  usesByActiveResonator: Record<string, number>
+}
+
 export interface PckrFreqBktS {
-  ids: string[]
-  counts: Record<string, number>
+  version: 2
+  totalUses: number
+  firstUsedAt: string | null
+  lastUsedAt: string | null
+  order: string[]
+  items: Record<string, PckrFreqItmS>
 }
 
 export interface PckrFreqStt {
@@ -51,16 +69,19 @@ export type PckrFreqUpd =
   | {
     bucket: 'resonator' | 'echo' | 'enemy'
     ids: string[]
+    activeResonatorId?: string | null
   }
   | {
     bucket: 'weapon'
     weaponType: PickFreqWeapon
     ids: string[]
+    activeResonatorId?: string | null
   }
   | {
     bucket: 'teamResonator'
     slot: PckrFreqTeam
     ids: string[]
+    activeResonatorId?: string | null
   }
 
 // shared unset enemy id
@@ -139,6 +160,7 @@ export interface UiState {
   itemFreq: PckrFreqStt
   optimizerCpuHintSeen: boolean
   optimizerUseSprite: boolean
+  compressedExports: boolean
   savedRotationPreferences: {
     sortBy: 'date' | 'name' | 'avg' | 'dps'
     sortOrder: 'asc' | 'desc'

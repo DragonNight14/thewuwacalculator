@@ -4,6 +4,7 @@
                for cross-surface clipboard copy and paste workflows.
 */
 
+import { decShareText, encShareText } from '@/shared/lib/shareCodec.ts'
 import type { ManualBuffs, MnlMod } from '@/domain/entities/manualBuffs.ts'
 import { mnlBffsSchm } from '@/domain/state/manualBuffsSchema.ts'
 import {
@@ -60,7 +61,7 @@ export function makeModClip(
 export function serMnlModClp(
     payload: MnlModClpbPa,
 ): string {
-  return JSON.stringify({
+  return encShareText({
     ...payload,
     modifiers: cloneMnlMdfr(payload.modifiers),
   })
@@ -72,7 +73,11 @@ export function prsMnlModClp(raw: string): MnlModClpbPa | null {
   }
 
   try {
-    const parsed = JSON.parse(raw) as Record<string, unknown>
+    const jsonText = decShareText(raw)
+    if (!jsonText) {
+      return null
+    }
+    const parsed = JSON.parse(jsonText) as Record<string, unknown>
 
     if (
       parsed.kind !== MOD_CLIP_KIND ||

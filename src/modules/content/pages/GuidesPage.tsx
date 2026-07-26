@@ -815,7 +815,7 @@ function ChptRdr({
             aria-label="Close chapter"
           >
             <span>Close</span>
-            <X size={14} aria-hidden="true" />
+            <X size="0.875rem" aria-hidden="true" />
           </button>
         </header>
 
@@ -901,7 +901,7 @@ function ChptRdr({
 
             <footer className="guide-reader__footer">
               <button type="button" className="guide-reader__close guide-reader__close--bottom" onClick={onClose}>
-                <X size={14} aria-hidden="true" />
+                <X size="0.875rem" aria-hidden="true" />
                 <span>Close · § {number}</span>
               </button>
             </footer>
@@ -999,7 +999,7 @@ function GuideSearch({ onSelectHit }: { onSelectHit: (hit: GdSrchHit) => void })
   return (
     <div ref={rootRef} className="guide-search" role="search">
       <div className="guide-search__field" data-open={popoverOpen || undefined}>
-        <Search size={16} className="guide-search__icon" aria-hidden="true" />
+        <Search size="1rem" className="guide-search__icon" aria-hidden="true" />
         <input
           ref={inputRef}
           type="search"
@@ -1181,7 +1181,7 @@ function RdrChipStrp({
               exit={{ opacity: 0 }}
               transition={CNTNFADEFAST}
             >
-              <Search size={16} className="guide-search__icon" aria-hidden="true" />
+              <Search size="1rem" className="guide-search__icon" aria-hidden="true" />
               <input
                 ref={inputRef}
                 type="search"
@@ -1225,7 +1225,7 @@ function RdrChipStrp({
                 transition={CELL_TRNS}
                 aria-label="Back to all chapters"
               >
-                <ChevronLeft size={14} aria-hidden="true" />
+                <ChevronLeft size="0.875rem" aria-hidden="true" />
                 <span>All chapters</span>
               </motion.button>
               <button
@@ -1235,7 +1235,7 @@ function RdrChipStrp({
                 onClick={openSearch}
                 aria-label={trimmed ? `open search, current query ${trimmed}` : 'open search'}
               >
-                <Search size={14} aria-hidden="true" />
+                <Search size="0.875rem" aria-hidden="true" />
                 {trimmed ? (
                   <span className="guide-chip-search__query">{trimmed}</span>
                 ) : (

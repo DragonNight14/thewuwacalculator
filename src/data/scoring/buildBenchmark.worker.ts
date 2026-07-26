@@ -81,7 +81,7 @@ scope.onmessage = async (event: MessageEvent<BenchWorkerIn>) => {
   const message = event.data
 
   try {
-    await initGameData()
+    await initGameData({ mode: message.gameDataMode })
     // Rehydrate persisted anchors before the first search so a cold worker (idle
     // teardown / page reload) can re-score from disk instead of re-searching.
     await ensureAnchorStoreHydrated()

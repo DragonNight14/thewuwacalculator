@@ -55,6 +55,16 @@ import {
 } from '@/engine/optimizer/config/constants.ts'
 import { getTuneLevel } from '@/engine/formulas/tuneRupture.ts'
 import { encSkllId } from '@/engine/optimizer/encode/skillId.ts'
+import {
+  calcJingranFireOfLifeMultiplier,
+  getJingranFortune,
+  hasJingranEverflow,
+  JINGRAN_EVERFLOW_BIT,
+  JINGRAN_FIRE_OF_LIFE_BIT,
+  JINGRAN_FORTUNE_MASK,
+  JINGRAN_FORTUNE_SHIFT,
+  packJingranLibLevel,
+} from '@/engine/optimizer/jingran.ts'
 
 // encode a few resonator-specific runtime toggles into a bitmask
 function mkSpecTggl(runtime: ResRuntime, characterId: number): number {
@@ -74,6 +84,24 @@ function mkSpecTggl(runtime: ResRuntime, characterId: number): number {
 
   if (characterId === 1505 && runtime.state.controls['resonator:1505:supernal_stellarealm:active']) {
     toggles |= 1 << 2
+  }
+
+  if (characterId === 1212) {
+    const fortune = Number(runtime.state.controls['resonator:1212:fortune_in_disguise:stacks'] ?? 0)
+    toggles |= (Math.max(0, Math.min(JINGRAN_FORTUNE_MASK, Math.trunc(fortune))) << JINGRAN_FORTUNE_SHIFT)
+
+    toggles |= packJingranLibLevel(runtime.base.skillLevels.resonanceLiberation)
+
+    if (
+      runtime.state.controls['resonator:1212:yinghuo:active'] &&
+      runtime.state.controls['resonator:1212:fire_of_life:active']
+    ) {
+      toggles |= JINGRAN_FIRE_OF_LIFE_BIT
+    }
+
+    if (runtime.state.controls['sequence:1212:s3:active']) {
+      toggles |= JINGRAN_EVERFLOW_BIT
+    }
   }
 
   return toggles >>> 0
@@ -168,6 +196,24 @@ function calcShoreCritDmg(characterId: number, finalER: number, innerOn: boolean
   return Math.min(Math.max(0, finalER * 0.1), 25)
 }
 
+function calcJingranAtk(characterId: number, sequence: number, finalHp: number, everflowOn: boolean): number {
+  if (characterId !== 1212) {
+    return 0
+  }
+
+  return sequence >= 3 && everflowOn
+    ? Math.min(Math.max(0, finalHp * 0.072), 2520)
+    : Math.min(Math.max(0, finalHp * 0.052), 1820)
+}
+
+function calcJingranFusion(characterId: number, finalHp: number, fortuneStacks: number): number {
+  if (characterId !== 1212 || fortuneStacks <= 0) {
+    return 0
+  }
+
+  return Math.min(Math.max(0, finalHp * 0.00008), 2.8) * fortuneStacks
+}
+
 // remove special resonator-side conversions so packed context stores normalized base terms
 function normPckdCtx(options: {
   compiled: CompTargetSkill
@@ -190,6 +236,18 @@ function normPckdCtx(options: {
   let critDmg = compiled.statCritDmg
 
   finalAtk -= calcErToAtk(compiled.characterId, compiled.statFinEr, toggle0)
+  finalAtk -= calcJingranAtk(
+      compiled.characterId,
+      compiled.sequence,
+      compiled.statFinHp,
+      hasJingranEverflow(toggles),
+  )
+
+  dmgBonus -= calcJingranFusion(
+      compiled.characterId,
+      compiled.statFinHp,
+      getJingranFortune(toggles),
+  )
 
   critDmg -= calcCritConvert(
       compiled.characterId,
@@ -327,6 +385,12 @@ export function packTargetCtx(options: {
   const ttlHitScl = compiled.hitScale > 0 ? compiled.hitScale : compiled.multiplier
   const ttlHitCnt = Math.max(1, compiled.hitCount || 1)
   const toggles = mkSpecTggl(runtime, compiled.characterId)
+  const skillId = encSkllId({
+    label: skill.label,
+    skillType: skill.skillType,
+    tab: skill.tab,
+    element: skill.element,
+  })
 
   const normalized = normPckdCtx({
     compiled,
@@ -336,7 +400,12 @@ export function packTargetCtx(options: {
 
   const archetype = compiled.archetype
 
-  let pckdMltp = ttlHitScl
+  let pckdMltp = ttlHitScl - calcJingranFireOfLifeMultiplier(
+      compiled.characterId,
+      skillId,
+      compiled.statFinHp,
+      toggles,
+  )
   let pckdFlatDmg = (compiled.statFlatDmg + compiled.flat) * ttlHitCnt
   let pckdDmgBns = 1 + (normalized.dmgBonus / 100)
   let pckdMplf = 1 + (compiled.statAmp / 100)
@@ -378,13 +447,6 @@ export function packTargetCtx(options: {
     default:
       break
   }
-
-  const skillId = encSkllId({
-    label: skill.label,
-    skillType: skill.skillType,
-    tab: skill.tab,
-    element: skill.element,
-  })
 
   out[BASE_ATK] = compiled.baseAtk
   out[BASE_HP] = compiled.baseHp

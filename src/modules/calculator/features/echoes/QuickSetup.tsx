@@ -401,7 +401,7 @@ export function QuickSetup({
                   )}
                   {mainEchoInvalid ? (
                     <span className="eqs-lead__invalid" aria-hidden>
-                      <TriangleAlert size={12} strokeWidth={2.6} />
+                      <TriangleAlert size="0.75rem" strokeWidth={2.6} />
                     </span>
                   ) : null}
                 </button>
@@ -452,7 +452,7 @@ export function QuickSetup({
                   {config.setPreferences.map((pref) => (
                     <div key={pref.setId} className="eqs-set">
                       <img
-                        src={getSntSetIco(pref.setId) ?? '/assets/default.webp'}
+                        src={getSntSetIco(pref.setId) ?? '/assets/game/default.webp'}
                         alt=""
                         className="eqs-set__icon"
                         loading="lazy"
@@ -477,7 +477,7 @@ export function QuickSetup({
                         aria-label={`Remove ${getSntSetNam(pref.setId)}`}
                         onClick={() => removeSet(pref.setId)}
                       >
-                        <X size={12} />
+                        <X size="0.75rem" />
                       </button>
                     </div>
                   ))}
@@ -569,7 +569,7 @@ export function QuickSetup({
                         aria-label="Remove template"
                         onClick={() => removeSubGroup(groupIndex)}
                       >
-                        <X size={13} />
+                        <X size="0.8125rem" />
                       </button>
                     </div>
                     <div className="eqs-tmpl__body">
@@ -595,7 +595,7 @@ export function QuickSetup({
                                 aria-label="Lower value"
                                 onClick={() => stepSubValue(groupIndex, subIndex, -1)}
                               >
-                                <Minus size={12} />
+                                <Minus size="0.75rem" />
                               </button>
                               <span className="eqs-step__val">{fmtEchoStatV(entry.key, entry.value)}</span>
                               <button
@@ -605,7 +605,7 @@ export function QuickSetup({
                                 aria-label="Higher value"
                                 onClick={() => stepSubValue(groupIndex, subIndex, 1)}
                               >
-                                <Plus size={12} />
+                                <Plus size="0.75rem" />
                               </button>
                             </div>
                             <button
@@ -614,7 +614,7 @@ export function QuickSetup({
                               aria-label="Remove substat"
                               onClick={() => removeSubstat(groupIndex, subIndex)}
                             >
-                              <X size={12} />
+                              <X size="0.75rem" />
                             </button>
                           </div>
                         )
@@ -625,7 +625,7 @@ export function QuickSetup({
                           className="eqs-subadd"
                           onClick={() => addSubstat(groupIndex)}
                         >
-                          <Plus size={13} aria-hidden />
+                          <Plus size="0.8125rem" aria-hidden />
                           Substat
                         </button>
                       ) : null}
@@ -635,7 +635,7 @@ export function QuickSetup({
               })}
               {config.substatGroups.length < config.echoCount ? (
                 <button type="button" className="eqs-tmpl eqs-tmpl--add" onClick={addSubGroup}>
-                  <Plus size={18} aria-hidden />
+                  <Plus size="1.125rem" aria-hidden />
                   <span>New template</span>
                 </button>
               ) : null}
@@ -657,7 +657,7 @@ export function QuickSetup({
               className="bp-btn bp-btn--ghost"
               onClick={() => setConfig(makeQuickConfig(currentEchoes))}
             >
-              <RotateCcw size={15} aria-hidden="true" />
+              <RotateCcw size="1rem" aria-hidden="true" />
               Reset
             </button>
             <button
@@ -665,11 +665,11 @@ export function QuickSetup({
               className="bp-btn bp-btn--ghost"
               onClick={() => setConfig(makeQuickConfig())}
             >
-              <X size={15} aria-hidden="true" />
+              <X size="1rem" aria-hidden="true" />
               Clear All
             </button>
             <button type="button" className="bp-btn bp-btn--primary" onClick={generate}>
-              <Dices size={16} aria-hidden="true" />
+              <Dices size="1rem" aria-hidden="true" />
               Generate Build
             </button>
           </div>

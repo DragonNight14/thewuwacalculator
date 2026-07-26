@@ -1033,7 +1033,7 @@ export function DocsPage() {
       <div className="docs-console">
         <div ref={searchRef} className="guide-search" role="search">
           <div className="guide-search__field" data-open={popoverOpen || undefined}>
-            <Search size={16} className="guide-search__icon" aria-hidden="true" />
+            <Search size="1rem" className="guide-search__icon" aria-hidden="true" />
             <input
               ref={inputRef}
               type="search"

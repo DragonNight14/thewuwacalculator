@@ -105,6 +105,11 @@ function googleAuthDevPlugin(env: GglAuthEnv): Plugin {
 
 export default defineConfig(({ mode }) => ({
   plugins: [react(), svgr(), googleAuthDevPlugin(buildGoogleAuthEnv(mode))],
+  // brotli-wasm resolves its .wasm asset through import.meta.url, which dep
+  // pre-bundling would break; excluding it lets vite serve the module as-is.
+  optimizeDeps: {
+    exclude: ['brotli-wasm'],
+  },
   test: {
     setupFiles: ['vitest.setup.ts'],
   },

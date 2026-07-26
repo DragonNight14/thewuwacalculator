@@ -23,7 +23,7 @@ export function NotFoundPage() {
         <p className="not-found-message">What were you looking for...?.</p>
 
         <button type="button" className="page-back-btn" title={'Calculator'} onClick={() => navigate('/calculator')}>
-          <TbGoGame size={14} />
+          <TbGoGame size="0.875rem" />
         </button>
       </div>
     </div>

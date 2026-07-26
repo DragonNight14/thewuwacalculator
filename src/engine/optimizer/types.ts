@@ -16,6 +16,7 @@ import type { SntSetConds } from '@/domain/entities/sonataSetConditionals'
 import type { WeaponPlanSet } from '@/domain/entities/suggestions'
 import type { FinalStats, ResBaseStats, SkillDef } from '@/domain/entities/stats'
 import type { GenWpn } from '@/domain/entities/weapon'
+import type { GameDataMode } from '@/domain/entities/gameDataMode'
 import type { SetDef } from '@/data/gameData/echoSets/effects'
 import type { EchoSttsCatD } from '@/data/gameData/catalog/echoStats'
 
@@ -151,6 +152,7 @@ export interface PrepOptShrdP {
 // distinguish transient catalog snapshots from saved calculator state.
 export interface OptStartPay {
   resonatorId: string
+  gameDataMode?: GameDataMode
   resSeed?: ResSeed
   staticData?: {
     gameDataReg: GameDataReg
@@ -311,6 +313,7 @@ export interface TheoryRow {
 // prepared target-skill theory run with fixed substat profiles and catalog rows
 export interface PrepTheoryTarget extends PrepOptShrdP {
   mode: 'theoryTarget'
+  gameDataMode?: GameDataMode
   staticData?: OptStartPay['staticData']
   theoryTotal: number
   runtime: ResRuntime
@@ -333,6 +336,7 @@ export interface PrepTheoryTarget extends PrepOptShrdP {
 // prepared rotation theory run with the same display/evaluation context shape
 export interface PrepTheoryRot extends PrepOptShrdP {
   mode: 'theoryRotation'
+  gameDataMode?: GameDataMode
   staticData?: OptStartPay['staticData']
   theoryTotal: number
   runtime: ResRuntime

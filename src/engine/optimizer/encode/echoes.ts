@@ -13,6 +13,7 @@ import type { EchoInstance, ResRuntime } from '@/domain/entities/runtime.ts'
 import type { AttributeKey, FinalStats, ResBaseStats, SkillTypeKey } from '@/domain/entities/stats.ts'
 import { getEchoById } from '@/domain/services/echoCatalogService.ts'
 import { evalCond, evalForm } from '@/engine/effects/evaluator.ts'
+import { countEchoSets } from '@/engine/pipeline/buildCombatContext.ts'
 import { ECHO_STAT_STRIDE, MAIN_BUFF_LEN } from '@/engine/optimizer/config/constants.ts'
 import type { OptTargetSkill } from '@/engine/optimizer/target/selectedSkill.ts'
 
@@ -662,6 +663,7 @@ export function mkMainEchoRo(options: {
 
     // simulate this echo being equipped as the current main echo
     const srcRt = mkMainEchoRt(runtime, echo)
+    const echoSetCounts = countEchoSets(srcRt.build.echoes)
 
     // only runtime-triggered echo effects can affect main-echo rows here
     const effects = listEffects(gameData, { type: 'echo', id: echo.id }, 'runtime')
@@ -683,7 +685,7 @@ export function mkMainEchoRo(options: {
         activeResonatorId: runtime.id,
         teamMemberIds: teamMemIds,
         team,
-        echoSetCounts: {},
+        echoSetCounts,
         baseStats: srcBaseStats,
         finalStats: srcFnlStats,
         sourceFinalStats: srcFnlStats,
@@ -742,6 +744,7 @@ export function mkGnrcMainEc(options: {
   for (let index = 0; index < echoes.length; index += 1) {
     const echo = echoes[index]
     const srcRt = mkMainEchoRt(runtime, echo)
+    const echoSetCounts = countEchoSets(srcRt.build.echoes)
     const effects = listEffects(gameData, { type: 'echo', id: echo.id }, 'runtime')
 
     if (effects.length === 0) {
@@ -761,7 +764,7 @@ export function mkGnrcMainEc(options: {
         activeResonatorId: runtime.id,
         teamMemberIds: teamMemIds,
         team,
-        echoSetCounts: {},
+        echoSetCounts,
         baseStats: srcBaseStats,
         finalStats: srcFnlStats,
         sourceFinalStats: srcFnlStats,

@@ -319,7 +319,7 @@ export function SetCond(props: {
 
         <div className="ssc-toolbar">
           <div className="rotation-saved-filters__search">
-            <Search size={13} className="rotation-saved-filters__search-icon" />
+            <Search size="0.8125rem" className="rotation-saved-filters__search-icon" />
             <input
                 type="text"
                 className="rotation-saved-filters__search-input"

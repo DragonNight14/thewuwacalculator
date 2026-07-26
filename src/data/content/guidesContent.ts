@@ -228,17 +228,17 @@ export const gdCtgr: GuideCategory[] = [
             ['Run number', 'The current pass while nodes inside the loop are executing.'],
           ),
           image(
-            '/assets/guides/loop-forward.png',
+            '/assets/app/guides/loop-forward.png',
             'Forward loop boundary example in the rotation editor',
             'Forward loop. The end marker appears after the start marker, so the loop body is the range between them.'
           ),
           image(
-            '/assets/guides/loop-wrap-end.png',
+            '/assets/app/guides/loop-wrap-end.png',
             'Wrap end loop boundary example in the rotation editor',
             'Wrap end loop. The end marker appears before the start marker in the same list, so the body wraps across the list boundary.'
           ),
           image(
-            '/assets/guides/loop-wrap-start.png',
+            '/assets/app/guides/loop-wrap-start.png',
             'Wrap start loop boundary example in the rotation editor',
             'Wrap start loop. There is no end marker, so the loop starts at the start marker and continues until execution returns to it.'
           ),
@@ -515,6 +515,7 @@ export const gdCtgr: GuideCategory[] = [
             ['Recipe', 'A five-slot main-stat pattern.'],
             ['Locked slot', 'A slot kept at its current main stat while recipes are generated.'],
             ['Delta', 'The candidate result compared with the current build baseline.'],
+            ['Main Echo effect', 'The equipped main Echo passive is ignored for this comparison, including the baseline row.'],
             ['Rank row', 'One candidate recipe sorted by the selected objective.']
           ),
           steps(
@@ -534,12 +535,13 @@ export const gdCtgr: GuideCategory[] = [
           definitions(
             ['Set plan', 'A proposed sonata set assignment across the five equipped slots.'],
             ['Active set parts', 'The two-piece, three-piece, and five-piece effects created by the candidate plan.'],
+            ['Grouped row', 'Equivalent set effects with the same scored damage are shown together as set icons and piece counts.'],
             ['Current plan', 'The set ids currently equipped on the active build.']
           ),
           steps(
             ['Select allowed sets', 'Choose which sonata sets can appear in generated plans.'],
             ['Set target', 'Pick the skill or rotation objective.'],
-            ['Read candidates', 'Compare the ranked set plans and their score or damage deltas.'],
+            ['Read candidates', 'Compare the ranked set plans and their score or damage deltas. Only set effects that changed the scored damage are shown.'],
             ['Apply plan', 'Write the selected set ids onto the equipped echo instances.']
           ),
         ),

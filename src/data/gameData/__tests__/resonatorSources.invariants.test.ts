@@ -7,13 +7,7 @@
 import { describe, expect, it } from 'vitest'
 import type { EffectScope, FormExpr, SrcPkg } from '@/domain/gameData/contracts'
 import { evalForm } from '@/engine/effects/evaluator'
-
-const sourceLoaders = import.meta.glob('../../../../public/data/resonator-sources.json', {
-  query: '?raw',
-  import: 'default',
-}) as Record<string, () => Promise<string>>
-
-const loadResonatorSources = sourceLoaders['../../../../public/data/resonator-sources.json']
+import resonatorSourcesRaw from '../../../../public/data/beta/resonators/sources.json?raw'
 
 function makeScope(havocBane: number): EffectScope {
   const runtime = {
@@ -41,8 +35,8 @@ function makeScope(havocBane: number): EffectScope {
 }
 
 describe('resonator source invariants', () => {
-  it('caps Xuanling Unbroken Vow at 66 amplify across six Havoc Bane stacks', async () => {
-    const sources = JSON.parse(await loadResonatorSources()) as SrcPkg[]
+  it('caps Xuanling Unbroken Vow at 66 amplify across six Havoc Bane stacks', () => {
+    const sources = JSON.parse(resonatorSourcesRaw) as SrcPkg[]
     const xuanling = sources.find((source) => source.source.id === '1610')
     expect(xuanling).toBeDefined()
 

@@ -8,6 +8,7 @@
   --ui-panel-card-divider-color: var(--border);
   --floating-bg: color-mix(in srgb, var(--surface-2, var(--panel, #1c2330)) 88%, transparent);
   --text: #1f2b3f;
+  --text-a: var(--text);
   --muted: #5b6b85;
   --accent: #20bfb9;
   --accent-2: #149fa9;
@@ -527,7 +528,6 @@ body.split-resizing * {
 :is(.no-entrance-anim, .reduce-animation) .calculator-hero-state-column > .calculator-hero-state-card,
 :is(.no-entrance-anim, .reduce-animation) .optimizer-pane > .sticky-wrapper,
 :is(.no-entrance-anim, .reduce-animation) .optimizer-pane > .optimizer-details,
-:is(.no-entrance-anim, .reduce-animation) .optimizer-pane > .sticky-controls,
 :is(.no-entrance-anim, .reduce-animation) .optimizer-details > .optimizer-character-settings,
 :is(.no-entrance-anim, .reduce-animation) .optimizer-details > .optimizer-search-results,
 :is(.no-entrance-anim, .reduce-animation) .calculator-results-pane > .results-pane-head,
@@ -539,7 +539,6 @@ body.split-resizing * {
 :is(.no-entrance-anim, .reduce-animation) .suggestions-pane > .suggestions-pane-header,
 :is(.no-entrance-anim, .reduce-animation) .suggestions-pane > .suggestions-controls,
 :is(.no-entrance-anim, .reduce-animation) .suggestions-pane > .suggestions-list,
-:is(.no-entrance-anim, .reduce-animation) .suggestions-list > .set-plan-card,
 :is(.no-entrance-anim, .reduce-animation) .suggestions-list > .main-stat-card,
 :is(.no-entrance-anim, .reduce-animation) .page-grid > *,
 :is(.no-entrance-anim, .reduce-animation) .page-hero,

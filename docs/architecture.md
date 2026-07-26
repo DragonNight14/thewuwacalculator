@@ -235,7 +235,7 @@ The shared execution model is:
 4. resolve skills, rows, and rotation outputs
 5. return user facing results or feed those results into ranking systems
 
-Suggestions reuse this runtime context to score main stat layouts, set plans, and generated echoes.
+Suggestions reuse this runtime context to score main stat layouts, set plans, and generated echoes. Main-stat and set-plan suggestion comparisons intentionally neutralize main-Echo passive bonus rows in both the candidate and baseline score so those surfaces rank only the requested change.
 
 Optimizer extends the same model by:
 

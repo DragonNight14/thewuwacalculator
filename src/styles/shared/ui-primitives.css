@@ -267,6 +267,12 @@
   width: 100%;
 }
 
+:where(button, [role='button'], summary, a) > svg:not(.ssc-checkmark-icon, .ssc-dash-icon, .wpncfg__checkmark-icon),
+:where(button, [role='button'], summary, a) > :where(span, div) > svg:not(.ssc-checkmark-icon, .ssc-dash-icon, .wpncfg__checkmark-icon),
+:where(.icon-slot, .tile-icon, .floating-context-menu__icon, .selection-focus-actions__icon, .toast-item__icon, .confirmation-modal__icon) > svg:not(.ssc-checkmark-icon, .ssc-dash-icon, .wpncfg__checkmark-icon) {
+  flex: 0 0 auto;
+}
+
 :is(.highlight:not(.effect-label-value, h1, h2, h3, h4), .echo-slot-title, .echo-name, .rich-description strong) {
   text-decoration: underline;
 }

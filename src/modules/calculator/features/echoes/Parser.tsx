@@ -160,7 +160,7 @@ export function Parser({
     id: 'parser:copy',
     key: 'copy' as const,
     needsSel: true,
-    icon: <Copy size={14} />,
+    icon: <Copy size="0.5rem" />,
     label: ({ count }: { count: number }) => `Copy (${count})`,
     title: 'Copy selected echoes (Ctrl/Cmd+C)',
     run: async ({ vals }: { vals: EchoInstance[] }) => {
@@ -213,7 +213,7 @@ export function Parser({
 
           <div className="echo-parser-body">
             <img
-              src="/assets/sample/sample-import-image.png"
+              src="/assets/app/samples/sample-import-image.png"
               alt="Sample Echo Import Format"
               className="echo-parser-sample-image"
               onError={hideBrknMg}

@@ -57,6 +57,11 @@ import {
   MAIN_BUFF_LEN,
   SET_SLOT_COUNT,
 } from '@/engine/optimizer/config/constants.ts'
+import {
+  calcJingranFireOfLifeMultiplier,
+  getJingranFortune,
+  hasJingranEverflow,
+} from '@/engine/optimizer/jingran.ts'
 
 // offsets for the packed per-echo stat rows
 const STAT_ATK_PCT = 0
@@ -100,10 +105,10 @@ const MAIN_COORD = 14
 const MAIN_CR = 15
 const MAIN_CD = 16
 const MAIN_DMG_BNS = 17
-
 interface PrepTgtCpuCt {
   // static values unpacked once from the target context buffer
   archetype: number
+  skillId: number
   skillMask: number
   elementIdx: number
   charId: number
@@ -111,6 +116,9 @@ interface PrepTgtCpuCt {
   toggle0: number
   shoreInner: boolean
   shoreSupernal: boolean
+  togglesBits: number
+  jingranFortune: number
+  jingranEverflow: boolean
   setRtMask: number
   st14FiveOn: boolean
   st33ChongmingOn: boolean
@@ -191,6 +199,18 @@ function calcShoreCritDmg(charId: number, finalER: number, innerOn: boolean, sup
   return Math.min(Math.max(0, finalER * 0.1), 25) / 100
 }
 
+function calcJingranAtk(charId: number, sequence: number, finalHp: number, everflowOn: boolean): number {
+  if (charId !== 1212) return 0
+  return sequence >= 3 && everflowOn
+    ? Math.min(Math.max(0, finalHp * 0.072), 2520)
+    : Math.min(Math.max(0, finalHp * 0.052), 1820)
+}
+
+function calcJingranFusion(charId: number, finalHp: number, fortuneStacks: number): number {
+  if (charId !== 1212 || fortuneStacks <= 0) return 0
+  return (Math.min(Math.max(0, finalHp * 0.00008), 2.8) * fortuneStacks) / 100
+}
+
 // select the matching elemental bonus bucket from base stats + set bonus
 function selSetElemBn(
     base: Float32Array,
@@ -260,6 +280,7 @@ function prprTgtCpuCt(context: Float32Array): PrepTgtCpuCt {
 
   const prepared: PrepTgtCpuCt = {
     archetype: context[ARCHETYPE],
+    skillId,
     skillMask,
     elementIdx: Math.max(0, Math.min(5, (skillId >>> 15) & 0x7)),
     charId: meta0 & 0xfff,
@@ -267,6 +288,9 @@ function prprTgtCpuCt(context: Float32Array): PrepTgtCpuCt {
     toggle0: (togglesBits & 1) ? 1 : 0,
     shoreInner: (togglesBits & (1 << 1)) !== 0,
     shoreSupernal: (togglesBits & (1 << 2)) !== 0,
+    togglesBits,
+    jingranFortune: getJingranFortune(togglesBits),
+    jingranEverflow: hasJingranEverflow(togglesBits),
     setRtMask: setRtMask,
     st14FiveOn: (setRtMask & SETRTTGLST14) !== 0,
     st33ChongmingOn: (setRtMask & SETRTTGLST33) !== 0,
@@ -400,11 +424,14 @@ export function evalTgtCpuCmPrepped(options: {
       setBonus.hpF +
       prepared.finalHp
 
-  const finalDefBase =
+  let finalDefBase =
       prepared.baseDef * ((base[STAT_DEF_PCT] + setBonus.defP) / 100) +
       base[STATDEFFLAT] +
       setBonus.defF +
       prepared.finalDef
+  if (prepared.charId === 1212) {
+    finalDefBase = 0
+  }
 
   const finalERBase = prepared.baseER + base[STAT_ER] + setBonus.erSetBonus
 
@@ -463,7 +490,8 @@ export function evalTgtCpuCmPrepped(options: {
     const dmgBonus =
         prepared.dmgBonus +
         (bonus / 100) +
-        (calcConvert(prepared.charId, finalER) * ((prepared.skillMask >>> 6) & 1))
+        (calcConvert(prepared.charId, finalER) * ((prepared.skillMask >>> 6) & 1)) +
+        calcJingranFusion(prepared.charId, finalHpBase, prepared.jingranFortune)
 
     // final atk depends on the chosen main echo's atk bonuses
     let finalAtk =
@@ -472,6 +500,12 @@ export function evalTgtCpuCmPrepped(options: {
         mainEchoBuffs[mainBase + MAINATKFLAT]
 
     finalAtk += calcErToAtk(prepared.charId, finalER, prepared.toggle0)
+    finalAtk += calcJingranAtk(
+        prepared.charId,
+        prepared.sequence,
+        finalHpBase,
+        prepared.jingranEverflow,
+    )
 
     // 1209-specific er-derived bonuses + main-echo cr/cd contributions
     // (the latter are %-typed top_stat operations, normalized to the same
@@ -586,8 +620,17 @@ export function evalTgtCpuCmPrepped(options: {
             prepared.dmgAmplify *
             prepared.aux0
 
+        const effectiveMultiplier =
+            prepared.multiplier +
+            calcJingranFireOfLifeMultiplier(
+                prepared.charId,
+                prepared.skillId,
+                finalHpBase,
+                prepared.togglesBits,
+            )
+
         const baseDamage =
-            (scaled * prepared.multiplier + prepared.flatDmg) *
+            (scaled * effectiveMultiplier + prepared.flatDmg) *
             baseMul *
             (dmgBonus + (mrnyDmgBns * prepared.toggle0))
 

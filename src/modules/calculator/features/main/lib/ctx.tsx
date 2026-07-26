@@ -232,7 +232,7 @@ export function CalcProv({
       {
         id: 'main-switch:picker',
         label: 'See all resonators',
-        icon: <SqrRrwUpRght size={15} />,
+        icon: <SqrRrwUpRght size="0.5rem" />,
         onSelect: openResPckr,
       },
     ]
@@ -244,7 +244,7 @@ export function CalcProv({
       label: option.label,
       icon: <img
           style={{ width: '15px', height: '15px' }}
-          src={`/assets/icons/${toolbarIconTheme}/${option.id}.png`}
+          src={`/assets/app/icons/${toolbarIconTheme}/${option.id}.png`}
           alt=""
           className="toolbar-icon-image"
           loading="lazy"

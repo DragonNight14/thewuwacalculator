@@ -4,12 +4,12 @@
                and main-echo runtime controls from the current loadout.
 */
 
-import { useMemo, type HTMLAttributes as HtmlAttrs } from 'react'
+import {useMemo, type HTMLAttributes as HtmlAttrs, type CSSProperties as CssProps} from 'react'
 import { ChevronDown } from 'lucide-react'
 import type { EchoInstance, ResRuntime } from '@/domain/entities/runtime.ts'
 import { getEchoById } from '@/domain/services/echoCatalogService.ts'
 import { listStatesFor } from '@/domain/services/gameDataService.ts'
-import { getSntSetNam, getSntSetIco } from '@/data/gameData/catalog/sonataSets.ts'
+import {getSntSetNam, getSntSetIco, getSntSetClr} from '@/data/gameData/catalog/sonataSets.ts'
 import { getEchoSetDe, getEchoSetCn } from '@/data/gameData/echoSets/effects.ts'
 import type { SetDef } from '@/data/gameData/echoSets/effects.ts'
 import { Expandable } from '@/shared/ui/Expandable.tsx'
@@ -166,7 +166,7 @@ export function EchoSlot({
                   onClick={(e) => { e.stopPropagation(); onTgglMainEc?.() }}
                   title="Toggle main echo details"
                 >
-                  <ChevronDown size={14} />
+                  <ChevronDown size="0.67rem" />
                 </button>
               ) : null}
               <button
@@ -176,7 +176,7 @@ export function EchoSlot({
                 onClick={onSave}
                 disabled={!canSave}
               >
-                <IoArchive size={14} />
+                <IoArchive size="0.67rem" />
               </button>
               <button
                 type="button"
@@ -184,7 +184,7 @@ export function EchoSlot({
                 title="Remove echo"
                 onClick={onRemove}
               >
-                <DeleteBinIcon size={14} />
+                <DeleteBinIcon size="0.67rem" />
               </button>
             </div>
           </div>
@@ -492,7 +492,7 @@ export function EchoSetBonus({
   }
 
   return (
-    <div className="echo-set-bonus">
+    <div className="echo-set-bonus" style={{ '--resonator-accent': getSntSetClr(setId) } as CssProps}>
       <div className="echo-set-bonus-header">
         <div className="echo-set-bonus-icon-wrap">
           {icon ? (

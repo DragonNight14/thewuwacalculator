@@ -213,11 +213,11 @@ export function WeaponPicker({
       ),
       trailing: isBis ?
           <span className="picker-modal__spec-item" title="Best in slot" aria-label="Best in slot weapon">
-            <FaStar size={12} />
+            <FaStar size="0.75rem" />
           </span>
         : isRecommended ? (
           <span className="picker-modal__spec-item" title="Recommended" aria-label="Recommended weapon">
-            <ThumbsUp size={12} />
+            <ThumbsUp size="0.75rem" />
           </span>
       ) : null,
       cornerNote: isSelected ? 'Equipped' : null,

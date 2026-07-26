@@ -484,7 +484,7 @@ export function Condition({
             onClick={() => setOwnerFilter('all')}
           >
             <span className="cnv-node__badge" aria-hidden>
-              <Sparkles size={14} />
+              <Sparkles size="0.875rem" />
             </span>
             <span className="cnv-node__label">All</span>
             <span className="cnv-node__count">{browserChoiceCount}</span>
@@ -501,16 +501,16 @@ export function Condition({
                 {owner.kind === 'resonator' ? (
                   <img
                     className="cnv-node__avatar"
-                    src={owner.profile || '/assets/default.webp'}
+                    src={owner.profile || '/assets/game/default.webp'}
                     alt=""
                     loading="lazy"
                     decoding="async"
                     onError={withDefIconM}
                   />
                 ) : owner.kind === 'enemy' ? (
-                  <Crosshair size={14} />
+                  <Crosshair size="0.875rem" />
                 ) : (
-                  <Repeat size={14} />
+                  <Repeat size="0.875rem" />
                 )}
               </span>
               <span className="cnv-node__label">{owner.label}</span>
@@ -522,7 +522,7 @@ export function Condition({
         <section className="cnv__browser">
           <header className="cnv__browser-head">
             <div className="cnv__search">
-              <Search size={14} aria-hidden />
+              <Search size="0.875rem" aria-hidden />
               <input
                 type="search"
                 value={query}
@@ -536,7 +536,7 @@ export function Condition({
                   aria-label="Clear search"
                   onClick={() => setQuery('')}
                 >
-                  <X size={13} />
+                  <X size="0.8125rem" />
                 </button>
               ) : null}
             </div>
@@ -559,7 +559,7 @@ export function Condition({
                       title={COND_KIND_META[kind].label}
                       onClick={() => setKindFilter((current) => (current === kind ? 'all' : kind))}
                     >
-                      <KindIcon size={12} aria-hidden />
+                      <KindIcon size="0.75rem" aria-hidden />
                       {COND_KIND_META[kind].label}
                     </button>
                   )
@@ -608,7 +608,7 @@ export function Condition({
                           onClick={() => toggleChoice(choice)}
                         >
                           <span className="cnv-tile__glyph" title={kindMeta.label} aria-hidden>
-                            <KindIcon size={13} />
+                            <KindIcon size="0.8125rem" />
                           </span>
                           <span className="cnv-tile__label">{getBrowserChoiceLabel(choice)}</span>
                           <span className="cnv-tile__mark" aria-hidden>{isOn ? '✓' : '+'}</span>
@@ -668,7 +668,7 @@ export function Condition({
                       <span className="cnv-card__index" aria-hidden>{String(rowIndex + 1).padStart(2, '0')}</span>
                       {kindMeta && KindIcon ? (
                         <span className="cnv-card__kind" title={kindMeta.label} aria-hidden>
-                          <KindIcon size={12} />
+                          <KindIcon size="0.75rem" />
                         </span>
                       ) : null}
                       <strong className="cnv-card__name">
@@ -681,7 +681,7 @@ export function Condition({
                         aria-label="Remove directive"
                         onClick={() => removeRow(row.id)}
                       >
-                        <X size={13} />
+                        <X size="0.8125rem" />
                       </button>
                     </div>
 
@@ -1168,7 +1168,7 @@ export function Loop({
                 className="rotation-loop-editor__add-btn"
                 onClick={() => addRow('start')}
               >
-                <Plus size={13} aria-hidden />
+                <Plus size="0.8125rem" aria-hidden />
                 Start
               </button>
               <button
@@ -1177,7 +1177,7 @@ export function Loop({
                 disabled={startRowsWth.length === 0}
                 onClick={() => addRow('end')}
               >
-                <Plus size={13} aria-hidden />
+                <Plus size="0.8125rem" aria-hidden />
                 End
               </button>
               <button
@@ -1186,7 +1186,7 @@ export function Loop({
                 disabled={rows.length === 0}
                 onClick={clearRows}
               >
-                <Trash2 size={13} aria-hidden />
+                <Trash2 size="0.8125rem" aria-hidden />
                 Clear
               </button>
             </div>
@@ -1221,7 +1221,7 @@ export function Loop({
                 >
                   <div className="rotation-loop-card__head">
                     <span className="rotation-loop-marker__badge">
-                      {row.kind === 'start' ? <Play fill="currentColor"/> : linkedStart ? <Square fill="currentColor"/> : <X />}
+                      {row.kind === 'start' ? <Play fill="currentColor" size="0.5rem" /> : linkedStart ? <Square fill="currentColor" size="0.5rem" /> : <X size="0.5rem" />}
                       {row.kind}
                     </span>
                     {row.kind === 'start' ? (
@@ -1308,7 +1308,7 @@ export function Loop({
                         removeRow(row.id)
                       }}
                     >
-                      <Trash2 size={14} />
+                      <Trash2 size="0.875rem" />
                     </button>
                   </div>
                 </article>
@@ -1349,7 +1349,7 @@ export function Loop({
                     style={!isPrstClr ? { backgroundColor: actRslvClr } : undefined}
                     onClick={() => setCstmClrOp((open) => !open)}
                   >
-                    {cstmClrOpen ? <Plus size={14}/> : <Minus size={14}/>}
+                    {cstmClrOpen ? <Plus size="0.875rem"/> : <Minus size="0.875rem"/>}
                   </button>
                 </div>
                 <div
@@ -1783,7 +1783,7 @@ export function When({
                       <div className="calculator-hero-state-source">
                         <span className="calculator-hero-state-source-frame">
                           <img
-                            src={group.srcProf || '/assets/default.webp'}
+                            src={group.srcProf || '/assets/game/default.webp'}
                             alt={group.sourceName}
                             className="calculator-hero-state-source-image"
                             loading="lazy"
@@ -1856,7 +1856,7 @@ export function When({
                   disabled={choices.length === 0}
                   onClick={addCondRow}
                 >
-                  <Plus size={13} aria-hidden />
+                  <Plus size="0.8125rem" aria-hidden />
                   <span>Add condition</span>
                 </button>
                 <button
@@ -1865,7 +1865,7 @@ export function When({
                   disabled={!hasWhenDraft}
                   onClick={rstCondRows}
                 >
-                  <RotateCcw size={13} aria-hidden />
+                  <RotateCcw size="0.8125rem" aria-hidden />
                   <span>Reset</span>
                 </button>
               </div>
@@ -1946,7 +1946,7 @@ export function When({
                           aria-label="Remove condition"
                           onClick={() => setCndtRows((current) => current.filter((entry) => entry.id !== row.id))}
                         >
-                          <X size={14} />
+                          <X size="0.875rem" />
                         </button>
                       </article>
                     )
@@ -2152,7 +2152,7 @@ export function NegFfct({
           <div className="rotation-negative-effect-summary">
             {attribute ? (
               <span className="rotation-negative-effect-summary__icon">
-                <img src={`/assets/attributes/attributes alt/${attribute}.webp`} alt="" aria-hidden="true" onError={withDefIconM} />
+                <img src={`/assets/game/attributes/icons/${attribute}.webp`} alt="" aria-hidden="true" onError={withDefIconM} />
               </span>
             ) : null}
             <div className="rotation-negative-effect-summary__copy">

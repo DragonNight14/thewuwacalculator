@@ -524,7 +524,7 @@ export function AlternativesTable({
                   <span className="bench-alt-cell">
                     <span className="bench-alt-cell-swap">
                       <SwapToken side={group.from} />
-                      <ChevronRight aria-hidden="true" size={12} />
+                      <ChevronRight aria-hidden="true" size="0.75rem" />
                       <span className="bench-swap-dest-list">
                         {group.to.map((side, index) => (
                           <span key={`${side.glyph}:${index}`} className="bench-swap-dest-item">
@@ -548,7 +548,7 @@ export function AlternativesTable({
                 <td className="num">
                   <span className="bench-score-change">
                     <span className="bench-score-change__old">{formatBuildBenchmarkScore(oldScore)}</span>
-                    <ChevronRight aria-hidden="true" size={12} />
+                    <ChevronRight aria-hidden="true" size="0.75rem" />
                     <span className={`bench-score-change__new bench-num--${deltaSign(alternative.scoreDelta)}`}>
                       {formatBuildBenchmarkScore(alternative.score)}
                     </span>

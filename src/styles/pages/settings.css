@@ -150,11 +150,13 @@
   display: flex;
   position: sticky;
   overflow-y: auto;
-  height: auto;
+
+  max-height: calc(100dvh - var(--toolbar-height) - 13rem - 1px);
   top: 0;
   flex-direction: column;
   gap: 0.75rem;
   align-self: start;
+  scrollbar-width: thin;
 }
 
 .settings-prefs-categories {
@@ -861,7 +863,7 @@
   .settings-prefs-panel {
     position: static;
     overflow: visible;
-    height: auto;
+    max-height: none;
   }
 }
 

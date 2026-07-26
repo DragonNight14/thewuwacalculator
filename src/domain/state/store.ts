@@ -201,7 +201,25 @@ function applyUiFreqP(
     return state
   }
 
-  const nextFreq = applyPckrFre(state.ui.itemFreq, updates)
+  const activeResonatorId = state.calculator.session.activeResonatorId ?? null
+  const contextualUpdates = updates.map((update): PckrFreqUpd => {
+    if (update.activeResonatorId !== undefined) {
+      return update
+    }
+
+    if (update.bucket === 'resonator' || (update.bucket === 'teamResonator' && update.slot === 'active')) {
+      return {
+        ...update,
+        activeResonatorId: null,
+      }
+    }
+
+    return {
+      ...update,
+      activeResonatorId,
+    }
+  })
+  const nextFreq = applyPckrFre(state.ui.itemFreq, contextualUpdates)
   if (nextFreq === state.ui.itemFreq) {
     return state
   }
@@ -260,6 +278,7 @@ export interface AppStore extends PersistedState {
   setEntrAnim: (enabled: boolean) => void
   setCtxMenu: (enabled: boolean) => void
   setUpdToast: (enabled: boolean) => void
+  setGameBetaData: (enabled: boolean) => void
   setRecMenus: (enabled: boolean) => void
   setBenchStates: (enabled: boolean) => void
   setMaxResInit: (enabled: boolean) => void
@@ -282,6 +301,7 @@ export interface AppStore extends PersistedState {
   setHistMax: (max: HistoryMax) => void
   setOptHint: (seen: boolean) => void
   setOptSprite: (useSprite: boolean) => void
+  setCmprXprts: (compressed: boolean) => void
   setRotPrefs: (
       updater: (
           preferences: UiState['savedRotationPreferences'],
@@ -917,6 +937,19 @@ export const useAppStore = create<AppStore>((set, get) => {
     }), { historyLabel: 'Changed Update Toast Mode' })
   },
 
+  setGameBetaData: (gameBetaData) => {
+    persistedSet(['ui.layout'], (state) => ({
+      ...state,
+      ui: {
+        ...state.ui,
+        preferences: {
+          ...state.ui.preferences,
+          gameBetaData,
+        },
+      },
+    }), { historyLabel: 'Changed Game Data Mode' })
+  },
+
   setRecMenus: (rcmmMenuTms) => {
     persistedSet(['ui.layout'], (state) => ({
       ...state,
@@ -1213,6 +1246,16 @@ export const useAppStore = create<AppStore>((set, get) => {
       ui: {
         ...state.ui,
         optimizerUseSprite: useSprite,
+      },
+    }))
+  },
+
+  setCmprXprts: (compressed) => {
+    persistedSet(['ui.layout'], (state) => ({
+      ...state,
+      ui: {
+        ...state.ui,
+        compressedExports: compressed,
       },
     }))
   },

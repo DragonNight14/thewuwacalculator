@@ -55,7 +55,7 @@ export function BenchmarkToolbar({
           aria-label={`Turn animated 2D portraits ${animatedPortraits ? 'off' : 'on'}`}
           onClick={() => onAnimatedPortraitsChange(!animatedPortraits)}
         >
-          <Sparkles aria-hidden="true" size={14} />
+          <Sparkles aria-hidden="true" size="0.875rem" />
           2D {animatedPortraits ? 'On' : 'Off'}
         </button>
         <div className="bench-mode-switch" role="group" aria-label="Build view">
@@ -65,7 +65,7 @@ export function BenchmarkToolbar({
             aria-pressed={viewMode === 'benchmark'}
             onClick={() => onViewModeChange('benchmark')}
           >
-            {viewMode === 'benchmark' && (<Gauge aria-hidden="true" size={14} />)}
+            {viewMode === 'benchmark' && (<Gauge aria-hidden="true" size="0.875rem" />)}
             Benchmark
           </button>
           <button
@@ -74,34 +74,34 @@ export function BenchmarkToolbar({
             aria-pressed={isShowcase}
             onClick={() => onViewModeChange('showcase')}
           >
-            {isShowcase && (<Eye aria-hidden="true" size={14} />)}
+            {isShowcase && (<Eye aria-hidden="true" size="0.875rem" />)}
             Showcase
           </button>
         </div>
         {canSwitch ? (
           <button type="button" className="bench-btn bench-btn--switch" onClick={onSwitch}>
-            <ArrowRightLeft aria-hidden="true" size={14} />
+            <ArrowRightLeft aria-hidden="true" size="0.875rem" />
             Switch
           </button>
         ) : null}
         {!isShowcase ? (
           <>
             <button type="button" className="bench-btn bench-btn--settings" onClick={onOpenReportSettings}>
-              <SlidersHorizontal aria-hidden="true" size={14} />
+              <SlidersHorizontal aria-hidden="true" size="0.875rem" />
               Report
             </button>
             <button type="button" className="bench-btn bench-btn--refresh" onClick={onRefresh}>
-              <RefreshCw aria-hidden="true" size={14} />
+              <RefreshCw aria-hidden="true" size="0.875rem" />
               Refresh
             </button>
           </>
         ) : null}
         <button type="button" className="bench-btn bench-btn--delete" disabled={!canDelete} onClick={onDelete}>
-          <Trash2 aria-hidden="true" size={14} />
+          <Trash2 aria-hidden="true" size="0.875rem" />
           Delete
         </button>
         <button type="button" className="bench-btn bench-btn--ghost" onClick={onClose}>
-          <X aria-hidden="true" size={14} />
+          <X aria-hidden="true" size="0.875rem" />
           Close
         </button>
       </div>

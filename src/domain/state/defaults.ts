@@ -36,7 +36,7 @@ import {
   DARK_THEMES,
   LIGHT_THEMES,
 } from '@/domain/entities/themes'
-import { mkDefPckrFre } from '@/domain/state/pickerFrequency'
+import { mkDefPckrFre, normalizePckrFreqState } from '@/domain/state/pickerFrequency'
 import {
   DEF_BODY_FONT,
   getPrstBodyF,
@@ -53,6 +53,7 @@ import type {
   RotationState,
   TeamSlots,
   TeamMemRt,
+  TeamMemWpnVi,
   TeamMemRtVie,
   WeaponState,
   EchoInstance,
@@ -85,8 +86,10 @@ import type {
 } from '@/domain/entities/manualBuffs'
 import { NONE_WPN_ID } from '@/domain/entities/runtime'
 import type { AttributeKey, BaseStatBuff, ModBuff } from '@/domain/entities/stats'
-import { getResSeedBy } from '@/domain/services/resonatorSeedService'
-import { listWpnsByTy } from '@/domain/services/weaponCatalogService'
+import { getResSeedBy, listResSds } from '@/domain/services/resonatorSeedService'
+import { getWpnById, listWpnsByTy } from '@/domain/services/weaponCatalogService'
+import { getEchoById } from '@/domain/services/echoCatalogService'
+import type { RotationNode } from '@/domain/gameData/contracts'
 import { writeRtPath } from '@/domain/gameData/runtimePath'
 import { normResRtCnt } from '@/domain/gameData/controlOptions'
 import { normNegFfctC } from '@/domain/gameData/negativeEffects'
@@ -94,7 +97,9 @@ import { maxResRt } from '@/domain/gameData/resonatorMax'
 import { initWpnStts, maxWpnRt } from '@/domain/state/sourceStateInit'
 import { mkMaxTrcNode } from '@/domain/state/traceNodes'
 import { getResDtlsBy } from '@/data/gameData/resonators/resonatorDataStore'
+import { getGameData } from '@/data/gameData'
 import { listResRttn, listStatesFor } from '@/domain/services/gameDataService'
+import { makeSourceKey } from '@/domain/gameData/registry'
 import {
   cloneEnemyPr,
   cloneBuffs,
@@ -118,6 +123,27 @@ export const DEF_RES_ID = '1506'
 export const MAX_RES_LVL = 90
 export const MAX_SKILL_LEVEL = 10
 export const MAX_WPN_LVL = 90
+
+function getFallbackSeed(): ResSeed {
+  const seed = getResSeedBy(DEF_RES_ID) ?? listResSds()[0]
+  if (!seed) {
+    throw new Error('Cannot initialize calculator state without resonator game data.')
+  }
+
+  return seed
+}
+
+function hasSource(type: 'resonator' | 'weapon' | 'echo' | 'echoSet' | 'enemy', id: string | number | null | undefined): boolean {
+  if (id == null || id === '') {
+    return false
+  }
+
+  try {
+    return Boolean(getGameData().sourcesByKey[makeSourceKey({ type, id: String(id) })])
+  } catch {
+    return false
+  }
+}
 
 // default saved rotation preferences
 export function mkDefSvdRotP(): UiState['savedRotationPreferences'] {
@@ -398,6 +424,127 @@ export function cloneOptSets(
   }
 }
 
+function normEchoForCatalog(echo: EchoInstance | null | undefined): EchoInstance | null {
+  if (!echo) {
+    return null
+  }
+
+  const definition = getEchoById(echo.id)
+  if (!definition) {
+    return null
+  }
+
+  return {
+    ...echo,
+    set: definition.sets.includes(echo.set)
+      ? echo.set
+      : definition.sets[0] ?? echo.set,
+  }
+}
+
+function normEchoesForCatalog(echoes: Array<EchoInstance | null>): Array<EchoInstance | null> {
+  return echoes.map(normEchoForCatalog)
+}
+
+function normWeaponForSeed(
+    seed: Pick<ResSeed, 'defaultWeaponId' | 'weaponType'>,
+    weapon: Pick<WeaponState, 'id' | 'level' | 'rank'>,
+): WeaponState {
+  return weapon.id && getWpnById(weapon.id)
+    ? catWpnAtk(weapon)
+    : mkDefSeedWpnMkSt(seed)
+}
+
+function preserveWeaponForSeed(
+    seed: Pick<ResSeed, 'defaultWeaponId' | 'weaponType'> | null,
+    weapon: Pick<WeaponState, 'id' | 'level' | 'rank'> & Partial<Pick<WeaponState, 'baseAtk'>>,
+): WeaponState {
+  if (seed && weapon.id && getWpnById(weapon.id)) {
+    return catWpnAtk(weapon)
+  }
+
+  return {
+    id: weapon.id,
+    level: weapon.level,
+    rank: weapon.rank,
+    baseAtk: weapon.baseAtk ?? 0,
+  }
+}
+
+function preserveTeamWeaponForSeed(
+    seed: Pick<ResSeed, 'defaultWeaponId' | 'weaponType'> | null,
+    weapon: Pick<TeamMemWpnVi, 'id' | 'rank'> & Partial<Pick<TeamMemWpnVi, 'baseAtk'>>,
+): TeamMemWpnVi {
+  if (seed && weapon.id && getWpnById(weapon.id)) {
+    return catTmWpnAtk(weapon, MAX_WPN_LVL)
+  }
+
+  return {
+    id: weapon.id,
+    rank: weapon.rank,
+    baseAtk: weapon.baseAtk ?? 0,
+  }
+}
+
+function normEnemyForCatalog(enemy: EnemyProfile | undefined): EnemyProfile {
+  if (!enemy) {
+    return makeEnemy()
+  }
+
+  if (enemy.source === 'custom' || hasSource('enemy', enemy.id)) {
+    return cloneEnemyPr(enemy)
+  }
+
+  return makeEnemy()
+}
+
+function normFeatureNodesForCatalog(nodes: RotationNode[]): RotationNode[] {
+  const hasFeatureId = (featureId: string): boolean => {
+    try {
+      return Object.values(getGameData().resonatorFeaturesById).some((features) =>
+        features.some((feature) => feature.id === featureId))
+    } catch {
+      return false
+    }
+  }
+  const next: RotationNode[] = []
+
+  for (const node of nodes) {
+    if (node.type === 'feature') {
+      if (hasFeatureId(node.featureId)) {
+        next.push(node)
+      }
+      continue
+    }
+
+    if (node.type === 'repeat') {
+      next.push({ ...node, items: normFeatureNodesForCatalog(node.items) })
+      continue
+    }
+
+    if (node.type === 'uptime') {
+      next.push({
+        ...node,
+        items: normFeatureNodesForCatalog(node.items),
+        ...(node.setup ? { setup: normFeatureNodesForCatalog(node.setup) } : {}),
+      })
+      continue
+    }
+
+    next.push(node)
+  }
+
+  return next
+}
+
+function normRotationForCatalog(rotation: RotationState): RotationState {
+  return {
+    ...rotation,
+    personalItems: normFeatureNodesForCatalog(rotation.personalItems),
+    teamItems: normFeatureNodesForCatalog(rotation.teamItems),
+  }
+}
+
 // create a default weapon build state
 export function mkDefWpnMkSt(weaponType?: number): WeaponState {
   if (weaponType !== undefined) {
@@ -606,8 +753,8 @@ export function normProfTeam(
     actResId: string,
     team: TeamSlots,
 ): TeamSlots {
-  const nextTeam1Id = team[1] && team[1] !== actResId ? team[1] : null
-  const nextTeam2Cand = team[2] && team[2] !== actResId ? team[2] : null
+  const nextTeam1Id = team[1] && team[1] !== actResId && getResSeedBy(team[1]) ? team[1] : null
+  const nextTeam2Cand = team[2] && team[2] !== actResId && getResSeedBy(team[2]) ? team[2] : null
   const nextTeam2Id = nextTeam2Cand && nextTeam2Cand !== nextTeam1Id ? nextTeam2Cand : null
 
   return [actResId, nextTeam1Id, nextTeam2Id]
@@ -854,35 +1001,29 @@ function mkInitCalcSt(base?: CalcState): CalcState {
   const suggsByResId = Object.fromEntries(
       Object.entries(base?.suggestionsByResonatorId ?? {}).map(([resonatorId, state]) => [
         resonatorId,
-        {
-          settings: {
-            ...mkDefSuggSet(),
-            ...(state?.settings ?? {}),
-          },
-          random: {
-            ...mkDefRandGnr(),
-            ...(state?.random ?? {}),
-            setPreferences: structuredClone(state?.random?.setPreferences ?? []),
-          },
-        },
+        structuredClone(state),
       ]),
   )
 
   const session = base?.session
       ? {
         activeResonatorId: base.session.activeResonatorId,
-        enemyProfile: cloneEnemyPr(base.session.enemyProfile),
+        enemyProfile: normEnemyForCatalog(base.session.enemyProfile),
       }
       : null
 
-  const actResId = session?.activeResonatorId ?? DEF_RES_ID
+  const fallbackSeed = getFallbackSeed()
+  const actResId =
+    session?.activeResonatorId && getResSeedBy(session.activeResonatorId)
+      ? session.activeResonatorId
+      : fallbackSeed.id
 
   const nextSssn = session ?? {
     activeResonatorId: actResId,
     enemyProfile: makeEnemy(),
   }
 
-  if (!nextSssn.activeResonatorId) {
+  if (!nextSssn.activeResonatorId || !getResSeedBy(nextSssn.activeResonatorId)) {
     nextSssn.activeResonatorId = actResId
   }
 
@@ -900,17 +1041,28 @@ function mkInitCalcSt(base?: CalcState): CalcState {
 }
 
 function normRtCat(runtime: ResRuntime): ResRuntime {
+  const seed = getResSeedBy(runtime.id)
+  if (!seed) {
+    const fallbackSeed = getFallbackSeed()
+    return makeResRuntime(fallbackSeed)
+  }
+
   const teamRuntimes: [TeamMemRt | null, TeamMemRt | null] = [
     runtime.teamRuntimes[0] ? normTmCat(runtime.teamRuntimes[0]) : null,
     runtime.teamRuntimes[1] ? normTmCat(runtime.teamRuntimes[1]) : null,
   ]
+  const team = normProfTeam(seed.id, runtime.build.team)
   const withCatalog = {
     ...runtime,
+    id: seed.id,
     build: {
       ...runtime.build,
-      weapon: catWpnAtk(runtime.build.weapon),
+      weapon: normWeaponForSeed(seed, runtime.build.weapon),
+      echoes: normEchoesForCatalog(runtime.build.echoes),
+      team,
     },
     teamRuntimes,
+    rotation: normRotationForCatalog(runtime.rotation),
   }
   const controls = normResRtCnt(withCatalog)
   const withControls = {
@@ -931,11 +1083,15 @@ function normRtCat(runtime: ResRuntime): ResRuntime {
 }
 
 function normTmCat(teamMember: TeamMemRt): TeamMemRt {
+  const seed = getResSeedBy(teamMember.id)
+
   return {
     ...teamMember,
+    id: seed?.id ?? teamMember.id,
     build: {
       ...teamMember.build,
-      weapon: catTmWpnAtk(teamMember.build.weapon, MAX_WPN_LVL),
+      weapon: preserveTeamWeaponForSeed(seed ?? null, teamMember.build.weapon),
+      echoes: [...teamMember.build.echoes],
     },
   }
 }
@@ -1015,12 +1171,13 @@ function normPrfLcl(
   team: TeamSlots,
   teamRuntimes: [TeamMemRt | null, TeamMemRt | null],
 ): SlotLocalState {
+  const seed = getResSeedBy(resonatorId) ?? getFallbackSeed()
   const runtime: ResRuntime = {
     id: resonatorId,
     base: profile.runtime.progression,
     build: {
-      weapon: catWpnAtk(profile.runtime.build.weapon),
-      echoes: profile.runtime.build.echoes,
+      weapon: normWeaponForSeed(seed, profile.runtime.build.weapon),
+      echoes: normEchoesForCatalog(profile.runtime.build.echoes),
       team,
     },
     state: {
@@ -1044,6 +1201,7 @@ function normPrfLcl(
     ...localState,
     controls,
     combat: normNegFfctC(normRuntime),
+    setConditionals: cloneSntSet(localState.setConditionals),
     optimizerInventory: cloneOptInventorySelection(localState.optimizerInventory),
   }
 }
@@ -1058,7 +1216,7 @@ function normProfCat(
     profile.runtime.teamRuntimes?.[0] ? normTmCat(profile.runtime.teamRuntimes[0]) : null,
     profile.runtime.teamRuntimes?.[1] ? normTmCat(profile.runtime.teamRuntimes[1]) : null,
   ]
-  const team = normProfTeam(profileId, profile.runtime.team)
+  const team = [...profile.runtime.team] as TeamSlots
 
   return {
     ...profile,
@@ -1067,13 +1225,33 @@ function normProfCat(
       ...profile.runtime,
       build: {
         ...profile.runtime.build,
-        weapon: catWpnAtk(profile.runtime.build.weapon),
+        weapon: preserveWeaponForSeed(seed ?? null, profile.runtime.build.weapon),
+        echoes: [...profile.runtime.build.echoes],
       },
-      local: normPrfLcl(profileId, profile, profile.runtime.local, team, teamRuntimes),
+      local: seed
+        ? normPrfLcl(profileId, profile, profile.runtime.local, normProfTeam(profileId, profile.runtime.team), [
+          teamRuntimes[0] && getResSeedBy(teamRuntimes[0].id) ? teamRuntimes[0] : null,
+          teamRuntimes[1] && getResSeedBy(teamRuntimes[1].id) ? teamRuntimes[1] : null,
+        ])
+        : {
+          ...profile.runtime.local,
+          optimizerInventory: cloneOptInventorySelection(profile.runtime.local.optimizerInventory),
+        },
+      routing: cloneSlotRml(profile.runtime.routing),
       team,
+      rotation: cloneRotation(profile.runtime.rotation),
       teamRuntimes,
     },
   }
+}
+
+function normProfsCat(profiles: CalcState['profiles']): CalcState['profiles'] {
+  return Object.fromEntries(
+      Object.entries(profiles).map(([resonatorId, profile]) => {
+        const normalized = normProfCat(resonatorId, profile)
+        return [normalized.resonatorId || resonatorId, normalized]
+      }),
+  )
 }
 
 function catResName(
@@ -1087,24 +1265,20 @@ function catResName(
   return getResSeedBy(resonatorId)?.name ?? (fallback || resonatorId)
 }
 
-function normProfsCat(profiles: CalcState['profiles']): CalcState['profiles'] {
-  return Object.fromEntries(
-      Object.entries(profiles).map(([resonatorId, profile]) => [
-        resonatorId,
-        normProfCat(resonatorId, profile),
-      ]),
-  )
-}
-
 function normBldsCat(builds: InventoryEntry[]): InventoryEntry[] {
-  return builds.map((entry) => ({
-    ...entry,
-    resonatorName: catResName(entry.resonatorId, entry.resonatorName),
-    build: {
-      ...entry.build,
-      weapon: catWpnAtk(entry.build.weapon),
-    },
-  }))
+  return builds.map((entry) => {
+    const seed = getResSeedBy(entry.resonatorId)
+
+    return {
+      ...entry,
+      resonatorName: catResName(entry.resonatorId, entry.resonatorName),
+      build: {
+        ...entry.build,
+        weapon: preserveWeaponForSeed(seed ?? null, entry.build.weapon),
+        echoes: [...entry.build.echoes],
+      },
+    }
+  })
 }
 
 function normRotsCat(rotations: InvRotEnt[]): InvRotEnt[] {
@@ -1142,10 +1316,16 @@ function normOptCat(context: OptContext | null): OptContext | null {
   if (!context) {
     return null
   }
+  const seed = getResSeedBy(context.resonatorId)
+  if (!seed || context.runtime.id !== seed.id) {
+    return context
+  }
+
   const runtime = normRtCat(context.runtime)
 
   return {
     ...context,
+    resonatorId: seed.id,
     runtime,
     sourceRuntimeSig: context.sourceRuntimeSig || runtimeSig(runtime),
   }
@@ -1171,6 +1351,7 @@ export function initAppState(
       bodyFontUrl: rawUi.bodyFontUrl ?? getPrstBodyF(rawUi.bodyFontName ?? DEF_BODY_FONT),
       optimizerCpuHintSeen: rawUi.optimizerCpuHintSeen ?? false,
       optimizerUseSprite: rawUi.optimizerUseSprite ?? true,
+      compressedExports: rawUi.compressedExports ?? true,
       preferences: {
         ...DEF_UI_PREFS,
         ...(rawUi.preferences ?? {}),
@@ -1179,7 +1360,7 @@ export function initAppState(
       compactInv: rawUi.compactInv ?? false,
       seeEquipped: rawUi.seeEquipped ?? false,
       historyMax: rawUi.historyMax ?? 10,
-      itemFreq: rawUi.itemFreq ?? mkDefPckrFre(),
+      itemFreq: normalizePckrFreqState(rawUi.itemFreq),
       savedRotationPreferences: {
         ...mkDefSvdRotP(),
         ...rawUi.savedRotationPreferences,
@@ -1219,6 +1400,7 @@ export function makeAppState(
       itemFreq: mkDefPckrFre(),
       optimizerCpuHintSeen: false,
       optimizerUseSprite: true,
+      compressedExports: true,
       savedRotationPreferences: mkDefSvdRotP(),
     },
     calculator: mkInitCalcSt(),

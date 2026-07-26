@@ -528,7 +528,7 @@ export function BuffPresetModal({
 
         <div className="bp-toolbar">
           <label className="bp-search">
-            <Search size={17} aria-hidden="true" />
+            <Search size="1.0625rem" aria-hidden="true" />
             <input
               type="search"
               value={query}
@@ -631,7 +631,7 @@ export function BuffPresetModal({
                                 <>
                                   <span className="bp-rank__label">Rank</span>
                                   <span className="bp-rank__value">{selected?.label ?? `R${rank}`}</span>
-                                  <ChevronDown size={13} className="bp-rank__chevron" aria-hidden="true" />
+                                  <ChevronDown size="0.8125rem" className="bp-rank__chevron" aria-hidden="true" />
                                 </>
                               )}
                             />
@@ -700,7 +700,7 @@ export function BuffPresetModal({
             ) : (
               <div className="bp-empty">
                 <div className="bp-empty__icon" aria-hidden="true">
-                  <Search size={22} />
+                  <Search size="1.375rem" />
                 </div>
                 <strong>No presets found</strong>
                 <span>Adjust the filters or search text to see more.</span>
@@ -735,7 +735,7 @@ export function BuffPresetModal({
               onClick={copySelected}
               disabled={selectedModifiers.length === 0}
             >
-              <Copy size={16} aria-hidden="true" />
+              <Copy size="1rem" aria-hidden="true" />
               Copy
             </button>
             <button
@@ -744,7 +744,7 @@ export function BuffPresetModal({
               onClick={addSelected}
               disabled={selectedModifiers.length === 0}
             >
-              <Plus size={16} aria-hidden="true" />
+              <Plus size="1rem" aria-hidden="true" />
               Add Selected
             </button>
           </div>

@@ -161,6 +161,14 @@ const SET_RUNTIME_TOGGLE_SET22_P1: u32 = 1u << 1u;
 const SET_RUNTIME_TOGGLE_SET22_P2: u32 = 1u << 2u;
 const SET_RUNTIME_TOGGLE_SET29_FIVE: u32 = 1u << 3u;
 const SET_RUNTIME_TOGGLE_SET33_CHONGMING: u32 = 1u << 4u;
+const JINGRAN_FORTUNE_SHIFT: u32 = 3u;
+const JINGRAN_FORTUNE_MASK: u32 = 0x3fu;
+const JINGRAN_EVERFLOW_BIT: u32 = 1u << 9u;
+const JINGRAN_FIRE_OF_LIFE_BIT: u32 = 1u << 10u;
+const JINGRAN_LIB_LEVEL_SHIFT: u32 = 11u;
+const JINGRAN_LIB_LEVEL_MASK: u32 = 0x1fu;
+const JINGRAN_SOUL_RAID_SKILL_HASH: u32 = 8817u;
+const JINGRAN_STARDOME_SKILL_HASH: u32 = 3177u;
 
 // each thread processes this many consecutive combos before reduction
 override CYCLES_PER_INVOCATION : u32 = 32u;
@@ -182,6 +190,53 @@ fn decodeDispatchWorkgroupBase(p: Params) -> u32 { return p.dispatchWorkgroupBas
 fn toggleValue(toggles: f32, bit: u32) -> f32 {
     let mask = 1u << (bit & 31u);
     return f32((bitcast<u32>(toggles) & mask) != 0u);
+}
+
+fn jingranFortune(toggles: f32) -> f32 {
+    return f32((bitcast<u32>(toggles) >> JINGRAN_FORTUNE_SHIFT) & JINGRAN_FORTUNE_MASK);
+}
+
+fn jingranEverflow(toggles: f32) -> bool {
+    return (bitcast<u32>(toggles) & JINGRAN_EVERFLOW_BIT) != 0u;
+}
+
+fn jingranFireOfLife(toggles: f32) -> bool {
+    return (bitcast<u32>(toggles) & JINGRAN_FIRE_OF_LIFE_BIT) != 0u;
+}
+
+fn jingranLiberationLevel(toggles: f32) -> u32 {
+    let encoded = (bitcast<u32>(toggles) >> JINGRAN_LIB_LEVEL_SHIFT) & JINGRAN_LIB_LEVEL_MASK;
+    return max(1u, min(20u, encoded));
+}
+
+fn jingranFireOfLifeRate(skillId: u32, level: u32) -> f32 {
+    let skillHash = (skillId >> 18u) & 0x3fffu;
+    let index = max(0u, min(19u, level - 1u));
+    if (skillHash == JINGRAN_SOUL_RAID_SKILL_HASH) {
+        return array<f32, 20>(
+            0.0796, 0.086, 0.0923, 0.1016, 0.1079,
+            0.1154, 0.126, 0.1364, 0.1466, 0.1577,
+            0.1708, 0.1839, 0.1966, 0.2097, 0.2227,
+            0.2355, 0.2486, 0.2616, 0.2746, 0.2877,
+        )[index];
+    }
+    if (skillHash == JINGRAN_STARDOME_SKILL_HASH) {
+        return array<f32, 20>(
+            0.0815, 0.088, 0.0948, 0.104, 0.1108,
+            0.1185, 0.129, 0.1398, 0.1505, 0.1618,
+            0.175, 0.1885, 0.2018, 0.2149, 0.2284,
+            0.2416, 0.2549, 0.2684, 0.2816, 0.2949,
+        )[index];
+    }
+    return 0.0;
+}
+
+fn jingranFireOfLifeMultiplier(charId: f32, skillId: u32, finalHp: f32, toggles: f32) -> f32 {
+    if (charId != 1212.0 || !jingranFireOfLife(toggles)) {
+        return 0.0;
+    }
+    let rate = jingranFireOfLifeRate(skillId, jingranLiberationLevel(toggles));
+    return min(max(finalHp, 0.0), 35000.0) * 0.001 * rate;
 }
 
 // range check with support for disabled constraints
@@ -674,6 +729,7 @@ struct PreMain {
 
     elementId: f32,
     skillMask: f32,
+    skillId: u32,
 
     scalingAtk: f32,
     scalingER:  f32,
@@ -707,6 +763,9 @@ fn buildPreMain(p: Params, s: SetApplied, skillMask: u32, elementId: u32) -> Pre
     let charId = decodeCharId(p);
     let sequence = decodeSequence(p);
     pre.charId = charId;
+    if (pre.charId == 1212.0) {
+        pre.finalDefBase = 0.0;
+    }
 
     // 1306 crit conversion
     if (pre.charId == 1306.0) {
@@ -740,6 +799,7 @@ fn buildPreMain(p: Params, s: SetApplied, skillMask: u32, elementId: u32) -> Pre
 
     pre.elementId = f32(elementId);
     pre.skillMask = f32(skillMask);
+    pre.skillId = p.skillId;
 
     pre.dmgBonusBase = p.dmgBonus;
 
@@ -822,6 +882,9 @@ fn evalMainPos(
     bonus += mainDmgBns;
 
     var dmgBonus = pre.dmgBonusBase + bonus * INV_100;
+    if (pre.charId == 1212.0) {
+        dmgBonus += min(max(pre.finalHpBase * 0.00008, 0.0), 2.8) * jingranFortune(pre.toggles) * INV_100;
+    }
 
     let set33Enabled = (setRuntimeMask & SET_RUNTIME_TOGGLE_SET33_CHONGMING) != 0u;
     let s33_atk_bonus = min(max(finalER * 0.1, 0.0), 25.0) *
@@ -840,6 +903,14 @@ fn evalMainPos(
             extraAtk = min(erOver * 20.0, 2600.0);
         } else {
             extraAtk = min(erOver * 12.0, 1560.0);
+        }
+        finalAtk += extraAtk;
+    }
+
+    if (pre.charId == 1212.0) {
+        var extraAtk = min(max(pre.finalHpBase * 0.052, 0.0), 1820.0);
+        if (decodeSequence(p) >= 3.0 && jingranEverflow(pre.toggles)) {
+            extraAtk = min(max(pre.finalHpBase * 0.072, 0.0), 2520.0);
         }
         finalAtk += extraAtk;
     }
@@ -925,7 +996,13 @@ fn evalMainPos(
         constraintCritDmg = pre.packedCritDmg;
         constraintDmgBonus = pre.packedDmgBonus;
     } else {
-        let base = (scaled * pre.multiplier + pre.flatDmg) * baseMul * dmgBonus;
+        let multiplier = pre.multiplier + jingranFireOfLifeMultiplier(
+            pre.charId,
+            pre.skillId,
+            pre.finalHpBase,
+            pre.toggles,
+        );
+        let base = (scaled * multiplier + pre.flatDmg) * baseMul * dmgBonus;
         let critHit = base * critDmgForDmg;
         let cr = clamp(critRateForDmg, 0.0, 1.0);
         avg = cr * critHit + (1.0 - cr) * base;

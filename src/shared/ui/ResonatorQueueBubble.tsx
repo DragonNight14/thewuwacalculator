@@ -166,7 +166,7 @@ export function ResQBbbl() {
         onPointerMove={onPointerMove}
         onPointerUp={onPointerUp}
       >
-        <GrDrag size={14} />
+        <GrDrag size="0.875rem" />
       </div>
       {queue.length > 1 && (
         <img

@@ -36,7 +36,7 @@ export function Sidebar({ activeView, isDark, onSelect }: CalcSdbrPrps) {
         >
           <span className="toolbar-tab-icon">
             <img
-              src={`/assets/icons/${isDark ? 'dark' : 'light'}/${view.icon}.png`}
+              src={`/assets/app/icons/${isDark ? 'dark' : 'light'}/${view.icon}.png`}
               alt={view.label}
               loading="lazy"
             />

@@ -26,73 +26,73 @@ export const BG_PRESETS: BgPreset[] = [
   {
     id: 'builtin:wallpaperflare1.jpg',
     label: 'wallpaper 1',
-    src: '/assets/backgrounds/wallpaperflare1.jpg',
+    src: '/assets/app/backgrounds/wallpaperflare1.jpg',
     preview: 'linear-gradient(135deg, #4f6fa9 0%, #d49bc8 52%, #f4d5b4 100%)',
   },
   {
     id: 'builtin:wallpaperflare2.jpg',
     label: 'wallpaper 2',
-    src: '/assets/backgrounds/wallpaperflare2.jpg',
+    src: '/assets/app/backgrounds/wallpaperflare2.jpg',
     preview: 'linear-gradient(135deg, #34577b 0%, #9fb9d6 48%, #e8d6b5 100%)',
   },
   {
     id: 'builtin:wallpaperflare3.jpg',
     label: 'wallpaper 3',
-    src: '/assets/backgrounds/wallpaperflare3.jpg',
+    src: '/assets/app/backgrounds/wallpaperflare3.jpg',
     preview: 'linear-gradient(135deg, #3a4b2c 0%, #9fb36d 52%, #efe2a1 100%)',
   },
   {
     id: 'builtin:wallpaperflare4.jpg',
     label: 'wallpaper 4',
-    src: '/assets/backgrounds/wallpaperflare4.jpg',
+    src: '/assets/app/backgrounds/wallpaperflare4.jpg',
     preview: 'linear-gradient(135deg, #2d4f65 0%, #7eb5ca 48%, #f0d2a6 100%)',
   },
   {
     id: 'builtin:wallpaperflare5.jpg',
     label: 'wallpaper 5',
-    src: '/assets/backgrounds/wallpaperflare5.jpg',
+    src: '/assets/app/backgrounds/wallpaperflare5.jpg',
     preview: 'linear-gradient(135deg, #3e355d 0%, #8579be 50%, #f2b6a7 100%)',
   },
   {
     id: 'builtin:wallpaperflare6.jpg',
     label: 'wallpaper 6',
-    src: '/assets/backgrounds/wallpaperflare6.jpg',
+    src: '/assets/app/backgrounds/wallpaperflare6.jpg',
     preview: 'linear-gradient(135deg, #61423a 0%, #c47d61 50%, #f0d5a4 100%)',
   },
   {
     id: 'builtin:wallpaperflare7.jpg',
     label: 'wallpaper 7',
-    src: '/assets/backgrounds/wallpaperflare7.jpg',
+    src: '/assets/app/backgrounds/wallpaperflare7.jpg',
     preview: 'linear-gradient(135deg, #3d5468 0%, #7fa1c8 46%, #f3cad1 100%)',
   },
   {
     id: 'builtin:wallpaperflare8.jpg',
     label: 'wallpaper 8',
-    src: '/assets/backgrounds/wallpaperflare8.jpg',
+    src: '/assets/app/backgrounds/wallpaperflare8.jpg',
     preview: 'linear-gradient(135deg, #25484f 0%, #6ab6b0 50%, #dceab5 100%)',
   },
   {
     id: 'builtin:wallpaperflare10.jpg',
     label: 'wallpaper 10',
-    src: '/assets/backgrounds/wallpaperflare10.jpg',
+    src: '/assets/app/backgrounds/wallpaperflare10.jpg',
     preview: 'linear-gradient(135deg, #353763 0%, #7d86d1 52%, #f0d8a4 100%)',
   },
   {
     id: 'builtin:wallpaperflare11.jpg',
     label: 'wallpaper 11',
-    src: '/assets/backgrounds/wallpaperflare11.jpg',
+    src: '/assets/app/backgrounds/wallpaperflare11.jpg',
     preview: 'linear-gradient(135deg, #1e2f48 0%, #516b95 44%, #b4bcd2 72%, #efe3c0 100%)',
   },
   {
     id: 'builtin:wallpaperflare12.jpg',
     label: 'wallpaper 12',
-    src: '/assets/backgrounds/wallpaperflare12.jpg',
+    src: '/assets/app/backgrounds/wallpaperflare12.jpg',
     preview: 'linear-gradient(135deg, #364562 0%, #7d90ba 48%, #d6c1e5 100%)',
   },
   {
     id: 'builtin:augusta-iuno-wuthering-waves-2k-wallpaper-uhdpaper.com-891@5@h.jpg',
     label: 'augusta iuno',
-    src: '/assets/backgrounds/augusta-iuno-wuthering-waves-2k-wallpaper-uhdpaper.com-891@5@h.jpg',
+    src: '/assets/app/backgrounds/augusta-iuno-wuthering-waves-2k-wallpaper-uhdpaper.com-891@5@h.jpg',
     preview: 'linear-gradient(135deg, #57607f 0%, #aab3d2 46%, #f1d6b9 100%)',
   },
 ]
@@ -293,7 +293,7 @@ export async function resolveBg(key: string): Promise<ResolvedBg> {
     }
   }
 
-  return { url: BG_PRESETS[0]?.src ?? '/assets/backgrounds/wallpaperflare1.jpg' }
+  return { url: BG_PRESETS[0]?.src ?? '/assets/app/backgrounds/wallpaperflare1.jpg' }
 }
 
 function mkLegBgCchKe(source: Blob | string): string {

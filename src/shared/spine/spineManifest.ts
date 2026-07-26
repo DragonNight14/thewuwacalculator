@@ -15,7 +15,7 @@ export interface SpineManifestEntry {
 
 export type SpineManifest = Record<string, SpineManifestEntry>
 
-const MANIFEST_URL = '/assets/spine/manifest.json'
+const MANIFEST_URL = '/assets/game/resonators/spine/manifest.json'
 
 let manifestPromise: Promise<SpineManifest> | null = null
 let manifestValue: SpineManifest | null = null
@@ -41,9 +41,9 @@ export function getLoadedSpineManifest(): SpineManifest | null {
 }
 
 export function spineBaseUrl(resId: string, variant: SpineVariant): string {
-  return `/assets/spine/${variant}/${resId}/`
+  return `/assets/game/resonators/spine/${variant}/${resId}/`
 }
 
 export function spineSetupUrl(resId: string, variant: SpineVariant): string {
-  return `/assets/spine/setup/${variant}/${resId}.webp`
+  return `/assets/game/resonators/spine/setup/${variant}/${resId}.webp`
 }

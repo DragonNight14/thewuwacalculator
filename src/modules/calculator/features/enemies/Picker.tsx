@@ -53,7 +53,7 @@ function mkFltrNpt(
 
       <div className="picker-filter-layout enemy-picker__filter-layout">
         <label className="bp-search">
-          <Search size={17} aria-hidden="true" />
+          <Search size="1.0625rem" aria-hidden="true" />
           <input
             type="search"
             value={search}
@@ -81,7 +81,7 @@ function mkFltrNpt(
                   onClick={() => onElemChng(selected ? null : elementId)}
                 >
                   <img
-                    src={`/assets/attributes/attributes alt/${attributeKey}.webp`}
+                    src={`/assets/game/attributes/icons/${attributeKey}.webp`}
                     alt=""
                     aria-hidden="true"
                     style={attributeKey === 'physical' ? { filter: 'grayscale(1) brightness(0.6)' } : undefined}
@@ -170,7 +170,7 @@ export function EnemyPicker({
         leading: (
           <div className="picker-modal__media-frame enemy-picker__media-frame">
             <img
-              src={entry.icon ?? '/assets/default.webp'}
+              src={entry.icon ?? '/assets/game/default.webp'}
               alt={entry.name}
               className="picker-modal__media-image"
               onError={withDefIconM}
@@ -182,7 +182,7 @@ export function EnemyPicker({
         meta: attributeKey ? (
           <span className="picker-modal__spec-item" title={ENEMY_ELEM_TXT[element!]}>
             <img
-              src={`/assets/attributes/attributes alt/${attributeKey}.webp`}
+              src={`/assets/game/attributes/icons/${attributeKey}.webp`}
               alt={ENEMY_ELEM_TXT[element!]}
               className="picker-modal__meta-icon"
               style={attributeKey === 'physical' ? { filter: 'grayscale(1) brightness(0.6)' } : undefined}

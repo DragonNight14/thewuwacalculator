@@ -15,7 +15,7 @@ const seed: ResSeed = {
   // rotation, enough to isolate rotation control-flow from generated data drift
   id: 'test-resonator',
   name: 'Test Resonator',
-  profile: '/assets/resonators/profiles/test-resonator.webp',
+  profile: '/assets/game/resonators/profiles/test-resonator.webp',
   attribute: 'spectro',
   weaponType: 5,
   defaultWeaponId: null,

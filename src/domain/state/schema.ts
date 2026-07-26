@@ -15,6 +15,11 @@ import {
   LIGHT_THEMES,
 } from '@/domain/entities/themes'
 import { mnlBffsSchm } from '@/domain/state/manualBuffsSchema'
+import {
+  mkDefPckrFre,
+  mkEmptyPckrFreqBkt,
+  normalizePckrFreqState,
+} from '@/domain/state/pickerFrequency'
 
 function stripLegacyMainMode(value: unknown): unknown {
   if (!value || typeof value !== 'object' || Array.isArray(value)) {
@@ -692,20 +697,31 @@ const histMaxSchm = z.union([
   z.literal(100),
 ]).default(10)
 
-const pckrFreqIdsS = z.array(z.string()).max(3).default([])
-const pckrFreqCnts = z.record(
-  z.string(),
-  z.number().int().positive(),
-).default({})
-const pckrFreqBktS = z.object({
-  ids: pckrFreqIdsS,
-  counts: pckrFreqCnts,
-}).strict().default({
-  ids: [],
-  counts: {},
-})
+const pckrFreqItmS = z.object({
+  id: z.string(),
+  count: z.number().int().positive(),
+  firstUsedAt: z.string().nullable().default(null),
+  lastUsedAt: z.string().nullable().default(null),
+  previousUsedAt: z.string().nullable().default(null),
+  firstUseSeq: z.number().int().nonnegative().default(0),
+  lastUseSeq: z.number().int().nonnegative().default(0),
+  usesByDay: z.record(z.string(), z.number().int().positive()).default({}),
+  firstActiveResonatorId: z.string().nullable().default(null),
+  lastActiveResonatorId: z.string().nullable().default(null),
+  previousActiveResonatorId: z.string().nullable().default(null),
+  usesByActiveResonator: z.record(z.string(), z.number().int().positive()).default({}),
+}).strict()
 
-const pckrFreqSttS = z.object({
+const pckrFreqBktS = z.object({
+  version: z.literal(2).default(2),
+  totalUses: z.number().int().nonnegative().default(0),
+  firstUsedAt: z.string().nullable().default(null),
+  lastUsedAt: z.string().nullable().default(null),
+  order: z.array(z.string()).default([]),
+  items: z.record(z.string(), pckrFreqItmS).default({}),
+}).strict().default(mkEmptyPckrFreqBkt)
+
+const pckrFreqSttS = z.preprocess(normalizePckrFreqState, z.object({
   resonator: pckrFreqBktS,
   echo: pckrFreqBktS,
   enemy: pckrFreqBktS,
@@ -716,38 +732,22 @@ const pckrFreqSttS = z.object({
     gauntlets: pckrFreqBktS,
     rectifier: pckrFreqBktS,
   }).strict().default({
-    broadblade: { ids: [], counts: {} },
-    sword: { ids: [], counts: {} },
-    pistols: { ids: [], counts: {} },
-    gauntlets: { ids: [], counts: {} },
-    rectifier: { ids: [], counts: {} },
+    broadblade: mkEmptyPckrFreqBkt(),
+    sword: mkEmptyPckrFreqBkt(),
+    pistols: mkEmptyPckrFreqBkt(),
+    gauntlets: mkEmptyPckrFreqBkt(),
+    rectifier: mkEmptyPckrFreqBkt(),
   }),
   resonatorByTeamSlot: z.object({
     active: pckrFreqBktS,
     teammate1: pckrFreqBktS,
     teammate2: pckrFreqBktS,
   }).strict().default({
-    active: { ids: [], counts: {} },
-    teammate1: { ids: [], counts: {} },
-    teammate2: { ids: [], counts: {} },
+    active: mkEmptyPckrFreqBkt(),
+    teammate1: mkEmptyPckrFreqBkt(),
+    teammate2: mkEmptyPckrFreqBkt(),
   }),
-}).strict().default({
-  resonator: { ids: [], counts: {} },
-  echo: { ids: [], counts: {} },
-  enemy: { ids: [], counts: {} },
-  weaponByType: {
-    broadblade: { ids: [], counts: {} },
-    sword: { ids: [], counts: {} },
-    pistols: { ids: [], counts: {} },
-    gauntlets: { ids: [], counts: {} },
-    rectifier: { ids: [], counts: {} },
-  },
-  resonatorByTeamSlot: {
-    active: { ids: [], counts: {} },
-    teammate1: { ids: [], counts: {} },
-    teammate2: { ids: [], counts: {} },
-  },
-})
+}).strict().default(mkDefPckrFre))
 
 export const APP_STATE_VER = 22 as const
 
@@ -784,6 +784,7 @@ const uiPersistSchema = z.object({
   preferences: z.preprocess(normalizeBenchPrefs, z.object({
     ctxMenu: z.boolean().default(DEF_UI_PREFS.ctxMenu),
     updateToast: z.boolean().default(DEF_UI_PREFS.updateToast),
+    gameBetaData: z.boolean().default(DEF_UI_PREFS.gameBetaData),
     recommendedMenuItems: z.boolean().default(DEF_UI_PREFS.recommendedMenuItems),
     showBenchStates: z.boolean().default(DEF_UI_PREFS.showBenchStates),
     maxResOnInit: z.boolean().default(DEF_UI_PREFS.maxResOnInit),
@@ -881,6 +882,9 @@ const uiPersistSchema = z.object({
   // display preference, not resonator-scoped, so it persists globally rather
   // than living in the per-resonator optimizer context.
   optimizerUseSprite: z.boolean().default(true),
+  // export files default to the compact .wwcalc format; plain json is the
+  // readable fallback.
+  compressedExports: z.boolean().default(true),
   savedRotationPreferences: svdRotPrefsS.default({
     sortBy: 'date',
     sortOrder: 'desc',
@@ -915,6 +919,7 @@ export const prssUiLytSch = z.object({
   itemFreq: uiPersistSchema.shape.itemFreq,
   optimizerCpuHintSeen: uiPersistSchema.shape.optimizerCpuHintSeen,
   optimizerUseSprite: uiPersistSchema.shape.optimizerUseSprite,
+  compressedExports: uiPersistSchema.shape.compressedExports,
 }).strict()
 
 export const prssUiSvdRot = z.object({

@@ -162,6 +162,17 @@ function prsBndlJson(raw: string): DataXprtBnrc {
   return parsed
 }
 
+function vldtPtchSnap(snapshot: PersistedState, label: string): PersistedState {
+  // bundle payloads are only structurally guarded on the way in, so the
+  // patched snapshot is revalidated through the same persisted-schema pipeline
+  // as full snapshots before it can reach the live store.
+  try {
+    return parsePersisted(JSON.stringify(snapshot))
+  } catch {
+    throw new Error(`The ${label} contains data the app does not recognize, so nothing was imported.`)
+  }
+}
+
 export function mkDataXprtFi(state: AppStore, kind: DataXprtKind): XprtDataFile {
   const persistedState = selectPersisted(state)
   const stamp = mkTmst()
@@ -285,7 +296,7 @@ export function resMprtData(raw: string, currentState: AppStore): RslvMprtData {
         snapshot.calculator.session.activeResonatorId = profile.resonatorId
         return {
           label: 'current resonator backup',
-          snapshot,
+          snapshot: vldtPtchSnap(snapshot, 'current resonator backup'),
         }
       }
       case 'profiles': {
@@ -313,7 +324,7 @@ export function resMprtData(raw: string, currentState: AppStore): RslvMprtData {
 
         return {
           label: 'resonator backup',
-          snapshot,
+          snapshot: vldtPtchSnap(snapshot, 'resonator backup'),
         }
       }
       case 'inventory': {
@@ -323,14 +334,14 @@ export function resMprtData(raw: string, currentState: AppStore): RslvMprtData {
         snapshot.calculator.inventoryRotations = structuredClone(data.inventoryRotations ?? data.invRttn ?? [])
         return {
           label: 'inventory backup',
-          snapshot,
+          snapshot: vldtPtchSnap(snapshot, 'inventory backup'),
         }
       }
       case 'settings': {
         snapshot.ui = structuredClone(bundle.data.ui)
         return {
           label: 'settings backup',
-          snapshot,
+          snapshot: vldtPtchSnap(snapshot, 'settings backup'),
         }
       }
       case 'session': {
@@ -342,7 +353,7 @@ export function resMprtData(raw: string, currentState: AppStore): RslvMprtData {
         )
         return {
           label: 'session backup',
-          snapshot,
+          snapshot: vldtPtchSnap(snapshot, 'session backup'),
         }
       }
     }

@@ -27,7 +27,8 @@
 .liquid-select__trigger {
   position: relative;
   display: flex;
-  width: fit-content;
+  overflow: hidden;
+  width: 100%;
   min-width: 80px;
   align-items: center;
   justify-content: space-between;
@@ -73,9 +74,18 @@
   display: flex;
   align-items: center;
   gap: 0.4rem;
+  min-width: 0;
   overflow: hidden;
   font-weight: 700;
   line-height: 1.2;
+}
+
+/* single-line ellipsis lives on the text's own (blockified) span: text-overflow
+   is ignored on the flex row that centers the optional leading icon. */
+.liquid-select__value-text,
+.liquid-select__option-text {
+  min-width: 0;
+  overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }

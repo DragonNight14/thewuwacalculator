@@ -24,7 +24,7 @@
       "title": "Wuthering Waves Damage Calculator",
       "description": "Calculate Wuthering Waves resonator damage with live stats, weapons, echoes, enemies, custom buffs, rotations, and team support.",
       "priority": "1.0",
-      "socialImage": "/assets/social/calculator.png",
+      "socialImage": "/assets/app/social/calculator.png",
       "socialImageAlt": "The Wuwa Calculator damage calculator page preview"
     },
     {
@@ -32,7 +32,7 @@
       "title": "Wuthering Waves Build Optimizer",
       "description": "Search inventory and theory echo builds, compare ranked results, and tune optimizer constraints around your target skill or rotation.",
       "priority": "0.9",
-      "socialImage": "/assets/social/optimizer.png",
+      "socialImage": "/assets/app/social/optimizer.png",
       "socialImageAlt": "The Wuwa Calculator optimizer page preview"
     },
     {
@@ -40,7 +40,7 @@
       "title": "Wuthering Waves Build Benchmark",
       "description": "Create Wuthering Waves benchmark reports, compare substat quality, and export showcase cards for resonator builds.",
       "priority": "0.8",
-      "socialImage": "/assets/social/benchmark.png",
+      "socialImage": "/assets/app/social/benchmark.png",
       "socialImageAlt": "The Wuwa Calculator benchmark page preview"
     },
     {
@@ -48,7 +48,7 @@
       "title": "Settings",
       "description": "Personalize The Wuwa Calculator workspace, themes, typography, background, data sync, and local app preferences.",
       "priority": "0.3",
-      "socialImage": "/assets/social/settings.png",
+      "socialImage": "/assets/app/social/settings.png",
       "socialImageAlt": "The Wuwa Calculator settings page preview"
     },
     {
@@ -56,7 +56,7 @@
       "title": "About The Wuwa Calculator",
       "description": "Learn how The Wuwa Calculator works as a non-playable reference calculator for formulas, build analysis, and patch data.",
       "priority": "0.6",
-      "socialImage": "/assets/social/info.png",
+      "socialImage": "/assets/app/social/info.png",
       "socialImageAlt": "The Wuwa Calculator about page preview"
     },
     {
@@ -64,7 +64,7 @@
       "title": "Wuthering Waves Calculator Guides",
       "description": "Read operating guides for calculator surfaces, build workflows, optimizer setup, rotations, benchmarks, and app behavior.",
       "priority": "0.8",
-      "socialImage": "/assets/social/guides.png",
+      "socialImage": "/assets/app/social/guides.png",
       "socialImageAlt": "The Wuwa Calculator guides page preview"
     },
     {
@@ -72,7 +72,7 @@
       "title": "Wuthering Waves Damage Formula Docs",
       "description": "Reference the calculator methods, damage math, benchmark formulas, optimizer search behavior, and scoring details used by the app.",
       "priority": "0.8",
-      "socialImage": "/assets/social/docs.png",
+      "socialImage": "/assets/app/social/docs.png",
       "socialImageAlt": "The Wuwa Calculator docs page preview"
     },
     {
@@ -80,7 +80,7 @@
       "title": "Changelog",
       "description": "Track Wuthering Waves Calculator updates, live data changes, feature releases, fixes, and patch support.",
       "priority": "0.5",
-      "socialImage": "/assets/social/changelog.png",
+      "socialImage": "/assets/app/social/changelog.png",
       "socialImageAlt": "The Wuwa Calculator changelog page preview"
     },
     {
@@ -88,7 +88,7 @@
       "title": "What's New",
       "description": "See the detailed update notes for the latest Wuthering Waves Calculator changes and new app features.",
       "priority": "0.5",
-      "socialImage": "/assets/social/whats-new.png",
+      "socialImage": "/assets/app/social/whats-new.png",
       "socialImageAlt": "The Wuwa Calculator what's new page preview"
     },
     {
@@ -96,7 +96,7 @@
       "title": "Privacy Policy",
       "description": "Read how The Wuwa Calculator stores local app data, handles optional Google Drive sync, and treats user-provided information.",
       "priority": "0.2",
-      "socialImage": "/assets/social/privacy.png",
+      "socialImage": "/assets/app/social/privacy.png",
       "socialImageAlt": "The Wuwa Calculator privacy policy page preview"
     },
     {
@@ -104,7 +104,7 @@
       "title": "Terms of Service",
       "description": "Read the usage terms, warranty disclaimer, and responsibilities for using The Wuwa Calculator.",
       "priority": "0.2",
-      "socialImage": "/assets/social/terms.png",
+      "socialImage": "/assets/app/social/terms.png",
       "socialImageAlt": "The Wuwa Calculator terms of service page preview"
     }
   ]

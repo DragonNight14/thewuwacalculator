@@ -238,7 +238,7 @@ export function Echoes({
         id: 'echo:copy',
         key: 'copy',
         needsSel: true,
-        icon: <Copy size={14} />,
+        icon: <Copy size="0.5rem" />,
         label: ({ count }) => `Copy (${count})`,
         title: 'Copy selected echoes (Ctrl/Cmd+C)',
         run: async ({ vals }) => {
@@ -256,7 +256,7 @@ export function Echoes({
         id: 'echo:cut',
         key: 'cut',
         needsSel: true,
-        icon: <Scissors size={14} />,
+        icon: <Scissors size="0.5rem" />,
         label: ({ count }) => `Cut (${count})`,
         title: 'Cut selected echoes (Ctrl/Cmd+X)',
         run: async ({ ids, vals }) => {
@@ -276,7 +276,7 @@ export function Echoes({
       {
         id: 'echo:paste',
         key: 'paste',
-        icon: <FileImage size={14} />,
+        icon: <FileImage size="0.5rem" />,
         label: 'Paste',
         title: 'Paste echoes (Ctrl/Cmd+V)',
         float: false,
@@ -289,7 +289,7 @@ export function Echoes({
         key: 'delete',
         needsSel: true,
         danger: true,
-        icon: <Trash2 size={15} />,
+        icon: <Trash2 size="0.5rem" />,
         label: ({ count }) => `Remove (${count})`,
         title: 'Remove selected echoes (Delete / Backspace)',
         run: ({ ids }) => {

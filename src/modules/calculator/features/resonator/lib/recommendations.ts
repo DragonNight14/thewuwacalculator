@@ -22,7 +22,7 @@ function getRcmmFrqnI(
 ): string[] {
   const recentRank = new Map(frequentIds.map((id, index) => [id, index]))
 
-  return Object.entries(frqnCnts)
+  const rankedIds = Object.entries(frqnCnts)
     .filter(([, count]) => count >= MIN_FRQN_CNT)
     .sort(([leftId, leftCount], [rightId, rightCount]) => {
       if (leftCount !== rightCount) {
@@ -38,7 +38,12 @@ function getRcmmFrqnI(
       return leftId.localeCompare(rightId)
     })
     .map(([id]) => id)
-    .slice(0, MAXFRQNRCMM)
+
+  const cutoffId = rankedIds[MAXFRQNRCMM - 1]
+  const cutoffCount = cutoffId ? frqnCnts[cutoffId] : null
+
+  return rankedIds.filter((id, index) =>
+    index < MAXFRQNRCMM || (cutoffCount != null && frqnCnts[id] === cutoffCount))
 }
 
 function getRcmmLastU(lastUsedIds: string[]): string[] {

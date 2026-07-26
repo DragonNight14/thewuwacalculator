@@ -245,6 +245,11 @@ export type EffectOp =
   value: FormExpr
 }
     | {
+  type: 'set_final_stat'
+  stat: BaseStatKey
+  value: FormExpr
+}
+    | {
   type: 'add_immunity'
   scope: ImmunityScope
 }

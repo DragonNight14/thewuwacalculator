@@ -26,7 +26,7 @@ export function CookieBanner({ visible, open, closing, onAccept }: CkBnnrPrps) {
       aria-label="Cookie consent"
     >
       <div className="cookie-banner__icon-wrap" aria-hidden="true">
-        <Cookie size={18} />
+        <Cookie size="1.125rem" />
       </div>
       <div className="cookie-banner__body">
         <p className="cookie-banner__text">

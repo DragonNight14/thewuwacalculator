@@ -211,7 +211,7 @@ export function Weapon({ runtime, onRtPdt: onRtPdt }: CalcWpnPaneP) {
     }
   }
 
-  const weaponIcon = weaponDef?.icon ?? '/assets/weapon-icons/default.webp'
+  const weaponIcon = weaponDef?.icon ?? '/assets/game/default.webp'
   const weaponRarity = weaponDef?.rarity ?? 4
 
   const mdlPrtlTgt = mainPortal()
@@ -268,7 +268,7 @@ export function Weapon({ runtime, onRtPdt: onRtPdt }: CalcWpnPaneP) {
             <span className="res-portrait-scrim" aria-hidden="true" />
             <span className="res-portrait-rarity" aria-label={`${weaponRarity} star`}>
               {Array.from({ length: weaponRarity }).map((_, index) => (
-                <Star key={index} size={9} strokeWidth={0} className="res-portrait-rstar" aria-hidden="true" />
+                <Star key={index} size="0.5625rem" strokeWidth={0} className="res-portrait-rstar" aria-hidden="true" />
               ))}
             </span>
           </button>
@@ -278,7 +278,7 @@ export function Weapon({ runtime, onRtPdt: onRtPdt }: CalcWpnPaneP) {
             <div className="weapon-banner__meta">
               <span className="hero-chip">
                 <img
-                  src={`/assets/weapons/${weaponKey}.webp`}
+                  src={`/assets/game/weapons/types/${weaponKey}.webp`}
                   alt={toTitle(weaponKey)}
                   className="weapon-icon"
                   onError={withDefWpnMg}
@@ -330,7 +330,7 @@ export function Weapon({ runtime, onRtPdt: onRtPdt }: CalcWpnPaneP) {
                 disabled={isMaxed}
                 onClick={handleMax}
               >
-                <Zap size={12} />
+                <Zap size="0.75rem" />
                 {isMaxed ? 'Maxed' : 'Max'}
               </button>
             </div>

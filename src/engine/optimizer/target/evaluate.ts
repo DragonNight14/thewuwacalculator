@@ -56,6 +56,11 @@ import {
   SETRTTGLST14,
   SETRTTGLST33,
 } from '@/engine/optimizer/encode/sets.ts'
+import {
+  calcJingranFireOfLifeMultiplier,
+  getJingranFortune,
+  hasJingranEverflow,
+} from '@/engine/optimizer/jingran.ts'
 
 // popcount helper for set bitmasks used to track unique echo kinds per set
 function countOneBits(x: number): number {
@@ -107,6 +112,18 @@ function calcShoreCritDmg(charId: number, finalER: number, innerOn: boolean, sup
   return Math.min(Math.max(0, finalER * 0.1), 25) / 100
 }
 
+function calcJingranAtk(charId: number, sequence: number, finalHp: number, everflowOn: boolean): number {
+  if (charId !== 1212) return 0
+  return sequence >= 3 && everflowOn
+    ? Math.min(Math.max(0, finalHp * 0.072), 2520)
+    : Math.min(Math.max(0, finalHp * 0.052), 1820)
+}
+
+function calcJingranFusion(charId: number, finalHp: number, fortuneStacks: number): number {
+  if (charId !== 1212 || fortuneStacks <= 0) return 0
+  return (Math.min(Math.max(0, finalHp * 0.00008), 2.8) * fortuneStacks) / 100
+}
+
 // unpack the packed target context into a more readable object
 function mkPrepCtx(context: Float32Array) {
   if (context.length !== CTX_FLOATS) {
@@ -136,6 +153,9 @@ function mkPrepCtx(context: Float32Array) {
     toggle0: (togglesBits & 1) ? 1 : 0,
     shoreInner: (togglesBits & (1 << 1)) !== 0,
     shoreSupernal: (togglesBits & (1 << 2)) !== 0,
+    togglesBits,
+    jingranFortune: getJingranFortune(togglesBits),
+    jingranEverflow: hasJingranEverflow(togglesBits),
     setRuntimeMask: setRtMask,
     set14FiveEnabled: (setRtMask & SETRTTGLST14) !== 0,
     set33ChongmingEnabled: (setRtMask & SETRTTGLST33) !== 0,
@@ -346,11 +366,14 @@ export function evalTarget(options: {
       setBonus.hpF +
       prepared.finalHp
 
-  const finalDefBase =
+  let finalDefBase =
       prepared.baseDef * ((base.defP + setBonus.defP) / 100) +
       base.defF +
       setBonus.defF +
       prepared.finalDef
+  if (prepared.charId === 1212) {
+    finalDefBase = 0
+  }
 
   const finalERBase = prepared.baseER + base.er + setBonus.erSetBonus
 
@@ -400,11 +423,18 @@ export function evalTarget(options: {
   const dmgBonus =
       prepared.dmgBonus +
       (bonus / 100) +
-      (calcConvert(prepared.charId, finalER) * ((prepared.skillMask >>> 6) & 1))
+      (calcConvert(prepared.charId, finalER) * ((prepared.skillMask >>> 6) & 1)) +
+      calcJingranFusion(prepared.charId, finalHpBase, prepared.jingranFortune)
 
   // rebuild final atk from base row + chosen main echo
   let finalAtk = atkBaseTerm + (prepared.baseAtk * ((mainAtkP + s33AtkBonus) / 100)) + mainAtkF
   finalAtk += calcErToAtk(prepared.charId, finalER, prepared.toggle0)
+  finalAtk += calcJingranAtk(
+      prepared.charId,
+      prepared.sequence,
+      finalHpBase,
+      prepared.jingranEverflow,
+  )
 
   // 1209 adds conditional er-based bonuses; main-echo cr/cd (slots 15/16)
   // also seed these aggregates so cr/cd-granting main echoes like 6000201
@@ -520,8 +550,17 @@ export function evalTarget(options: {
           prepared.dmgAmplify *
           prepared.aux0
 
+      const effectiveMultiplier =
+          prepared.multiplier +
+          calcJingranFireOfLifeMultiplier(
+              prepared.charId,
+              prepared.skillId,
+              finalHpBase,
+              prepared.togglesBits,
+          )
+
       const baseDamage =
-          (scaled * prepared.multiplier + prepared.flatDmg) *
+          (scaled * effectiveMultiplier + prepared.flatDmg) *
           baseMul *
           (dmgBonus + (mrnyDmgBns * prepared.toggle0))
 

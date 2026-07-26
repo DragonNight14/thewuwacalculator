@@ -151,6 +151,7 @@ export const DEF_BENCH_RPT: BenchRptSettings = {
 export interface UiPrefs {
   ctxMenu: boolean
   updateToast: boolean
+  gameBetaData: boolean
   recommendedMenuItems: boolean
   showBenchStates: boolean
   maxResOnInit: boolean
@@ -169,6 +170,7 @@ export type UploadPersistMode = 'indexeddb' | 'imgbb'
 export const DEF_UI_PREFS: UiPrefs = {
   ctxMenu: true,
   updateToast: true,
+  gameBetaData: true,
   recommendedMenuItems: false,
   showBenchStates: false,
   maxResOnInit: true,

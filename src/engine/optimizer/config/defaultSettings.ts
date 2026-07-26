@@ -178,6 +178,10 @@ export function deriveOptSets(params: {
     filterSet.add('er')
   }
 
+  if (characterId === 1212) {
+    filterSet.add('hp%')
+  }
+
   const selectedBonus = pickDefaultBonus(weights)
   if (selectedBonus) {
     filterSet.add('bonus')

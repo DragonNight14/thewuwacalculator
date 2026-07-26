@@ -11,13 +11,16 @@ import type {
   PickFreqWeapon,
 } from '@/domain/entities/appState'
 import {
-  PICK_FREQ_MAX,
   PICK_FREQ_WEPS,
 } from '@/domain/entities/appState'
 import type { ResProf } from '@/domain/entities/profile'
 import type { ResRuntime, TeamMemRtVie } from '@/domain/entities/runtime'
 import { isNoWeaponId } from '@/domain/entities/runtime'
 import { getResSeedBy } from '@/domain/services/resonatorSeedService'
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return !!value && typeof value === 'object' && !Array.isArray(value)
+}
 
 function cleanIds(ids: unknown): string[] {
   if (!Array.isArray(ids)) {
@@ -33,40 +36,245 @@ function cleanIds(ids: unknown): string[] {
     }
 
     nextIds.push(value)
-
-    if (nextIds.length >= PICK_FREQ_MAX) {
-      break
-    }
   }
 
   return nextIds
 }
 
-function makeEmptyBucket(): PckrFreqBktS {
+function cleanPositiveInt(value: unknown): number | null {
+  return Number.isInteger(value) && Number(value) > 0 ? Number(value) : null
+}
+
+function cleanNonnegativeInt(value: unknown): number | null {
+  return Number.isInteger(value) && Number(value) >= 0 ? Number(value) : null
+}
+
+function cleanDateString(value: unknown): string | null {
+  return typeof value === 'string' && value.trim().length > 0 ? value : null
+}
+
+function cleanId(value: unknown): string | null {
+  return typeof value === 'string' && value.trim().length > 0 ? value : null
+}
+
+function dayKeyFromIso(value: string): string {
+  return value.slice(0, 10)
+}
+
+function cleanUsesByDay(value: unknown): Record<string, number> {
+  if (!isRecord(value)) {
+    return {}
+  }
+
+  const next: Record<string, number> = {}
+  for (const [day, count] of Object.entries(value)) {
+    const cleanCount = cleanPositiveInt(count)
+    if (!cleanCount || !/^\d{4}-\d{2}-\d{2}$/.test(day)) {
+      continue
+    }
+
+    next[day] = cleanCount
+  }
+
+  return next
+}
+
+function cleanUsesByActiveResonator(value: unknown): Record<string, number> {
+  if (!isRecord(value)) {
+    return {}
+  }
+
+  const next: Record<string, number> = {}
+  for (const [resonatorId, count] of Object.entries(value)) {
+    const cleanCount = cleanPositiveInt(count)
+    if (!cleanCount || !cleanId(resonatorId)) {
+      continue
+    }
+
+    next[resonatorId] = cleanCount
+  }
+
+  return next
+}
+
+export function mkEmptyPckrFreqBkt(): PckrFreqBktS {
   return {
-    ids: [],
-    counts: {},
+    version: 2,
+    totalUses: 0,
+    firstUsedAt: null,
+    lastUsedAt: null,
+    order: [],
+    items: {},
+  }
+}
+
+function normV2FreqBkt(value: Record<string, unknown>): PckrFreqBktS {
+  const rawItems = isRecord(value.items) ? value.items : {}
+  const items: PckrFreqBktS['items'] = {}
+
+  for (const [id, rawItem] of Object.entries(rawItems)) {
+    if (!isRecord(rawItem)) {
+      continue
+    }
+
+    const count = cleanPositiveInt(rawItem.count)
+    if (!count) {
+      continue
+    }
+
+    const firstUsedAt = cleanDateString(rawItem.firstUsedAt)
+    const lastUsedAt = cleanDateString(rawItem.lastUsedAt)
+    const usesByDay = cleanUsesByDay(rawItem.usesByDay)
+    const usesByActiveResonator = cleanUsesByActiveResonator(rawItem.usesByActiveResonator)
+
+    items[id] = {
+      id,
+      count,
+      firstUsedAt,
+      lastUsedAt,
+      previousUsedAt: cleanDateString(rawItem.previousUsedAt),
+      firstUseSeq: cleanNonnegativeInt(rawItem.firstUseSeq) ?? 0,
+      lastUseSeq: cleanNonnegativeInt(rawItem.lastUseSeq) ?? 0,
+      usesByDay: Object.keys(usesByDay).length > 0
+        ? usesByDay
+        : lastUsedAt
+          ? { [dayKeyFromIso(lastUsedAt)]: count }
+          : {},
+      firstActiveResonatorId: cleanId(rawItem.firstActiveResonatorId),
+      lastActiveResonatorId: cleanId(rawItem.lastActiveResonatorId),
+      previousActiveResonatorId: cleanId(rawItem.previousActiveResonatorId),
+      usesByActiveResonator,
+    }
+  }
+
+  const orderedIds = cleanIds(value.order).filter((id) => !!items[id])
+  const missingIds = Object.keys(items)
+    .filter((id) => !orderedIds.includes(id))
+    .sort((left, right) => {
+      const seqDelta = items[right].lastUseSeq - items[left].lastUseSeq
+      const countDelta = items[right].count - items[left].count
+      return seqDelta || countDelta || left.localeCompare(right)
+    })
+  const order = [...orderedIds, ...missingIds]
+  const countTotal = Object.values(items).reduce((sum, item) => sum + item.count, 0)
+  const maxSeq = Object.values(items).reduce((max, item) => Math.max(max, item.lastUseSeq), 0)
+  const savedTotal = cleanNonnegativeInt(value.totalUses) ?? 0
+
+  return {
+    version: 2,
+    totalUses: Math.max(savedTotal, countTotal, maxSeq),
+    firstUsedAt: cleanDateString(value.firstUsedAt),
+    lastUsedAt: cleanDateString(value.lastUsedAt),
+    order,
+    items,
+  }
+}
+
+function normLegacyFreqBkt(value: Record<string, unknown>): PckrFreqBktS {
+  const counts = isRecord(value.counts) ? value.counts : {}
+  const recentIds = cleanIds(value.ids)
+  const countedIds = Object.entries(counts)
+    .filter(([, count]) => !!cleanPositiveInt(count))
+    .map(([id]) => id)
+  const order = [
+    ...recentIds.filter((id) => countedIds.includes(id)),
+    ...countedIds
+      .filter((id) => !recentIds.includes(id))
+      .sort((left, right) => {
+        const countDelta = Number(counts[right] ?? 0) - Number(counts[left] ?? 0)
+        return countDelta || left.localeCompare(right)
+      }),
+  ]
+  const items = Object.fromEntries(
+    countedIds.map((id, index) => [
+      id,
+      {
+        id,
+        count: Number(counts[id]),
+        firstUsedAt: null,
+        lastUsedAt: null,
+        previousUsedAt: null,
+        firstUseSeq: index + 1,
+        lastUseSeq: index + 1,
+        usesByDay: {},
+        firstActiveResonatorId: null,
+        lastActiveResonatorId: null,
+        previousActiveResonatorId: null,
+        usesByActiveResonator: {},
+      },
+    ]),
+  )
+  const totalUses = countedIds.reduce((sum, id) => sum + Number(counts[id] ?? 0), 0)
+
+  return {
+    version: 2,
+    totalUses,
+    firstUsedAt: null,
+    lastUsedAt: null,
+    order,
+    items,
+  }
+}
+
+function normalizePckrFreqBkt(
+    value: unknown,
+    options: { preserveLegacy: boolean },
+): PckrFreqBktS {
+  if (!isRecord(value)) {
+    return mkEmptyPckrFreqBkt()
+  }
+
+  if (value.version === 2) {
+    return normV2FreqBkt(value)
+  }
+
+  return options.preserveLegacy
+    ? normLegacyFreqBkt(value)
+    : mkEmptyPckrFreqBkt()
+}
+
+export function normalizePckrFreqState(value: unknown): PckrFreqStt {
+  const raw = isRecord(value) ? value : {}
+  const rawWeapons = isRecord(raw.weaponByType) ? raw.weaponByType : {}
+  const rawTeamSlots = isRecord(raw.resonatorByTeamSlot) ? raw.resonatorByTeamSlot : {}
+
+  return {
+    resonator: normalizePckrFreqBkt(raw.resonator, { preserveLegacy: true }),
+    echo: normalizePckrFreqBkt(raw.echo, { preserveLegacy: false }),
+    enemy: normalizePckrFreqBkt(raw.enemy, { preserveLegacy: false }),
+    weaponByType: {
+      broadblade: normalizePckrFreqBkt(rawWeapons.broadblade, { preserveLegacy: false }),
+      sword: normalizePckrFreqBkt(rawWeapons.sword, { preserveLegacy: false }),
+      pistols: normalizePckrFreqBkt(rawWeapons.pistols, { preserveLegacy: false }),
+      gauntlets: normalizePckrFreqBkt(rawWeapons.gauntlets, { preserveLegacy: false }),
+      rectifier: normalizePckrFreqBkt(rawWeapons.rectifier, { preserveLegacy: false }),
+    },
+    resonatorByTeamSlot: {
+      active: normalizePckrFreqBkt(rawTeamSlots.active, { preserveLegacy: false }),
+      teammate1: normalizePckrFreqBkt(rawTeamSlots.teammate1, { preserveLegacy: false }),
+      teammate2: normalizePckrFreqBkt(rawTeamSlots.teammate2, { preserveLegacy: false }),
+    },
   }
 }
 
 export function mkDefPckrFre(): PckrFreqStt {
   const weaponByType = {
-    broadblade: makeEmptyBucket(),
-    sword: makeEmptyBucket(),
-    pistols: makeEmptyBucket(),
-    gauntlets: makeEmptyBucket(),
-    rectifier: makeEmptyBucket(),
+    broadblade: mkEmptyPckrFreqBkt(),
+    sword: mkEmptyPckrFreqBkt(),
+    pistols: mkEmptyPckrFreqBkt(),
+    gauntlets: mkEmptyPckrFreqBkt(),
+    rectifier: mkEmptyPckrFreqBkt(),
   }
   const resByTeamSlo = {
-    active: makeEmptyBucket(),
-    teammate1: makeEmptyBucket(),
-    teammate2: makeEmptyBucket(),
+    active: mkEmptyPckrFreqBkt(),
+    teammate1: mkEmptyPckrFreqBkt(),
+    teammate2: mkEmptyPckrFreqBkt(),
   }
 
   return {
-    resonator: makeEmptyBucket(),
-    echo: makeEmptyBucket(),
-    enemy: makeEmptyBucket(),
+    resonator: mkEmptyPckrFreqBkt(),
+    echo: mkEmptyPckrFreqBkt(),
+    enemy: mkEmptyPckrFreqBkt(),
     weaponByType,
     resonatorByTeamSlot: resByTeamSlo,
   }
@@ -75,38 +283,64 @@ export function mkDefPckrFre(): PckrFreqStt {
 function mrgBktStt(
   current: PckrFreqBktS,
   incoming: string[],
+  activeResonatorId: string | null = null,
 ): PckrFreqBktS {
   const rdrdNcmn = cleanIds(incoming)
+  const contextResonatorId = cleanId(activeResonatorId)
 
   if (rdrdNcmn.length === 0) {
     return current
   }
 
+  const usedAt = new Date().toISOString()
   // New picks move to the front while older picks keep their relative order.
-  // Counts are intentionally kept beyond this short recent list so frequent
-  // picks do not reset when a few other items are selected.
-  const nextIds = [
+  // Unlike the old structure, this list is intentionally uncapped.
+  const nextOrder = [
     ...rdrdNcmn,
-    ...current.ids.filter((value) => !rdrdNcmn.includes(value)),
-  ].slice(0, PICK_FREQ_MAX)
-  const nextCounts = { ...current.counts }
+    ...current.order.filter((value) => !rdrdNcmn.includes(value)),
+  ]
+  const nextItems = { ...current.items }
+  let totalUses = current.totalUses
+  const usedDay = dayKeyFromIso(usedAt)
 
   for (const id of rdrdNcmn) {
-    nextCounts[id] = (nextCounts[id] ?? 0) + 1
+    const currentItem = current.items[id]
+    const nextSeq = totalUses + 1
+    totalUses = nextSeq
+    const usesByActiveResonator = { ...(currentItem?.usesByActiveResonator ?? {}) }
+    if (contextResonatorId) {
+      usesByActiveResonator[contextResonatorId] = (usesByActiveResonator[contextResonatorId] ?? 0) + 1
+    }
+
+    nextItems[id] = {
+      id,
+      count: (currentItem?.count ?? 0) + 1,
+      firstUsedAt: currentItem?.firstUsedAt ?? usedAt,
+      lastUsedAt: usedAt,
+      previousUsedAt: currentItem?.lastUsedAt ?? null,
+      firstUseSeq: currentItem?.firstUseSeq ?? nextSeq,
+      lastUseSeq: nextSeq,
+      usesByDay: {
+        ...(currentItem?.usesByDay ?? {}),
+        [usedDay]: (currentItem?.usesByDay?.[usedDay] ?? 0) + 1,
+      },
+      firstActiveResonatorId: currentItem?.firstActiveResonatorId ?? contextResonatorId,
+      lastActiveResonatorId: contextResonatorId ?? currentItem?.lastActiveResonatorId ?? null,
+      previousActiveResonatorId: contextResonatorId
+        ? currentItem?.lastActiveResonatorId ?? null
+        : currentItem?.previousActiveResonatorId ?? null,
+      usesByActiveResonator,
+    }
   }
 
-  const idsUnchanged =
-    nextIds.length === current.ids.length && nextIds.every((value, index) => value === current.ids[index])
-  const cntsNchn =
-    Object.keys(nextCounts).length === Object.keys(current.counts).length
-    && Object.entries(nextCounts).every(([id, count]) => current.counts[id] === count)
-
-  return idsUnchanged && cntsNchn
-    ? current
-    : {
-      ids: nextIds,
-      counts: nextCounts,
-    }
+  return {
+    version: 2,
+    totalUses,
+    firstUsedAt: current.firstUsedAt ?? usedAt,
+    lastUsedAt: usedAt,
+    order: nextOrder,
+    items: nextItems,
+  }
 }
 
 export function applyPckrFre(
@@ -132,7 +366,7 @@ export function applyPckrFre(
         break
       }
       case 'echo': {
-        const nextBucket = mrgBktStt(nextState.echo, update.ids)
+        const nextBucket = mrgBktStt(nextState.echo, update.ids, update.activeResonatorId ?? null)
         if (nextBucket === nextState.echo) {
           continue
         }
@@ -144,7 +378,7 @@ export function applyPckrFre(
         break
       }
       case 'enemy': {
-        const nextBucket = mrgBktStt(nextState.enemy, update.ids)
+        const nextBucket = mrgBktStt(nextState.enemy, update.ids, update.activeResonatorId ?? null)
         if (nextBucket === nextState.enemy) {
           continue
         }
@@ -157,7 +391,7 @@ export function applyPckrFre(
       }
       case 'weapon': {
         const current = nextState.weaponByType[update.weaponType]
-        const nextBucket = mrgBktStt(current, update.ids)
+        const nextBucket = mrgBktStt(current, update.ids, update.activeResonatorId ?? null)
         if (nextBucket === current) {
           continue
         }
@@ -173,7 +407,7 @@ export function applyPckrFre(
       }
       case 'teamResonator': {
         const current = nextState.resonatorByTeamSlot[update.slot]
-        const nextBucket = mrgBktStt(current, update.ids)
+        const nextBucket = mrgBktStt(current, update.ids, update.activeResonatorId ?? null)
         if (nextBucket === current) {
           continue
         }

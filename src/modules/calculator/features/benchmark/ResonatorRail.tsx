@@ -358,7 +358,7 @@ function BenchmarkAttributeRail({
               onClick={() => goTo(index)}
             >
               <img
-                src={`/assets/attributes/attributes alt/${group.attribute}.webp`}
+                src={`/assets/game/attributes/icons/${group.attribute}.webp`}
                 alt=""
                 aria-hidden="true"
                 loading="lazy"

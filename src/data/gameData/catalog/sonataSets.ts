@@ -8,6 +8,7 @@ export interface SntSetDef {
   id: number
   name: string
   icon: string
+  color?: string
 }
 
 export let SONATA_SETS: SntSetDef[] = []
@@ -29,4 +30,9 @@ export function getSntSetNam(id: number): string {
 // get the icon path for a Sonata set id
 export function getSntSetIco(id: number): string | null {
   return sntSetsById[id]?.icon ?? null
+}
+
+// get the ring color sampled from the Sonata set icon
+export function getSntSetClr(id: number): string | null {
+  return sntSetsById[id]?.color ?? null
 }

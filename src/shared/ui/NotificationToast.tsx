@@ -81,7 +81,7 @@ function ToastItem({ toast }: { toast: Toast }) {
       onKeyDown={toast.onClick ? (e) => { if (e.key === 'Enter' || e.key === ' ') handleClick() } : undefined}
     >
       <div className="toast-item__icon">
-        <Icon size={16} />
+        <Icon size="1rem" />
       </div>
       <div className="toast-item__content">{toast.content}</div>
       {toast.action && (
@@ -104,7 +104,7 @@ function ToastItem({ toast }: { toast: Toast }) {
           aria-label="Dismiss"
           onClick={onDsms}
         >
-          <X size={14} />
+          <X size="0.875rem" />
         </button>
       )}
     </div>

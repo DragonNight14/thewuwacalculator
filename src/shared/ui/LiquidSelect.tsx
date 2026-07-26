@@ -37,6 +37,7 @@ interface LqdSelPrps<T extends LqdSelVl> {
   ariaLabelBy?: string
   portalTarget?: HTMLElement | null
   viewTrggCntn?: (selPtn: SelectOption<T> | null, placeholder: string) => ReactNode
+  viewOptnCntn?: (option: SelectOption<T>) => ReactNode
   triggerClass?: string
   prfrPlcm?: 'auto' | 'down' | 'up'
 }
@@ -70,6 +71,7 @@ export function LiquidSelect<T extends LqdSelVl>({
   ariaLabelBy: ariaLabelBy,
   portalTarget,
   viewTrggCntn: rndrTrggCntn,
+  viewOptnCntn: rndrOptnCntn,
   triggerClass: triggerClass,
   prfrPlcm: prfrPlcm = 'auto',
 }: LqdSelPrps<T>) {
@@ -413,11 +415,17 @@ export function LiquidSelect<T extends LqdSelVl>({
                     onMouseEnter={() => setActNdx(index)}
                   >
                     <span className={`${b}__option-label`}>
-                      {option.icon ? <img src={option.icon} alt="" className={`${b}__option-icon`} onError={withDefIconM} /> : null}
-                      {option.label}
+                      {rndrOptnCntn ? (
+                        rndrOptnCntn(option)
+                      ) : (
+                        <>
+                          {option.icon ? <img src={option.icon} alt="" className={`${b}__option-icon`} onError={withDefIconM} /> : null}
+                          <span className={`${b}__option-text`}>{option.label}</span>
+                        </>
+                      )}
                     </span>
                     <span className={`${b}__option-check`} aria-hidden="true">
-                      <Check size={14} />
+                      <Check size="0.875rem" />
                     </span>
                   </div>
                 )
@@ -478,10 +486,10 @@ export function LiquidSelect<T extends LqdSelVl>({
           <>
             <span className={selPtn ? `${b}__value` : `${b}__value ${b}__value--placeholder`}>
               {selPtn?.icon ? <img src={selPtn.icon} alt="" className={`${b}__option-icon`} onError={withDefIconM} /> : null}
-              {selPtn?.label ?? placeholder}
+              <span className={`${b}__value-text`}>{selPtn?.label ?? placeholder}</span>
             </span>
             <span className={`${b}__icon`} aria-hidden="true">
-              <ChevronDown size={16} />
+              <ChevronDown size="1rem" />
             </span>
           </>
         )}

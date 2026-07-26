@@ -22,16 +22,16 @@ export const WPNSTATLBLS: Record<string, string> = {
 
 // icon asset mapping for weapon stats in the ui
 export const WPN_STAT_CNS: Record<string, string> = {
-  atk: '/assets/stat-icons/atk.png',
-  hp: '/assets/stat-icons/hp.png',
-  def: '/assets/stat-icons/def.png',
-  critRate: '/assets/stat-icons/critrate.png',
-  critDmg: '/assets/stat-icons/critdmg.png',
-  atkPercent: '/assets/stat-icons/atk.png',
-  energyRegen: '/assets/stat-icons/energyregen.png',
-  defPercent: '/assets/stat-icons/def.png',
-  hpPercent: '/assets/stat-icons/hp.png',
-  tuneBreakBoost: '/assets/stat-icons/tune-break-boost.png',
+  atk: '/assets/game/stats/icons/atk.png',
+  hp: '/assets/game/stats/icons/hp.png',
+  def: '/assets/game/stats/icons/def.png',
+  critRate: '/assets/game/stats/icons/critrate.png',
+  critDmg: '/assets/game/stats/icons/critdmg.png',
+  atkPercent: '/assets/game/stats/icons/atk.png',
+  energyRegen: '/assets/game/stats/icons/energyregen.png',
+  defPercent: '/assets/game/stats/icons/def.png',
+  hpPercent: '/assets/game/stats/icons/hp.png',
+  tuneBreakBoost: '/assets/game/stats/icons/tune-break-boost.png',
 }
 
 // stats that should be shown as percentages instead of raw flat values

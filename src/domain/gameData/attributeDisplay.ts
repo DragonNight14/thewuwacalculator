@@ -16,5 +16,5 @@ export const ATTR_COLORS: Record<AttributeKey, string> = {
 }
 
 export function getAttributeIconSrc(attribute: string | null | undefined): string | null {
-  return attribute ? `/assets/attributes/attributes alt/${attribute}.webp` : null
+  return attribute ? `/assets/game/attributes/icons/${attribute}.webp` : null
 }

@@ -54,6 +54,7 @@ interface MkPrefGrpsAr {
   setNtrnAnim: (checked: boolean) => void
   setCtxMenu: (checked: boolean) => void
   setPdtTst: (checked: boolean) => void
+  setGameBetaData: (checked: boolean) => void
   setRcmmMenyu: (checked: boolean) => void
   setBenchStates: (checked: boolean) => void
   setMaxResInit: (checked: boolean) => void
@@ -61,6 +62,7 @@ interface MkPrefGrpsAr {
   setHistMax: (value: HistoryMax) => void
   setCmpcInv: (checked: boolean) => void
   setSeeQppd: (checked: boolean) => void
+  setCmprXprts: (checked: boolean) => void
 }
 
 export function ToggleSwitch({
@@ -128,6 +130,7 @@ export function mkPrefGrps({
   setNtrnAnim: setNtrnNmtn,
   setCtxMenu,
   setPdtTst: setPdtTst,
+  setGameBetaData,
   setRcmmMenyu: setRcmmMenuT,
   setBenchStates,
   setMaxResInit,
@@ -135,6 +138,7 @@ export function mkPrefGrps({
   setHistMax: setHstrMax,
   setCmpcInv: setCmpcInv,
   setSeeQppd: setSeeQppd,
+  setCmprXprts: setCmprXprts,
 }: MkPrefGrpsAr): PrefGrp[] {
   return [
     {
@@ -168,6 +172,20 @@ export function mkPrefGrps({
           description: 'Show changelog update toasts when new app updates land.',
           checked: ui.preferences.updateToast,
           onChange: setPdtTst,
+        },
+        {
+          kind: 'toggle',
+          label: 'Beta Game Data',
+          description: 'Use beta game data catalogs. Changing this reloads the app.',
+          checked: ui.preferences.gameBetaData,
+          onChange: setGameBetaData,
+        },
+        {
+          kind: 'toggle',
+          label: 'Compressed Exports',
+          description: 'Export files in the compact .wwcalc format instead of plain JSON.',
+          checked: ui.compressedExports,
+          onChange: setCmprXprts,
         },
         {
           kind: 'toggle',

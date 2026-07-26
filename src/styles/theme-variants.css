@@ -1343,7 +1343,6 @@ html.frosted-aurora {
 .frosted-aurora .overview-stats-tree,
 .frosted-aurora .overview-resonator-pill,
 .frosted-aurora .main-stat-card,
-.frosted-aurora .set-plan-card,
 .frosted-aurora .echo-slot-detail-panel,
 .frosted-aurora .stat-row:nth-child(odd),
 .frosted-aurora .sequence-card-badge,
@@ -1360,8 +1359,7 @@ html.frosted-aurora {
 }
 
 .frosted-aurora .optimizer-character-settings,
-.frosted-aurora .optimizer-search-results,
-.frosted-aurora .sticky-controls {
+.frosted-aurora .optimizer-search-results {
   background: color-mix(in srgb, var(--bg-main-color, rgba(255, 255, 255, 0.24)) 55%, rgba(255, 255, 255, 0.09)) !important;
 }
 

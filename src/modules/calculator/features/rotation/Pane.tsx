@@ -68,10 +68,11 @@ import {
   updRotNode,
 } from '@/modules/calculator/features/rotation/lib/tree.ts'
 import { mkRotCondNod } from '@/modules/calculator/features/rotation/lib/conditions.tsx'
+import { decShareText } from '@/shared/lib/shareCodec.ts'
+import { readAppFile, xprtAppFile } from '@/shared/lib/fileCodec.ts'
 import {
   mkRotXprtPay,
   mkSvdRotDtrD,
-  dwnlJsonFile,
   fmtSvdRotDur,
   fmtSvdRotNtg,
   getSvdRotDps,
@@ -260,10 +261,12 @@ export function Rotation({runtime, runtimesById, simulation, onRtPdt: onRtPdt}: 
     setSvdRttnDt(mkSvdRotDtrD(svdRotDtrMdl.value))
   }, [svdRotDtrMdl.value])
 
-  const onXprtRot = useCallback((entry: InvRotEnt) => {
+  const onXprtRot = useCallback(async (entry: InvRotEnt) => {
     const payload = mkRotXprtPay(entry)
-    const filename = `${slgfRotFileN(entry.name || entry.resonatorName || 'rotation')}.json`
-    dwnlJsonFile(filename, payload)
+    await xprtAppFile(
+      `${slgfRotFileN(entry.name || entry.resonatorName || 'rotation')}.json`,
+      JSON.stringify(payload),
+    )
 
     showToast({
       content: `Exported "${entry.name}"`,
@@ -272,14 +275,10 @@ export function Rotation({runtime, runtimesById, simulation, onRtPdt: onRtPdt}: 
     })
   }, [showToast])
 
-  const onMprtRttn = useCallback(async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0]
-    if (!file) {
-      return
-    }
-
+  // shared import core for both the file picker and the pasted share link.
+  const mprtRotText = useCallback((rawText: string, srcNoun: 'file' | 'link'): boolean => {
     try {
-      const text = await file.text()
+      const text = decShareText(rawText)
       const parsed = JSON.parse(text) as unknown
 
       let candidates: unknown[] = []
@@ -311,11 +310,11 @@ export function Rotation({runtime, runtimesById, simulation, onRtPdt: onRtPdt}: 
 
       if (imported.length === 0) {
         showToast({
-          content: 'No valid rotation data found in that file.',
+          content: `No valid rotation data found in that ${srcNoun}.`,
           variant: 'error',
           duration: 3500,
         })
-        return
+        return false
       }
 
       for (const entry of imported) {
@@ -327,16 +326,32 @@ export function Rotation({runtime, runtimesById, simulation, onRtPdt: onRtPdt}: 
         variant: 'success',
         duration: 3000,
       })
+      return true
     } catch {
       showToast({
-        content: 'Failed to import file. Make sure it is valid JSON.',
+        content: srcNoun === 'link'
+          ? 'Could not read that link. Make sure the whole link was copied.'
+          : 'Failed to import file. Make sure it is valid JSON.',
         variant: 'error',
         duration: 3500,
       })
+      return false
+    }
+  }, [addRotToInv, showToast])
+
+
+  const onMprtRttn = useCallback(async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]
+    if (!file) {
+      return
+    }
+
+    try {
+      mprtRotText(await readAppFile(file), 'file')
     } finally {
       event.target.value = ''
     }
-  }, [addRotToInv, showToast])
+  }, [mprtRotText])
 
   const curTeamMemId = useMemo(
     () => mkCurTeamMem(runtime),
@@ -731,7 +746,7 @@ export function Rotation({runtime, runtimesById, simulation, onRtPdt: onRtPdt}: 
       id: 'rot-live:copy',
       key: 'copy',
       needsSel: true,
-      icon: <Copy size={14} />,
+      icon: <Copy size="0.5rem" />,
       label: ({ count }) => `Copy (${count})`,
       title: 'Copy selection (Ctrl/Cmd+C)',
       run: async ({ vals }) => {
@@ -742,7 +757,7 @@ export function Rotation({runtime, runtimesById, simulation, onRtPdt: onRtPdt}: 
       id: 'rot-live:cut',
       key: 'cut',
       needsSel: true,
-      icon: <Scissors size={14} />,
+      icon: <Scissors size="0.5rem" />,
       label: ({ count }) => `Cut (${count})`,
       title: 'Cut selection (Ctrl/Cmd+X)',
       run: async () => {
@@ -764,7 +779,7 @@ export function Rotation({runtime, runtimesById, simulation, onRtPdt: onRtPdt}: 
       key: 'delete',
       needsSel: true,
       danger: true,
-      icon: <Trash2 size={14} />,
+      icon: <Trash2 size="0.5rem" />,
       label: ({ count }) => `Delete (${count})`,
       title: 'Delete selection (Delete / Backspace)',
       run: () => {
@@ -793,7 +808,7 @@ export function Rotation({runtime, runtimesById, simulation, onRtPdt: onRtPdt}: 
       id: 'rot-saved:copy',
       key: 'copy',
       needsSel: true,
-      icon: <Copy size={14} />,
+      icon: <Copy size="0.5rem" />,
       label: ({ count }) => `Copy (${count})`,
       title: 'Copy selection (Ctrl/Cmd+C)',
       run: async ({ vals }) => {
@@ -804,7 +819,7 @@ export function Rotation({runtime, runtimesById, simulation, onRtPdt: onRtPdt}: 
       id: 'rot-saved:cut',
       key: 'cut',
       needsSel: true,
-      icon: <Scissors size={14} />,
+      icon: <Scissors size="0.5rem" />,
       label: ({ count }) => `Cut (${count})`,
       title: 'Cut selection (Ctrl/Cmd+X)',
       run: async () => {
@@ -826,7 +841,7 @@ export function Rotation({runtime, runtimesById, simulation, onRtPdt: onRtPdt}: 
       key: 'delete',
       needsSel: true,
       danger: true,
-      icon: <Trash2 size={14} />,
+      icon: <Trash2 size="0.5rem" />,
       label: ({ count }) => `Delete (${count})`,
       title: 'Delete selection (Delete / Backspace)',
       run: () => {
@@ -2210,7 +2225,7 @@ export function Rotation({runtime, runtimesById, simulation, onRtPdt: onRtPdt}: 
                   className="rotation-button"
                   onClick={addRootFeat}
                 >
-                  <Plus size={14} />
+                  <Plus size="0.875rem" />
                   Feature
                 </button>
                 <button
@@ -2218,7 +2233,7 @@ export function Rotation({runtime, runtimesById, simulation, onRtPdt: onRtPdt}: 
                   className="rotation-button"
                   onClick={addRootCond}
                 >
-                  <Plus size={14} />
+                  <Plus size="0.875rem" />
                   Condition
                 </button>
                 <button
@@ -2226,7 +2241,7 @@ export function Rotation({runtime, runtimesById, simulation, onRtPdt: onRtPdt}: 
                   className="rotation-button"
                   onClick={addRootBlock}
                 >
-                  <Plus size={14} />
+                  <Plus size="0.875rem" />
                   Block
                 </button>
                 <button
@@ -2234,7 +2249,7 @@ export function Rotation({runtime, runtimesById, simulation, onRtPdt: onRtPdt}: 
                   className="rotation-button"
                   onClick={addRootLoop}
                 >
-                  <Plus size={14} />
+                  <Plus size="0.875rem" />
                   Loop
                 </button>
               </div>
@@ -2242,12 +2257,12 @@ export function Rotation({runtime, runtimesById, simulation, onRtPdt: onRtPdt}: 
               <div className="rotation-toolbar-group">
                 {currentMode === 'personal' && (
                   <button type="button" className="rotation-button" onClick={loadPrstRot}>
-                    <RotateCcw size={14} />
+                    <RotateCcw size="0.875rem" />
                     Preset
                   </button>
                 )}
                 <button type="button" className="rotation-button" onClick={saveRotation}>
-                  <Save size={14} />
+                  <Save size="0.875rem" />
                   Save
                 </button>
                 <button type="button" className="rotation-button clear" onClick={clrCurRot}>
@@ -2415,7 +2430,7 @@ export function Rotation({runtime, runtimesById, simulation, onRtPdt: onRtPdt}: 
                     }))
                   }
                 >
-                  {svdSortRdr === 'desc' ? <RrwUpNrrwWid size={15} /> : <RrwDownNrrwW size={15} />}
+                  {svdSortRdr === 'desc' ? <RrwUpNrrwWid size="0.5rem" /> : <RrwDownNrrwW size="0.5rem" />}
                   {svdSortRdr !== 'desc' ? 'Descending' : 'Ascending'}
                 </button>
 
@@ -2475,7 +2490,7 @@ export function Rotation({runtime, runtimesById, simulation, onRtPdt: onRtPdt}: 
                   </button>
 	                </div>
                 <div className="rotation-saved-filters__search">
-                  <Search size={13} className="rotation-saved-filters__search-icon" />
+                  <Search size="0.8125rem" className="rotation-saved-filters__search-icon" />
                   <input
                     type="text"
                     className="rotation-saved-filters__search-input"
@@ -2586,7 +2601,7 @@ export function Rotation({runtime, runtimesById, simulation, onRtPdt: onRtPdt}: 
                                   openSvdRotCt(entry)
                                 }}
                               >
-                                <CgListTree size={11} />
+                                <CgListTree size="0.5rem" />
                               </button>
                               <button
                               type="button"
@@ -2597,7 +2612,7 @@ export function Rotation({runtime, runtimesById, simulation, onRtPdt: onRtPdt}: 
                               }}
                               title="Edit details"
                               >
-                                <Pencil size={11} />
+                                <Pencil size="0.5rem" />
                               </button>
                               <button
                               type="button"
@@ -2608,7 +2623,7 @@ export function Rotation({runtime, runtimesById, simulation, onRtPdt: onRtPdt}: 
                                 onXprtRot(entry)
                               }}
                               >
-                                <PiPldSmplBol size={11} />
+                                <PiPldSmplBol size="0.5rem" />
                               </button>
                               <button
                               type="button"
@@ -2619,7 +2634,7 @@ export function Rotation({runtime, runtimesById, simulation, onRtPdt: onRtPdt}: 
                                 openSvdRotLo(entry)
                               }}
                               >
-                                <PiDwnlSmplBo size={11} />
+                                <PiDwnlSmplBo size="0.5rem" />
                               </button>
                               <button
                               type="button"
@@ -2630,7 +2645,7 @@ export function Rotation({runtime, runtimesById, simulation, onRtPdt: onRtPdt}: 
                                 cnfrDltSvdRo(entry)
                               }}
                               >
-                                <Trash2 size={11} />
+                                <Trash2 size="0.5rem" />
                               </button>
                             </div>
                           </div>
@@ -3142,7 +3157,7 @@ export function Rotation({runtime, runtimesById, simulation, onRtPdt: onRtPdt}: 
       <input
           ref={mprtFileNptR}
           type="file"
-          accept="application/json,.json"
+          accept=".json,.wwcalc,application/json"
           style={{ display: 'none' }}
           onChange={onMprtRttn}
       />

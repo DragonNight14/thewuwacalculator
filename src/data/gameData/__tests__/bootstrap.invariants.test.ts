@@ -61,19 +61,19 @@ describe('game data bootstrap invariants', () => {
       const url = resolveRequestUrl(input)
 
       switch (url) {
-        case '/data/resonator-sources.json':
-        case '/data/echo-sources.json':
-        case '/data/enemy-sources.json':
-        case '/data/weapon-sources.json':
-        case '/data/weapon-data.json':
-        case '/data/resonator-catalog.json':
-        case '/data/echo-catalog.json':
-        case '/data/sonata-sets.json':
-        case '/data/sonata-set-defs.json':
+        case '/data/beta/resonators/sources.json':
+        case '/data/beta/echoes/sources.json':
+        case '/data/beta/enemies/sources.json':
+        case '/data/beta/weapons/sources.json':
+        case '/data/beta/weapons/catalog.json':
+        case '/data/beta/resonators/catalog.json':
+        case '/data/beta/echoes/catalog.json':
+        case '/data/beta/sonata/sets.json':
+        case '/data/beta/sonata/effects.json':
           return createJsonResponse([])
-        case '/data/resonator-details.json':
+        case '/data/beta/resonators/details.json':
           return createJsonResponse({})
-        case '/data/echo-stats.json':
+        case '/data/beta/echoes/stats.json':
           return createJsonResponse({
             primaryStats: {},
             secondaryStats: {},
@@ -117,19 +117,19 @@ describe('game data bootstrap invariants', () => {
       const url = resolveRequestUrl(input)
 
       switch (url) {
-        case '/data/resonator-sources.json':
-        case '/data/echo-sources.json':
-        case '/data/enemy-sources.json':
-        case '/data/weapon-sources.json':
-        case '/data/weapon-data.json':
-        case '/data/resonator-catalog.json':
-        case '/data/echo-catalog.json':
-        case '/data/sonata-sets.json':
-        case '/data/sonata-set-defs.json':
+        case '/data/beta/resonators/sources.json':
+        case '/data/beta/echoes/sources.json':
+        case '/data/beta/enemies/sources.json':
+        case '/data/beta/weapons/sources.json':
+        case '/data/beta/weapons/catalog.json':
+        case '/data/beta/resonators/catalog.json':
+        case '/data/beta/echoes/catalog.json':
+        case '/data/beta/sonata/sets.json':
+        case '/data/beta/sonata/effects.json':
           return createJsonResponse([])
-        case '/data/resonator-details.json':
+        case '/data/beta/resonators/details.json':
           return createJsonResponse({})
-        case '/data/echo-stats.json':
+        case '/data/beta/echoes/stats.json':
           if (failEchoStats) {
             failEchoStats = false
             throw new Error('echo stats unavailable')
@@ -184,6 +184,55 @@ describe('game data bootstrap invariants', () => {
 
       expect(getGameData()).toBe(registry)
       expect(fetchMock).not.toHaveBeenCalled()
+    } finally {
+      globalThis.fetch = previousFetch
+      clearGameDataState()
+      vi.resetModules()
+    }
+  })
+
+  it('fetches the live snapshot when requested explicitly', async () => {
+    vi.resetModules()
+    clearGameDataState()
+    const previousFetch = globalThis.fetch
+
+    const fetchMock = vi.fn(async (input: RequestInfo | URL) => {
+      const url = resolveRequestUrl(input)
+
+      switch (url) {
+        case '/data/live/resonators/sources.json':
+        case '/data/live/echoes/sources.json':
+        case '/data/live/enemies/sources.json':
+        case '/data/live/weapons/sources.json':
+        case '/data/live/weapons/catalog.json':
+        case '/data/live/resonators/catalog.json':
+        case '/data/live/echoes/catalog.json':
+        case '/data/live/sonata/sets.json':
+        case '/data/live/sonata/effects.json':
+          return createJsonResponse([])
+        case '/data/live/resonators/details.json':
+          return createJsonResponse({})
+        case '/data/live/echoes/stats.json':
+          return createJsonResponse({
+            primaryStats: {},
+            secondaryStats: {},
+            substatKeys: [],
+            substatRanges: {},
+          })
+        default:
+          throw new Error(`Unexpected fetch request: ${url}`)
+      }
+    })
+
+    globalThis.fetch = fetchMock as typeof fetch
+
+    try {
+      const { initGameData, getGameDataMode } = await import('@/data/gameData')
+
+      await expect(initGameData({ mode: 'live' })).resolves.toBeUndefined()
+
+      expect(fetchMock).toHaveBeenCalledTimes(11)
+      expect(getGameDataMode()).toBe('live')
     } finally {
       globalThis.fetch = previousFetch
       clearGameDataState()

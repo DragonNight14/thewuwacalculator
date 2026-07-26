@@ -70,7 +70,7 @@ export const routeCtxBuilder = {
         {
           id: 'routechrome-undo',
           label: 'Undo',
-          icon: <Undo2 size={15} />,
+          icon: <Undo2 size="0.5rem" />,
           hint: 'Ctrl/Cmd+Z',
           disabled: !canUndo,
           submenu: undoHistory.map((entry, index) => ({
@@ -82,7 +82,7 @@ export const routeCtxBuilder = {
         {
           id: 'routechrome-redo',
           label: 'Redo',
-          icon: <Redo2 size={15} />,
+          icon: <Redo2 size="0.5rem" />,
           hint: 'Ctrl/Cmd+Y',
           disabled: !canRedo,
           submenu: redoHistory.map((entry, index) => ({
@@ -97,7 +97,7 @@ export const routeCtxBuilder = {
       return pages.map(({ to, label, Icon, iconClssName: iconClssName }) => ({
         id: `routechrome-page:${to}`,
         label,
-        icon: <Icon size={15} className={iconClssName} />,
+        icon: <Icon size="0.5rem" className={iconClssName} />,
         hint: isPageCrrn(to) ? 'Current' : undefined,
         disabled: isPageCrrn(to),
         onSelect: () => onNavigate(to),
@@ -108,13 +108,13 @@ export const routeCtxBuilder = {
         {
           id: 'routechrome-inventory',
           label: 'Inventory',
-          icon: <GiSchoolBag size={15} />,
+          icon: <GiSchoolBag size="0.5rem" />,
           onSelect: args.onOpenInv,
         },
         {
           id: 'routechrome-optimizer',
           label: 'Optimizer',
-          icon: <FaMicrochip size={15} />,
+          icon: <FaMicrochip size="0.5rem" />,
           hint: args.optAct ? 'Current' : undefined,
           disabled: args.optAct,
           onSelect: args.onTgglOpt,
@@ -122,7 +122,7 @@ export const routeCtxBuilder = {
         {
           id: 'routechrome-benchmark',
           label: 'Benchmark',
-          icon: <ChartInc size={15} />,
+          icon: <ChartInc size="0.5rem" />,
           hint: args.bnchAct ? 'Current' : undefined,
           disabled: args.bnchAct,
           onSelect: args.onTgglBnch,
@@ -130,7 +130,7 @@ export const routeCtxBuilder = {
         {
           id: 'routechrome-status',
           label: 'Status',
-          icon: <RxCtvtLog size={15} />,
+          icon: <RxCtvtLog size="0.5rem" />,
           onSelect: args.onOpenStatus,
         },
       ]
@@ -139,7 +139,7 @@ export const routeCtxBuilder = {
       return {
         id: 'routechrome-reset',
         label: 'Reset',
-        icon: <RotateCcw size={15} />,
+        icon: <RotateCcw size="0.5rem" />,
         danger: true,
         disabled: !canReset,
         onSelect: onReset,
@@ -157,13 +157,13 @@ export const routeCtxBuilder = {
         {
           id: 'routechrome-pages-submenu',
           label: 'Navigate...',
-          icon: <MapPlus size={15} />,
+          icon: <MapPlus size="0.5rem" />,
           submenu: pageEntries,
         },
         {
           id: 'routechrome-actions-submenu',
           label: 'App...',
-          icon: <PanelTopIcon size={15} />,
+          icon: <PanelTopIcon size="0.5rem" />,
           submenu: ctnEnts,
         },
         resetEntry,

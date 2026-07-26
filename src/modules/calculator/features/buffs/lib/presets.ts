@@ -134,7 +134,7 @@ function sourceName(source: DataSrcRef): string {
 
 function sourceIcon(source: DataSrcRef): string | null {
   if (source.type === 'weapon') {
-    return getWpnById(source.id)?.icon ?? `/assets/weapon-icons/${source.id}.webp`
+    return getWpnById(source.id)?.icon ?? `/assets/game/weapons/icons/${source.id}.webp`
   }
 
   if (source.type === 'echoSet') {
@@ -143,7 +143,7 @@ function sourceIcon(source: DataSrcRef): string | null {
   }
 
   if (source.type === 'echo') {
-    return getEchoById(source.id)?.icon ?? `/assets/echoes/${source.id}.webp`
+    return getEchoById(source.id)?.icon ?? `/assets/game/echoes/icons/${source.id}.webp`
   }
 
   return null

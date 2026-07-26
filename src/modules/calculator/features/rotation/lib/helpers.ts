@@ -4,6 +4,7 @@
                member lookups, and display-ready node metadata.
 */
 
+import { decShareText, encShareText } from '@/shared/lib/shareCodec.ts'
 import type { RotationNode } from '@/domain/gameData/contracts.ts'
 import type { InvRotEnt } from '@/domain/entities/inventoryStorage.ts'
 import { cloneRotNds } from '@/domain/entities/inventoryStorage.ts'
@@ -12,6 +13,7 @@ import { rmLoopMrkr } from './loops.ts'
 
 export const ROT_CLIP_KIND = 'rotation-clipboard'
 export const ROT_CLIP_VER = 1
+
 
 type RotClpbSrc = 'personal' | 'team' | 'saved'
 
@@ -31,7 +33,7 @@ export interface RotClpbPay {
 }
 
 export function serRotClpbPa(payload: RotClpbPay): string {
-  return JSON.stringify({
+  return encShareText({
     ...payload,
     items: cloneRotNds(payload.items),
     ...(payload.team ? { team: [...payload.team] as TeamSlots } : {}),
@@ -51,8 +53,15 @@ export function prsRotClpbPa(raw: string): RotClpbPay | null {
     return null
   }
 
+  // share tokens decompress back to json; plain json from older copies still
+  // parses unchanged.
+  const jsonText = decShareText(raw)
+  if (!jsonText) {
+    return null
+  }
+
   try {
-    const parsed = JSON.parse(raw) as Record<string, unknown>
+    const parsed = JSON.parse(jsonText) as Record<string, unknown>
     const source = parsed.source
     const mode = parsed.mode
     const items = parsed.items

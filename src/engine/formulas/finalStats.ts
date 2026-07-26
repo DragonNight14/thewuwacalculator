@@ -22,9 +22,9 @@ export function calcFinalStats(
   const defBase = baseStats.def
 
   // apply percent and flat bonuses to core stats
-  const atkFinal = atkBase * (1 + pool.atk.percent / 100) + pool.atk.flat
-  const hpFinal = hpBase * (1 + pool.hp.percent / 100) + pool.hp.flat
-  const defFinal = defBase * (1 + pool.def.percent / 100) + pool.def.flat
+  const atkFinal = pool.fixedStats.atk ?? (atkBase * (1 + pool.atk.percent / 100) + pool.atk.flat)
+  const hpFinal = pool.fixedStats.hp ?? (hpBase * (1 + pool.hp.percent / 100) + pool.hp.flat)
+  const defFinal = pool.fixedStats.def ?? (defBase * (1 + pool.def.percent / 100) + pool.def.flat)
 
   // return the fully assembled final stats object
   return {

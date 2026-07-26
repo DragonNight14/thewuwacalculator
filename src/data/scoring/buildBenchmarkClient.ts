@@ -15,6 +15,7 @@ import type {
   BenchWorkerOut,
 } from '@/data/scoring/buildBenchmarkWorkerTypes'
 import { makeBenchmarkKey } from '@/data/scoring/buildBenchmarkKey'
+import { getGameDataMode } from '@/data/gameData'
 
 type WorkerLane = 'fast' | 'report'
 type WorkerReq = BenchWorkerIn extends infer Job
@@ -236,7 +237,11 @@ function dispatchBenchmarkJob(
     const id = nextJobId++
     pendingJobs.set(id, { lane, resolve, reject })
     clearIdleTeardown(lane)
-    ensureWorker(lane).postMessage({ id, ...message } satisfies BenchWorkerIn)
+    ensureWorker(lane).postMessage({
+      id,
+      gameDataMode: getGameDataMode(),
+      ...message,
+    } satisfies BenchWorkerIn)
   })
 }
 

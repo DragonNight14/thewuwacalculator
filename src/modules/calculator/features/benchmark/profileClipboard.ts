@@ -5,6 +5,7 @@
                calculator profiles with overwrite semantics by resonator id.
 */
 
+import { decShareText, encShareText } from '@/shared/lib/shareCodec.ts'
 import type { ResProf } from '@/domain/entities/profile.ts'
 import type { ResonatorId } from '@/domain/entities/runtime.ts'
 import { cloneResProf } from '@/domain/state/runtimeCloning.ts'
@@ -54,7 +55,7 @@ export function makeProfileClip(
 export function serializeClip(
   payload: ProfileClipPay,
 ): string {
-  return JSON.stringify({
+  return encShareText({
     ...payload,
     profiles: cloneProfiles(payload.profiles),
   })
@@ -66,7 +67,11 @@ export function parseProfClip(raw: string): ProfileClipPay | null {
   }
 
   try {
-    const parsed = JSON.parse(raw) as Record<string, unknown>
+    const jsonText = decShareText(raw)
+    if (!jsonText) {
+      return null
+    }
+    const parsed = JSON.parse(jsonText) as Record<string, unknown>
     const profiles = parsed.profiles
 
     if (

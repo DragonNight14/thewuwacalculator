@@ -881,11 +881,6 @@
   flex-shrink: 0;
 }
 
-.rotation-loop-marker__badge svg {
-  width: 0.67rem;
-  height: 0.67rem;
-}
-
 .rotation-loop-marker__name {
   color: color-mix(in srgb, var(--rotation-loop-color) 76%, var(--text));
 }

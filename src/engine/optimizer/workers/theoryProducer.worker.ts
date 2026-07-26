@@ -143,7 +143,7 @@ async function startRun(
     if (payload.staticData) {
       hydrFromSnpsh(payload.staticData)
     } else {
-      await initGameData()
+      await initGameData({ mode: payload.gameDataMode })
     }
     gameDataReady = true
   }

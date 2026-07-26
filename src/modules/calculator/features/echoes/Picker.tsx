@@ -95,7 +95,7 @@ export function EchoPicker({
     <>
       <div className="picker-filter-layout echo-filter-row">
         <label className="bp-search">
-          <Search size={17} aria-hidden="true" />
+          <Search size="1.0625rem" aria-hidden="true" />
           <input
             type="search"
             value={search}

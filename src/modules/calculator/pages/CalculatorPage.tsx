@@ -50,11 +50,6 @@ export function CalcPage({ surface = 'calculator' }: CalcPageProps) {
       typeof window !== 'undefined' ? window.innerWidth < 910 : false,
   )
 
-  const freqItems = useAppStore((state) => state.ui.itemFreq)
-
-  // debug
-  useEffect(() => console.log('These are your tracked item usage stats on this app:\n', freqItems), [])
-
   const activeSeed = actResId ? seedRsntById[actResId] ?? null : null
   const curCcnt = ATTR_COLORS[activeSeed?.attribute ?? 'aero'] ?? '#20bfb9'
   const pushToQueue = useResQStr((s) => s.pushToQueue)
@@ -69,7 +64,7 @@ export function CalcPage({ surface = 'calculator' }: CalcPageProps) {
         pushToQueue({
           id: prevId,
           name: prevSeed.name,
-          icon: prevSeed.profile ?? '/assets/default.webp',
+          icon: prevSeed.profile ?? '/assets/game/default.webp',
         })
       }
     }

@@ -154,8 +154,8 @@ export function IdentTagsTooltip({
             key={tag.id}
             style={{
               '--res-tag-color': `#${tag.color}`,
-              WebkitMaskImage: `url(/assets/resonators/tag-icons/${tag.id}.webp)`,
-              maskImage: `url(/assets/resonators/tag-icons/${tag.id}.webp)`,
+              WebkitMaskImage: `url(/assets/game/resonators/tags/${tag.id}.webp)`,
+              maskImage: `url(/assets/game/resonators/tags/${tag.id}.webp)`,
             } as CssProps}
             className="res-card__tag-icon"
             onError={withDefIconM}
@@ -193,7 +193,7 @@ export function IdentTagsTooltip({
                     >
                       <span className="res-tag-tooltip__icon">
                         <img
-                          src={`/assets/resonators/tag-icons/${tag.id}.webp`}
+                          src={`/assets/game/resonators/tags/${tag.id}.webp`}
                           alt=""
                           aria-hidden="true"
                           onError={onIconError}

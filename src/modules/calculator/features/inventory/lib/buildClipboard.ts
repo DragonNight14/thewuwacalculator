@@ -3,6 +3,7 @@
   Description: Shared saved-build clipboard helpers for config and inventory surfaces.
 */
 
+import { decShareText, encShareText } from '@/shared/lib/shareCodec.ts'
 import type { InventoryEntry } from '@/domain/entities/inventoryStorage.ts'
 import { cloneBuildSnap } from '@/domain/entities/inventoryStorage.ts'
 
@@ -33,7 +34,7 @@ export function mkBuildClpbPa(builds: InventoryEntry[]): BuildClipPayload {
 }
 
 export function serBuildClpb(payload: BuildClipPayload): string {
-  return JSON.stringify({
+  return encShareText({
     ...payload,
     builds: payload.builds.map(cloneBuildEntry),
   })
@@ -45,7 +46,11 @@ export function prsBuildClpbP(raw: string): BuildClipPayload | null {
   }
 
   try {
-    const parsed = JSON.parse(raw) as Record<string, unknown>
+    const jsonText = decShareText(raw)
+    if (!jsonText) {
+      return null
+    }
+    const parsed = JSON.parse(jsonText) as Record<string, unknown>
     const wrapped =
       parsed.kind === BUILD_CLIP_KIND
       && parsed.version === BUILD_CLIP_VER

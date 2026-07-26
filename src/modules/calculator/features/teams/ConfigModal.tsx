@@ -1,7 +1,8 @@
 /*
   Author: Runor Ewhro
-  Description: Renders the teammate modal that edits local teammate
-               build, source-state, echo, weapon, and manual-buff runtime data.
+  Description: Renders the team config modal as one shell hosting switchable
+               per-resonator views that edit local teammate build, source-state,
+               echo, weapon, and manual-buff runtime data.
 */
 
 import {
@@ -97,12 +98,15 @@ interface ConfigModalProps {
   closing?: boolean
   portalTarget: HTMLElement | null
   member: ResView
+  roster: ResView[]
   runtime: ResRuntime
   actRt: ResRuntime
   invBlds: InventoryEntry[]
   sttDefs: SourceState[]
   cmbtSttsView: StatsView | null
   initChannel?: ChannelId
+  onSwitchMember: (resonatorId: string) => void
+  onChannelChange?: (channel: ChannelId) => void
   onSqncChng: (value: number) => void
   onRtPdt: RtUpdHnd
   getSelTgt: (ownerKey: string) => string | null
@@ -428,7 +432,7 @@ function EchoActions({
         title="Save echo to inventory"
         onClick={onSave}
       >
-        <Save size={13} aria-hidden="true" />
+        <Save size="0.5rem" aria-hidden="true" />
       </button>
       <button
         type="button"
@@ -437,7 +441,7 @@ function EchoActions({
         title="Edit echo"
         onClick={() => onEdit(echo.uid)}
       >
-        <Pencil size={13} aria-hidden="true" />
+        <Pencil size="0.5rem" aria-hidden="true" />
       </button>
       <button
         type="button"
@@ -446,7 +450,7 @@ function EchoActions({
         title="Change echo"
         onClick={onChange}
       >
-        <ArrowRightLeft size={13} aria-hidden="true" />
+        <ArrowRightLeft size="0.5rem" aria-hidden="true" />
       </button>
       <button
         type="button"
@@ -455,7 +459,7 @@ function EchoActions({
         title="Unequip echo"
         onClick={() => onUnequip(echo.uid)}
       >
-        <X size={13} />
+        <X size="0.5rem" />
       </button>
     </div>
   )
@@ -562,24 +566,25 @@ const CHANNELS: Array<{
   label: string
   icon: ReactNode
 }> = [
-  { id: 'loadout', label: 'Loadout', icon: <Package size={15} /> },
-  { id: 'effects', label: 'Effects', icon: <Zap size={15} /> },
-  { id: 'echoes', label: 'Echoes', icon: <Gem size={15} /> },
-  { id: 'buffs', label: 'Buffs', icon: <Sparkles size={15} /> },
+  { id: 'loadout', label: 'Loadout', icon: <Package size="0.5rem" /> },
+  { id: 'effects', label: 'Effects', icon: <Zap size="0.5rem" /> },
+  { id: 'echoes', label: 'Echoes', icon: <Gem size="0.5rem" /> },
+  { id: 'buffs', label: 'Buffs', icon: <Sparkles size="0.5rem" /> },
 ]
 
-export function ConfigModal({
+function ResonatorView({
   visible,
-  open,
-  closing = false,
   portalTarget,
   member,
+  roster,
   runtime,
   actRt,
   invBlds,
   sttDefs,
   cmbtSttsView,
   initChannel = 'loadout',
+  onSwitchMember,
+  onChannelChange,
   onSqncChng,
   onRtPdt,
   getSelTgt,
@@ -808,7 +813,7 @@ export function ConfigModal({
         id: 'teammate-echo:copy',
         key: 'copy',
         needsSel: true,
-        icon: <Copy size={14} />,
+        icon: <Copy size="0.5rem" />,
         label: ({ count }) => `Copy (${count})`,
         title: 'Copy selected echoes (Ctrl/Cmd+C)',
         run: async ({ vals }) => {
@@ -826,7 +831,7 @@ export function ConfigModal({
         id: 'teammate-echo:cut',
         key: 'cut',
         needsSel: true,
-        icon: <Scissors size={14} />,
+        icon: <Scissors size="0.5rem" />,
         label: ({ count }) => `Cut (${count})`,
         title: 'Cut selected echoes (Ctrl/Cmd+X)',
         run: async ({ ids, vals }) => {
@@ -846,7 +851,7 @@ export function ConfigModal({
       {
         id: 'teammate-echo:paste',
         key: 'paste',
-        icon: <Clipboard size={14} />,
+        icon: <Clipboard size="0.5rem" />,
         label: 'Paste',
         title: 'Paste echoes (Ctrl/Cmd+V)',
         float: false,
@@ -859,7 +864,7 @@ export function ConfigModal({
         key: 'delete',
         needsSel: true,
         danger: true,
-        icon: <Trash2 size={15} />,
+        icon: <Trash2 size="0.5rem" />,
         label: ({ count }) => `Remove (${count})`,
         title: 'Remove selected echoes (Delete / Backspace)',
         run: ({ ids }) => {
@@ -1558,7 +1563,7 @@ export function ConfigModal({
     {
       id: 'member-builds:paste',
       label: 'Paste Build',
-      icon: <Clipboard size={15} />,
+      icon: <Clipboard size="0.5rem" />,
       onSelect: () => {
         void pasteBuildClipboard()
       },
@@ -1570,22 +1575,8 @@ export function ConfigModal({
     echoes: activeSets.length,
   }
 
-  if (!visible) {
-    return null
-  }
-
   return (
     <>
-    <AppModal
-      state={{ visible, open, closing: closing ?? false }}
-      variant="team-config"
-      ariaLabelBy="teammate-config-title"
-      style={{
-        '--mcc-accent': ATTR_COLORS[member.attribute],
-        '--resonator-accent': ATTR_COLORS[member.attribute],
-      } as CssProps}
-      onClose={onClose}
-    >
       <ContextTrigger asChild ariaLabel="Teammate build actions" items={buildPaneMenu}>
         <div
           className="mcc-root"
@@ -1607,7 +1598,7 @@ export function ConfigModal({
               <div className="mcc-plinth-tags">
                 <span className="mcc-tag">
                   <img
-                    src={`/assets/attributes/attributes alt/${member.attribute}.webp`}
+                    src={`/assets/game/attributes/icons/${member.attribute}.webp`}
                     alt={member.attribute}
                     style={member.attribute === 'physical' ? { filter: 'grayscale(1) brightness(0.6)' } : undefined}
                     onError={withDefIconM}
@@ -1639,7 +1630,7 @@ export function ConfigModal({
               onClick={() => setWpnRackOpen((prev) => !prev)}
             >
               <img
-                src={weaponDef?.icon ?? `/assets/weapon-icons/${weaponId}.webp`}
+                src={weaponDef?.icon ?? `/assets/game/weapons/icons/${weaponId}.webp`}
                 alt=""
                 onError={withDefWpnMg}
               />
@@ -1704,6 +1695,7 @@ export function ConfigModal({
                     aria-current={entry.id === channel && !wpnRackOpen ? 'true' : undefined}
                     onClick={() => {
                       setChannel(entry.id)
+                      onChannelChange?.(entry.id)
                       setWpnRackOpen(false)
                     }}
                   >
@@ -1716,8 +1708,33 @@ export function ConfigModal({
                 )
               })}
             </nav>
+            {roster.length > 1 ? (
+              <div className="mcc-switch" role="group" aria-label="Switch teammate view">
+                {roster.map((mate) => {
+                  const isCurrent = mate.id === member.id
+                  return (
+                    <button
+                      key={mate.id}
+                      type="button"
+                      className={`mcc-switch-chip${isCurrent ? ' active' : ''}`}
+                      style={{ '--mcc-switch-accent': ATTR_COLORS[mate.attribute] } as CssProps}
+                      aria-pressed={isCurrent}
+                      aria-label={isCurrent ? `${mate.name} (current view)` : `Switch to ${mate.name}`}
+                      title={isCurrent ? `${mate.name} (current view)` : `Switch to ${mate.name}`}
+                      onClick={() => {
+                        if (!isCurrent) {
+                          onSwitchMember(mate.id)
+                        }
+                      }}
+                    >
+                      <img src={mate.profile} alt="" onError={withDefResMg} />
+                    </button>
+                  )
+                })}
+              </div>
+            ) : null}
             <button type="button" className="mcc-close" aria-label="Close" onClick={onClose}>
-              <X size={16} />
+              <X size="1rem" />
             </button>
           </header>
 
@@ -1764,13 +1781,13 @@ export function ConfigModal({
                           {
                             id: `member-build:${entry.id}:load`,
                             label: 'Load Build',
-                            icon: <Layers size={15} />,
+                            icon: <Layers size="0.5rem" />,
                             onSelect: () => confirmApplyBld(entry),
                           },
                           {
                             id: `member-build:${entry.id}:copy`,
                             label: 'Copy',
-                            icon: <Copy size={15} />,
+                            icon: <Copy size="0.5rem" />,
                             onSelect: () => {
                               void copyBuildToClipboard(entry)
                             },
@@ -1778,7 +1795,7 @@ export function ConfigModal({
                           {
                             id: `member-build:${entry.id}:paste`,
                             label: 'Paste Build',
-                            icon: <Clipboard size={15} />,
+                            icon: <Clipboard size="0.5rem" />,
                             onSelect: () => {
                               void pasteBuildClipboard()
                             },
@@ -1806,7 +1823,7 @@ export function ConfigModal({
                       aria-pressed={showAllBlds}
                       onClick={() => setShowAllBlds((prev) => !prev)}
                     >
-                      <Layers size={14} aria-hidden="true" />
+                      <Layers size="0.875rem" aria-hidden="true" />
                       All builds
                     </button>
                   </div>
@@ -2284,7 +2301,6 @@ export function ConfigModal({
         </section>
       </div>
       </ContextTrigger>
-    </AppModal>
     {echoEditModal.visible && editSlot != null && editEcho ? (
       <Edit
         visible={echoEditModal.visible}
@@ -2441,5 +2457,30 @@ export function ConfigModal({
       onCancel={confirmation.onCancel}
     />
     </>
+  )
+}
+
+// the modal shell stays mounted across view switches so only the resonator
+// view remounts; keying by member id resets all per-member local state.
+export function ConfigModal(props: ConfigModalProps) {
+  const { visible, open, closing = false, member, onClose } = props
+
+  if (!visible) {
+    return null
+  }
+
+  return (
+    <AppModal
+      state={{ visible, open, closing }}
+      variant="team-config"
+      ariaLabelBy="teammate-config-title"
+      style={{
+        '--mcc-accent': ATTR_COLORS[member.attribute],
+        '--resonator-accent': ATTR_COLORS[member.attribute],
+      } as CssProps}
+      onClose={onClose}
+    >
+      <ResonatorView key={member.id} {...props} />
+    </AppModal>
   )
 }

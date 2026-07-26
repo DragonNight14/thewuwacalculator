@@ -150,7 +150,7 @@ export function Resonator({
   const curWpnKey = WPNTYPETOKEY[curWpnType as keyof typeof WPNTYPETOKEY] ?? 'gauntlets'
   const curTtrb = resonator?.attribute ?? 'physical'
   const curSldrClr = ATTR_COLORS[curTtrb] ?? '#888'
-  const activeSprite = resonator?.sprite ?? '/assets/default.webp'
+  const activeSprite = resonator?.sprite ?? '/assets/game/default.webp'
   const resTags = resonator?.tags ?? []
   const vlblCntr = details ? getResStateControls(details) : []
   const viewRuntime = useMemo(() => ({
@@ -175,19 +175,19 @@ export function Resonator({
       for (const entry of RES_MENU) {
         const weaponKey = WPNTYPETOKEY[entry.weaponType]
         sources.push(entry.profile)
-        sources.push(`/assets/weapons/${weaponKey}.webp`)
-        sources.push(`/assets/attributes/attributes alt/${entry.attribute}.webp`)
+        sources.push(`/assets/game/weapons/types/${weaponKey}.webp`)
+        sources.push(`/assets/game/attributes/icons/${entry.attribute}.webp`)
         for (const tag of entry.tags ?? []) {
-          sources.push(`/assets/resonators/tag-icons/${tag.id}.webp`)
+          sources.push(`/assets/game/resonators/tags/${tag.id}.webp`)
         }
       }
 
       for (const weapon of WEAPON_FILTERS) {
-        sources.push(`/assets/weapons/${weapon.key}.webp`)
+        sources.push(`/assets/game/weapons/types/${weapon.key}.webp`)
       }
 
       for (const attribute of ATTR_FILTERS) {
-        sources.push(`/assets/attributes/attributes alt/${attribute}.webp`)
+        sources.push(`/assets/game/attributes/icons/${attribute}.webp`)
       }
 
       await Promise.all(sources.map((source) => preloadImage(source)))
@@ -577,7 +577,7 @@ export function Resonator({
       : null
 
   const weaponDef = getWeapon(runtime.build.weapon.id)
-  const weaponIcon = weaponDef?.icon ?? '/assets/default.webp'
+  const weaponIcon = weaponDef?.icon ?? '/assets/game/default.webp'
   const weaponRarity = weaponDef?.rarity ?? 4
   const enemyTuneStrain = useAppStore((state) => state.calculator.session.enemyProfile.status?.tuneStrain ?? 0)
 
@@ -653,7 +653,7 @@ export function Resonator({
           <span className="res-portrait-scrim" aria-hidden="true" />
           <span className="res-portrait-rarity" aria-label={`${menu?.rarity ?? 5} star`}>
             {Array.from({ length: menu?.rarity ?? 5 }).map((_, index) => (
-              <Star key={index} size={9} strokeWidth={0} className="res-portrait-rstar" aria-hidden="true" />
+              <Star key={index} size="0.5625rem" strokeWidth={0} className="res-portrait-rstar" aria-hidden="true" />
             ))}
           </span>
         </button>
@@ -661,7 +661,7 @@ export function Resonator({
         <div className="res-card__identity">
           <h3 className="res-card__name">{menu?.displayName ?? displayName}
             <img
-              src={`/assets/attributes/attributes alt/${curTtrb}.webp`}
+              src={`/assets/game/attributes/icons/${curTtrb}.webp`}
               alt=""
               className="res-card__ident-ico"
               style={curTtrb === 'physical' ? { filter: 'grayscale(1) brightness(0.7)' } : undefined}
@@ -703,7 +703,7 @@ export function Resonator({
           <section className="res-load res-load--wpn">
             <span className="res-load__cap">
               <img
-                src={`/assets/weapons/${curWpnKey}.webp`}
+                src={`/assets/game/weapons/types/${curWpnKey}.webp`}
                 alt=""
                 className="res-load__cap-ico"
                 onError={withDefIconM}
@@ -729,7 +729,7 @@ export function Resonator({
                 <span className="res-card__refine">
                   <span className="res-card__stars" aria-label={`${weaponRarity} star`}>
                     {Array.from({ length: weaponRarity }).map((_, index) => (
-                      <Star key={index} size={10} strokeWidth={0} className="res-card__star" />
+                      <Star key={index} size="0.625rem" strokeWidth={0} className="res-card__star" />
                     ))}
                   </span>
                   <span className="res-card__rank">R{runtime.build.weapon.rank}</span>
@@ -761,14 +761,14 @@ export function Resonator({
                     >
                       <span className="res-mate__crown" aria-label={`${mate.rarity} star`}>
                         {Array.from({ length: mate.rarity }).map((_, starIndex) => (
-                          <Star key={starIndex} size={8} strokeWidth={0} className="res-mate__star" aria-hidden="true" />
+                          <Star key={starIndex} size="0.5rem" strokeWidth={0} className="res-mate__star" aria-hidden="true" />
                         ))}
                       </span>
                       <span className="res-mate__pic">
                         <img className="res-mate__portrait" src={mate.profile} alt="" onError={withDefIconM} />
                         <img
                           className="res-mate__badge"
-                          src={`/assets/attributes/attributes alt/${mate.attribute}.webp`}
+                          src={`/assets/game/attributes/icons/${mate.attribute}.webp`}
                           alt=""
                           style={mate.attribute === 'physical' ? { filter: 'grayscale(1) brightness(0.7)' } : undefined}
                           onError={withDefIconM}
@@ -792,7 +792,7 @@ export function Resonator({
                   ) : (
                     <span key={`empty-${index}`} className="res-mate res-mate--empty">
                       <span className="res-mate__pic res-mate__pic--empty">
-                        <UserPlus size={15} aria-hidden="true" />
+                        <UserPlus size="0.5rem" aria-hidden="true" />
                       </span>
                       <span className="res-mate__text">
                         <span className="res-mate__name res-mate__name--empty">Empty Slot</span>
@@ -833,7 +833,7 @@ export function Resonator({
                 disabled={maxedSkills}
                 onClick={handleMax}
               >
-                <Zap size={12} />
+                <Zap size="0.75rem" />
                 {maxedSkills ? 'Maxed' : 'Max'}
               </button>
             </div>
@@ -927,7 +927,7 @@ export function Resonator({
             className="res-skill-data-bar res-card__max"
             onClick={openSkllMdl}
           >
-            <FaBookBookmark size={12} />
+            <FaBookBookmark size="0.75rem" />
             Info
           </button>
         </div>
@@ -1079,7 +1079,7 @@ export function Resonator({
             {details.traceNodes.map((node) => {
               const iconKey = TRCNODEICONM[node.name]
               const iconPath = iconKey
-                ? `/assets/skills/icons/${isDarkMode ? 'dark' : 'light'}/${iconKey}.webp`
+                ? `/assets/game/skills/icons/${isDarkMode ? 'dark' : 'light'}/${iconKey}.webp`
                 : null
               const active = runtime.base.traceNodes.activeNodes[node.id] ?? false
 

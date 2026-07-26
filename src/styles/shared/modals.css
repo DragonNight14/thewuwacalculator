@@ -509,7 +509,7 @@
 .team-chip,
 .echo-preset-card__weapon,
 .team-member-config-modal__avatar-frame {
-  --picker-rarity-border: var(--picker-rarity-color, color-mix(in srgb, var(--picker-modal-accent) 16%, var(--picker-modal-item-border)));
+  --picker-rarity-border: var(--picker-rarity-color, var(--picker-modal-accent));
   --picker-rarity-surface: color-mix(in srgb, var(--picker-rarity-border) 11%, transparent);
   --picker-rarity-accent: color-mix(in srgb, var(--picker-rarity-border) 92%, var(--picker-modal-text));
 }

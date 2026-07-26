@@ -152,7 +152,7 @@ function Shot({ item, onZoom }: { item: WnShot; onZoom: (lb: Lightbox) => void }
           aria-label={`${item.caption ?? 'Watch the preview'} (opens in a new tab)`}
         >
           <span className="wn-media__play-icon" aria-hidden="true">
-            <Play size={22} />
+            <Play size="1.375rem" />
           </span>
           <span className="wn-media__play-label">Watch the preview</span>
         </a>
@@ -172,7 +172,7 @@ function Shot({ item, onZoom }: { item: WnShot; onZoom: (lb: Lightbox) => void }
       >
         <img src={item.src ?? ''} alt={item.alt ?? ''} loading="lazy" />
         <span className="wn-media__zoom" aria-hidden="true">
-          <Plus size={14} />
+          <Plus size="0.875rem" />
         </span>
       </button>
       {item.caption ? <figcaption className="wn-media__cap">{item.caption}</figcaption> : null}
@@ -504,7 +504,7 @@ export function WhatsNewPage() {
       />
 
       <Link to="/changelog" className="wn-back">
-        <ChevronLeft size={15} />
+        <ChevronLeft size="0.5rem" />
         <span>Back to changelog</span>
       </Link>
 
@@ -542,7 +542,7 @@ export function WhatsNewPage() {
             onClick={() => setLightbox(null)}
             aria-label="Close"
           >
-            <X size={18} />
+            <X size="1.125rem" />
           </button>
           <figure className="wn-lightbox__figure" onClick={(e) => e.stopPropagation()}>
             <img src={lightbox.src} alt={lightbox.alt ?? ''} />

@@ -300,6 +300,18 @@ export function Teams({
 
   const configMember = cnfgResId ? getResonator(cnfgResId) : null
   const cnfgRt = cnfgResId ? partRntmById[cnfgResId] ?? null : null
+  // the config modal hosts one view per configurable teammate; the roster
+  // drives its profile switch, so only non-lead members with runtimes qualify.
+  const cnfgRoster = useMemo(() => (
+    runtime.build.team.flatMap((memberId, index) => {
+      if (index === 0 || !memberId || !partRntmById[memberId]) {
+        return []
+      }
+
+      const mate = getResonator(memberId)
+      return mate ? [mate] : []
+    })
+  ), [partRntmById, runtime.build.team])
   const cnfgVsblStts = useMemo(() => {
     if (!cnfgRt) {
       return []
@@ -554,7 +566,7 @@ export function Teams({
   const renderWeapon = (view: MemberView): ReactNode => {
     const { member, memRt, weaponDef, weaponStates } = view
     const wpnKey = WPNTYPETOKEY[member.weaponType]
-    const typeIcon = wpnKey ? `/assets/weapons/${wpnKey}.webp` : null
+    const typeIcon = wpnKey ? `/assets/game/weapons/types/${wpnKey}.webp` : null
     // teammate weapon changes are local to the compact teammate runtime; the
     // active resonator still owns its weapon pane.
     const canSwapWpn = !view.isLead
@@ -626,7 +638,7 @@ export function Teams({
               </span>
               <span className="tlu-weapon-effect-toggle">
                 {effectShown ? 'Hide' : 'Detail'}
-                <ChevronDown size={13} aria-hidden="true" />
+                <ChevronDown size="0.8125rem" aria-hidden="true" />
               </span>
             </button>
           </div>
@@ -1224,7 +1236,7 @@ export function Teams({
                 onClick={() => openTeamPckr(index)}
               >
                 <span className="tlu-node tlu-node--add" aria-hidden="true">
-                  <Plus size={16} strokeWidth={2.4} />
+                  <Plus size="1rem" strokeWidth={2.4} />
                 </span>
                 <span className="tlu-add-copy">
                   <b>Add a resonator</b>
@@ -1264,7 +1276,7 @@ export function Teams({
                       aria-label={`Swap ${view.member.name}`}
                       onClick={() => openTeamPckr(index)}
                     >
-                      <RefreshCw size={13} />
+                      <RefreshCw size="0.8125rem" />
                     </button>
                     <button
                       type="button"
@@ -1273,7 +1285,7 @@ export function Teams({
                       aria-label={`Configure ${view.member.name}`}
                       onClick={() => openCnfgMdl(view.id)}
                     >
-                      <Wrench size={13} />
+                      <Wrench size="0.8125rem" />
                     </button>
                     <button
                       type="button"
@@ -1282,7 +1294,7 @@ export function Teams({
                       aria-label={`Remove ${view.member.name}`}
                       onClick={() => selTeamMem(index, null)}
                     >
-                      <X size={14} strokeWidth={2.6} />
+                      <X size="0.875rem" strokeWidth={2.6} />
                     </button>
                   </div>
                 ) : null}
@@ -1327,12 +1339,15 @@ export function Teams({
           closing={cnfgMdlClsn}
           portalTarget={mdlPrtlTgt}
           member={configMember}
+          roster={cnfgRoster}
           runtime={cnfgRt}
           actRt={runtime}
           invBlds={invBlds}
           sttDefs={configStates}
           cmbtSttsView={cnfgCmbtStts}
           initChannel={cnfgChannel}
+          onSwitchMember={setCnfgResId}
+          onChannelChange={setCnfgChannel}
           onSqncChng={(value) =>
             updResRt(configMember.id, (prev) => ({
               ...prev,

@@ -14,7 +14,7 @@ import { TbGoGame, TbMathFunction } from 'react-icons/tb'
 export interface RouteNavLink {
   to: string
   label: string
-  Icon: CompType<{ size?: number; className?: string }>
+  Icon: CompType<{ size?: number | string; className?: string }>
   iconClssName?: string
 }
 

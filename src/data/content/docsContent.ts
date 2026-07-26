@@ -655,7 +655,7 @@ const optimizerTopic: DocTopic = {
   instrumentNote: [
     'Counts measured from a representative account: Phoebe and a 175-Echo inventory and 9 rotation features. They are read straight from the live helpers, not estimated.',
     'Optimizer counts cover Inventory and Theory search. Suggestion counts cover the actual Main Stats and Set Plans routes for Phoebe\'s selected direct target and default rotation.',
-    'Which search is widest is not fixed: Inventory scales with how many Echoes you own (roughly choose-5 of the bag), so a small bag can make it far smaller than Theory while a large one like this makes it far larger. What does hold regardless of account: GPU only diverges from CPU on Inventory (it skips the 12 total cost cap, so it over-counts) and Theory search always derives its own main stat filter and collapses equivalent builds. For suggestions, Main Stats and Set Plans keep the current main Echo fixed; rotation does not widen their candidate space, it just rescales each candidate across more stored damage snapshots.',
+    'Which search is widest is not fixed: Inventory scales with how many Echoes you own (roughly choose-5 of the bag), so a small bag can make it far smaller than Theory while a large one like this makes it far larger. What does hold regardless of account: GPU only diverges from CPU on Inventory (it skips the 12 total cost cap, so it over-counts) and Theory search always derives its own main stat filter and collapses equivalent builds. For suggestions, Main Stats and Set Plans keep the current Echo identities fixed but score with neutral main-Echo passive rows; rotation does not widen their candidate space, it just rescales each candidate across more stored damage snapshots.',
   ],
   aliases: ['optimizer', 'optimizer engine', 'rotation optimizer', 'target optimizer', 'theory optimizer', 'weapon search', 'stat constraints'],
   sections: [
@@ -764,8 +764,8 @@ const optimizerTopic: DocTopic = {
           rows: [
             ['inventory full search', 'replace all five Echoes with legal inventory choices'],
             ['theory full search', 'replace all five Echoes with generated catalog candidates'],
-            ['main-stat suggestions', 'keep the five Echoes, change legal main-stat choices only'],
-            ['Sonata suggestions', 'keep the five Echoes, change only their set assignment'],
+            ['main-stat suggestions', 'keep the five Echoes, change legal main-stat choices only, and neutralize main-Echo passive rows during comparison'],
+            ['Sonata suggestions', 'keep the five Echoes, change only their set assignment, and neutralize main-Echo passive rows during comparison'],
             ['weapon suggestions', 'keep the Echoes, change only the weapon and passive state'],
             ['substat deltas', 'keep the build, add or remove one substat amount at a time'],
           ],
@@ -1245,6 +1245,7 @@ const optimizerTopic: DocTopic = {
           text: [
             'The suggestion engines do not build a second damage model. They begin by simulating the current equipped build, choose either one direct target skill or one weighted rotation total, then compress that damage problem into the same kind of fixed numeric inputs used by the full optimizer.',
             'The only major difference is candidate generation. Full optimizer search removes the equipped Echoes and searches a replacement five-Echo space. Recommendation engines usually keep the equipped Echoes in place and ask a narrower counterfactual question.',
+            'For Main Stats and Sonata suggestions, the counterfactual also removes main-Echo passive bonus rows from both the candidate score and the current-build baseline. That keeps a currently equipped main Echo effect from leaking into rankings that are supposed to answer only main-stat or set-plan changes.',
             'Suggestions also have one optional path the main optimizer does not: they may include Echo attacks when preparing the target problem. In that case the Echo attack is prepared directly from authored Echo skill data before entering the same fast evaluator.',
             'That Echo-attack allowance is deliberately narrow. It only stays sound in searches where Echo ownership is fixed during scoring. Once the search starts swapping Echo identities, main-Echo semantics become candidate-dependent again, so those searches stay on the stricter packed contract.',
           ],
@@ -1275,8 +1276,9 @@ const optimizerTopic: DocTopic = {
           type: 'prose',
           text: [
             'Main-stat suggestions and Sonata suggestions both keep the equipped Echo identities fixed. They change only one structural part of the build description, then rescore the result with the prepared single-skill or rotation setup.',
-            'Main-stat suggestions enumerate legal main-stat recipes under the normal five-slot and total-cost rules. Each recipe is applied onto the current Echo shells and rescored. Because the main-Echo bonus rows depend only on which Echoes are present, not on the main-stat recipe itself, those rows are built once and reused for the entire suggestion run.',
-            'Sonata suggestions do the same kind of reuse over set-piece plans instead of main-stat recipes. The current Echoes are copied with neutralized set ids, candidate Sonata plans are assigned in slot order, and each legal plan is rescored. Partial-piece baselines are cached so mixed plans that are damage-identical to a simpler standalone partial plan can be discarded as redundant.',
+            'Main-stat suggestions enumerate legal main-stat recipes under the normal five-slot and total-cost rules. Each recipe is applied onto the current Echo shells and rescored with neutral main-Echo passive rows. The current-build baseline shown beside those rows uses the same neutral rows, so an equipped main Echo buff cannot inflate or depress the comparison.',
+            'Sonata suggestions do the same kind of reuse over set-piece plans instead of main-stat recipes. The current Echoes are copied with neutralized set ids, candidate Sonata plans are assigned in slot order, and each legal plan is rescored with neutral main-Echo passive rows. Partial-piece baselines are cached so mixed plans that are damage-identical to a simpler standalone partial plan can be discarded as redundant.',
+            'The Sonata display is grouped from the scored results rather than from set names. Plans with the same damage and contributing set-effect shape render as one row with grouped set icons and piece counts. Any set effect whose removal does not change the scored damage is not part of the visible plan, even if it appeared in one raw generated set assignment.',
             'The important constraint is that both routes mutate only one axis while keeping the rest of the packed scorer fixed. Main-stat suggestions replace primary-stat assignments over the same Echo shells. Sonata suggestions neutralize set identity, apply one legal plan, then reuse the same shells and the same scoring context. That is what keeps them informative without turning them into a second full optimizer.',
           ],
         },
@@ -1286,11 +1288,11 @@ const optimizerTopic: DocTopic = {
           title: 'Main-stat / Sonata evaluation',
           lines: [
             'prepare fast scoring input from the current equipped build',
-            'prepare main-Echo bonus rows once',
+            'prepare neutral main-Echo passive rows for this comparison',
             '',
             'for each legal main-stat recipe or Sonata plan:',
             '    apply the modification to the current Echo shells',
-            '    score the modified build',
+            '    score the modified build with neutral main-Echo passive rows',
             '    keep the strongest results',
           ],
         },

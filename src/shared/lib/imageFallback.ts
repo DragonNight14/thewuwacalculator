@@ -6,8 +6,8 @@
 
 import type { SyntheticEvent as SyntVnt } from 'react'
 
-export const DEF_ICON_SRC = '/assets/default.webp'
-export const DEF_ENEMY_SRC = '/assets/enemies/default.webp'
+export const DEF_ICON_SRC = '/assets/game/default.webp'
+export const DEF_ENEMY_SRC = '/assets/game/enemies/icons/default.webp'
 
 // swap a broken image to a stable fallback asset
 export function swapMgToFllb(

@@ -87,7 +87,7 @@ export function getEnemyIcon(enemyId: string | null | undefined): string | null 
     return null
   }
 
-  return /^\d+$/.test(enemyId) ? `/assets/enemies/${enemyId}.webp` : null
+  return /^\d+$/.test(enemyId) ? `/assets/game/enemies/icons/${enemyId}.webp` : null
 }
 
 // built-in quick enemy presets

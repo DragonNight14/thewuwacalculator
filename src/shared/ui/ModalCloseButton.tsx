@@ -24,7 +24,7 @@ export function MdlClsBttn({
       className={['app-modal-close', className].filter(Boolean).join(' ')}
       aria-label={ariaLabel ?? label}
     >
-      <X size={18} />
+      <X size="1.125rem" />
       <span>{label}</span>
     </button>
   )

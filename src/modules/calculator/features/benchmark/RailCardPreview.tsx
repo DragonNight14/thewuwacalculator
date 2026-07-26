@@ -21,7 +21,7 @@ export function RailCardPreview({ resId, animated }: { resId: string; animated: 
 
   const res = getResonator(resId)
   const accent = res ? ATTR_COLORS[res.attribute] ?? '#6b7cff' : '#6b7cff'
-  const portraitSrc = res?.sprite ?? res?.profile ?? '/assets/default.webp'
+  const portraitSrc = res?.sprite ?? res?.profile ?? '/assets/game/default.webp'
 
   const railModel: RailCardModel = {
     runtime: null,

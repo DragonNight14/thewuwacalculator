@@ -64,7 +64,9 @@ export interface ChngSctn {
   entries: ChngRcrd[]
 }
 
-const S = '/assets/sample'
+const CHNG_ASSETS = '/assets/app/changelog'
+const S_2026_07_06 = `${CHNG_ASSETS}/2026-07-06`
+const S_2026_07_21 = `${CHNG_ASSETS}/2026-07-21`
 
 export const curChngEnts: ChngRcrd[] = [
   {
@@ -462,7 +464,7 @@ export const curChngEnts: ChngRcrd[] = [
         "The build score has been around a while as a quick read on a build. It has now been rebuilt. Instead of grading how closely your echoes match a set of stat weights, it runs your whole build through the sim and scores the damage, then reports what a baseline and an ideal build look like next to yours.",
       hero: {
         kind: 'image',
-        src: `${S}/benchmark-page.png`,
+        src: `${S_2026_07_06}/benchmark-page.png`,
         ar: 1454 / 808,
         alt: 'Benchmark page: a 119% SS score on the scale, with echo loadout and build stats',
         caption: 'You can see a lot on here.',
@@ -488,7 +490,7 @@ export const curChngEnts: ChngRcrd[] = [
           media: [
             {
               kind: 'image',
-              src: `${S}/substat-build-benchmark.png`,
+              src: `${S_2026_07_06}/substat-build-benchmark.png`,
               ar: 773 / 221,
               alt: 'Sub stat priority: current build read against an ideal floor and ceiling',
               caption: 'Your current build, an ideal floor, and an ideal ceiling.',
@@ -504,14 +506,14 @@ export const curChngEnts: ChngRcrd[] = [
           media: [
             {
               kind: 'image',
-              src: `${S}/current-build-state.png`,
+              src: `${S_2026_07_06}/current-build-state.png`,
               ar: 773 / 459,
               alt: 'Current build state table: per sub stat contribution, share and quality',
               caption: 'Per-substat contribution, share and quality.',
             },
             {
               kind: 'image',
-              src: `${S}/per-step-gain-loss.png`,
+              src: `${S_2026_07_06}/per-step-gain-loss.png`,
               ar: 773 / 459,
               alt: 'Per-step change table: damage and value gained or lost per sub stat step',
               caption: 'Per-step gain and loss.',
@@ -529,7 +531,7 @@ export const curChngEnts: ChngRcrd[] = [
           media: [
             {
               kind: 'image',
-              src: `${S}/showcase-card-sample.png`,
+              src: `${S_2026_07_06}/showcase-card-sample.png`,
               ar: 1984 / 1440,
               alt: 'A finished showcase card for Phoebe with portrait, team, echoes and an SS score',
               caption: 'I made this one myself ദ്ദി( ˘̀ ֊ ˘́).',
@@ -564,7 +566,7 @@ export const curChngEnts: ChngRcrd[] = [
           media: [
             {
               kind: 'image',
-              src: `${S}/customize.png`,
+              src: `${S_2026_07_06}/customize.png`,
               ar: 288 / 756,
               alt: 'The Customize panel: portrait, backdrop, colour, base type, per-text styles and custom CSS',
               caption: 'Edit stuff..',
@@ -606,7 +608,7 @@ export const curChngEnts: ChngRcrd[] = [
     ],
   },
   {
-    date: '20/07/2026',
+    date: '21/07/2026',
     entries: [
       {
         type: 'paragraph',
@@ -646,8 +648,8 @@ export const curChngEnts: ChngRcrd[] = [
       },
     ],
     whatsNew: {
-      id: '2026-07-20-team-setup',
-      signal: '20.07',
+      id: '2026-07-21-team-setup',
+      signal: '21.07',
       tag: 'UPDATE',
       title: 'New Stuff!!',
       summary:
@@ -666,7 +668,7 @@ export const curChngEnts: ChngRcrd[] = [
           media: [
             {
               kind: 'image',
-              src: `${S}/teampane.png`,
+              src: `${S_2026_07_21}/teampane.png`,
               ar: 3360 / 1854,
               alt: 'Team Setup page with connected teammate rows and visible loadout summaries',
               caption: 'Swap, configure, or remove teammates straight from the row.',
@@ -685,7 +687,7 @@ export const curChngEnts: ChngRcrd[] = [
           media: [
             {
               kind: 'image',
-              src: `${S}/teamconfig.png`,
+              src: `${S_2026_07_21}/teamconfig.png`,
               ar: 3360 / 1854,
               alt: 'Teammate editor showing loadout cards, weapon choices, stats, and section tabs',
               caption: 'Teammate setup has its own space now.',
@@ -704,7 +706,7 @@ export const curChngEnts: ChngRcrd[] = [
           media: [
             {
               kind: 'image',
-              src: `${S}/optimizerinv.png`,
+              src: `${S_2026_07_21}/optimizerinv.png`,
               ar: 3360 / 1854,
               alt: 'Optimizer inventory view with included and excluded echo cards',
               caption: 'Useful when you want the optimizer to respect a smaller echo pool.',
@@ -723,21 +725,21 @@ export const curChngEnts: ChngRcrd[] = [
           media: [
             {
               kind: 'image',
-              src: `${S}/resopicker.png`,
+              src: `${S_2026_07_21}/resopicker.png`,
               ar: 3360 / 1854,
               alt: 'Resonator menu with large character cards and metadata rows',
               caption: 'Resonators are much easier to scan.',
             },
             {
               kind: 'image',
-              src: `${S}/weaponpicker.png`,
+              src: `${S_2026_07_21}/weaponpicker.png`,
               ar: 3360 / 1854,
               alt: 'Weapon menu with large weapon cards, stat rows, and recommendation badges',
               caption: 'Recommended weapons stand out now.',
             },
             {
               kind: 'image',
-              src: `${S}/echopicker.png`,
+              src: `${S_2026_07_21}/echopicker.png`,
               ar: 3360 / 1854,
               alt: 'Echo menu with cost filters, sonata filtering, and large echo cards',
               caption: 'Echo choices got the same treatment.',
@@ -759,6 +761,25 @@ export const curChngEnts: ChngRcrd[] = [
       ],
     },
     shortDesc: `New Stuff~! (〜^∇^)〜`,
+  },
+  {
+    date: '25/07/2026',
+    patchVersion: '3.6.1 beta',
+    entries: [
+      {
+        type: 'paragraph',
+        content: `
+          <strong>3.6.1 beta data</strong> is now included.
+        `,
+      },
+      {
+        type: 'paragraph',
+        content: `
+          Settings also gained new preferences for switching beta game data on or off and controlling compact export behavior, so data-source and backup choices are easier to manage from the app itself.
+        `,
+      },
+    ],
+    shortDesc: `3.6.1 beta data + new preferences`,
   },
 ]
 

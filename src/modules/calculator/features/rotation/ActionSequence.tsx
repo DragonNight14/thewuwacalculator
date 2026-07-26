@@ -251,7 +251,7 @@ export function CtnSqnc({
         data-tooltip={tooltip}
         aria-label={`When: ${tooltip}`}
       >
-        <InfinityIcon size={11} aria-hidden="true" />
+        <InfinityIcon size="0.6875rem" aria-hidden="true" />
       </span>
     )
   }
@@ -286,7 +286,7 @@ export function CtnSqnc({
             >
               <span className="rotation-loop-marker__title">
                 <span className="rotation-loop-marker__badge">
-                  <Glyph fill={entry.kind === 'self' ? 'none' : 'currentColor'} aria-hidden="true" />
+                  <Glyph fill={entry.kind === 'self' ? 'none' : 'currentColor'} aria-hidden="true" size="0.5rem" />
                   {badgeText}
                 </span>
                 <span className="entry-name rotation-loop-marker__name">{entry.label}</span>

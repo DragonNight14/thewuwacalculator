@@ -544,7 +544,7 @@ export function CalcEnemyPmg({
   const ttrbBkt = simulation?.finalStats.attribute ?? null
   const resShredFor = (attributeKey: string): number =>
     ttrbBkt ? ttrbBkt.all.resShred + (ttrbBkt[attributeKey as AttributeKey]?.resShred ?? 0) : 0
-  const selEnemyIcon = selEnemy?.icon ?? getEnemyIcon(enemyProfile.id) ?? '/assets/default.webp'
+  const selEnemyIcon = selEnemy?.icon ?? getEnemyIcon(enemyProfile.id) ?? '/assets/game/default.webp'
 
   useEffect(() => {
     const entsToClmp = vsblNegFfct.filter((effect) => combatState[effect.key] > effect.max)
@@ -780,7 +780,7 @@ export function CalcEnemyPmg({
               const sign = effRes < 0 ? 'vuln' : effRes > 0 ? 'resist' : 'zero'
               const fmt = (n: number) => `${n > 0 ? '+' : ''}${n}%`
               const isPhys = attributeKey === 'physical'
-              const iconSrc = `/assets/attributes/attributes alt/${attributeKey}.webp`
+              const iconSrc = `/assets/game/attributes/icons/${attributeKey}.webp`
               return (
                 <div
                   key={elementId}
@@ -870,7 +870,7 @@ export function CalcEnemyPmg({
                     min={0}
                     max={effect.max}
                     accent={effect.accent}
-                    icon={`/assets/attributes/attributes alt/${elem}.webp`}
+                    icon={`/assets/game/attributes/icons/${elem}.webp`}
                     onChange={(value) => onCmbtSttChn(effect.key, value, 0, effect.max)}
                   />
                 )

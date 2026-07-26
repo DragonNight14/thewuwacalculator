@@ -21,9 +21,13 @@ import {
   MAX_WPN_LVL,
   makeCombatState,
   makeCustomBuff,
+  mkDefSeedWpnMkSt,
   mkMaxSkllLvl,
   mkDefRot,
 } from '@/domain/state/defaults'
+import { getEchoById } from '@/domain/services/echoCatalogService'
+import { getResSeedBy } from '@/domain/services/resonatorSeedService'
+import { getWpnById } from '@/domain/services/weaponCatalogService'
 import { mkMaxTrcNode } from '@/domain/state/traceNodes'
 import {
   cloneBuffs,
@@ -99,15 +103,47 @@ function matSlotPrgr(
 }
 
 // materialize weapon data for the given slot
-function matSlotWpn(profile: ResProf, slotId: SlotId) {
+function matSlotWpn(seed: ResSeed, profile: ResProf, slotId: SlotId) {
+  const weapon = profile.runtime.build.weapon.id && getWpnById(profile.runtime.build.weapon.id)
+    ? profile.runtime.build.weapon
+    : mkDefSeedWpnMkSt(seed)
+
   if (slotId === 'active') {
-    return cloneWpnMkSt(profile.runtime.build.weapon)
+    return cloneWpnMkSt(weapon)
   }
 
   return {
-    ...catTmWpnAtk(profile.runtime.build.weapon, MAX_WPN_LVL),
+    ...catTmWpnAtk(weapon, MAX_WPN_LVL),
     level: MAX_WPN_LVL,
   }
+}
+
+function matEchoLoadout(profile: ResProf) {
+  return profile.runtime.build.echoes.map((echo) => {
+    if (!echo) {
+      return null
+    }
+
+    const definition = getEchoById(echo.id)
+    if (!definition) {
+      return null
+    }
+
+    return {
+      ...echo,
+      set: definition.sets.includes(echo.set)
+        ? echo.set
+        : definition.sets[0] ?? echo.set,
+    }
+  })
+}
+
+function matTeamRuntimes(profile: ResProf): [TeamMemRt | null, TeamMemRt | null] {
+  const teamRuntimes = profile.runtime.teamRuntimes ?? [null, null]
+  return [
+    teamRuntimes[0]?.id && getResSeedBy(teamRuntimes[0].id) ? teamRuntimes[0] : null,
+    teamRuntimes[1]?.id && getResSeedBy(teamRuntimes[1].id) ? teamRuntimes[1] : null,
+  ]
 }
 
 interface MatRtPtns {
@@ -132,8 +168,8 @@ export function matRtFromPro({
     id: seed.id,
     base: matSlotPrgr(seed, profile, slotId),
     build: {
-      weapon: matSlotWpn(profile, slotId),
-      echoes: profile.runtime.build.echoes,
+      weapon: matSlotWpn(seed, profile, slotId),
+      echoes: matEchoLoadout(profile),
       team: teamSlots,
     },
     state: matRtStt(localState),
@@ -143,7 +179,7 @@ export function matRtFromPro({
             : mkDefRot(seed),
     teamRuntimes:
         slotId === 'active'
-            ? (profile.runtime.teamRuntimes ?? [null, null])
+            ? matTeamRuntimes(profile)
             : [null, null],
   }
 }
@@ -183,10 +219,31 @@ export function matTeamMemFr(
     },
     build: {
       weapon: {
-        ...catTmWpnAtk(tmr.build.weapon, MAX_WPN_LVL),
+        ...catTmWpnAtk(
+          tmr.build.weapon.id && getWpnById(tmr.build.weapon.id)
+            ? tmr.build.weapon
+            : mkDefSeedWpnMkSt(seed),
+          MAX_WPN_LVL,
+        ),
         level: MAX_WPN_LVL,
       },
-      echoes: [...tmr.build.echoes],
+      echoes: tmr.build.echoes.map((echo) => {
+        if (!echo) {
+          return null
+        }
+
+        const definition = getEchoById(echo.id)
+        if (!definition) {
+          return null
+        }
+
+        return {
+          ...echo,
+          set: definition.sets.includes(echo.set)
+            ? echo.set
+            : definition.sets[0] ?? echo.set,
+        }
+      }),
       team: teamSlots,
     },
     state: {

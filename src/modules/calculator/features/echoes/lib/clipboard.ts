@@ -5,6 +5,7 @@
                applying pasted echoes to loadout slots in a predictable order.
 */
 
+import { decShareText, encShareText } from '@/shared/lib/shareCodec.ts'
 import type { EchoInstance, ResonatorId } from '@/domain/entities/runtime.ts'
 import { areEchoNstnQ, cloneEchoFor } from '@/domain/entities/inventoryStorage.ts'
 import { getEchoCostB } from '@/modules/calculator/features/echoes/lib/echoes.ts'
@@ -73,7 +74,7 @@ export function mkEchoClpbPa(args: {
 }
 
 export function serEcho(payload: EchoClipPayload): string {
-  return JSON.stringify({
+  return encShareText({
     ...payload,
     echoes: cloneClpbChs(payload.echoes),
   })
@@ -85,7 +86,11 @@ export function prsEchoClpbP(raw: string): EchoClipPayload | null {
   }
 
   try {
-    const parsed = JSON.parse(raw) as Record<string, unknown>
+    const jsonText = decShareText(raw)
+    if (!jsonText) {
+      return null
+    }
+    const parsed = JSON.parse(jsonText) as Record<string, unknown>
     const source = parsed.source
     const resonatorId = parsed.resonatorId
     const resName = parsed.resName ?? parsed.resonatorName

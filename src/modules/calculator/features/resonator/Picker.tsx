@@ -71,8 +71,7 @@ export function ResPckr({
   onClose,
 }: ResPckrPrps) {
   const rcmmMenuTms = useAppStore((state) => state.ui.preferences.recommendedMenuItems)
-  const frqnResIds = useAppStore((state) => state.ui.itemFreq.resonator.ids)
-  const frqnResCnts = useAppStore((state) => state.ui.itemFreq.resonator.counts)
+  const frqnResBkt = useAppStore((state) => state.ui.itemFreq.resonator)
   const lastUsedResI = useResQStr((state) => state.queueIds)
 
   const [selWpnFltr, setSelWpnFlt] = useState<string | null>(null)
@@ -89,7 +88,7 @@ export function ResPckr({
           roleMap.set(tag.id, {
             value: tag.id,
             label: tag.name,
-            icon: `/assets/resonators/tag-icons/${tag.id}.webp`,
+            icon: `/assets/game/resonators/tags/${tag.id}.webp`,
           })
         }
       }
@@ -100,6 +99,14 @@ export function ResPckr({
       ...Array.from(roleMap.values()).sort((a, b) => a.label.localeCompare(b.label)),
     ]
   }, [resonators])
+
+  const frqnResIds = frqnResBkt.order
+  const frqnResCnts = useMemo(
+    () => Object.fromEntries(
+      Object.entries(frqnResBkt.items).map(([id, item]) => [id, item.count]),
+    ),
+    [frqnResBkt.items],
+  )
 
   const fltrRsnt = useMemo(() => {
     return resonators.filter((entry) => {
@@ -183,7 +190,7 @@ export function ResPckr({
               aria-label={weapon.label}
               onClick={() => setSelWpnFlt((prev) => (prev === weapon.key ? null : weapon.key))}
             >
-              <img src={`/assets/weapons/${weapon.key}.webp`} alt="" aria-hidden="true" onError={withDefIconM} />
+              <img src={`/assets/game/weapons/types/${weapon.key}.webp`} alt="" aria-hidden="true" onError={withDefIconM} />
             </button>
           ))}
         </div>
@@ -208,7 +215,7 @@ export function ResPckr({
               onClick={() => setSelTtrbFl((prev) => (prev === attribute ? null : attribute))}
             >
               <img
-                src={`/assets/attributes/attributes alt/${attribute}.webp`}
+                src={`/assets/game/attributes/icons/${attribute}.webp`}
                 alt=""
                 aria-hidden="true"
                 style={attribute === 'physical' ? { filter: 'grayscale(1) brightness(0.6)' } : undefined}
@@ -269,13 +276,13 @@ export function ResPckr({
           <>
             {rcmmFrqn ? (
               <span className="picker-modal__spec-item" title={rcmmFrqn.label}>
-                <Flame size={12} />
+                <Flame size="0.75rem" />
                 {frqnResCnts[entry.id] ?? 0}
               </span>
             ) : null}
             {rcmmLast ? (
               <span title={rcmmLast.label}>
-                <History size={12} />
+                <History size="0.75rem" />
               </span>
             ) : null}
           </>
@@ -313,8 +320,8 @@ export function ResPckr({
             >
               <div
                 style={{
-                  WebkitMaskImage: `url(/assets/resonators/tag-icons/${tag.id}.webp)`,
-                  maskImage: `url(/assets/resonators/tag-icons/${tag.id}.webp)`,
+                  WebkitMaskImage: `url(/assets/game/resonators/tags/${tag.id}.webp)`,
+                  maskImage: `url(/assets/game/resonators/tags/${tag.id}.webp)`,
                 } as CssProps}
                 className="picker-modal__tag-icon"
                 onError={withDefIconM}

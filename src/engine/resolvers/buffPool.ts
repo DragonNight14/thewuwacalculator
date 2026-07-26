@@ -124,6 +124,7 @@ export function mkNfdBuffPoo(): UnifiedBuffPool {
     atk: mkBaseStatBu(),
     hp: mkBaseStatBu(),
     def: mkBaseStatBu(),
+    fixedStats: {},
     attribute: mkTtrbBkt(),
     skillType: mkSkllTypeBk(),
     negativeEffect: mkNegFfctBkt(),

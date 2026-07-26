@@ -56,6 +56,7 @@ import {
   type TgtJobSpec,
 } from '@/engine/optimizer/workers/targetGpu.ts'
 import {logOptimizer} from '@/engine/optimizer/config/log.ts'
+import { getGameDataMode } from '@/data/gameData'
 
 // guardrails for GPU result collection so per-job and collector heaps do not blow up
 const GPU_RESULT_LIMIT = 65536
@@ -1057,7 +1058,7 @@ async function runThryBtcWr(
         const startMsg: OptThryProdIn = {
           type: 'startTheoryProducer',
           runId,
-          payload,
+          payload: { ...payload, gameDataMode: payload.gameDataMode ?? getGameDataMode() },
           batchSize: effBatch,
           shard: { index, count: producers.length },
         }

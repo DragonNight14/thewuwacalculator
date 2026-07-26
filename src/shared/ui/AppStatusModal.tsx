@@ -10,7 +10,7 @@ import { CURRENT_VERSION } from '@/shared/lib/appMetadata'
 import { getLinkedWhatsNew, ltstCurChngE } from '@/data/content/changelogEntries'
 
 const STATUS_DATA = {
-  lastUpdated: '21/07/2026',
+  lastUpdated: '25/07/2026',
   overallState: 'stable' as const,
   patchVersion: CURRENT_VERSION,
   dataSources: [
@@ -19,20 +19,19 @@ const STATUS_DATA = {
   ],
   notes: [
     'HEWO~! (˶˃ ᵕ ˂˶)',
-    'I HOPE everyone reading this is doing super well and having a great time being alive today. ONLY IF YOU\'RE READING THIS THOUGH!',
-    'There\'re some new stuff (see more below).',
+    'I TRIED MY BEST!! 3.6.1 beta stuff is on here now.',
+    'There\'s new stuff (see more below).',
     'A reminder, there\'s a discord server up, if you\'d like to make suggestions or report bugs you unfortunately found... or you just wanna join a discord, feel free.'
   ],
   coverage: [
     { title: 'Resonators', status: 'ok' as const,  desc: 'All resonators supported.' },
     { title: 'Weapons',    status: 'ok' as const,  desc: 'All weapons supported.' },
     { title: 'Echoes',     status: 'ok' as const,  desc: 'All echoes and sonata sets supported.' },
-    { title: 'Enemies',    status: 'ok' as const,  desc: 'All enemies supported.' },
+    { title: 'Enemies',    status: 'wip' as const,  desc: '3.6.1 enemies not yet supported.' },
   ],
   recentChanges: [
-    'There\'re some new stuff, item menus have been redesigned along with the inventory menu.',
-    'You can now exclude/include echoes directly before running the optimizer.',
-    'The team setup ui has been completely reworked, everything is much clearer and just easier to get to/access (imo)'
+    'There\'re new preferences in the settings page.',
+    '3.6.1 beta stuff.',
   ],
   knownIssues: [
     "there's none."

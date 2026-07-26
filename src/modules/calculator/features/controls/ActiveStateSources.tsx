@@ -46,7 +46,7 @@ function StateSourceGroup({
         <div className="bench-source-head">
           <span className="bench-source-frame">
             <img
-              src={group.srcProf || '/assets/default.webp'}
+              src={group.srcProf || '/assets/game/default.webp'}
               alt={group.sourceName}
               className="bench-source-avatar"
               loading="lazy"

@@ -39,7 +39,7 @@ const ATTRIBUTE_KEYS = new Set(['aero', 'glacio', 'spectro', 'fusion', 'electro'
 
 export function echoStatIconSrc(key: string): string | null {
   const file = STAT_ICON_FILE[key]
-  return file ? `/assets/stat-icons/${file}.png` : null
+  return file ? `/assets/game/stats/icons/${file}.png` : null
 }
 
 export function echoStatTint(key: string): string {

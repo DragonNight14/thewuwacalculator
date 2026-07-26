@@ -292,7 +292,7 @@ function InvEchoEntCa({
               onRemove()
             }}
           >
-            <X size={14} />
+            <X size="0.875rem" />
           </button>
         </div>
 
@@ -421,7 +421,7 @@ function EchoBagRdt({
             title="Edit echo"
             onClick={onEdit}
           >
-            <Pencil size={12} />
+            <Pencil size="0.75rem" />
           </button>
           <button
             type="button"
@@ -429,7 +429,7 @@ function EchoBagRdt({
             title="Remove echo"
             onClick={onRemove}
           >
-            <X size={13} />
+            <X size="0.8125rem" />
           </button>
         </div>
       </div>
@@ -617,7 +617,7 @@ function SvdMkCard({
             onClick={onEquip}
             title="Equip build"
           >
-            <ArrowDownIcon size={15} />
+            <ArrowDownIcon size="0.5rem" />
           </button>
           <button
             type="button"
@@ -625,7 +625,7 @@ function SvdMkCard({
             onClick={onStrtRnm}
             title="Rename build"
           >
-            <Pencil size={15} />
+            <Pencil size="0.5rem" />
           </button>
           <button
             type="button"
@@ -633,7 +633,7 @@ function SvdMkCard({
             onClick={onRemove}
             title="Delete build"
           >
-            <Trash2 size={15} />
+            <Trash2 size="0.5rem" />
           </button>
         </div>
       </div>
@@ -967,7 +967,7 @@ export function InvMdl({
       id: 'inv:copy',
       key: 'copy' as const,
       needsSel: true,
-      icon: <Copy size={14} />,
+      icon: <Copy size="0.5rem" />,
       label: ({ count }: { count: number }) => `Copy (${count})`,
       title: 'Copy selected echoes (Ctrl/Cmd+C)',
       run: async ({ vals }: { vals: InvEchoEnt[] }) => {
@@ -985,7 +985,7 @@ export function InvMdl({
       id: 'inv:cut',
       key: 'cut' as const,
       needsSel: true,
-      icon: <Scissors size={14} />,
+      icon: <Scissors size="0.5rem" />,
       label: ({ count }: { count: number }) => `Cut (${count})`,
       title: 'Cut selected echoes (Ctrl/Cmd+X)',
       run: ({ count, ids, vals }: { count: number; ids: string[]; vals: InvEchoEnt[] }) => {
@@ -1016,7 +1016,7 @@ export function InvMdl({
     {
       id: 'inv:paste',
       key: 'paste' as const,
-      icon: <Clipboard size={14} />,
+      icon: <Clipboard size="0.5rem" />,
       label: 'Paste',
       title: 'Paste echoes into inventory (Ctrl/Cmd+V)',
       float: false,
@@ -1029,7 +1029,7 @@ export function InvMdl({
       key: 'delete' as const,
       needsSel: true,
       danger: true,
-      icon: <Trash2 size={14} />,
+      icon: <Trash2 size="0.5rem" />,
       label: ({ count }: { count: number }) => `Remove (${count})`,
       title: 'Remove selected echoes (Delete / Backspace)',
       run: ({ count, ids }: { count: number; ids: string[] }) => {
@@ -1264,7 +1264,7 @@ export function InvMdl({
               void pstClpbIntoI()
             }}
           >
-            <Clipboard size={14} />
+            <Clipboard size="0.875rem" />
             Paste
           </button>
         ) : null}
@@ -1276,7 +1276,7 @@ export function InvMdl({
           aria-label={compact ? 'Expand view' : 'Compact view'}
           disabled={gridSwtc}
         >
-          {compact ? <Maximize2 size={14} /> : <Minimize2 size={14} />}
+          {compact ? <Maximize2 size="0.875rem" /> : <Minimize2 size="0.875rem" />}
           {compact ? 'Expand' : 'Compact'}
         </button>
         <button
@@ -1296,7 +1296,7 @@ export function InvMdl({
           }}
           disabled={clrDsbl}
         >
-          <Trash2 size={14} /> Clear
+          <Trash2 size="0.875rem" /> Clear
         </button>
       </div>
       <div className="picker-filter-divider" aria-hidden="true" />
@@ -1308,7 +1308,7 @@ export function InvMdl({
     tabFilters(
       <>
         <label className="bp-search">
-          <Search size={"0.72rem"} aria-hidden="true" />
+          <Search size="0.72rem" aria-hidden="true" />
           <input
             type="search"
             value={echoSearch}
@@ -1350,7 +1350,7 @@ export function InvMdl({
   ) : (
     tabFilters(
       <label className="bp-search">
-        <Search size={17} aria-hidden="true" />
+        <Search size="1.0625rem" aria-hidden="true" />
         <input
           type="search"
           value={buildSearch}
@@ -1399,7 +1399,7 @@ export function InvMdl({
                   onClick={onSaveInitEchoes}
                   title="Save equipped echoes from initialized resonators"
                 >
-                  <ArrowDownIcon size={14} />
+                  <ArrowDownIcon size="0.875rem" />
                   Save Equipped
                 </button>
                 <MdlClsBttn className="picker-modal__close" onClick={onClose} />

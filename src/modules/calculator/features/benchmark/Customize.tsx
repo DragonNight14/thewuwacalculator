@@ -372,8 +372,8 @@ export function BenchCssEditorDock({
             <span className="bench-css-dock-swatch" style={{ background: pickedColor }} aria-hidden="true" />
             <span className="bench-css-dock-pick-label">{copied ? `${pickedColor} copied` : 'Pick color'}</span>
             {copied
-              ? <Check size={13} aria-hidden="true" />
-              : <Pipette size={13} aria-hidden="true" />}
+              ? <Check size="0.8125rem" aria-hidden="true" />
+              : <Pipette size="0.8125rem" aria-hidden="true" />}
           </button>
           <input
             ref={colorInputRef}
@@ -385,7 +385,7 @@ export function BenchCssEditorDock({
             aria-hidden="true"
           />
           <button type="button" className="bench-css-dock-close" onClick={onClose} aria-label="Collapse editor">
-            <X size={14} aria-hidden="true" />
+            <X size="0.875rem" aria-hidden="true" />
           </button>
         </div>
       </header>
@@ -599,7 +599,7 @@ export function BenchCustomizePanel({
           aria-expanded={drawerOpen}
           aria-label={drawerOpen ? 'Hide controls' : 'Show controls'}
         >
-          <SlidersHorizontal size={15} aria-hidden="true" />
+          <SlidersHorizontal size="0.5rem" aria-hidden="true" />
         </button>
       ) : null}
       <header className="bench-tune-head">
@@ -608,7 +608,7 @@ export function BenchCustomizePanel({
           <span className="bench-tune-sub">Do what you gotta do.</span>
         </span>
         <button type="button" className="bench-tune-reset" onClick={onReset}>
-          <RotateCcw aria-hidden="true" size={12} />
+          <RotateCcw aria-hidden="true" size="0.75rem" />
           Reset
         </button>
       </header>
@@ -616,7 +616,7 @@ export function BenchCustomizePanel({
       <div className="bench-tune-body">
         <TuneGroup
           title="Show"
-          actions={<GroupActionBtn icon={<Download size={12} aria-hidden="true" />} label="Export" onClick={() => onExport('show')} />}
+          actions={<GroupActionBtn icon={<Download size="0.75rem" aria-hidden="true" />} label="Export" onClick={() => onExport('show')} />}
         >
           <TuneToggle label="Build score" on={!hidden.score} onChange={() => onToggleHidden('score')} />
           <TuneToggle label="Average DMG" on={!hidden.damage} onChange={() => onToggleHidden('damage')} />
@@ -666,8 +666,8 @@ export function BenchCustomizePanel({
               >
                 {editMode === 'portrait' ? 'Done' : 'Edit'}
               </button>
-              <GroupActionBtn icon={<RotateCcw size={12} aria-hidden="true" />} label="Reset" onClick={() => onResetGroup('portrait')} />
-              <GroupActionBtn icon={<Download size={12} aria-hidden="true" />} label="Export" onClick={() => onExport('portrait')} />
+              <GroupActionBtn icon={<RotateCcw size="0.75rem" aria-hidden="true" />} label="Reset" onClick={() => onResetGroup('portrait')} />
+              <GroupActionBtn icon={<Download size="0.75rem" aria-hidden="true" />} label="Export" onClick={() => onExport('portrait')} />
             </>
           }
         >
@@ -703,8 +703,8 @@ export function BenchCustomizePanel({
               >
                 {editMode === 'backdrop' ? 'Done' : 'Edit'}
               </button>
-              <GroupActionBtn icon={<RotateCcw size={12} aria-hidden="true" />} label="Reset" onClick={() => onResetGroup('backdrop')} />
-              <GroupActionBtn icon={<Download size={12} aria-hidden="true" />} label="Export" onClick={() => onExport('backdrop')} />
+              <GroupActionBtn icon={<RotateCcw size="0.75rem" aria-hidden="true" />} label="Reset" onClick={() => onResetGroup('backdrop')} />
+              <GroupActionBtn icon={<Download size="0.75rem" aria-hidden="true" />} label="Export" onClick={() => onExport('backdrop')} />
             </>
           }
         >
@@ -722,7 +722,7 @@ export function BenchCustomizePanel({
 
         <TuneGroup
           title="Color"
-          actions={<GroupActionBtn icon={<Download size={12} aria-hidden="true" />} label="Export" onClick={() => onExport('color')} />}
+          actions={<GroupActionBtn icon={<Download size="0.75rem" aria-hidden="true" />} label="Export" onClick={() => onExport('color')} />}
         >
           <TuneSwatch label="Accent" value={accent} onChange={(v) => onStyleChange({ accent: v })} />
           <TuneSwatch label="Surface" value={surface} onChange={(v) => onStyleChange({ surface: v })} />
@@ -731,7 +731,7 @@ export function BenchCustomizePanel({
 
         <TuneGroup
           title="Base type"
-          actions={<GroupActionBtn icon={<Download size={12} aria-hidden="true" />} label="Export" onClick={() => onExport('type')} />}
+          actions={<GroupActionBtn icon={<Download size="0.75rem" aria-hidden="true" />} label="Export" onClick={() => onExport('type')} />}
         >
           <TuneFont label="Display" fallback="sans-serif" onApply={(stack) => onStyleChange({ displayFont: stack })} />
           <TuneFont label="Mono" fallback="monospace" onApply={(stack) => onStyleChange({ monoFont: stack })} />
@@ -741,7 +741,7 @@ export function BenchCustomizePanel({
 
         <TuneGroup
           title="Per-text styles"
-          actions={<GroupActionBtn icon={<Download size={12} aria-hidden="true" />} label="Export" onClick={() => onExport('text')} />}
+          actions={<GroupActionBtn icon={<Download size="0.75rem" aria-hidden="true" />} label="Export" onClick={() => onExport('text')} />}
         >
           <TextStyleEditor
             slots={textSlots}
@@ -755,13 +755,13 @@ export function BenchCustomizePanel({
           title="Custom CSS"
           actions={
             <>
-              <GroupActionBtn icon={<Upload size={12} aria-hidden="true" />} label="Import" onClick={openImport} />
+              <GroupActionBtn icon={<Upload size="0.75rem" aria-hidden="true" />} label="Import" onClick={openImport} />
               <GroupActionBtn
-                icon={<Maximize2 size={12} aria-hidden="true" />}
+                icon={<Maximize2 size="0.75rem" aria-hidden="true" />}
                 label={docked ? 'Collapse' : 'Expand'}
                 onClick={onExpandCss}
               />
-              <GroupActionBtn icon={<Download size={12} aria-hidden="true" />} label="Export" onClick={() => onExport('css')} />
+              <GroupActionBtn icon={<Download size="0.75rem" aria-hidden="true" />} label="Export" onClick={() => onExport('css')} />
             </>
           }
         >
@@ -789,7 +789,7 @@ export function BenchCustomizePanel({
           title={captureAction === 'download' ? 'Capturing' : 'Capture'}
           aria-label="Capture card"
         >
-          <TbCameraDown aria-hidden="true" size={15} />
+          <TbCameraDown aria-hidden="true" size="0.5rem" />
         </button>
         <button
           type="button"
@@ -799,7 +799,7 @@ export function BenchCustomizePanel({
           title="Copy to clipboard"
           aria-label="Copy to clipboard"
         >
-          <Clipboard aria-hidden="true" size={15} />
+          <Clipboard aria-hidden="true" size="0.5rem" />
         </button>
         <button
           type="button"
@@ -808,7 +808,7 @@ export function BenchCustomizePanel({
           title="Import card or group file"
           aria-label="Import card settings"
         >
-          <Upload aria-hidden="true" size={15} />
+          <Upload aria-hidden="true" size="0.5rem" />
         </button>
         <button
           type="button"
@@ -817,14 +817,14 @@ export function BenchCustomizePanel({
           title="Export everything to JSON"
           aria-label="Export all card settings"
         >
-          <Download aria-hidden="true" size={15} />
+          <Download aria-hidden="true" size="0.5rem" />
         </button>
       </div>
 
       <input
         ref={fileInputRef}
         type="file"
-        accept=".json,.css,application/json,text/css"
+        accept=".json,.wwcalc,.css,application/json,text/css"
         hidden
         onChange={(event) => {
           const file = event.target.files?.[0]

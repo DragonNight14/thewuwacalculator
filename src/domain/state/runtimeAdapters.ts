@@ -23,9 +23,12 @@ import {
   mkDefSkllLvl,
   makeTeamMember,
   makeTraceNode,
+  mkDefSeedWpnMkSt,
   normProfTeam,
 } from '@/domain/state/defaults'
 import { getResSeedBy } from '@/domain/services/resonatorSeedService'
+import { getEchoById } from '@/domain/services/echoCatalogService'
+import { getWpnById } from '@/domain/services/weaponCatalogService'
 import {
   matRtFromPro,
   matTeamMemFr,
@@ -94,9 +97,12 @@ export function mkSelTgtResM(
   const activeId = getActResId(calculator)
   if (!activeId) return {}
 
-  return {
-    ...(calculator.profiles[activeId]?.runtime.routing.selectedTargetsByOwnerKey),
-  }
+  const targetIds = new Set(Object.keys(mkWorkRtBndl(calculator).partRtsById))
+
+  return Object.fromEntries(
+    Object.entries(calculator.profiles[activeId]?.runtime.routing.selectedTargetsByOwnerKey ?? {})
+      .filter(([, targetId]) => !targetId || targetIds.has(targetId)),
+  )
 }
 
 // materialize the active main runtime bundle once so callers can reuse
@@ -126,8 +132,12 @@ export function mkWorkRtBndl(calculator: CalcState): WorkRtBndl {
 
   const actTeamSlts: TeamSlots = [
     actResId,
-    actProf.runtime.teamRuntimes?.[0]?.id ?? null,
-    actProf.runtime.teamRuntimes?.[1]?.id ?? null,
+    actProf.runtime.teamRuntimes?.[0]?.id && getResSeedBy(actProf.runtime.teamRuntimes[0].id)
+      ? actProf.runtime.teamRuntimes[0].id
+      : null,
+    actProf.runtime.teamRuntimes?.[1]?.id && getResSeedBy(actProf.runtime.teamRuntimes[1].id)
+      ? actProf.runtime.teamRuntimes[1].id
+      : null,
   ]
   const activeTarget = {
     ...actProf.runtime.routing.selectedTargetsByOwnerKey,
@@ -175,7 +185,9 @@ export function mkWorkRtBndl(calculator: CalcState): WorkRtBndl {
   return {
     actResId: actResId,
     actTeamSlots: actTeamSlts,
-    actTgtSels: activeTarget,
+    actTgtSels: Object.fromEntries(
+      Object.entries(activeTarget).filter(([, targetId]) => !targetId || partRntmById[targetId]),
+    ),
     actRt: actRt,
     partRtsById: partRntmById,
   }
@@ -199,7 +211,11 @@ export function mkActTeamSlt(calculator: CalcState): TeamSlots {
   }
 
   const tmr = actProf.runtime.teamRuntimes ?? [null, null]
-  return [actResId, tmr[0]?.id ?? null, tmr[1]?.id ?? null]
+  return [
+    actResId,
+    tmr[0]?.id && getResSeedBy(tmr[0].id) ? tmr[0].id : null,
+    tmr[1]?.id && getResSeedBy(tmr[1].id) ? tmr[1].id : null,
+  ]
 }
 
 // get the resonator id occupying a given slot
@@ -408,6 +424,8 @@ export function mkTeamMemRtV(
 
   const tmr = (actProf.runtime.teamRuntimes ?? [null, null])[slotIndex]
   if (!tmr) return null
+  const seed = getResSeedBy(tmr.id)
+  if (!seed) return null
 
   // extract namespaced controls from the active profile controls
   const prefix = `team:${tmr.id}:`
@@ -424,8 +442,23 @@ export function mkTeamMemRtV(
       sequence: tmr.base.sequence,
     },
     build: {
-      weapon: catTmWpnAtk(tmr.build.weapon, 90),
-      echoes: tmr.build.echoes,
+      weapon: catTmWpnAtk(
+        tmr.build.weapon.id && getWpnById(tmr.build.weapon.id)
+          ? tmr.build.weapon
+          : mkDefSeedWpnMkSt(seed),
+        90,
+      ),
+      echoes: tmr.build.echoes.map((echo) => {
+        if (!echo) return null
+        const definition = getEchoById(echo.id)
+        if (!definition) return null
+        return {
+          ...echo,
+          set: definition.sets.includes(echo.set)
+            ? echo.set
+            : definition.sets[0] ?? echo.set,
+        }
+      }),
     },
     state: {
       controls,

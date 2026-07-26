@@ -382,7 +382,7 @@ export function NlnAddMenu({
           }
         }}
       >
-        <GrLinkDown size={15} />
+        <GrLinkDown size="0.5rem" />
       </button>
       {menu}
     </div>

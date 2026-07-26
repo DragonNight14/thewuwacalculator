@@ -88,6 +88,8 @@ export const SET_RULES: Partial<Record<string, SetRule>> = {
   '1607': { type: 'include', sets: [6, 9] }, // Cantarella
   '1608': { type: 'include', sets: [6, 9, 19] }, // Phrolova
   '1610': { type: 'include', sets: [6, 9, 33] }, // Yangyang: Xuanling
+  '1212': { type: 'include', sets: [2, 9, 18, 20, 35] }, // Jingran
+  '1413': { type: 'include', sets: [4, 34] }, // Jingran
 }
 
 type StateRef = { setId: number; key: string }

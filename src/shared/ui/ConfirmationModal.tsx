@@ -45,7 +45,7 @@ export function CnfrMdl({
       onClose={onCancel}
     >
       <div className="confirmation-modal__icon">
-        <Icon size={22} />
+        <Icon size="1.375rem" />
       </div>
       <div className="confirmation-modal__body">
         <h2 className="confirmation-modal__title">{title}</h2>
