@@ -7,10 +7,11 @@
 
 import { describe, expect, it } from 'vitest'
 import { makeEchoUid } from '@/domain/entities/runtime'
-import { listChsByCos } from '@/domain/services/echoCatalogService'
+import { getEchoSets, listChsByCos } from '@/domain/services/echoCatalogService'
 import { ECHO_SIDE_STATS } from '@/data/gameData/catalog/echoStats'
 import {
   applyMainSur,
+  applySetPlan,
   mkEchoMainSt,
   mkMainStatPt,
   mkRandEchoLd,
@@ -87,6 +88,51 @@ describe('echo mutation invariants', () => {
     const isFeasible = prepSetPlanFsb(echoes)
 
     expect(mkSetPlanCnd(5).some(isFeasible)).toBe(true)
+  })
+
+  it('replaces an incompatible main echo for full mixed set plans', () => {
+    // Rustfire only exists on sets 34/35. A full 2pc + 3pc plan for other sets
+    // must replace it instead of rewriting its active set and keeping its buff.
+    const rustfire = listChsByCos(4).find((definition) => definition.id === '6000217')
+    expect(rustfire?.sets).toEqual([34, 35])
+
+    const costs = [4, 3, 3, 1, 1]
+    const echoes = costs.map((cost, index) => {
+      const definition = index === 0
+          ? rustfire
+          : listChsByCos(cost).find((entry) => entry.id !== '6000217')
+
+      expect(definition).toBeTruthy()
+      if (!definition) {
+        throw new Error(`Missing echo definition for cost ${cost}`)
+      }
+
+      return {
+        uid: makeEchoUid(),
+        id: definition.id,
+        set: definition.sets[0] ?? 0,
+        mainEcho: index === 0,
+        mainStats: {
+          primary: { key: 'atkPercent', value: 30 },
+          secondary: { ...ECHO_SIDE_STATS[cost] },
+        },
+        substats: {},
+      }
+    })
+
+    const planned = applySetPlan([
+      { setId: 2, pieces: 2 },
+      { setId: 20, pieces: 3 },
+    ], echoes)
+
+    expect(planned[0]?.id).not.toBe('6000217')
+    expect(planned[0]?.set === 2 || planned[0]?.set === 20).toBe(true)
+    for (const echo of planned) {
+      expect(echo).toBeTruthy()
+      if (echo) {
+        expect(getEchoSets(echo.id)).toContain(echo.set)
+      }
+    }
   })
 
   it('treats reordered same-cost main stat layouts as identical', () => {

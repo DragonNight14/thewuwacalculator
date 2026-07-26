@@ -7,7 +7,7 @@
 
 import type { EchoInstance } from '@/domain/entities/runtime'
 import type { SuggestContext } from '@/engine/suggestions/types'
-import { evalSuggChsW } from '@/engine/suggestions/shared'
+import { evalSuggChsW, mkNeutralSuggMainEc } from '@/engine/suggestions/shared'
 import type { MainStatRecipe } from '@/engine/suggestions/mainStat-suggestion/utils'
 import { applyMainSta } from '@/engine/suggestions/mainStat-suggestion/utils'
 
@@ -16,13 +16,9 @@ export function cmptMainStat(
     ctx: SuggestContext,
     recipes: MainStatRecipe[],
     qppdChs: Array<EchoInstance | null>,
-    mainEchoBuffs: Float32Array,
 ): number {
-  return evalSuggChsW(
-      ctx,
-      applyMainSta(recipes, qppdChs),
-      mainEchoBuffs,
-  )
+  const echoes = applyMainSta(recipes, qppdChs)
+  return evalSuggChsW(ctx, echoes, mkNeutralSuggMainEc(echoes))
 }
 
 // rotation main-stat damage currently follows the same evaluation path
@@ -30,7 +26,6 @@ export function cmptRotMainS(
     ctx: SuggestContext,
     recipes: MainStatRecipe[],
     qppdChs: Array<EchoInstance | null>,
-    mainEchoBuffs: Float32Array,
 ): number {
-  return cmptMainStat(ctx, recipes, qppdChs, mainEchoBuffs)
+  return cmptMainStat(ctx, recipes, qppdChs)
 }

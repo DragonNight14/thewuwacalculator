@@ -187,10 +187,10 @@ function OptInvEchoCard({
 
       <div className="opt-inv-echo__status" aria-hidden="true">
         <span className="opt-inv-echo__status-icon opt-inv-echo__status-icon--current">
-          {included ? <Check size={13} /> : <Ban size={13} />}
+          {included ? <Check size="0.8125rem" /> : <Ban size="0.8125rem" />}
         </span>
         <span className="opt-inv-echo__status-icon opt-inv-echo__status-icon--action">
-          {included ? <Ban size={13} /> : <Check size={13} />}
+          {included ? <Ban size="0.8125rem" /> : <Check size="0.8125rem" />}
         </span>
       </div>
     </article>
@@ -460,7 +460,7 @@ export function OptimizerInventoryModal({
       id: 'opt-inv:include',
       key: 'copy' as const,
       needsSel: true,
-      icon: <Check size={14} />,
+      icon: <Check size="0.5rem" />,
       label: ({ count }: { count: number }) => `Include (${count})`,
       title: 'Include selected echoes',
       run: ({ vals }: { vals: InvEchoEnt[] }) => applyEntries(vals, true),
@@ -469,7 +469,7 @@ export function OptimizerInventoryModal({
       id: 'opt-inv:exclude',
       key: 'cut' as const,
       needsSel: true,
-      icon: <Ban size={14} />,
+      icon: <Ban size="0.5rem" />,
       label: ({ count }: { count: number }) => `Exclude (${count})`,
       title: 'Exclude selected echoes',
       run: ({ vals }: { vals: InvEchoEnt[] }) => applyEntries(vals, false),
@@ -488,7 +488,7 @@ export function OptimizerInventoryModal({
     {
       id: `opt-inv:${entry.id}:include`,
       label: 'Include',
-      icon: <Check size={15} />,
+      icon: <Check size="0.5rem" />,
       onSelect: () => {
         setPreviewId(entry.id)
         applyEntries([entry], true)
@@ -497,7 +497,7 @@ export function OptimizerInventoryModal({
     {
       id: `opt-inv:${entry.id}:exclude`,
       label: 'Exclude',
-      icon: <Ban size={15} />,
+      icon: <Ban size="0.5rem" />,
       onSelect: () => {
         setPreviewId(entry.id)
         applyEntries([entry], false)
@@ -507,7 +507,7 @@ export function OptimizerInventoryModal({
     {
       id: `opt-inv:${entry.id}:select`,
       label: 'Select',
-      icon: <Check size={15} />,
+      icon: <Check size="0.5rem" />,
       onSelect: () => echoSel.addToSelection(entry.id),
     },
   ], [applyEntries, echoSel])
@@ -574,7 +574,7 @@ export function OptimizerInventoryModal({
                 onClick={reset}
                 disabled={selection.mode === 'exclude' && trackedSet.size === 0}
               >
-                <RotateCcw size={14} /> Reset
+                <RotateCcw size="0.875rem" /> Reset
               </button>
             </div>
             <div className="picker-filter-divider" aria-hidden="true" />

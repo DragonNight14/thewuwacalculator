@@ -43,7 +43,7 @@ import { makeSkillCtx, prprRtSkll } from '@/engine/pipeline/prepareRuntimeSkill'
 import { mkPrepRotNvr, runFeatSmlt } from '@/engine/rotation/system'
 import { makeOptContext } from '@/engine/optimizer/context/compiled'
 import { selOptTgtSkl, type OptTargetSkill } from '@/engine/optimizer/target/selectedSkill'
-import { CTX_FLOATS } from '@/engine/optimizer/config/constants'
+import { CTX_FLOATS, MAIN_BUFF_LEN } from '@/engine/optimizer/config/constants'
 import type { PrepOptTgtCt } from '@/engine/optimizer/target/context'
 import type { EnemyProfile } from '@/domain/entities/appState'
 import type { SkillDef } from '@/domain/entities/stats'
@@ -665,6 +665,13 @@ export function mkSuggMainEc(
     sourceBaseStats: context.sourceBaseStats,
     sourceFinals: context.sourceFinals,
   })
+}
+
+export function mkNeutralSuggMainEc(
+    echoes: Array<import('@/domain/entities/runtime').EchoInstance | null>,
+): Float32Array {
+  const concreteCount = echoes.filter((echo) => echo != null).length
+  return new Float32Array(concreteCount * MAIN_BUFF_LEN)
 }
 
 // evaluate a candidate echo loadout when main-echo buffs are already prepared

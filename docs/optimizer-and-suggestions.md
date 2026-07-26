@@ -41,6 +41,10 @@ Suggestions are shaped by:
 - set conditional state
 - prepared scoring or ranking inputs
 
+Main stat and set plan suggestions keep the current Echo identities fixed, but they do not let the current main Echo passive buff participate in the comparison. Their candidate rows and current-build baselines are both scored with neutral main-Echo bonus rows so the result answers only the axis being suggested: main stats or set membership.
+
+Set plan suggestion rows are display-grouped after scoring. Plans with the same damage and the same contributing set-effect shape are collapsed into one row, set names are omitted, and the UI renders the grouped set icons with their piece counts. Set effects that do not change the scored damage are excluded from the visible plan even when they were present in one of the raw generated plans.
+
 ## Suggestions Worker Boundary
 
 The worker layer exists so expensive suggestion preparation and ranking does not block the main thread during heavier runs. It should stay aligned with the same prepared input contracts used by the direct engine helpers.

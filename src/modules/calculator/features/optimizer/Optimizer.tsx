@@ -382,9 +382,9 @@ export function Optimizer() {
   const imageSrc =
     activeSeed
       ? isSprite
-        ? `/assets/resonators/sprite/${optResId}.webp`
-        : `/assets/resonators/profiles/${optResId}.webp`
-      : '/assets/default.webp'
+        ? `/assets/game/resonators/sprites/${optResId}.webp`
+        : `/assets/game/resonators/profiles/${optResId}.webp`
+      : '/assets/game/default.webp'
 
   const trgtSkll = useMemo(
     () => (effectRuntime ? listOptTrgt(effectRuntime) : []),
@@ -1118,7 +1118,7 @@ export function Optimizer() {
     id: 'optimizer-preview:copy',
     key: 'copy' as const,
     needsSel: true,
-    icon: <Copy size={14} />,
+    icon: <Copy size="0.5rem" />,
     label: ({ count }: { count: number }) => `Copy (${count})`,
     title: 'Copy selected echoes (Ctrl/Cmd+C)',
     run: async ({ vals }: { vals: EchoInstance[] }) => {
@@ -2420,6 +2420,10 @@ export function Optimizer() {
                 </div>
               </div>
             </Expandable>
+            {/* the dock stays the last child of optimizer-details so its flow
+                position is the true bottom of the scrolled content; the pane is
+                the single scroll container for both axes in compact mode, which
+                lets the dock's sticky bottom+left pin against it. */}
             {!isWide ? <ControlBox isWide={false} {...controlProps} /> : null}
           </div>
         </div>

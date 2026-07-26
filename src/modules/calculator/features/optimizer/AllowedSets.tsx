@@ -468,7 +468,7 @@ export function AllowedSets({
                         onClick={() => clearPc(group.pieceCount)}
                         onMouseDown={(event) => event.preventDefault()}
                       >
-                        <X size={10} />
+                        <X size="0.625rem" />
                       </button>
                     ) : null}
                     </span>
@@ -548,13 +548,13 @@ export function AllowedSets({
           <>
             <span className={`liquid-select__value${selectedTotal === 0 ? ' liquid-select__value--placeholder' : ''}`}>{summaryLabel}</span>
             <span className="liquid-select__icon">
-              <ChevronDown size={14} />
+              <ChevronDown size="0.875rem" />
             </span>
           </>
         ) : (
           <>
             <span className="co-set-dropdown__trigger-value">{summaryLabel}</span>
-            <ChevronDown size={12} />
+            <ChevronDown size="0.75rem" />
           </>
         )}
       </button>

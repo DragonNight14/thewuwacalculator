@@ -243,7 +243,7 @@ export function CharPtnsPnl({
               triggerClass="co-skill-bar__main"
               viewTrggCntn={(selPtn, placeholder) => (
                 <>
-                  <Crosshair size={15} className="co-skill-bar__icon" />
+                  <Crosshair size="1rem" className="co-skill-bar__icon" />
                   <div className="co-skill-bar__text">
                     <span className="co-skill-bar__label">{targetLabel}</span>
                     <span
@@ -256,7 +256,7 @@ export function CharPtnsPnl({
                       {selPtn?.label ?? placeholder}
                     </span>
                   </div>
-                  <ChevronDown size={16} className="co-skill-bar__chevron" />
+                  <ChevronDown size="1rem" className="co-skill-bar__chevron" />
                 </>
               )}
             />
@@ -269,7 +269,7 @@ export function CharPtnsPnl({
                       className={`co-switch__opt${targetMode === 'skill' ? ' on' : ''}`}
                       onClick={() => onTrgtModeCh('skill')}
                   >
-                    <SiBttl size={13}/>
+                    <SiBttl size="0.8125rem"/>
                     Skill
                   </button>
                   <button
@@ -277,7 +277,7 @@ export function CharPtnsPnl({
                       className={`co-switch__opt${targetMode === 'combo' ? ' on' : ''}`}
                       onClick={() => onTrgtModeCh('combo')}
                   >
-                    <SiBttl size={13}/>
+                    <SiBttl size="0.8125rem"/>
                     Combo
                   </button>
                 </div>
@@ -288,7 +288,7 @@ export function CharPtnsPnl({
                   className={`co-switch__opt${enableGpu ? ' on' : ''}`}
                   onClick={() => onNblGpuChng(true)}
                 >
-                  <Cpu size={13} />
+                  <Cpu size="0.8125rem" />
                   GPU
                 </button>
                 <button
@@ -296,7 +296,7 @@ export function CharPtnsPnl({
                   className={`co-switch__opt${!enableGpu ? ' on' : ''}`}
                   onClick={() => onNblGpuChng(false)}
                 >
-                  <Cpu size={13} />
+                  <Cpu size="0.8125rem" />
                   CPU
                 </button>
               </div>
@@ -306,7 +306,7 @@ export function CharPtnsPnl({
                   className={`co-switch__opt${useSplash ? ' on' : ''}`}
                   onClick={() => setIsSprite?.(true)}
                 >
-                  <Image size={13} />
+                  <Image size="0.8125rem" />
                   Sprite
                 </button>
                 <button
@@ -314,7 +314,7 @@ export function CharPtnsPnl({
                   className={`co-switch__opt${!useSplash ? ' on' : ''}`}
                   onClick={() => setIsSprite?.(false)}
                 >
-                  <Image size={13} />
+                  <Image size="0.8125rem" />
                   Profile
                 </button>
               </div>
@@ -325,7 +325,7 @@ export function CharPtnsPnl({
             <section className="co-tile co-tile--filters">
               <div className="co-tile__head">
                 <h3 className="co-tile__title">Filters</h3>
-                <Info size={13} className="co-tile__info" />
+                <Info size="0.8125rem" className="co-tile__info" />
               </div>
 
               <div className="co-field">
@@ -333,7 +333,7 @@ export function CharPtnsPnl({
                   Main Echo
                   {mainEcho ? (
                     <span className="co-field__lock-pill" aria-label="locked">
-                      <Lock size={9} strokeWidth={3} />
+                      <Lock size="0.5625rem" strokeWidth={3} />
                       Locked
                     </span>
                   ) : null}
@@ -352,7 +352,7 @@ export function CharPtnsPnl({
                 >
                   {mainEcho ? (
                     <>
-                      <Lock size={10} strokeWidth={3} className="co-chip__lock-glyph" aria-hidden="true" />
+                      <Lock size="0.625rem" strokeWidth={3} className="co-chip__lock-glyph" aria-hidden="true" />
                       <img src={mainEcho.icon} alt="" className="co-trigger__ico" loading="lazy" onError={withDefEchoMg} />
                       <span className="co-chip__label">{mainEcho.name}</span>
                       <span
@@ -366,7 +366,7 @@ export function CharPtnsPnl({
                           onClrMainEch()
                         }}
                       >
-                        <X size={11} strokeWidth={3} />
+                        <X size="0.6875rem" strokeWidth={3} />
                       </span>
                     </>
                   ) : (
@@ -389,7 +389,7 @@ export function CharPtnsPnl({
                       <div className="co-conds-half">
                         <button type="button" className="co-chip" onClick={onOpenSetCon}>
                           Conditionals
-                          <ChevronDown size={12} />
+                          <ChevronDown size="0.75rem" />
                         </button>
                       </div>
                     </div>
@@ -413,13 +413,13 @@ export function CharPtnsPnl({
                       <div className="co-conds-half">
                         <button type="button" className="co-chip" onClick={onOpenSetCon}>
                           Sonata Sets
-                          <ChevronDown size={12} />
+                          <ChevronDown size="0.75rem" />
                         </button>
                       </div>
                       <div className="co-conds-half">
                         <button type="button" className="co-chip" onClick={onOpenWpnCond}>
                           Weapons
-                          <ChevronDown size={12} />
+                          <ChevronDown size="0.75rem" />
                         </button>
                       </div>
                     </div>
@@ -429,7 +429,7 @@ export function CharPtnsPnl({
                     <span className="co-field__label">Conditionals</span>
                     <button type="button" className="co-chip" onClick={onOpenSetCon}>
                       Set Conditionals
-                      <ChevronDown size={12} />
+                      <ChevronDown size="0.75rem" />
                     </button>
                   </div>
                 )
@@ -490,7 +490,7 @@ export function CharPtnsPnl({
                     onClick={() => onToggleWeapons(!includeWeapons)}
                   >
                     <span className="co-wpn-toggle__body">
-                      <Sword size={14} className="co-wpn-toggle__glyph" />
+                      <Sword size="0.875rem" className="co-wpn-toggle__glyph" />
                       <span className="co-wpn-toggle__text">
                         <span className="co-wpn-toggle__title">Include weapons</span>
                         <span className="co-wpn-toggle__hint">
@@ -525,7 +525,7 @@ export function CharPtnsPnl({
                       onClick={() => onToggleExcludeEquipped(!excludeEquipped)}
                     >
                       <span className="co-wpn-toggle__body">
-                        <Lock size={14} className="co-wpn-toggle__glyph" />
+                        <Lock size="0.875rem" className="co-wpn-toggle__glyph" />
                         <span className="co-wpn-toggle__text">
                           <span className="co-wpn-toggle__title">Exclude equipped</span>
                           <span className="co-wpn-toggle__hint">

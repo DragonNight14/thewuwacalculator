@@ -30,7 +30,7 @@ self.onmessage = async (event: MessageEvent<SuggsWrkrInM>) => {
   const scope = self as DedicatedWorkerGlobalScope
 
   try {
-    await initGameData()
+    await initGameData({ mode: message.gameDataMode })
     const {
       runMainStats: mainRunner,
       runRandGnrt: randRunner,

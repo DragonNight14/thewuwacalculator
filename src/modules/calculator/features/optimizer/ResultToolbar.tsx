@@ -20,6 +20,7 @@ import {
 } from 'lucide-react'
 import { Expandable } from '@/shared/ui/Expandable'
 import { LiquidSelect, type SelectOption } from '@/shared/ui/LiquidSelect'
+import { SonataTokens } from '@/modules/calculator/features/benchmark/ui.tsx'
 import { getEchoById } from '@/domain/services/echoCatalogService.ts'
 import { getEchoSetDe } from '@/data/gameData/echoSets/effects.ts'
 import { getSntSetIco } from '@/data/gameData/catalog/sonataSets.ts'
@@ -182,10 +183,42 @@ export function ResultToolbar({
     return base.concat(
       facetPlans(facets).map((plan) => ({
         value: plan.planKey,
-        label: `${planLabelFromKey(plan.planKey)}  ·  ${plan.count}`,
+        // pieces-only text; the option body renders sonata tokens instead of names.
+        label: `${plan.badges.map((badge) => badge.count).join(' + ')}  ·  ${plan.count}`,
       })),
     )
   }, [facets, isNum, col, colMeta.label])
+
+  // set-plan options render as sonata token clusters (icon + piece badge), so
+  // keep each plan's badges and build count reachable from its option value.
+  const planFacetMap = useMemo(() => {
+    if (isNum || !facets || col === 'main' || col === 'set') {
+      return null
+    }
+    return new Map(facetPlans(facets).map((plan) => [plan.planKey, plan]))
+  }, [facets, isNum, col])
+
+  const viewPlanOptn = useMemo(() => {
+    if (!planFacetMap) return undefined
+    return (option: SelectOption<string>) => {
+      const plan = planFacetMap.get(option.value)
+      if (!plan) return <>{option.label}</>
+      return (
+        <span className="opt-qc-plan">
+          <SonataTokens
+            sets={plan.badges.map((badge) => ({
+              setId: badge.id,
+              name: setName(badge.id),
+              pieces: badge.count,
+            }))}
+            className="bench-srel-set-plan opt-qc-plan__tokens"
+            emptyLabel="--"
+          />
+          <span className="opt-qc-plan__count">{plan.count}</span>
+        </span>
+      )
+    }
+  }, [planFacetMap])
 
   const exprParts: string[] = []
   if (criteria.filter.length > 0) {
@@ -207,19 +240,19 @@ export function ResultToolbar({
             className={`opt-qc__seg-opt${mode === 'filter' ? ' is-on' : ''}`}
             onClick={(event) => { stop(event); onMode('filter') }}
           >
-            <FilterIcon size={12} /> Filter
+            <FilterIcon size="0.5rem" /> Filter
           </button>
           <button
             type="button"
             className={`opt-qc__seg-opt${mode === 'find' ? ' is-on' : ''}`}
             onClick={(event) => { stop(event); onMode('find') }}
           >
-            <Crosshair size={12} /> Find
+            <Crosshair size="0.5rem" /> Find
           </button>
         </div>
       ) : (
         <span className="opt-qc__glyph">
-          <Terminal size={14} />
+          <Terminal size="0.5rem" />
         </span>
       )}
 
@@ -249,7 +282,7 @@ export function ResultToolbar({
       </span>
 
       <span className={`opt-qc__chev${open ? ' is-open' : ''}`} aria-hidden="true">
-        <ChevronDown size={15} />
+        <ChevronDown size="0.5rem" />
       </span>
     </div>
   )
@@ -313,7 +346,7 @@ export function ResultToolbar({
                 disabled={numValue.trim() === ''}
                 onClick={addNum}
               >
-                <CornerDownLeft size={13} />
+                <CornerDownLeft size="0.5rem" />
               </button>
             </>
           ) : (
@@ -323,6 +356,7 @@ export function ResultToolbar({
               options={catOptions}
               ariaLabel={`Add ${colMeta.label} condition`}
               onChange={addCat}
+              viewOptnCntn={viewPlanOptn}
             />
           )}
 
@@ -355,7 +389,7 @@ export function ResultToolbar({
                   disabled={findMatchCount === 0}
                   onClick={() => onFindStep(-1)}
                 >
-                  <ChevronLeft size={14} />
+                  <ChevronLeft size="0.5rem" />
                 </button>
                 <span className="opt-qc__step-count">
                   {findPreds.length === 0 ? '-' : findMatchCount === 0 ? '0' : `${findMatchIndex || '-'}/${findMatchCount}`}
@@ -367,7 +401,7 @@ export function ResultToolbar({
                   disabled={findMatchCount === 0}
                   onClick={() => onFindStep(1)}
                 >
-                  <ChevronRight size={14} />
+                  <ChevronRight size="0.5rem" />
                 </button>
               </div>
             ) : null}
@@ -388,7 +422,7 @@ export function ResultToolbar({
                 onClick={() => removePred(index)}
               >
                 <span className="opt-qc__chip-label">{formatPred(pred)}</span>
-                <X size={11} className="opt-qc__chip-x" />
+                <X size="0.5rem" className="opt-qc__chip-x" />
               </button>
             ))}
             <button type="button" className="opt-qc__clear" onClick={() => setActivePreds([])}>

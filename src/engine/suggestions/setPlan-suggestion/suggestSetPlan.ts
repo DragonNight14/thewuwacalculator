@@ -9,12 +9,22 @@ import { ECHO_SET_DEFS } from '@/data/gameData/echoSets/effects'
 import { isSetPlanFsb } from '@/engine/suggestions/mutate'
 import type { SuggestContext } from '@/engine/suggestions/types'
 import {
+  getSetCntBkt,
+  getSetRowFfs,
+  SET_ROT_TOGGLES,
+  SETCNSTLUTRO,
+  SETRTTGLST14,
+  SETRTTGLST22,
+  SETRTTGLST29,
+  SETRTTGLST33,
+} from '@/engine/optimizer/encode/sets'
+import {
   mkPrepSetPla,
-  mkSuggMainEc,
   runSuggSmlt,
 } from '@/engine/suggestions/shared'
 import type {
   PrepSetPlanS,
+  SetPlanDisplayEntry,
   SetPlanEntry,
   SetPlanSuggest,
   SetPlanSuggs,
@@ -25,6 +35,170 @@ import {
   calcRotSetPlan,
 } from '@/engine/suggestions/setPlan-suggestion/compute'
 import type { EchoInstance } from '@/domain/entities/runtime'
+
+type DisplayAccumulator = {
+  pieces: number
+  setIds: Set<number>
+}
+
+type DamageResult = {
+  avgDamage: number
+}
+
+function setEffectSig(ctx: SuggestContext, entry: SetPlanEntry): string {
+  const row = getSetRowFfs(entry.setId, getSetCntBkt(entry.pieces))
+  const totals: number[] = []
+  for (let index = 0; index < SETCNSTLUTRO; index += 1) {
+    totals.push(ctx.setConstLut[row + index] ?? 0)
+  }
+
+  const hasSpecialState =
+      (entry.setId === 14 && (ctx.setRtMask & SETRTTGLST14) !== 0)
+      || (entry.setId === 22 && (ctx.setRtMask & (SETRTTGLST22 | SET_ROT_TOGGLES)) !== 0)
+      || (entry.setId === 29 && (ctx.setRtMask & SETRTTGLST29) !== 0)
+      || (entry.setId === 33 && entry.pieces >= 5 && (ctx.setRtMask & SETRTTGLST33) !== 0)
+
+  return `${totals.join(',')}|${hasSpecialState ? `${entry.setId}:${entry.pieces}` : ''}`
+}
+
+function setDisplayKey(ctx: SuggestContext, entry: SetPlanEntry): string {
+  return `${entry.pieces}|${setEffectSig(ctx, entry)}`
+}
+
+function setEffectPlanKey(ctx: SuggestContext, setPlan: SetPlanEntry[]): string {
+  return displaySlotsFor(ctx, setPlan)
+      .map(({ key }) => key)
+      .join('||')
+}
+
+function displaySlotsFor(ctx: SuggestContext, setPlan: SetPlanEntry[]): Array<{
+  key: string
+  entry: SetPlanEntry
+}> {
+  const seen = new Map<string, number>()
+  return setPlan
+      .map((entry) => {
+        const baseKey = setDisplayKey(ctx, entry)
+        const occurrence = seen.get(baseKey) ?? 0
+        seen.set(baseKey, occurrence + 1)
+        return {
+          key: `${baseKey}#${occurrence}`,
+          entry,
+        }
+      })
+      .sort((left, right) => left.key.localeCompare(right.key))
+}
+
+function addDisplaySlots(
+    displayByKey: Map<string, DisplayAccumulator>,
+    ctx: SuggestContext,
+    setPlan: SetPlanEntry[],
+) {
+  for (const { key, entry } of displaySlotsFor(ctx, setPlan)) {
+    const display = displayByKey.get(key) ?? {
+      pieces: entry.pieces,
+      setIds: new Set<number>(),
+    }
+    display.setIds.add(entry.setId)
+    displayByKey.set(key, display)
+  }
+}
+
+function makeDisplayPlan(
+    displayByKey: Map<string, DisplayAccumulator>,
+): SetPlanDisplayEntry[] {
+  const setIdsByBaseKey = new Map<string, Set<number>>()
+  for (const [key, display] of displayByKey.entries()) {
+    const baseKey = key.slice(0, key.lastIndexOf('#'))
+    const setIds = setIdsByBaseKey.get(baseKey) ?? new Set<number>()
+    for (const setId of display.setIds) {
+      setIds.add(setId)
+    }
+    setIdsByBaseKey.set(baseKey, setIds)
+  }
+
+  return [...displayByKey.entries()]
+      .sort(([left], [right]) => left.localeCompare(right))
+      .map(([key, display]) => ({
+        pieces: display.pieces,
+        setIds: [...(setIdsByBaseKey.get(key.slice(0, key.lastIndexOf('#'))) ?? display.setIds)]
+            .sort((left, right) => left - right),
+      }))
+      .sort((left, right) =>
+        right.pieces - left.pieces || (left.setIds[0] ?? 0) - (right.setIds[0] ?? 0),
+      )
+}
+
+function displayEntriesFor(result: SetPlanSuggest): SetPlanEntry[] {
+  if (result.displayPlan?.length) {
+    return result.displayPlan.flatMap((entry) =>
+      entry.setIds.map((setId) => ({ setId, pieces: entry.pieces })),
+    )
+  }
+
+  return result.setPlan
+}
+
+function sameDamage(left: number, right: number, eps: number): boolean {
+  return Math.abs(left - right) <= Math.max(eps, Math.abs(left) * 1e-6, Math.abs(right) * 1e-6)
+}
+
+function groupEquivalentSetPlans(
+    results: SetPlanSuggest[],
+    ctx: SuggestContext,
+    eps: number,
+): SetPlanSuggest[] {
+  const grouped = new Map<string, Array<{
+    result: SetPlanSuggest
+    displayByKey: Map<string, DisplayAccumulator>
+  }>>()
+
+  for (const result of results) {
+    const displayEntries = displayEntriesFor(result)
+    const key = setEffectPlanKey(ctx, displayEntries)
+    const bucket = grouped.get(key) ?? []
+    const existing = bucket.find((entry) => sameDamage(entry.result.avgDamage, result.avgDamage, eps))
+
+    if (existing) {
+      addDisplaySlots(existing.displayByKey, ctx, displayEntries)
+      if (result.avgDamage > existing.result.avgDamage) {
+        existing.result = result
+      }
+      continue
+    }
+
+    const displayByKey = new Map<string, DisplayAccumulator>()
+    addDisplaySlots(displayByKey, ctx, displayEntries)
+    bucket.push({
+      result,
+      displayByKey,
+    })
+    grouped.set(key, bucket)
+  }
+
+  return [...grouped.values()].flat()
+      .map(({ result, displayByKey }) => ({
+        ...result,
+        displayPlan: makeDisplayPlan(displayByKey),
+      }))
+      .sort((left, right) => right.avgDamage - left.avgDamage)
+}
+
+function usefulSetPlan(
+    setPlan: SetPlanEntry[],
+    avgDamage: number,
+    scorePlan: (setPlan: SetPlanEntry[]) => DamageResult,
+    eps: number,
+): SetPlanEntry[] {
+  return setPlan.filter((_, index) => {
+    const withoutEntry = [
+      ...setPlan.slice(0, index),
+      ...setPlan.slice(index + 1),
+    ]
+    const withoutDamage = scorePlan(withoutEntry).avgDamage
+    return !sameDamage(avgDamage, withoutDamage, eps)
+  })
+}
 
 // enumerate and evaluate set plans for either direct or rotation mode
 export function sggsSetPlns({
@@ -53,17 +227,12 @@ export function sggsSetPlns({
       (echo) => (echo ? { ...echo, set: 0 } : null),
   )
 
-  // main echo buff rows only depend on the concrete echo identities,
-  // so compute them once and reuse for every set-plan evaluation
-  const activeCtx = (rotationCtx ?? ctx)!
-  const mainEchoBuffs = mkSuggMainEc(activeCtx, qppdChs)
-
   // pick the correct damage evaluator based on direct vs rotation mode
   const cmptDmg = isRotMode
       ? (setPlan: SetPlanEntry[]) =>
-          calcRotSetPlan(rotationCtx!, setPlan, baseEchoes, mainEchoBuffs)
+          calcRotSetPlan(rotationCtx!, setPlan, baseEchoes)
       : (setPlan: SetPlanEntry[]) =>
-          calcSetPlan(ctx!, setPlan, baseEchoes, mainEchoBuffs)
+          calcSetPlan(ctx!, setPlan, baseEchoes)
 
   // baseline damage with no set-plan override at all
   const baseDmg = cmptDmg([])
@@ -129,10 +298,19 @@ export function sggsSetPlns({
       }
     }
 
+    const usefulPlan = usefulSetPlan(setPlan, avg, cmptDmg, eps)
+    if (usefulPlan.length === 0) {
+      return
+    }
+
     results.push({
       avgDamage: avg,
       setPlan: [...setPlan].map((entry) => ({
         setId: entry.setId,
+        pieces: entry.pieces,
+      })),
+      displayPlan: usefulPlan.map((entry) => ({
+        setIds: [entry.setId],
         pieces: entry.pieces,
       })),
       echoes: qppdChs,
@@ -205,6 +383,7 @@ export function sggsSetPlns({
     baseAvg,
     results: results.map((result) => ({
       setPlan: result.setPlan,
+      displayPlan: result.displayPlan,
       avgDamage: result.avgDamage,
       echoes: result.echoes,
     })),
@@ -265,7 +444,7 @@ export function runSetSggs(
 
   return {
     baseAvg,
-    results: filtered,
+    results: groupEquivalentSetPlans(filtered, prepared.context, Math.max(1e-6, Math.abs(baseAvg) * 1e-6)),
     isRotation: rotationMode,
   }
 }
@@ -292,12 +471,14 @@ export function runPrepSetSg(
     qppdChs: curChs,
   })
 
+  const filtered = results.filter((result) =>
+      result.setPlan.reduce((sum, entry) => sum + entry.pieces, 0) <= nonNullCount
+      && isSetPlanFsb(result.setPlan, curChs),
+  )
+
   return {
     baseAvg,
-    results: results.filter((result) =>
-        result.setPlan.reduce((sum, entry) => sum + entry.pieces, 0) <= nonNullCount
-        && isSetPlanFsb(result.setPlan, curChs),
-    ),
+    results: groupEquivalentSetPlans(filtered, input.context, Math.max(1e-6, Math.abs(baseAvg) * 1e-6)),
     isRotation: input.rotationMode,
   }
 }

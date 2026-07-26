@@ -10,8 +10,8 @@ import { makeEchoUid } from '@/domain/entities/runtime'
 import type { RandGnrtSetP } from '@/domain/entities/suggestions'
 import type { EchoDef } from '@/domain/entities/catalog'
 import { getEchoById, listChsByCos } from '@/domain/services/echoCatalogService'
-import { ECHOES_PER_SET } from '@/engine/optimizer/config/constants'
 import {
+  evalSuggChs,
   mkPrepRandSu,
   runSuggSmlt,
 } from '@/engine/suggestions/shared'
@@ -30,8 +30,13 @@ import {
 } from './lib/combinations'
 import { mkEchoSetFor, type RandGenEcho } from './lib/echoSetBuilder'
 import { applyErPlanT } from './lib/energyRegen'
-import { mkZeroMainEc, evalRandGenE } from './lib/evaluation'
 import { pickNqLdtRsl } from './lib/signatures'
+
+type ScoredRandEchoes = {
+  value: number
+  echoes: RandGenEcho[]
+  instances: Array<EchoInstance | null>
+}
 
 // drop zero or negative weights so only meaningful stats remain
 function mkSprsWghtMa(weights: OptStatWeight): OptStatWeight {
@@ -218,14 +223,7 @@ export async function runEchoGnrt(
   const requiredCost = mainEchoDef?.cost ?? null
   const costPlans = mkCostPlns(requiredCost)
 
-  // allocate reusable evaluation buffers once
-  const comboIds = new Int32Array(ECHOES_PER_SET)
-  for (let index = 0; index < ECHOES_PER_SET; index += 1) {
-    comboIds[index] = index
-  }
-
-  const mainEchoBuffs = mkZeroMainEc(ECHOES_PER_SET)
-  const results: Array<{ value: number; echoes: RandGenEcho[] }> = []
+  const results: ScoredRandEchoes[] = []
 
   // try every valid cost plan
   for (const costPlan of costPlans) {
@@ -235,6 +233,7 @@ export async function runEchoGnrt(
     for (const combination of combinations) {
       let bestValue = 0
       let bestEchoes: RandGenEcho[] | null = null
+      let bestInstances: Array<EchoInstance | null> | null = null
 
       // sample several random realizations for this combination and keep the best one
       for (let attempt = 0; attempt < TRIES_PER_COMBO; attempt += 1) {
@@ -254,16 +253,18 @@ export async function runEchoGnrt(
           statWeight: prepared.statWeight,
         })
 
-        const damage = evalRandGenE(echoesWithEr, prepared.context, comboIds, mainEchoBuffs)
+        const instances = cnvrToNstn(echoesWithEr, setPrefsList, mainEchoId)
+        const damage = evalSuggChs(prepared.context, instances)
 
         if (damage > bestValue) {
           bestValue = damage
           bestEchoes = echoesWithEr
+          bestInstances = instances
         }
       }
 
-      if (bestEchoes) {
-        results.push({ value: bestValue, echoes: bestEchoes })
+      if (bestEchoes && bestInstances) {
+        results.push({ value: bestValue, echoes: bestEchoes, instances: bestInstances })
       }
     }
   }
@@ -275,7 +276,7 @@ export async function runEchoGnrt(
 
   return unique.slice(0, targetCount).map((result) => ({
     damage: result.value,
-    echoes: cnvrToNstn(result.echoes, setPrefsList, mainEchoId),
+    echoes: result.instances,
   }))
 }
 
@@ -291,13 +292,7 @@ export async function runPrepEchoG(
   const requiredCost = mainEchoDef?.cost ?? null
   const costPlans = mkCostPlns(requiredCost)
 
-  const comboIds = new Int32Array(ECHOES_PER_SET)
-  for (let index = 0; index < ECHOES_PER_SET; index += 1) {
-    comboIds[index] = index
-  }
-
-  const mainEchoBuffs = mkZeroMainEc(ECHOES_PER_SET)
-  const results: Array<{ value: number; echoes: RandGenEcho[] }> = []
+  const results: ScoredRandEchoes[] = []
 
   for (const costPlan of costPlans) {
     const combinations = mkMainStatCo(costPlan, mainStatFilter)
@@ -305,6 +300,7 @@ export async function runPrepEchoG(
     for (const combination of combinations) {
       let bestValue = 0
       let bestEchoes: RandGenEcho[] | null = null
+      let bestInstances: Array<EchoInstance | null> | null = null
 
       for (let attempt = 0; attempt < TRIES_PER_COMBO; attempt += 1) {
         const echoes = mkEchoSetFor({
@@ -322,16 +318,18 @@ export async function runPrepEchoG(
           statWeight: input.statWeight,
         })
 
-        const damage = evalRandGenE(echoesWithEr, input.context, comboIds, mainEchoBuffs)
+        const instances = cnvrToNstn(echoesWithEr, setPrefsList, mainEchoId)
+        const damage = evalSuggChs(input.context, instances)
 
         if (damage > bestValue) {
           bestValue = damage
           bestEchoes = echoesWithEr
+          bestInstances = instances
         }
       }
 
-      if (bestEchoes) {
-        results.push({ value: bestValue, echoes: bestEchoes })
+      if (bestEchoes && bestInstances) {
+        results.push({ value: bestValue, echoes: bestEchoes, instances: bestInstances })
       }
     }
   }
@@ -342,6 +340,6 @@ export async function runPrepEchoG(
 
   return unique.slice(0, targetCount).map((result) => ({
     damage: result.value,
-    echoes: cnvrToNstn(result.echoes, setPrefsList, mainEchoId),
+    echoes: result.instances,
   }))
 }

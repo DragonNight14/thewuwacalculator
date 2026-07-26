@@ -16,6 +16,7 @@ import type {
   SuggsWrkrOut,
   WeaponEntry,
 } from '@/engine/suggestions/types'
+import { getGameDataMode } from '@/data/gameData'
 
 // single shared worker instance reused across all suggestion jobs
 let worker: Worker | null = null
@@ -87,6 +88,7 @@ export function runMainStatS(
 
     const message: SuggsWrkrInM = {
       id,
+      gameDataMode: getGameDataMode(),
       type: 'mainStats',
       payload,
     }
@@ -109,6 +111,7 @@ export function runSetPlanSu(
 
     const message: SuggsWrkrInM = {
       id,
+      gameDataMode: getGameDataMode(),
       type: 'setPlans',
       payload,
     }
@@ -131,6 +134,7 @@ export function runRandSuggs(
 
     const message: SuggsWrkrInM = {
       id,
+      gameDataMode: getGameDataMode(),
       type: 'random',
       payload,
     }
@@ -153,6 +157,7 @@ export function runWpnSuggs(
 
     const message: SuggsWrkrInM = {
       id,
+      gameDataMode: getGameDataMode(),
       type: 'weapons',
       payload,
     }

@@ -29,11 +29,11 @@ function mkLdtSig(echoes: RandGenEcho[]): string {
 
 // walk the result list in order and keep only the first occurrence
 // of each unique loadout signature until the requested target is met
-export function pickNqLdtRsl(
-    results: Array<{ value: number; echoes: RandGenEcho[] }>,
+export function pickNqLdtRsl<T extends { value: number; echoes: RandGenEcho[] }>(
+    results: T[],
     uniqueTarget: number,
-): Array<{ value: number; echoes: RandGenEcho[] }> {
-  const unique: Array<{ value: number; echoes: RandGenEcho[] }> = []
+): T[] {
+  const unique: T[] = []
   const seen = new Set<string>()
 
   for (const result of results) {

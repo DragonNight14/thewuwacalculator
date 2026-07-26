@@ -274,7 +274,7 @@ function OptMainEchoC({
               aria-label={`Select ${runtime.id} main echo`}
             >
               <img
-                src={mainEchoDef.icon ?? '/assets/echo-icons/default.webp'}
+                src={mainEchoDef.icon ?? '/assets/game/default.webp'}
                 alt={mainEchoDef.name}
                 className={`opt-team__set-icon${hasNvldMainE ? ' opt-team__set-icon--invalid' : ''}`}
                 loading="lazy"
@@ -284,7 +284,7 @@ function OptMainEchoC({
           ) : (
             <div className="opt-team__set-icon-wrap">
               <img
-                src={mainEchoDef.icon ?? '/assets/echo-icons/default.webp'}
+                src={mainEchoDef.icon ?? '/assets/game/default.webp'}
                 alt={mainEchoDef.name}
                 className="opt-team__set-icon"
                 loading="lazy"
@@ -975,7 +975,7 @@ function OptRtCard({
             aria-label={`Change ${displayName} weapon`}
           >
             <img
-              src={weaponDef?.icon ?? '/assets/weapon-icons/default.webp'}
+              src={weaponDef?.icon ?? '/assets/game/default.webp'}
               alt={weaponDef?.name ?? 'Weapon'}
               className="co-weapon-card__icon"
               loading="lazy"
@@ -1203,7 +1203,7 @@ function OptMateCard({
       slotLabel={`Teammate ${slotIndex + 1}`}
       rarity={member.rarity ?? 4}
       displayName={member.name}
-      profileSrc={member.profile || `/assets/resonators/profiles/${memberId}.webp`}
+      profileSrc={member.profile || `/assets/game/resonators/profiles/${memberId}.webp`}
       runtime={mateRt}
       actRt={actRt}
       onRtPdt={updMateRt}
@@ -1240,7 +1240,7 @@ export function TeamPanel({
   onClearMainEcho: onRmvTmmtMai,
 }: OptTeamPnlPr) {
   const profileSrc = optRuntime
-    ? `/assets/resonators/profiles/${optRuntime.id}.webp`
+    ? `/assets/game/resonators/profiles/${optRuntime.id}.webp`
     : undefined
 
   if (!optRuntime) {

@@ -5,6 +5,8 @@
 
 import { withDefEchoMg, withDefIconM } from '@/shared/lib/imageFallback.ts'
 import { formatTruncCompact } from '@/shared/lib/number.ts'
+import { SonataTokens } from '@/modules/calculator/features/benchmark/ui.tsx'
+import { getEchoSetDe } from '@/data/gameData/echoSets/effects.ts'
 
 export interface OptDsplStts {
   atk: number
@@ -56,6 +58,23 @@ function renderStat(value: number | null | undefined, formatter: (next: number) 
   return formatter(value)
 }
 
+function displayedDamage(value: number): number {
+  return Math.floor(value || 0)
+}
+
+function formatEfficiency(damage: number, baseDamage: number | undefined, base: boolean): string {
+  if (base || !baseDamage || baseDamage <= 0) {
+    return '100.00'
+  }
+
+  const baseDisplayDamage = displayedDamage(baseDamage)
+  if (baseDisplayDamage > 0 && displayedDamage(damage) === baseDisplayDamage) {
+    return '100.00'
+  }
+
+  return formatTruncCompact((damage / baseDamage) * 100, 2)
+}
+
 export function Row({
   result,
   baseDamage,
@@ -64,33 +83,27 @@ export function Row({
   showWeapon = false,
   selected = false,
   onClick,
-  }: OptRowPrps) {
+}: OptRowPrps) {
   const { stats, costs, sets, mainEchoIcon, weaponIcon, weaponName, damage } = result
-  const diff =
-    base || !baseDamage || baseDamage <= 0
-      ? '100.00'
-      : formatTruncCompact((damage / baseDamage) * 100, 2)
+  const displayDamage = displayedDamage(damage)
+  const diff = formatEfficiency(damage, baseDamage, base)
 
   function viewSetBdgs() {
     if (!sets || sets.length === 0) return <span className="empty-set">…</span>
 
+    // same sonata-token rendering as the benchmark set plan so the results
+    // table and the set-plan picker read identically.
     return (
-      <span className="set-plan" title={sets.map((s) => `${s.count}pc`).join(' + ')}>
-        {sets.map((entry, index) => (
-          <span key={`${entry.id}-${entry.count}-${index}`} className="set-plan__entry">
-            <span className="set-plan__frame">
-              {entry.icon ? (
-                <img src={entry.icon} alt="" className="set-plan__icon" loading="lazy" onError={withDefIconM} />
-              ) : (
-                <span className="set-plan__icon set-plan__icon--ghost" aria-hidden="true" />
-              )}
-            </span>
-            <span className="set-plan__sup" aria-label={`${entry.count} piece`}>
-              {entry.count}
-            </span>
-          </span>
-        ))}
-      </span>
+      <SonataTokens
+        sets={sets.map((entry) => ({
+          setId: entry.id,
+          name: getEchoSetDe(entry.id)?.name ?? `Set ${entry.id}`,
+          pieces: entry.count,
+          icon: entry.icon,
+        }))}
+        className="bench-srel-set-plan opt-row-plan"
+        emptyLabel="…"
+      />
     )
   }
 
@@ -166,7 +179,7 @@ export function Row({
       {!rotationMode ? (
         <div className="opt-result-row__col">{renderStat(stats?.amp, (value) => formatTruncCompact(value, 1))}</div>
       ) : null}
-      <div className="opt-result-row__col opt-result-row__col--dmg avg">{Math.floor(damage || 0)}</div>
+      <div className="opt-result-row__col opt-result-row__col--dmg avg">{displayDamage}</div>
       <div className="opt-result-row__col opt-result-row__col--eff">{diff}%</div>
     </div>
   )

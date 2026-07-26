@@ -12,6 +12,12 @@ import type { FinalStats, UnifiedBuffPool, ResBaseStats, SkillDef } from '@/doma
 import type { MainStatRecipe } from '@/engine/suggestions/mainStat-suggestion/utils'
 import type { OptTargetSkill } from '@/engine/optimizer/target/selectedSkill'
 import type { OptStatWeight } from '@/engine/optimizer/search/filtering.ts'
+import type { GameDataMode } from '@/domain/entities/gameDataMode'
+
+interface SuggsWrkrBase {
+  id: number
+  gameDataMode?: GameDataMode
+}
 
 // common evaluation input shared by all suggestion pipelines
 export interface SuggestInput {
@@ -114,10 +120,18 @@ export interface SetPlanEntry {
   pieces: number
 }
 
+// one displayed set-plan group. Multiple set ids here mean those sets produce
+// the same effect for this piece count, so the UI can render them as one choice.
+export interface SetPlanDisplayEntry {
+  setIds: number[]
+  pieces: number
+}
+
 // one set-plan suggestion result entry
 export interface SetPlanSuggest {
   avgDamage: number
   setPlan: SetPlanEntry[]
+  displayPlan?: SetPlanDisplayEntry[]
   echoes: Array<EchoInstance | null>
 }
 
@@ -170,28 +184,24 @@ export interface SetPlanSugoi {
 }
 
 // worker start message for main-stat suggestions
-export interface SuggsWrkrMai {
-  id: number
+export interface SuggsWrkrMai extends SuggsWrkrBase {
   type: 'mainStats'
   payload: MainStatPrep
 }
 
 // worker start message for set-plan suggestions
-export interface SuggsWrkrSet {
-  id: number
+export interface SuggsWrkrSet extends SuggsWrkrBase {
   type: 'setPlans'
   payload: PrepSetPlanS
 }
 
 // worker start message for random echo suggestions
-export interface SuggsWrkrRan {
-  id: number
+export interface SuggsWrkrRan extends SuggsWrkrBase {
   type: 'random'
   payload: RandomPrep
 }
 
-export interface SuggsWrkrWpn {
-  id: number
+export interface SuggsWrkrWpn extends SuggsWrkrBase {
   type: 'weapons'
   payload: PrepWeaponPlan
 }

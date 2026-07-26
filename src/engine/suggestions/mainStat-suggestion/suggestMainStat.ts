@@ -13,7 +13,6 @@ import type {
 import type { SuggestContext } from '@/engine/suggestions/types'
 import {
   mkPrepMainSt,
-  mkSuggMainEc,
   runSuggSmlt,
 } from '@/engine/suggestions/shared'
 import { mkMainStatPo } from '@/engine/suggestions/mainStat-suggestion/ctx-builder'
@@ -52,12 +51,6 @@ export function sggsMainStts({
 
   // determine whether we are evaluating direct damage or rotation damage
   const isRotMode = rotationCtx != null
-  const activeCtx = (ctx ?? rotationCtx)!
-
-  // main echo buff rows only depend on echo identity/layout, not the recipe choices,
-  // so compute them once and reuse across all evaluations
-  const mainEchoBuffs = mkSuggMainEc(activeCtx, qppdChs)
-
   // mutable path used during dfs
   const curRcps: MainStatRecipe[] = []
 
@@ -70,14 +63,12 @@ export function sggsMainStts({
           rotationCtx!,
           curRcps,
           qppdChs,
-          mainEchoBuffs,
       )
     } else {
       avgDamage = cmptMainStat(
           ctx!,
           curRcps,
           qppdChs,
-          mainEchoBuffs,
       )
     }
 

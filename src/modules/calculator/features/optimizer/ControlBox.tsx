@@ -3,10 +3,14 @@
   Description: Renders the control box surface for the calculator optimizer flow.
 */
 
-import { Info } from 'lucide-react'
+import { useMemo, useState } from 'react'
 import type { OptSearchMode } from '@/domain/entities/optimizer'
 import type { OptPrgr } from '@/engine/optimizer/types'
 import { formatTruncCompact } from '@/shared/lib/number.ts'
+import { RailManual } from './RailManual'
+
+// resolution of the run seismograph: one slot per 1/44th of the search.
+const WAVE_SLOTS = 44
 
 interface OptCntrBoxPr {
   isWide?: boolean
@@ -94,131 +98,171 @@ export function ControlBox({
     return Math.min(maxLimit, Math.max(minLimit, minLimit * Math.pow(2, nearestPow)))
   }
 
-  const prmtSctn = (
-    // permutation metrics are separated from progress because combinations can still be pending while a run has not
-    // started.
-    <>
-      <div className="perm-row">
-        <span className="perm-name">Permutations</span>
-        <div className="dash-separator" />
-        <span className="perm-value">{cmbnLbl}</span>
-      </div>
-      <div className="perm-row">
-        <span className="perm-name">Processed</span>
-        <div className="dash-separator" />
-        <span className="perm-value">{progress.processed.toLocaleString()}</span>
-      </div>
-      <div className="perm-row">
-        <span className="perm-name">Batch Size</span>
-        <div className="dash-separator" />
-        <span className="perm-value">{batchSize ? batchSize.toLocaleString() : '...'}</span>
-      </div>
-      <div className="perm-row">
-        <span className="perm-name">{echoCntLbl}</span>
-        <div className="dash-separator" />
-        <span className="perm-value">{fltrEchoCnt}</span>
-      </div>
-      <div className="perm-row">
-        <span className="perm-name">Results</span>
-        <div className="dash-separator" />
-        <span className="perm-value">{resultLength || '...'}</span>
-      </div>
-    </>
-  )
-
+  // shared run lifecycle: both surfaces are transport strips whose top-edge
+  // meterline is the only progress indicator.
   const isDiscovering = isLoading && progress.phase === 'discovering'
-  const prgrSctn = (
-    // cancelled and completed runs reuse the same progress bar so the user can still see how far a halted run got.
-    <>
-      <div className="section-title section-title--progress">
-        <span>
-          {isLoading
-            ? isDiscovering
-              ? `Discovering combos${progress.discovered ? ` - ${progress.discovered.toLocaleString()}` : '...'}`
-              : Number.isFinite(progress.remainingMs)
-                ? ` Time left - ${formatTime(progress.remainingMs)} (${progress.speed.toLocaleString()} / sec)`
-                : progress.total && progress.total > 0
-                  ? `Processed - ${progress.processed.toLocaleString()} / ${progress.total.toLocaleString()}`
-                  : 'Estimating...'
-            : cancelled
-              ? 'Cancelled'
-              : 'Progress'}
-        </span>
-        <span>{success ? 'Done~!' : ''}</span>
-      </div>
-      <div className={`progress-bar${isDiscovering ? ' progress-bar--indeterminate' : ''}`}>
-        <div
-          className="progress-bar-inner"
-          style={{ width: isDiscovering ? '0%' : `${progress.progress * 100}%` }}
-        />
-      </div>
-      <div className="progress-label">
-        {isDiscovering ? '...' : `${Math.floor(progress.progress * 100)}%`}
-      </div>
-    </>
-  )
+  const dockPhase = isLoading
+    ? isDiscovering
+      ? 'discovering'
+      : 'running'
+    : cancelled
+      ? 'cancelled'
+      : success
+        ? 'done'
+        : 'idle'
+  const dockPct = Math.floor(progress.progress * 100)
+  const meterWidth = isDiscovering
+    ? '0%'
+    : dockPhase === 'done'
+      ? '100%'
+      : `${progress.progress * 100}%`
+  const dockStatus = isLoading
+    ? isDiscovering
+      ? `Discovering combos${progress.discovered ? ` · ${progress.discovered.toLocaleString()}` : '...'}`
+      : Number.isFinite(progress.remainingMs)
+        ? `${formatTime(progress.remainingMs)} left · ${progress.speed.toLocaleString()}/s`
+        : progress.total && progress.total > 0
+          ? `${progress.processed.toLocaleString()} / ${progress.total.toLocaleString()}`
+          : 'Estimating...'
+    : cancelled
+      ? 'Cancelled'
+      : success
+        ? 'Done~!'
+        : 'Standby'
 
-  const cnfgSctn = (
-    // configuration controls stay disabled during a run because they affect worker batching and result pruning.
-    <div className="optimizer-configurations">
-      <div className="slider-group">
-        <div className="slider-item">
-          <span>Result Limit</span>
-          <div className="dash-separator" />
-          <span>{resultsLimit.toLocaleString()}</span>
-        </div>
-        <div className="slider-row">
-          <input
-            disabled={isLoading}
-            type="range"
-            min="0"
-            max="100"
-            step="1"
-            value={lmtToSldrVl(resultsLimit)}
-            onChange={(event) => onRsltLmtChn(sldrVlToLmt(Number(event.target.value)))}
-          />
-        </div>
-      </div>
-      {searchMode === 'inventory' ? (
-        <div className="slider-group">
-          <div className="slider-item">
-            <span>Filter Strength</span>
-            <div className="dash-separator" />
-            <span>{formatTruncCompact(keepPercent * 100, 0)}%</span>
-          </div>
-          <div className="slider-row">
-            <input
-              disabled={isLoading}
-              type="range"
-              min="0"
-              max="0.9"
-              step="0.1"
-              value={keepPercent}
-              onChange={(event) => onKeepPrcnCh(Number(event.target.value))}
-            />
-          </div>
-        </div>
-      ) : null}
-      <div className="config-toggle-row">
-        <span className="config-toggle-label">Low Memory</span>
-        <button
-          type="button"
-          className={`config-toggle-button${lowMmryMode ? ' is-active' : ''}`}
-          onClick={() => onLowMmryMod(!lowMmryMode)}
-          disabled={isLoading}
-          aria-pressed={lowMmryMode}
-        >
-          {lowMmryMode ? 'On' : 'Off'}
-        </button>
-      </div>
+  // run seismograph: a waveform of the search where slot position is run
+  // progress and bar height is the processing speed through that stretch. The
+  // finished trace stays frozen until the next run starts. The buffer adjusts
+  // during render (React's adjust-state-on-prop-change pattern) since progress
+  // arrives as props, not from a subscription this component owns.
+  const [wave, setWave] = useState<number[]>(() => Array(WAVE_SLOTS).fill(0))
+  const [wasRun, setWasRun] = useState(false)
+
+  if (isLoading !== wasRun) {
+    setWasRun(isLoading)
+    if (isLoading) setWave(Array(WAVE_SLOTS).fill(0))
+  } else if (isLoading && !isDiscovering && progress.speed > 0) {
+    const slot = Math.min(WAVE_SLOTS - 1, Math.floor(progress.progress * WAVE_SLOTS))
+    // large batches can jump several slots per tick, so carry the current
+    // speed back across any slots the jump skipped.
+    const stale = wave.some((value, index) =>
+      index < slot ? value === 0 : index === slot ? progress.speed > value : false,
+    )
+    if (stale) {
+      const next = wave.slice()
+      for (let index = 0; index <= slot; index += 1) {
+        if (next[index] === 0 || index === slot) {
+          next[index] = Math.max(next[index], progress.speed)
+        }
+      }
+      setWave(next)
+    }
+  }
+
+  const waveBars = useMemo(() => {
+    const peak = Math.max(...wave, 1)
+    return wave.map((value) => value / peak)
+  }, [wave])
+
+  const waveTrack = (
+    <div className="odk-wave" aria-hidden="true">
+      {waveBars.map((height, index) => (
+        <span
+          key={index}
+          className="odk-wave__bar"
+          style={height > 0 ? { height: `${Math.max(10, height * 100)}%` } : undefined}
+        />
+      ))}
     </div>
   )
 
-  const modeSctn = (
-    <div className="opt-mode-switch" role="group" aria-label="Optimizer mode">
+  const runKey = (
+    <button
+      type="button"
+      className="odk-key"
+      onClick={onRunPtmz}
+      disabled={runDsbl}
+      aria-label={isLoading ? 'Optimizer running' : 'Run Optimizer'}
+    >
+      {isLoading ? (
+        <>
+          <span className="odk-key__pct">{isDiscovering ? '···' : `${dockPct}%`}</span>
+          <span className="odk-key__sub">Running</span>
+        </>
+      ) : (
+        <>
+          <span className="odk-key__main">Run</span>
+          <span className="odk-key__sub">click me..</span>
+        </>
+      )}
+    </button>
+  )
+
+  const lmtTune = (
+    <div className="odk-tune">
+      <span className="odk-tune__label">Limit</span>
+      <input
+        disabled={isLoading}
+        type="range"
+        min="0"
+        max="100"
+        step="1"
+        value={lmtToSldrVl(resultsLimit)}
+        onChange={(event) => onRsltLmtChn(sldrVlToLmt(Number(event.target.value)))}
+      />
+      <span className="odk-tune__value">{resultsLimit.toLocaleString()}</span>
+    </div>
+  )
+
+  const fltrTune = searchMode === 'inventory' ? (
+    <div className="odk-tune">
+      <span className="odk-tune__label">Filter</span>
+      <input
+        disabled={isLoading}
+        type="range"
+        min="0"
+        max="0.9"
+        step="0.1"
+        value={keepPercent}
+        onChange={(event) => onKeepPrcnCh(Number(event.target.value))}
+      />
+      <span className="odk-tune__value">{formatTruncCompact(keepPercent * 100, 0)}%</span>
+    </div>
+  ) : null
+
+  const memLatch = (
+    <button
+      type="button"
+      className={`odk-btn odk-btn--latch${lowMmryMode ? ' is-active' : ''}`}
+      onClick={() => onLowMmryMod(!lowMmryMode)}
+      disabled={isLoading}
+      aria-pressed={lowMmryMode}
+    >
+      Low Mem
+    </button>
+  )
+
+  const runGroup = (
+    <div className="odk-group" role="group" aria-label="Run controls">
+      <button type="button" className="odk-btn" onClick={onReset}>Reset</button>
+      <button type="button" className="odk-btn odk-btn--halt" onClick={onHalt}>Halt</button>
+      <button type="button" className="odk-btn" onClick={onClear}>Clear</button>
+    </div>
+  )
+
+  const rsltGroup = (
+    <div className="odk-group" role="group" aria-label="Result actions">
+      <button type="button" className="odk-btn" onClick={onEquip}>Equip</button>
+      <button type="button" className="odk-btn" onClick={onGuide}>Guide</button>
+      <button type="button" className="odk-btn" onClick={onRules}>Rules</button>
+    </div>
+  )
+
+  const modeGroup = (
+    <div className="odk-group odk-mode" role="group" aria-label="Optimizer mode">
       <button
         type="button"
-        className={`opt-mode-btn${searchMode === 'inventory' ? ' is-active' : ''} ui-pill-button`}
+        className={`odk-btn${searchMode === 'inventory' ? ' is-active' : ''}`}
         onClick={() => onModeChg('inventory')}
         disabled={isLoading}
         aria-pressed={searchMode === 'inventory'}
@@ -227,7 +271,7 @@ export function ControlBox({
       </button>
       <button
         type="button"
-        className={`opt-mode-btn${searchMode === 'theory' ? ' is-active' : ''} ui-pill-button`}
+        className={`odk-btn${searchMode === 'theory' ? ' is-active' : ''}`}
         onClick={() => onModeChg('theory')}
         disabled={isLoading}
         aria-pressed={searchMode === 'theory'}
@@ -238,158 +282,80 @@ export function ControlBox({
   )
 
   if (isWide) {
+    // the vertical rail has room for the full metric labels.
+    const railRows: Array<[string, string]> = [
+      ['Permutations', cmbnLbl],
+      ['Processed', progress.processed.toLocaleString()],
+      ['Batch Size', batchSize ? batchSize.toLocaleString() : '...'],
+      [echoCntLbl, String(fltrEchoCnt)],
+      ['Results', resultLength ? String(resultLength) : '...'],
+    ]
+
     return (
       <div className="sticky-wrapper">
-        <div className="sticky-controls">
-          <div className="section-title-row">
-            <span className="section-title">Permutations</span>
-            <span className="icon-help">
-              <Info size={16} />
-            </span>
+        <div className="odk-rail" data-phase={dockPhase}>
+          <div className="odk-rail__head">
+            <span className="odk-rail__title">Console</span>
+            <RailManual />
           </div>
+          <div className="odk-rail__body">
+            {railRows.map(([label, value]) => (
+              <div key={label} className="odk-row">
+                <span className="odk-row__label">{label}</span>
+                <span className="odk-row__value">{value}</span>
+              </div>
+            ))}
+            {waveTrack}
+            <div className="odk-status">{dockStatus}</div>
 
-          {prmtSctn}
-          {prgrSctn}
-
-          <div className="section-title">Controls</div>
-
-          <button
-            className={`ui-pill-button${isLoading ? ' optimizer-run-btn--loading' : ''}`}
-            onClick={onRunPtmz}
-            disabled={runDsbl}
-          >
-            {!isLoading ? 'Run Optimizer' : 'Running...'}
-          </button>
-
-          <div className="row-buttons">
-            <button className="ui-pill-button" onClick={onReset}>
-              Reset
-            </button>
-            <button className="ui-pill-button" onClick={onHalt}>
-              HALT
-            </button>
-            <button className="ui-pill-button" onClick={onClear}>
-              Clear
-            </button>
+            <div className="odk-rail__rule" />
+            {lmtTune}
+            {fltrTune}
+            {memLatch}
+            <div className="odk-rail__rule" />
+            {runGroup}
+            {rsltGroup}
+            {modeGroup}
           </div>
-
-          <div className="section-title-row">
-            <span className="section-title">Configurations</span>
-            <span className="icon-help">
-              <Info size={16} />
-            </span>
-          </div>
-
-          {cnfgSctn}
-
-          <div className="section-title-row">
-            <span className="section-title">Results</span>
-          </div>
-
-          <div className="row-buttons">
-            <button className="ui-pill-button" onClick={onEquip}>
-              Equip
-            </button>
-            <button className="ui-pill-button" onClick={onGuide}>
-              Guide
-            </button>
-            <button className="ui-pill-button" onClick={onRules}>
-              Rules
-            </button>
-          </div>
-          {modeSctn}
+          {runKey}
         </div>
       </div>
     )
   }
 
+  const tickerCells: Array<[string, string]> = [
+    ['Perms', cmbnLbl],
+    ['Processed', progress.processed.toLocaleString()],
+    ['Batch', batchSize ? batchSize.toLocaleString() : '...'],
+    ['Echoes', String(fltrEchoCnt)],
+    ['Results', resultLength ? String(resultLength) : '...'],
+  ]
+
   return (
-    <div className="sticky-controls bottom landscape">
-      <div className="optimizer-landscape-row">
-        <div className="optimizer-col metrics">
-          <div className="section-title-row">
-            <span className="section-title">Permutations</span>
-            <span className="icon-help">
-              <Info size={16} />
-            </span>
-          </div>
-          <div className="perm-row">
-            <span className="perm-name">Permutations</span>
-            <div className="dash-separator" />
-            <span className="perm-value">{cmbnLbl}</span>
-          </div>
-          <div className="perm-row">
-            <span className="perm-name">Processed</span>
-            <div className="dash-separator" />
-            <span className="perm-value">{progress.processed.toLocaleString()}</span>
-          </div>
-          <div className="perm-row">
-            <span className="perm-name">Batch Size</span>
-            <div className="dash-separator" />
-            <span className="perm-value">{batchSize ? batchSize.toLocaleString() : '...'}</span>
-          </div>
+    <div className="odk-dock" data-phase={dockPhase}>
+      <div className="odk-charge" aria-hidden="true" style={{ width: meterWidth }} />
+
+      {runKey}
+
+      <div className="odk-body">
+        <div className="odk-ticker">
+          {tickerCells.map(([label, value]) => (
+            <div key={label} className="odk-cell">
+              <span className="odk-cell__label">{label}</span>
+              <span className="odk-cell__value">{value}</span>
+            </div>
+          ))}
+          <span className="odk-status">{dockStatus}</span>
+          {waveTrack}
         </div>
 
-        <div className="optimizer-col metrics">
-          <div className="perm-row">
-            <span className="perm-name">{echoCntLbl}</span>
-            <div className="dash-separator" />
-            <span className="perm-value">{fltrEchoCnt}</span>
-          </div>
-          <div className="perm-row">
-            <span className="perm-name">Results</span>
-            <div className="dash-separator" />
-            <span className="perm-value">{resultLength || '...'}</span>
-          </div>
-          {prgrSctn}
-        </div>
-
-        <div className="optimizer-col config">
-          <div className="section-title-row">
-            <span className="section-title">Configurations</span>
-            <span className="icon-help">
-              <Info size={16} />
-            </span>
-          </div>
-          {cnfgSctn}
-        </div>
-
-        <div className="optimizer-col controls">
-          <div className="section-title">Controls</div>
-          <button
-            className={`ui-pill-button${isLoading ? ' optimizer-run-btn--loading' : ''}`}
-            onClick={onRunPtmz}
-            disabled={runDsbl}
-          >
-            {!isLoading ? 'Run Optimizer' : 'Running...'}
-          </button>
-          <div className="row-buttons">
-            <button className="ui-pill-button" onClick={onReset}>
-              Reset
-            </button>
-            <button className="ui-pill-button" onClick={onHalt}>
-              HALT
-            </button>
-            <button className="ui-pill-button" onClick={onClear}>
-              Clear
-            </button>
-          </div>
-        </div>
-
-        <div className="optimizer-col controls">
-          <span className="section-title">Results</span>
-          <div className="row-buttons">
-            <button className="ui-pill-button" onClick={onEquip}>
-              Equip
-            </button>
-            <button className="ui-pill-button" onClick={onGuide}>
-              Guide
-            </button>
-            <button className="ui-pill-button" onClick={onRules}>
-              Rules
-            </button>
-          </div>
-          {modeSctn}
+        <div className="odk-actions">
+          {lmtTune}
+          {fltrTune}
+          {memLatch}
+          {runGroup}
+          {rsltGroup}
+          {modeGroup}
         </div>
       </div>
     </div>

@@ -43,6 +43,10 @@ export function getDefMainSt(
     result.energyRegen = true
   }
 
+  if (numericId === 1212) {
+    result.hpPercent = true
+  }
+
   return result
 }
 
