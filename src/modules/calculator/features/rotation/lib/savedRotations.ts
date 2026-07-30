@@ -4,6 +4,7 @@
                when persisting or restoring authored calculator rotations.
 */
 
+import { createRemoteShare, encShareLink, encShareText } from '@/shared/lib/shareCodec.ts'
 import { cloneRotNds, normInvRotDu, normInvRotNo } from '@/domain/entities/inventoryStorage.ts'
 import type { InvRotEnt } from '@/domain/entities/inventoryStorage.ts'
 import type { RotationNode } from '@/domain/gameData/contracts.ts'
@@ -60,6 +61,29 @@ export function mkRotXprtPay(entry: InvRotEnt) {
       snapshot: entry.snapshot ?? null,
       summary: entry.summary ?? null,
     },
+  }
+}
+
+export interface RotShare {
+  token: string
+  link: string
+  // true when the short token is backed by the remote store; false means the
+  // token/link carry the whole rotation compressed inline (Worker offline).
+  remote: boolean
+}
+
+// Builds a shareable token + link for a rotation, preferring the short remote
+// token and falling back to a self-contained compressed token/link.
+export async function mkRotShare(entry: InvRotEnt): Promise<RotShare> {
+  const payload = mkRotXprtPay(entry)
+  const remote = await createRemoteShare(payload)
+  if (remote) {
+    return { token: remote.token, link: remote.url, remote: true }
+  }
+  return {
+    token: encShareText(payload),
+    link: encShareLink(payload),
+    remote: false,
   }
 }
 
@@ -130,4 +154,35 @@ export function normMprtRot(
     ...(value.snapshot ? { snapshot: value.snapshot as InvRotEnt['snapshot'] } : {}),
     ...(value.summary ? { summary: value.summary as InvRotEnt['summary'] } : {}),
   }
+}
+
+export type NormMprtRot = NonNullable<ReturnType<typeof normMprtRot>>
+
+export function normMprtRotEntries(parsed: unknown): NormMprtRot[] {
+  let candidates: unknown[] = []
+
+  // imports accept the app's wrapped export shape, a raw array of saved
+  // rotations, or a single normalized rotation payload.
+  if (
+      parsed &&
+      typeof parsed === 'object' &&
+      'kind' in parsed &&
+      (parsed as Record<string, unknown>).kind === 'rotation-export'
+  ) {
+    const wrapped = parsed as Record<string, unknown>
+
+    if (Array.isArray(wrapped.rotations)) {
+      candidates = wrapped.rotations
+    } else if ('rotation' in wrapped) {
+      candidates = [wrapped.rotation]
+    }
+  } else if (Array.isArray(parsed)) {
+    candidates = parsed
+  } else {
+    candidates = [parsed]
+  }
+
+  return candidates
+    .map((entry) => normMprtRot(entry))
+    .filter((entry): entry is NormMprtRot => Boolean(entry))
 }

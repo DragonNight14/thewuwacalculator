@@ -1,6 +1,7 @@
 /*
   Author: Runor Ewhro
-  Description: Renders the runtime panels surface for the calculator echoes flow.
+  Description: Projects equipped echo runtime state into compact panels while
+               keeping catalog lookup and display formatting local to echoes.
 */
 
 import { useMemo } from 'react'
@@ -22,6 +23,7 @@ import { evalSrcStt } from '@/modules/calculator/model/sourceEval.ts'
 import { LiquidSelect } from '@/shared/ui/LiquidSelect.tsx'
 import { withDefIconM } from '@/shared/lib/imageFallback'
 import { RichDscr } from '@/shared/ui/RichDescription'
+import { scopedTargetOwnerKey } from '@/domain/gameData/targetRouting.ts'
 
 // groups the echo runtime panels and wires their source-state controls to the shared helpers.
 function mkTeamTgtSel(props: {
@@ -46,7 +48,8 @@ function mkTeamTgtSel(props: {
   }
 
   const options = getTeamTgtPt(actRt, srcRt.id, mode)
-  const curVal = getSelTrgt(sttWnrKey)
+  const routeKey = scopedTargetOwnerKey(srcRt.id, sttWnrKey)
+  const curVal = getSelTrgt(routeKey) ?? getSelTrgt(sttWnrKey)
   const fllbVl = options[0]?.value ?? ''
   const selVl =
     typeof curVal === 'string' && options.some((option) => option.value === curVal)
@@ -60,7 +63,7 @@ function mkTeamTgtSel(props: {
         value={selVl}
         options={options}
         disabled={options.length <= 1}
-        onChange={(nextValue) => setSelTrgt(sttWnrKey, nextValue || null)}
+        onChange={(nextValue) => setSelTrgt(routeKey, nextValue || null)}
       />
     </label>
   )

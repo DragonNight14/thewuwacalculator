@@ -150,9 +150,9 @@ export type BenchmarkStatTreeNode = BenchmarkStatTreeLeaf | BenchmarkStatTreeBra
 
 export interface BuildBenchmark {
   userDamage: number
-  baselineDamage: number      // optimal mains, no substats (0%)
-  benchmarkDamage: number     // optimal mains + optimal substats at benchmark quality (100%)
-  perfectionDamage: number    // optimal mains + optimal substats at max rolls (200%)
+  baselineDamage: number      // no Echo stats, Sonata rows, or main Echo effect (0%)
+  benchmarkDamage: number     // best legal generated Echo frame + benchmark-quality substats (100%)
+  perfectionDamage: number    // best legal generated Echo frame + max-roll substats (200%)
   percent: number             // 0 = baseline, 1 = benchmark, 2 = perfection
   grade: string
   invariantStats: BenchmarkStatTreeNode[]

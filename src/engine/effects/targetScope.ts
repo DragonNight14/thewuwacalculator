@@ -5,13 +5,12 @@
 */
 
 import type { EffectDef, EffectContext } from '@/domain/gameData/contracts'
+import { getScopedTargetSelection } from '@/domain/gameData/targetRouting.ts'
 
-// remove duplicates and empty ids
 function uniqueIds(values: string[]): string[] {
   return Array.from(new Set(values.filter(Boolean)))
 }
 
-// resolve all eligible target ids for an effect
 function resLgblTgtId(
     effect: EffectDef,
     context: EffectContext,
@@ -31,7 +30,6 @@ function resLgblTgtId(
   return []
 }
 
-// resolve the final target id for an effect
 export function resFfctTgtId(
     effect: EffectDef,
     context: EffectContext,
@@ -48,9 +46,21 @@ export function resFfctTgtId(
 
   const ownerKey = effect.ownerKey
   if (ownerKey) {
-    const selTgt = context.selectedTargetsByOwnerKey?.[ownerKey]
-    if (typeof selTgt === 'string' && lgblTgtIds.includes(selTgt)) {
-      return selTgt
+    // A persisted route that points outside the eligible set should disable this
+    // effect for the source, not silently fall back to the active resonator.
+    const selection = getScopedTargetSelection(
+      context.selectedTargetsByOwnerKey,
+      context.sourceRuntime.id,
+      ownerKey,
+    )
+    const selTgt = selection?.value
+
+    if (typeof selTgt === 'string') {
+      return lgblTgtIds.includes(selTgt) ? selTgt : null
+    }
+
+    if (selection && selTgt !== null) {
+      return null
     }
   }
 
@@ -61,7 +71,6 @@ export function resFfctTgtId(
   return lgblTgtIds[0] ?? null
 }
 
-// check whether an effect applies to the current target runtime
 export function ffctTrgtRt(
     effect: EffectDef,
     context: EffectContext,

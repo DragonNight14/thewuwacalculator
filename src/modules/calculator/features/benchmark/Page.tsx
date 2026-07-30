@@ -38,6 +38,7 @@ import {
   applyBenchMapAsm,
   makeBenchEnemy,
 } from '@/modules/calculator/model/benchmarkAssumptions.ts'
+import { getTuneStrainMaxForTeam } from '@/domain/gameData/tuneStrain.ts'
 import { nextResonatorSelection } from '@/modules/calculator/model/resonatorProfileActions.ts'
 import {
   getBuildBenchmarkGrade,
@@ -134,7 +135,6 @@ export function Benchmark() {
   const animatedPortraits = useAppStore((state) => state.ui.preferences.benchAnim2d)
   const entranceAnimations = useAppStore((state) => state.ui.entranceAnimations)
   const profilesById = useAppStore((state) => state.calculator.profiles)
-  const enemyTuneStrain = useAppStore((state) => state.calculator.session.enemyProfile.status?.tuneStrain ?? 0)
   const { actRt: runtime, partRtsById, initRtsById } = useAppStore(selVrvwDrvd)
   const swapResonator = useAppStore((state) => state.swRes)
   const deleteResonatorProfiles = useAppStore((state) => state.delResProfs)
@@ -499,7 +499,7 @@ export function Benchmark() {
       id: 'benchmark-res:copy',
       key: 'copy' as const,
       needsSel: true,
-      icon: <Copy size="0.5rem" />,
+      icon: <Copy size="1em" />,
       label: ({ count }: { count: number }) => `Copy (${count})`,
       title: 'Copy selected resonators (Ctrl/Cmd+C)',
       run: async ({ ids }: { ids: string[] }) => {
@@ -510,7 +510,7 @@ export function Benchmark() {
       id: 'benchmark-res:cut',
       key: 'cut' as const,
       needsSel: true,
-      icon: <Scissors size="0.5rem" />,
+      icon: <Scissors size="1em" />,
       label: ({ count }: { count: number }) => `Cut (${count})`,
       title: 'Cut selected resonators (Ctrl/Cmd+X)',
       run: async ({ ids }: { ids: string[] }) => {
@@ -532,7 +532,7 @@ export function Benchmark() {
       id: 'benchmark-res:delete',
       key: 'delete' as const,
       needsSel: true,
-      icon: <Trash2 size="0.5rem" />,
+      icon: <Trash2 size="1em" />,
       danger: true,
       label: ({ count }: { count: number }) => `Delete (${count})`,
       title: 'Delete selected resonators (Delete)',
@@ -756,11 +756,13 @@ export function Benchmark() {
     [initRtsById],
   )
   const reportSeed = reportTargetResId ? seedRsntById[reportTargetResId] ?? null : null
-  // Benchmark assumptions are normalized, but tune strain is still a live enemy
-  // status input because it changes the benchmark target's effective stats.
+  const benchTuneStrain = useMemo(
+    () => getTuneStrainMaxForTeam(benchmarkRuntime),
+    [benchmarkRuntime],
+  )
   const benchEnemy = useMemo(
-    () => makeBenchEnemy(enemyTuneStrain),
-    [enemyTuneStrain],
+    () => makeBenchEnemy(benchTuneStrain),
+    [benchTuneStrain],
   )
   const reportTargets = useMemo(
     () => (
@@ -821,7 +823,7 @@ export function Benchmark() {
     id: 'benchmark-echo:copy',
     key: 'copy' as const,
     needsSel: true,
-    icon: <Copy size="0.5rem" />,
+    icon: <Copy size="1em" />,
     label: ({ count }: { count: number }) => `Copy (${count})`,
     title: 'Copy selected echoes (Ctrl/Cmd+C)',
     run: async ({ vals }: { vals: EchoInstance[] }) => {
@@ -1500,8 +1502,10 @@ export function Benchmark() {
         message={confirmation.message}
         confirmLabel={confirmation.confirmLabel}
         cancelLabel={confirmation.cancelLabel}
+        secondaryLabel={confirmation.secondaryLabel}
         variant={confirmation.variant}
         onConfirm={confirmation.onConfirm}
+        onSecondary={confirmation.onSecondary}
         onCancel={confirmation.onCancel}
       />
     </>

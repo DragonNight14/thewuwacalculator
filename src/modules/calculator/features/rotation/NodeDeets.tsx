@@ -1,6 +1,7 @@
 /*
   Author: Runor Ewhro
-  Description: Renders the node deets surface for the calculator rotation flow.
+  Description: Converts rotation nodes into editable detail rows while preserving
+               node-specific drag, condition, and skill-action contracts.
 */
 
 import * as React from "react";
@@ -382,7 +383,7 @@ export function NlnAddMenu({
           }
         }}
       >
-        <GrLinkDown size="0.5rem" />
+        <GrLinkDown size=".6em" />
       </button>
       {menu}
     </div>

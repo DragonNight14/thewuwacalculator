@@ -1,6 +1,7 @@
 /*
   Author: Runor Ewhro
-  Description: renders the parser surface for the calculator echoes flow.
+  Description: Owns OCR/import parsing state for echoes and converts parsed
+               candidates into preview rows before inventory application.
 */
 
 import { cloneElement, isValidElement as isVldElem, useEffect, useMemo, useRef, useState } from 'react'
@@ -125,13 +126,11 @@ export function Parser({
     ? parsedEchoes.map((echo) => (echo ? getEchoScrPr(charId, echo) : null))
     : null
   const hasParsedEchoes = parsedEchoes.some(Boolean)
-  const enemyTuneStrain = useAppStore((state) => state.calculator.session.enemyProfile.status?.tuneStrain ?? 0)
   const { score: buildScore } = useBenchPreview({
     runtime: hasParsedEchoes ? runtime : null,
     echoes: parsedEchoes,
     runtimesById: partRntmById,
     targetSelections: selTrgtByOwn,
-    tuneStrain: enemyTuneStrain,
   })
   const resName = getResSeedBy(charId)?.name ?? charId
   const previewItems = useMemo(() => mkEchoGridTm({
@@ -160,7 +159,7 @@ export function Parser({
     id: 'parser:copy',
     key: 'copy' as const,
     needsSel: true,
-    icon: <Copy size="0.5rem" />,
+    icon: <Copy size="1em" />,
     label: ({ count }: { count: number }) => `Copy (${count})`,
     title: 'Copy selected echoes (Ctrl/Cmd+C)',
     run: async ({ vals }: { vals: EchoInstance[] }) => {

@@ -7,22 +7,16 @@
 import { Fragment, type CSSProperties as CssProps, type ReactNode, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { ChevronDown, Plus, RefreshCw, Wrench, X } from 'lucide-react'
 import { isNoWeaponId, type ResRuntime } from '@/domain/entities/runtime.ts'
-import { getResSeedBy } from '@/domain/services/resonatorSeedService.ts'
 import { listStatesFor } from '@/domain/services/gameDataService.ts'
-import { makeSourceCat } from '@/domain/services/runtimeSourceService.ts'
-import { makeTeamMember, maxRtInit } from '@/domain/state/defaults.ts'
 import { initWpnStts } from '@/domain/state/sourceStateInit.ts'
-import { matTeamMemFr } from '@/domain/state/runtimeMaterialization.ts'
-import { findCombatPart, makeCombatGraph } from '@/domain/state/combatGraph.ts'
-import { selActTgtSlc, selEnemyProf } from '@/domain/state/selectors.ts'
 import { useAppStore } from '@/domain/state/store.ts'
-import { makeCombatEnv } from '@/engine/pipeline/buildCombatContext.ts'
 import { ResPckr } from '@/modules/calculator/features/resonator/Picker.tsx'
+import { eligibleForSlot, useTeamSlots } from '@/modules/calculator/features/teams/lib/teamSlots.ts'
+import { useTeamCnsl } from '@/modules/calculator/features/teams/lib/teamConsoleStore.ts'
 import { IdentTagsTooltip } from '@/modules/calculator/features/resonator/IdentTagsTooltip.tsx'
 import { WeaponPicker } from '@/modules/calculator/features/weapons/Picker.tsx'
 import { listWpnsByTy } from '@/domain/services/weaponCatalogService.ts'
 import { SourceStateCtrl } from '@/modules/calculator/features/controls/SourceStateControl.tsx'
-import { ConfigModal, type ChannelId } from '@/modules/calculator/features/teams/ConfigModal.tsx'
 import {
   fltrSrcSttsW,
   getStateTeamTag,
@@ -43,11 +37,9 @@ import { getSrcSttNct } from '@/domain/gameData/controlOptions.ts'
 import { srcSttNumMax } from '@/domain/state/sourceStateInit.ts'
 import { NumberInput } from '@/modules/calculator/features/controls/NumberInput.tsx'
 import { RichDscr } from '@/shared/ui/RichDescription.tsx'
-import { makeStatsView } from '@/modules/calculator/model/statsView.ts'
-import { RES_MENU, WPNTYPETOKEY, getResonator } from '@/modules/calculator/features/resonator/lib/resonator.ts'
+import { WPNTYPETOKEY, getResonator } from '@/modules/calculator/features/resonator/lib/resonator.ts'
 import { ATTR_COLORS, getWpnTypeLb, rarityVars } from '@/modules/calculator/model/display.ts'
 import { getAttributeIconSrc } from '@/domain/gameData/attributeDisplay.ts'
-import { mkSelTrgtByR } from '@/modules/calculator/model/teamTargets.ts'
 import {
   getWeapon,
   resPssvPrms,
@@ -67,8 +59,8 @@ import { useAppModal } from '@/shared/ui/useAppModal.ts'
 import { mainPortal } from '@/shared/lib/portalTarget.ts'
 import { Expandable } from '@/shared/ui/Expandable.tsx'
 import { LiquidSelect } from '@/shared/ui/LiquidSelect.tsx'
-import { teamRuntime, mkMateCntr } from '@/domain/state/teamRuntime.ts'
 import { withDefIconM } from '@/shared/lib/imageFallback.ts'
+import { scopedTargetOwnerKey } from '@/domain/gameData/targetRouting.ts'
 
 function stToBool(value: unknown): boolean {
   if (typeof value === 'boolean') return value
@@ -97,19 +89,12 @@ export function Teams({
   prtcRntmById: partRntmById,
   onRtPdt: onRtPdt,
 }: CalcTmsPaneP) {
-  const enemyProfile = useAppStore(selEnemyProf)
   const maxResOnInit = useAppStore((state) => state.ui.preferences.maxResOnInit)
-  const selTrgtByOwn = useAppStore(selActTgtSlc)
-  const invBlds = useAppStore((state) => state.calculator.inventoryBuilds)
-  const ensTeamMemRt = useAppStore((state) => state.ensTeamRt)
   const updResRt = useAppStore((state) => state.updResRt)
   const profilesById = useAppStore((state) => state.calculator.profiles)
   const setTargetRes = useAppStore((state) => state.setResTgt)
-  const bumpPickerFreq = useAppStore((state) => state.bumpPickFr)
 
   const [teamPickerSlot, setTeamPckrS] = useState<number | null>(null)
-  const [cnfgResId, setCnfgResId] = useState<string | null>(null)
-  const [cnfgChannel, setCnfgChannel] = useState<ChannelId>('loadout')
   const [wpnResId, setWpnResId] = useState<string | null>(null)
   const listRef = useRef<HTMLDivElement>(null)
   const lineRef = useRef<HTMLSpanElement>(null)
@@ -138,7 +123,6 @@ export function Teams({
     })
   }, [])
   const teamPicker = useAppModal()
-  const configModal = useAppModal()
   const wpnPicker = useAppModal()
   const {
     closing: teamPckrClsn,
@@ -147,13 +131,6 @@ export function Teams({
     show: showTeamPckr,
     visible: teamPckrVsbl,
   } = teamPicker
-  const {
-    closing: cnfgMdlClsn,
-    hide: hideCnfgMdl,
-    open: cnfgMdlOpen,
-    show: showCnfgMdl,
-    visible: cnfgMdlVsbl,
-  } = configModal
   const {
     closing: wpnPckrClsn,
     hide: hideWpnPckr,
@@ -178,17 +155,7 @@ export function Teams({
     showTeamPckr()
   }, [showTeamPckr])
 
-  const clsCnfgMdl = useCallback(() => {
-    hideCnfgMdl(() => {
-      setCnfgResId(null)
-    })
-  }, [hideCnfgMdl])
-
-  const openCnfgMdl = useCallback((resonatorId: string, channel: ChannelId = 'loadout') => {
-    setCnfgChannel(channel)
-    setCnfgResId(resonatorId)
-    showCnfgMdl()
-  }, [showCnfgMdl])
+  const openCnfgMdl = useTeamCnsl((state) => state.open)
 
   const clsWpnPckr = useCallback(() => {
     hideWpnPckr(() => {
@@ -201,174 +168,12 @@ export function Teams({
     showWpnPckr()
   }, [showWpnPckr])
 
-  const selTeamMem = useCallback((slotIndex: number, nextMemberId: string | null) => {
-    if (nextMemberId) {
-      const fullSeed = getResSeedBy(nextMemberId)
-      if (fullSeed) {
-        // create the compact teammate runtime before slot assignment so target
-        // and source-state selectors can resolve the member in the same update.
-        ensTeamMemRt(fullSeed)
-      }
-    }
+  const { setMember: selTeamMem } = useTeamSlots()
 
-    onRtPdt((prev) => {
-      const nextTeam = [...prev.build.team] as ResRuntime['build']['team']
-      nextTeam[slotIndex] = nextMemberId
-      const nextTeamRuns = [...prev.teamRuntimes] as ResRuntime['teamRuntimes']
-
-      if (!nextMemberId || slotIndex === 0) {
-        if (slotIndex > 0) {
-          nextTeamRuns[slotIndex - 1] = null
-        }
-
-        return {
-          ...prev,
-          build: {
-            ...prev.build,
-            team: nextTeam,
-          },
-          teamRuntimes: nextTeamRuns,
-        }
-      }
-
-      const seed = getResSeedBy(nextMemberId)
-      if (!seed) {
-        return prev
-      }
-
-      const currentRuntime = prev.teamRuntimes[slotIndex - 1]
-      const materialRuntime = matTeamMemFr(
-        seed,
-        currentRuntime?.id === nextMemberId ? currentRuntime : makeTeamMember(seed),
-        prev.state.controls,
-        prev.state.combat,
-        nextTeam,
-      )
-      const shouldInitMember = currentRuntime?.id !== nextMemberId
-      const nextRuntime = maxResOnInit && shouldInitMember
-        ? maxRtInit(materialRuntime)
-        : shouldInitMember
-          ? initWpnStts(materialRuntime, { maxed: false })
-          : materialRuntime
-      const memberIdsClear = Array.from(
-        new Set([
-          currentRuntime?.id,
-          prev.build.team[slotIndex],
-          nextMemberId,
-        ].filter((value): value is string => Boolean(value))),
-      )
-
-      nextTeamRuns[slotIndex - 1] = teamRuntime(nextRuntime)
-
-      return {
-        ...prev,
-        build: {
-          ...prev.build,
-          team: nextTeam,
-        },
-        state: {
-          ...prev.state,
-          controls: mkMateCntr(prev.state.controls, memberIdsClear, nextMemberId, nextRuntime),
-        },
-        teamRuntimes: nextTeamRuns,
-      }
-    })
-    if (nextMemberId && slotIndex > 0) {
-      bumpPickerFreq({
-        bucket: 'teamResonator',
-        slot: slotIndex === 1 ? 'teammate1' : 'teammate2',
-        ids: [nextMemberId],
-      })
-    }
-  }, [bumpPickerFreq, ensTeamMemRt, maxResOnInit, onRtPdt])
-
-  const lgblTeamPckr = useMemo(() => {
-    if (teamPickerSlot === null || teamPickerSlot === 0) {
-      return []
-    }
-
-    // slot eligibility is unique across teammates, while the edited slot keeps
-    // its current member so reopening the picker preserves the selection.
-    const blockedIds = new Set(
-      runtime.build.team.filter(
-        (memberId, memberIndex): memberId is string => Boolean(memberId) && memberIndex !== teamPickerSlot,
-      ),
-    )
-
-    return RES_MENU.filter((entry) => !blockedIds.has(entry.id))
-  }, [runtime.build.team, teamPickerSlot])
-
-  const configMember = cnfgResId ? getResonator(cnfgResId) : null
-  const cnfgRt = cnfgResId ? partRntmById[cnfgResId] ?? null : null
-  // the config modal hosts one view per configurable teammate; the roster
-  // drives its profile switch, so only non-lead members with runtimes qualify.
-  const cnfgRoster = useMemo(() => (
-    runtime.build.team.flatMap((memberId, index) => {
-      if (index === 0 || !memberId || !partRntmById[memberId]) {
-        return []
-      }
-
-      const mate = getResonator(memberId)
-      return mate ? [mate] : []
-    })
-  ), [partRntmById, runtime.build.team])
-  const cnfgVsblStts = useMemo(() => {
-    if (!cnfgRt) {
-      return []
-    }
-
-    // teammate state visibility is evaluated against the active runtime because
-    // team-targeted effects depend on the current composition.
-    return makeSourceCat(cnfgRt).states.filter((state) =>
-      isSourceVisible(cnfgRt, cnfgRt, state, runtime),
-    )
-  }, [cnfgRt, runtime])
-  const configStates = useMemo(
-    () => cnfgVsblStts.filter((state) => state.source.type !== 'echo'),
-    [cnfgVsblStts],
+  const lgblTeamPckr = useMemo(
+    () => eligibleForSlot(runtime.build.team, teamPickerSlot),
+    [runtime.build.team, teamPickerSlot],
   )
-  const cnfgCmbtStts = useMemo(() => {
-    if (!cnfgRt) {
-      return null
-    }
-
-    const activeSeed = getResSeedBy(runtime.id)
-    if (!activeSeed) {
-      return null
-    }
-
-    const graph = makeCombatGraph({
-      actRt: runtime,
-      activeSeed,
-      partRts: {
-        ...partRntmById,
-        [cnfgRt.id]: cnfgRt,
-      },
-      targetsByRes: mkSelTrgtByR(
-        runtime.build.team,
-        selTrgtByOwn,
-      ),
-    })
-
-    const targetSlotId = findCombatPart(graph, cnfgRt.id)
-    if (!targetSlotId) {
-      return null
-    }
-
-    const context = makeCombatEnv({
-      graph,
-      targetSlotId,
-      enemy: enemyProfile,
-    })
-
-    return makeStatsView(cnfgRt, context.finalStats)
-  }, [
-    cnfgRt,
-    enemyProfile,
-    partRntmById,
-    runtime,
-    selTrgtByOwn,
-  ])
 
   interface MemberView {
     isLead: boolean
@@ -710,7 +515,9 @@ export function Teams({
       return undefined
     }
     const options = getTeamTgtPt(runtime, view.id, targetMode)
-    const currentValue = profilesById[runtime.id]?.runtime.routing.selectedTargetsByOwnerKey[state.ownerKey] ?? null
+    const routeKey = scopedTargetOwnerKey(view.id, state.ownerKey)
+    const selectedTargets = profilesById[runtime.id]?.runtime.routing.selectedTargetsByOwnerKey
+    const currentValue = selectedTargets?.[routeKey] ?? selectedTargets?.[state.ownerKey] ?? null
     const selVl =
       typeof currentValue === 'string' && options.some((option) => option.value === currentValue)
         ? currentValue
@@ -723,7 +530,7 @@ export function Teams({
           value={selVl}
           options={options}
           disabled={options.length <= 1}
-          onChange={(nextValue) => setTargetRes(view.id, state.ownerKey, nextValue || null)}
+          onChange={(nextValue) => setTargetRes(view.id, routeKey, nextValue || null)}
         />
       </label>
     )
@@ -748,7 +555,9 @@ export function Teams({
     if (options.length === 0) {
       return null
     }
-    const currentValue = profilesById[runtime.id]?.runtime.routing.selectedTargetsByOwnerKey[state.ownerKey] ?? null
+    const routeKey = scopedTargetOwnerKey(view.id, state.ownerKey)
+    const selectedTargets = profilesById[runtime.id]?.runtime.routing.selectedTargetsByOwnerKey
+    const currentValue = selectedTargets?.[routeKey] ?? selectedTargets?.[state.ownerKey] ?? null
     const selVl =
       typeof currentValue === 'string' && options.some((option) => option.value === currentValue)
         ? currentValue
@@ -772,7 +581,7 @@ export function Teams({
                 className={`tlu-route-opt${isSel ? ' is-sel' : ''}`}
                 title={option.label}
                 disabled={locked}
-                onClick={() => setTargetRes(view.id, state.ownerKey, option.value)}
+                onClick={() => setTargetRes(view.id, routeKey, option.value)}
               >
                 {target?.profile ? (
                   <img src={target.profile} alt={option.label} onError={withDefResMg} />
@@ -1331,40 +1140,6 @@ export function Teams({
           )
         })}
       </div>
-
-      {cnfgMdlVsbl && configMember && cnfgRt ? (
-        <ConfigModal
-          visible={cnfgMdlVsbl}
-          open={cnfgMdlOpen}
-          closing={cnfgMdlClsn}
-          portalTarget={mdlPrtlTgt}
-          member={configMember}
-          roster={cnfgRoster}
-          runtime={cnfgRt}
-          actRt={runtime}
-          invBlds={invBlds}
-          sttDefs={configStates}
-          cmbtSttsView={cnfgCmbtStts}
-          initChannel={cnfgChannel}
-          onSwitchMember={setCnfgResId}
-          onChannelChange={setCnfgChannel}
-          onSqncChng={(value) =>
-            updResRt(configMember.id, (prev) => ({
-              ...prev,
-              base: {
-                ...prev.base,
-                sequence: Math.max(0, Math.min(6, value)),
-              },
-            }))
-          }
-          onRtPdt={(updater) => updResRt(configMember.id, updater)}
-          getSelTgt={(ownerKey) => profilesById[runtime.id]?.runtime.routing.selectedTargetsByOwnerKey[ownerKey] ?? null}
-          setSelTgt={(ownerKey, tgtResId) =>
-            setTargetRes(configMember.id, ownerKey, tgtResId)
-          }
-          onClose={clsCnfgMdl}
-        />
-      ) : null}
 
       {teamPckrVsbl ? (
         <ResPckr

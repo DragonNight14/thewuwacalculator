@@ -13,11 +13,13 @@ import {
 } from '@/domain/gameData/registry'
 import { makeTeamComp } from '@/domain/gameData/teamComposition'
 import type {
+  CondExpr,
   DataSrcRef,
   EffectDef,
   EffectScope,
   EffectOp,
   EffectContext,
+  FormExpr,
 } from '@/domain/gameData/contracts'
 import type { EnemyProfile } from '@/domain/entities/appState'
 import { isNoEnemy } from '@/domain/entities/appState'
@@ -45,6 +47,7 @@ interface LegDataFfctP {
   sourceStats?: Record<string, FinalStats>
   selectedTargets?: Record<string, string | null>
   enemy?: EnemyProfile
+  effectScalesByRuntimePath?: Record<string, Record<string, number>>
   // echo set sources are only assembled in the graph path; opt them into the
   // legacy path for standalone build-stat derivation.
   includeEchoSets?: boolean
@@ -57,6 +60,7 @@ interface GrphDataFfct {
   finalStats?: FinalStats
   sourceStats?: Record<string, FinalStats>
   enemy?: EnemyProfile
+  effectScalesByRuntimePath?: Record<string, Record<string, number>>
 }
 
 type DataFfctPtns = LegDataFfctP | GrphDataFfct
@@ -205,6 +209,7 @@ function mkGrphFfctCt(
       selectedTargetsByOwnerKey: {
         ...srcPart.slot.routing.selectedTargetsByOwnerKey,
       },
+      effectScalesByRuntimePath: graph.effectScalesByRuntimePath,
     }
 
     const contexts: EffectContext[] = [
@@ -276,6 +281,7 @@ function mkLegFfctCtx(
       teamMemberIds: sourceIds,
       echoSetCounts: countEchoSets(srcRt.build.echoes),
       selectedTargetsByOwnerKey: options.selectedTargets,
+      effectScalesByRuntimePath: options.effectScalesByRuntimePath,
     }
 
     const contexts: EffectContext[] = [
@@ -321,6 +327,7 @@ function mkDynmCtx(
     sourceFinalStats: options.sourceStats?.[baseContext.sourceRuntime.id],
     finalStats: options.finalStats,
     enemy: options.enemy,
+    effectScalesByRuntimePath: options.effectScalesByRuntimePath ?? baseContext.effectScalesByRuntimePath,
   }
 }
 
@@ -352,7 +359,113 @@ function mkCandCtx(input: CandFxNpt, pool?: UnifiedBuffPool): EffectContext {
     sourceFinalStats: input.srcFinal,
     finalStats: input.finalStats,
     enemy: input.enemy,
+    effectScalesByRuntimePath: input.baseCtx.effectScalesByRuntimePath,
   }
+}
+
+function runtimeRefForPath(
+    context: EffectContext,
+    from: Extract<CondExpr, { path: string }>['from'] | Extract<FormExpr, { path: string }>['from'],
+    path: string,
+): { runtimeId: string; path: string } | null {
+  if (from === 'sourceRuntime') {
+    return { runtimeId: context.sourceRuntime.id, path }
+  }
+
+  if (from === 'targetRuntime') {
+    return { runtimeId: context.targetRuntime.id, path }
+  }
+
+  if (from === 'activeRuntime' && context.activeRuntime) {
+    return { runtimeId: context.activeRuntime.id, path }
+  }
+
+  if (!from && path.startsWith('runtime.')) {
+    return { runtimeId: context.sourceRuntime.id, path: path.replace(/^runtime\./, '') }
+  }
+
+  if (!from && path.startsWith('sourceRuntime.')) {
+    return { runtimeId: context.sourceRuntime.id, path: path.replace(/^sourceRuntime\./, '') }
+  }
+
+  if (!from && path.startsWith('targetRuntime.')) {
+    return { runtimeId: context.targetRuntime.id, path: path.replace(/^targetRuntime\./, '') }
+  }
+
+  if (!from && path.startsWith('activeRuntime.') && context.activeRuntime) {
+    return { runtimeId: context.activeRuntime.id, path: path.replace(/^activeRuntime\./, '') }
+  }
+
+  return null
+}
+
+function getRuntimePathScale(
+    context: EffectContext,
+    condition: Extract<CondExpr, { path: string }>,
+): number {
+  const ref = runtimeRefForPath(context, condition.from, condition.path)
+  if (!ref) {
+    return 1
+  }
+
+  return context.effectScalesByRuntimePath?.[ref.runtimeId]?.[ref.path] ?? 1
+}
+
+function effectConditionScale(
+    condition: CondExpr | undefined,
+    scope: EffectScope,
+): number {
+  if (!condition || condition.type === 'always') {
+    return 1
+  }
+
+  if (condition.type === 'not') {
+    return 1
+  }
+
+  if (condition.type === 'and') {
+    return condition.values.reduce(
+        (scale, child) => Math.min(scale, effectConditionScale(child, scope)),
+        1,
+    )
+  }
+
+  if (condition.type === 'or') {
+    const passingScales = condition.values
+        .filter((child) => evalCond(child, scope))
+        .map((child) => effectConditionScale(child, scope))
+
+    return passingScales.length > 0 ? Math.max(...passingScales) : 1
+  }
+
+  return getRuntimePathScale(scope.context, condition)
+}
+
+function formExprScale(
+    formula: FormExpr,
+    scope: EffectScope,
+): number {
+  if (formula.type === 'const') {
+    return 1
+  }
+
+  if (formula.type === 'read' || formula.type === 'table') {
+    const ref = runtimeRefForPath(scope.context, formula.from, formula.path)
+    if (!ref) {
+      return 1
+    }
+
+    return scope.context.effectScalesByRuntimePath?.[ref.runtimeId]?.[ref.path] ?? 1
+  }
+
+  if (formula.type === 'add' || formula.type === 'mul') {
+    return formula.values.reduce(
+        (scale, child) => Math.min(scale, formExprScale(child, scope)),
+        1,
+    )
+  }
+
+  return formExprScale(formula.value, scope)
 }
 
 // apply one runtime operation to the shared buff pool
@@ -360,6 +473,7 @@ function applyRtOp(
     pool: UnifiedBuffPool,
     operation: EffectOp,
     scope: EffectScope,
+    effectScale = 1,
 ): void {
   if (
       operation.type === 'add_skill_mod' ||
@@ -386,7 +500,7 @@ function applyRtOp(
     return
   }
 
-  const value = evalForm(operation.value, scope)
+  const value = evalForm(operation.value, scope) * Math.min(effectScale, formExprScale(operation.value, scope))
 
   if (operation.type === 'add_base_stat') {
     pool[operation.stat][operation.field] += value
@@ -455,8 +569,9 @@ export function applyCandRt(
       continue
     }
 
+    const effectScale = effectConditionScale(effect.condition, scope)
     for (const operation of effect.operations) {
-      applyRtOp(pool, operation, scope)
+      applyRtOp(pool, operation, scope, effectScale)
     }
   }
 
@@ -502,6 +617,7 @@ export function applySkllOp(
     skill: SkillDef,
     operation: EffectOp,
     scope: EffectScope,
+    effectScale = 1,
 ): SkillDef {
   if (
       operation.type === 'add_base_stat' ||
@@ -518,7 +634,7 @@ export function applySkllOp(
       return skill
     }
 
-    const value = evalForm(operation.value, scope)
+    const value = evalForm(operation.value, scope) * effectScale
 
     return {
       ...skill,
@@ -534,7 +650,7 @@ export function applySkllOp(
       return skill
     }
 
-    const value = evalForm(operation.value, scope)
+    const value = evalForm(operation.value, scope) * effectScale
     return {
       ...skill,
       [operation.field]: (skill[operation.field] ?? 0) + value,
@@ -546,7 +662,7 @@ export function applySkllOp(
       return skill
     }
 
-    const dddMltp = evalForm(operation.value, scope)
+    const dddMltp = evalForm(operation.value, scope) * effectScale
     const curMltp = skill.multiplier
 
     if (curMltp <= 0 || dddMltp === 0) {
@@ -578,7 +694,7 @@ export function applySkllOp(
       return skill
     }
 
-    const dddMltp = evalForm(operation.value, scope)
+    const dddMltp = evalForm(operation.value, scope) * effectScale
     if (dddMltp === 0 || operation.hitIndex < 0 || operation.hitIndex >= skill.hits.length) {
       return skill
     }
@@ -604,7 +720,8 @@ export function applySkllOp(
     return skill
   }
 
-  const mltpScl = evalForm(operation.value, scope)
+  const rawMltpScl = evalForm(operation.value, scope)
+  const mltpScl = 1 + (rawMltpScl - 1) * effectScale
 
   if (skill.hits.length === 0) {
     return {
@@ -657,8 +774,9 @@ export function applyRtDataF(
         continue
       }
 
+      const effectScale = effectConditionScale(effect.condition, scope)
       for (const operation of effect.operations) {
-        applyRtOp(next, operation, scope)
+        applyRtOp(next, operation, scope, effectScale)
       }
     }
   }
@@ -706,8 +824,9 @@ export function applyEnemyRtDataF(
       continue
     }
 
+    const effectScale = effectConditionScale(effect.condition, scope)
     for (const operation of effect.operations) {
-      applyRtOp(next, operation, scope)
+      applyRtOp(next, operation, scope, effectScale)
     }
   }
 
@@ -739,8 +858,9 @@ export function applySkllDat(
         continue
       }
 
+      const effectScale = effectConditionScale(effect.condition, scope)
       for (const operation of effect.operations) {
-        next = applySkllOp(next, operation, scope)
+        next = applySkllOp(next, operation, scope, effectScale)
       }
     }
   }
@@ -773,8 +893,9 @@ export function applyCandSk(
       continue
     }
 
+    const effectScale = effectConditionScale(effect.condition, scope)
     for (const operation of effect.operations) {
-      next = applySkllOp(next, operation, scope)
+      next = applySkllOp(next, operation, scope, effectScale)
     }
   }
 

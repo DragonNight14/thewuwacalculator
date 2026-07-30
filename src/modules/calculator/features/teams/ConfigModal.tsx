@@ -1,8 +1,7 @@
 /*
   Author: Runor Ewhro
-  Description: Renders the team config modal as one shell hosting switchable
-               per-resonator views that edit local teammate build, source-state,
-               echo, weapon, and manual-buff runtime data.
+  Description: Coordinates teammate-local build, source-state, echo, weapon, and
+               manual-buff edits inside the team config modal.
 */
 
 import {
@@ -58,6 +57,7 @@ import {
   WPNSTATLBLS,
   WPN_STAT_CNS,
 } from '@/modules/calculator/features/weapons/lib/weapon.ts'
+import { scopedTargetOwnerKey } from '@/domain/gameData/targetRouting.ts'
 import { Edit } from '@/modules/calculator/features/echoes/Edit.tsx'
 import { EchoPicker } from '@/modules/calculator/features/echoes/Picker.tsx'
 import { Parser } from '@/modules/calculator/features/echoes/Parser.tsx'
@@ -432,7 +432,7 @@ function EchoActions({
         title="Save echo to inventory"
         onClick={onSave}
       >
-        <Save size="0.5rem" aria-hidden="true" />
+        <Save size="1em" aria-hidden="true" />
       </button>
       <button
         type="button"
@@ -441,7 +441,7 @@ function EchoActions({
         title="Edit echo"
         onClick={() => onEdit(echo.uid)}
       >
-        <Pencil size="0.5rem" aria-hidden="true" />
+        <Pencil size="1em" aria-hidden="true" />
       </button>
       <button
         type="button"
@@ -450,7 +450,7 @@ function EchoActions({
         title="Change echo"
         onClick={onChange}
       >
-        <ArrowRightLeft size="0.5rem" aria-hidden="true" />
+        <ArrowRightLeft size="1em" aria-hidden="true" />
       </button>
       <button
         type="button"
@@ -459,7 +459,7 @@ function EchoActions({
         title="Unequip echo"
         onClick={() => onUnequip(echo.uid)}
       >
-        <X size="0.5rem" />
+        <X size="1em" />
       </button>
     </div>
   )
@@ -566,10 +566,10 @@ const CHANNELS: Array<{
   label: string
   icon: ReactNode
 }> = [
-  { id: 'loadout', label: 'Loadout', icon: <Package size="0.5rem" /> },
-  { id: 'effects', label: 'Effects', icon: <Zap size="0.5rem" /> },
-  { id: 'echoes', label: 'Echoes', icon: <Gem size="0.5rem" /> },
-  { id: 'buffs', label: 'Buffs', icon: <Sparkles size="0.5rem" /> },
+  { id: 'loadout', label: 'Loadout', icon: <Package size="1em" /> },
+  { id: 'effects', label: 'Effects', icon: <Zap size="1em" /> },
+  { id: 'echoes', label: 'Echoes', icon: <Gem size="1em" /> },
+  { id: 'buffs', label: 'Buffs', icon: <Sparkles size="1em" /> },
 ]
 
 function ResonatorView({
@@ -650,7 +650,8 @@ function ResonatorView({
     }
 
     const options = getTeamTgtPt(actRt, member.id, targetMode)
-    const currentValue = getSelTgt(state.ownerKey)
+    const routeKey = scopedTargetOwnerKey(member.id, state.ownerKey)
+    const currentValue = getSelTgt(routeKey) ?? getSelTgt(state.ownerKey)
     const fallback = options[0]?.value ?? ''
     const selected =
       typeof currentValue === 'string' && options.some((option) => option.value === currentValue)
@@ -664,7 +665,7 @@ function ResonatorView({
           value={selected}
           options={options}
           disabled={options.length <= 1}
-          onChange={(nextValue) => setSelTgt(state.ownerKey, nextValue || null)}
+          onChange={(nextValue) => setSelTgt(routeKey, nextValue || null)}
         />
       </label>
     )
@@ -813,7 +814,7 @@ function ResonatorView({
         id: 'teammate-echo:copy',
         key: 'copy',
         needsSel: true,
-        icon: <Copy size="0.5rem" />,
+        icon: <Copy size="1em" />,
         label: ({ count }) => `Copy (${count})`,
         title: 'Copy selected echoes (Ctrl/Cmd+C)',
         run: async ({ vals }) => {
@@ -831,7 +832,7 @@ function ResonatorView({
         id: 'teammate-echo:cut',
         key: 'cut',
         needsSel: true,
-        icon: <Scissors size="0.5rem" />,
+        icon: <Scissors size="1em" />,
         label: ({ count }) => `Cut (${count})`,
         title: 'Cut selected echoes (Ctrl/Cmd+X)',
         run: async ({ ids, vals }) => {
@@ -851,7 +852,7 @@ function ResonatorView({
       {
         id: 'teammate-echo:paste',
         key: 'paste',
-        icon: <Clipboard size="0.5rem" />,
+        icon: <Clipboard size="1em" />,
         label: 'Paste',
         title: 'Paste echoes (Ctrl/Cmd+V)',
         float: false,
@@ -864,7 +865,7 @@ function ResonatorView({
         key: 'delete',
         needsSel: true,
         danger: true,
-        icon: <Trash2 size="0.5rem" />,
+        icon: <Trash2 size="1em" />,
         label: ({ count }) => `Remove (${count})`,
         title: 'Remove selected echoes (Delete / Backspace)',
         run: ({ ids }) => {
@@ -1563,7 +1564,7 @@ function ResonatorView({
     {
       id: 'member-builds:paste',
       label: 'Paste Build',
-      icon: <Clipboard size="0.5rem" />,
+      icon: <Clipboard size="1em" />,
       onSelect: () => {
         void pasteBuildClipboard()
       },
@@ -1781,13 +1782,13 @@ function ResonatorView({
                           {
                             id: `member-build:${entry.id}:load`,
                             label: 'Load Build',
-                            icon: <Layers size="0.5rem" />,
+                            icon: <Layers size="1em" />,
                             onSelect: () => confirmApplyBld(entry),
                           },
                           {
                             id: `member-build:${entry.id}:copy`,
                             label: 'Copy',
-                            icon: <Copy size="0.5rem" />,
+                            icon: <Copy size="1em" />,
                             onSelect: () => {
                               void copyBuildToClipboard(entry)
                             },
@@ -1795,7 +1796,7 @@ function ResonatorView({
                           {
                             id: `member-build:${entry.id}:paste`,
                             label: 'Paste Build',
-                            icon: <Clipboard size="0.5rem" />,
+                            icon: <Clipboard size="1em" />,
                             onSelect: () => {
                               void pasteBuildClipboard()
                             },
@@ -2452,8 +2453,10 @@ function ResonatorView({
       message={confirmation.message}
       confirmLabel={confirmation.confirmLabel}
       cancelLabel={confirmation.cancelLabel}
+      secondaryLabel={confirmation.secondaryLabel}
       variant={confirmation.variant}
       onConfirm={confirmation.onConfirm}
+      onSecondary={confirmation.onSecondary}
       onCancel={confirmation.onCancel}
     />
     </>

@@ -1,6 +1,7 @@
 /*
   Author: Runor Ewhro
-  Description: renders the settings page.
+  Description: Owns persistence import/export, display preferences, and app-data
+               diagnostics exposed through the settings route.
 */
 
 import { readAppFile, xprtAppFile } from '@/shared/lib/fileCodec'
@@ -1246,8 +1247,10 @@ export function SettingsPage() {
         message={confirmation.message}
         confirmLabel={confirmation.confirmLabel}
         cancelLabel={confirmation.cancelLabel}
+        secondaryLabel={confirmation.secondaryLabel}
         variant={confirmation.variant}
         onConfirm={confirmation.onConfirm}
+        onSecondary={confirmation.onSecondary}
         onCancel={confirmation.onCancel}
       />
       <ImageUploadModal

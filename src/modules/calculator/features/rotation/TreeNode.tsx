@@ -1,6 +1,7 @@
 /*
   Author: Runor Ewhro
-  Description: renders the tree node surface for the calculator rotation flow.
+  Description: Maps rotation nodes to tree rows and context actions without
+               mutating the underlying authored node data.
 */
 
 import type {ResRuntime} from "@/domain/entities/runtime.ts";
@@ -327,14 +328,14 @@ export function TreeNode({
     {
       id: 'loopify-node',
       label: 'Loopify',
-      icon: <RotateCcw size="0.5rem" />,
+      icon: <RotateCcw size="1em" />,
       disabled: !llwAddBlckBl,
       onSelect: () => onLpfyNode(node.id),
     },
     {
       id: 'blockify-node',
       label: 'Blockify...',
-      icon: <TextQuote size="0.5rem" />,
+      icon: <TextQuote size="1em" />,
       disabled: !llwAddBlckBl,
       submenu: [
         {
@@ -370,7 +371,7 @@ export function TreeNode({
         ? {
           id: 'replace-previous',
           label: 'Prev. Replace',
-          icon: <ChevronsLeft size="0.5rem" />,
+          icon: <ChevronsLeft size="1em" />,
           onSelect: () =>
             onUpdateNode(node.id, (current) =>
               current.type === 'feature'
@@ -387,7 +388,7 @@ export function TreeNode({
         ? {
           id: 'add-adjacent',
           label: 'Adj. Add',
-          icon: <ChevronsDown size="0.5rem" />,
+          icon: <ChevronsDown size="1em" />,
           onSelect: () =>
             onNsrtNodeAt(
               {
@@ -411,7 +412,7 @@ export function TreeNode({
         ? {
           id: 'replace-adjacent',
           label: 'Adj. Replace',
-          icon: <RightChevrons size="0.5rem" />,
+          icon: <RightChevrons size="1em" />,
           onSelect: () =>
             onUpdateNode(node.id, (current) =>
               current.type === 'feature'
@@ -428,7 +429,7 @@ export function TreeNode({
       {
         id: 'edit-feature',
         label: 'Edit feature',
-        icon: <Pencil size="0.5rem" />,
+        icon: <Pencil size="1em" />,
         onSelect: () =>
           onOpenFtrMen({
             mode: 'edit',
@@ -447,19 +448,19 @@ export function TreeNode({
       {
         id: 'set-feature-condition',
         label: 'Set/Add Condition',
-        icon: <PiPlusBold size="0.5rem" />,
+        icon: <PiPlusBold size="1em" />,
         onSelect: () => onOpenFtrCnd({ nodeId: node.id }),
       },
       {
         id: 'set-when',
         label: 'When',
-        icon: <InfinityIcon size="0.5rem" />,
+        icon: <InfinityIcon size="1em" />,
         onSelect: () => onOpenWhenDt(node.id),
       },
       {
         id: 'add-below',
         label: 'Add below...',
-        icon: <GrLinkDown size="0.5rem" />,
+        icon: <GrLinkDown size="1em" />,
         submenu: addBlwMenuTm(node.resonatorId ?? meta?.resonatorId ?? defaultMember),
       },
       ...wrapMenuTms,
@@ -467,13 +468,13 @@ export function TreeNode({
       {
         id: 'toggle-enabled',
         label: disabled ? 'Enable feature' : 'Disable feature',
-        icon: disabled ? <PowerOff size="0.5rem" /> : <Power size="0.5rem" />,
+        icon: disabled ? <PowerOff size="1em" /> : <Power size="1em" />,
         onSelect: () => onUpdateNode(node.id, tglNodeOn),
       },
       {
         id: 'delete',
         label: 'Delete',
-        icon: <Trash2 size="0.5rem" />,
+        icon: <Trash2 size="1em" />,
         danger: true,
         onSelect: () => onDeleteNode(node.id),
       },
@@ -488,7 +489,7 @@ export function TreeNode({
             {
               id: 'delete',
               label: 'Delete',
-              icon: <Trash2 size="0.5rem" />,
+              icon: <Trash2 size="1em" />,
               danger: true,
               onSelect: () => onDeleteNode(node.id),
             },
@@ -499,7 +500,7 @@ export function TreeNode({
               </div>
               <div className="rotation-node-actions">
                 <button type="button" className="block-icon-button delete" title="Delete" onClick={() => onDeleteNode(node.id)}>
-                  <Trash2 size="0.5rem" />
+                  <Trash2 size=".6em" />
                 </button>
               </div>
             </article>
@@ -539,7 +540,7 @@ export function TreeNode({
                       )
                     }
                   >
-                    <ChevronsLeft size="0.5rem" />
+                    <ChevronsLeft size=".6em" />
                   </button>
                 ) : null}
                 {djcnFeatId ? (
@@ -567,7 +568,7 @@ export function TreeNode({
                         )
                       }
                     >
-                      <ChevronsDown size="0.5rem" />
+                      <ChevronsDown size=".6em" />
                     </button>
                     <button
                       type="button"
@@ -585,7 +586,7 @@ export function TreeNode({
                         )
                       }
                     >
-                      <RightChevrons size="0.5rem" />
+                      <RightChevrons size=".6em" />
                     </button>
                   </>
                 ) : null}
@@ -617,7 +618,7 @@ export function TreeNode({
                   aria-label="Set/Add Condition"
                   title="Set/Add Condition"
                 >
-                  <PiPlusBold size="0.5rem" />
+                  <PiPlusBold size=".6em" />
                 </button>
                 <button
                   type="button"
@@ -626,7 +627,7 @@ export function TreeNode({
                   aria-label="When"
                   title="When"
                 >
-                  <InfinityIcon size="0.5rem" />
+                  <InfinityIcon size=".6em" />
                 </button>
 
                 <button
@@ -641,7 +642,7 @@ export function TreeNode({
                     })
                   }
                 >
-                  <Pencil size="0.5rem" />
+                  <Pencil size=".6em" />
                 </button>
                 <NlnAddMenu
                   portalTarget={portalTarget}
@@ -666,10 +667,10 @@ export function TreeNode({
                   title={disabled ? 'Enable feature' : 'Disable feature'}
                   onClick={() => onUpdateNode(node.id, tglNodeOn)}
                 >
-                  {disabled ? <PowerOff size="0.5rem" /> : <Power size="0.5rem" />}
+                  {disabled ? <PowerOff size=".6em" /> : <Power size=".6em" />}
                 </button>
                 <button type="button" className="block-icon-button delete" title="Delete" onClick={() => onDeleteNode(node.id)}>
-                  <Trash2 size="0.5rem" />
+                  <Trash2 size=".6em" />
                 </button>
                 {memberIcon ? (
                   <span className="rotation-node-member-icon" title={memberIcon.name}>
@@ -737,7 +738,7 @@ export function TreeNode({
             {
               id: 'delete',
               label: 'Delete',
-              icon: <Trash2 size="0.5rem" />,
+              icon: <Trash2 size="0.6em" />,
               danger: true,
               onSelect: () => onDeleteNode(node.id),
             },
@@ -748,7 +749,7 @@ export function TreeNode({
               </div>
               <div className="rotation-node-actions">
                 <button type="button" className="block-icon-button delete" title="Delete" onClick={() => onDeleteNode(node.id)}>
-                  <Trash2 size="0.5rem" />
+                  <Trash2 size=".6em" />
                 </button>
               </div>
             </div>
@@ -761,19 +762,19 @@ export function TreeNode({
       {
         id: 'edit-condition',
         label: 'Edit condition',
-        icon: <Pencil size="0.5rem" />,
+        icon: <Pencil size="1em" />,
         onSelect: () => onOpenCndtDt({ mode: 'edit', nodeId: node.id }),
       },
       {
         id: 'set-when',
         label: 'When',
-        icon: <InfinityIcon size="0.5rem" />,
+        icon: <InfinityIcon size="1em" />,
         onSelect: () => onOpenWhenDt(node.id),
       },
       {
         id: 'add-below',
         label: 'Add below',
-        icon: <GrLinkDown size="0.5rem" />,
+        icon: <GrLinkDown size="1em" />,
         submenu: addBlwMenuTm(node.resonatorId ?? condChc?.resonatorId ?? defaultMember),
       },
       ...wrapMenuTms,
@@ -781,13 +782,13 @@ export function TreeNode({
       {
         id: 'toggle-enabled',
         label: disabled ? 'Enable condition' : 'Disable condition',
-        icon: disabled ? <PowerOff size="0.5rem" /> : <Power size="0.5rem" />,
+        icon: disabled ? <PowerOff size="1em" /> : <Power size="1em" />,
         onSelect: () => onUpdateNode(node.id, tglNodeOn),
       },
       {
         id: 'delete',
         label: 'Delete',
-        icon: <Trash2 size="0.5rem" />,
+        icon: <Trash2 size="1em" />,
         danger: true,
         onSelect: () => onDeleteNode(node.id),
       },
@@ -808,7 +809,7 @@ export function TreeNode({
                   title="Edit condition"
                   onClick={() => onOpenCndtDt({ mode: 'edit', nodeId: node.id })}
                 >
-                  <Pencil size="0.5rem" />
+                  <Pencil size=".6em" />
                 </button>
                 <button
                   type="button"
@@ -816,7 +817,7 @@ export function TreeNode({
                   title="When"
                   onClick={() => onOpenWhenDt(node.id)}
                 >
-                  <InfinityIcon size="0.5rem" />
+                  <InfinityIcon size=".6em" />
                 </button>
                 <NlnAddMenu
                   portalTarget={portalTarget}
@@ -841,10 +842,10 @@ export function TreeNode({
                   title={disabled ? 'Enable condition' : 'Disable condition'}
                   onClick={() => onUpdateNode(node.id, tglNodeOn)}
                 >
-                  {disabled ? <PowerOff size="0.5rem" /> : <Power size="0.5rem" />}
+                  {disabled ? <PowerOff size=".6em" /> : <Power size=".6em" />}
                 </button>
                 <button type="button" className="block-icon-button delete" title="Delete" onClick={() => onDeleteNode(node.id)}>
-                  <Trash2 size="0.5rem" />
+                  <Trash2 size=".6em" />
                 </button>
                 {memberIcon ? (
                   <span className="rotation-node-member-icon" title={memberIcon.name}>
@@ -879,21 +880,21 @@ export function TreeNode({
       {
         id: 'edit-loop',
         label: 'Edit loop',
-        icon: <Pencil size="0.5rem" />,
+        icon: <Pencil size="1em" />,
         onSelect: () => onOpenLoopDt(addBlwTgt),
       },
       ...(node.kind === 'start'
         ? [{
           id: 'set-when',
           label: 'When',
-          icon: <InfinityIcon size="0.5rem" />,
+          icon: <InfinityIcon size="1em" />,
           onSelect: () => onOpenWhenDt(node.id),
         } satisfies MenuEntry]
         : []),
       {
         id: 'add-below',
         label: 'Add below',
-        icon: <GrLinkDown size="0.5rem" />,
+        icon: <GrLinkDown size="1em" />,
         submenu: addBlwMenuTm(defaultMember),
       },
       ...wrapMenuTms,
@@ -901,7 +902,7 @@ export function TreeNode({
       {
         id: 'toggle-enabled',
         label: loopDisabled ? 'Enable loop' : 'Disable loop',
-        icon: loopDisabled ? <PowerOff size="0.5rem" /> : <Power size="0.5rem" />,
+        icon: loopDisabled ? <PowerOff size="1em" /> : <Power size="1em" />,
         onSelect: () => onUpdateNode(node.id, (current) => (
           current.type === 'loop'
             ? { ...current, enabled: loopDisabled }
@@ -911,7 +912,7 @@ export function TreeNode({
       {
         id: 'delete',
         label: 'Delete',
-        icon: <Trash2 size="0.5rem" />,
+        icon: <Trash2 size="1em" />,
         danger: true,
         onSelect: () => onDeleteNode(node.id),
       },
@@ -925,7 +926,7 @@ export function TreeNode({
               <div className="rotation-entry-main">
                 <span className="rotation-loop-marker__title">
                   <span className="rotation-loop-marker__badge">
-                    {node.kind === 'start' ? loopHasOwnEn ? <RotateCcw size="0.5rem" /> : <Play fill="currentColor" size="0.5rem" /> : <Square fill="currentColor" size="0.5rem" />}
+                    {node.kind === 'start' ? loopHasOwnEn ? <RotateCcw size="1em" /> : <Play fill="currentColor" size="1em" /> : <Square fill="currentColor" size="1em" />}
                     {node.kind === 'start' ? loopHasOwnEn ? 'Start / End' : 'start' : 'end'}
                   </span>
                   <span className="entry-name rotation-loop-marker__name">{loopLabel}</span>
@@ -939,7 +940,7 @@ export function TreeNode({
                     title="When"
                     onClick={() => onOpenWhenDt(node.id)}
                   >
-                    <InfinityIcon size="0.5rem" />
+                    <InfinityIcon size=".6em" />
                   </button>
                 ) : null}
                 <button
@@ -948,7 +949,7 @@ export function TreeNode({
                   title="Edit loop"
                   onClick={() => onOpenLoopDt(addBlwTgt)}
                 >
-                  <Pencil size="0.5rem" />
+                  <Pencil size=".6em" />
                 </button>
                 <NlnAddMenu
                   portalTarget={portalTarget}
@@ -977,10 +978,10 @@ export function TreeNode({
                       : current
                   ))}
                 >
-                  {loopDisabled ? <PowerOff size="0.5rem" /> : <Power size="0.5rem" />}
+                  {loopDisabled ? <PowerOff size=".6em" /> : <Power size=".6em" />}
                 </button>
                 <button type="button" className="block-icon-button delete" title="Delete" onClick={() => onDeleteNode(node.id)}>
-                  <Trash2 size="0.5rem" />
+                  <Trash2 size=".6em" />
                 </button>
               </div>
             </div>
@@ -988,7 +989,7 @@ export function TreeNode({
               <div className="rotation-footer">
                 <RotVls totals={loopInfo.totals} />
                 <span className="rotation-loop-marker__badge" aria-label="Runs">
-                  <RefreshCw size="0.5rem" />
+                  <RefreshCw size="1em" />
                   <span className="rotation-loop-marker__runs-label">
                     {loopRuns === 1 ? 'once' : `${loopRuns} times`}
                   </span>
@@ -1030,19 +1031,19 @@ export function TreeNode({
     {
       id: 'toggle-collapse',
       label: collapsed ? 'Expand block' : 'Collapse block',
-      icon: collapsed ? <ChevronRight size="0.5rem" /> : <ChevronDown size="0.5rem" />,
+      icon: collapsed ? <ChevronRight size="1em" /> : <ChevronDown size="1em" />,
       onSelect: () => onTgglCllp(node.id),
     },
     {
       id: 'set-when',
       label: 'When',
-      icon: <InfinityIcon size="0.5rem" />,
+      icon: <InfinityIcon size="1em" />,
       onSelect: () => onOpenWhenDt(node.id),
     },
     {
       id: 'add-below',
       label: 'Add below...',
-      icon: <GrLinkDown size="0.5rem" />,
+      icon: <GrLinkDown size="1em" />,
       submenu: addBlwMenuTm(node.resonatorId ?? defaultMember),
     },
     ...wrapMenuTms,
@@ -1050,13 +1051,13 @@ export function TreeNode({
     {
       id: 'toggle-enabled',
       label: disabled ? 'Enable block' : 'Disable block',
-      icon: disabled ? <PowerOff size="0.5rem" /> : <Power size="0.5rem" />,
+      icon: disabled ? <PowerOff size="1em" /> : <Power size="1em" />,
       onSelect: () => onUpdateNode(node.id, tglNodeOn),
     },
     {
       id: 'delete',
       label: 'Delete',
-      icon: <Trash2 size="0.5rem" />,
+      icon: <Trash2 size="1em" />,
       danger: true,
       onSelect: () => onDeleteNode(node.id),
     },
@@ -1090,7 +1091,7 @@ export function TreeNode({
         >
           <div className="block-header">
             <div className="rotation-entry-main">
-              <h4 className="entry-name">{node.type === 'repeat' ? 'Repeat' : 'Uptime'}</h4>
+              <span className="entry-name">{node.type === 'repeat' ? 'Repeat' : 'Uptime'}</span>
             </div>
             <div className="rotation-node-actions">
               {node.type === 'repeat' ? (
@@ -1138,7 +1139,7 @@ export function TreeNode({
                 </div>
               )}
               <button type="button" className="rotation-collapse-button" onClick={() => onTgglCllp(node.id)}>
-                {collapsed ? <ChevronRight size="0.5rem" /> : <ChevronDown size="0.5rem" />}
+                {collapsed ? <ChevronRight size="1em" /> : <ChevronDown size="1em" />}
               </button>
               <button
                 type="button"
@@ -1146,7 +1147,7 @@ export function TreeNode({
                 title="When"
                 onClick={() => onOpenWhenDt(node.id)}
               >
-                <InfinityIcon size="0.5rem" />
+                <InfinityIcon size=".6em" />
               </button>
               <NlnAddMenu
                 portalTarget={portalTarget}
@@ -1171,10 +1172,10 @@ export function TreeNode({
                 title={disabled ? 'Enable block' : 'Disable block'}
                 onClick={() => onUpdateNode(node.id, tglNodeOn)}
               >
-                {disabled ? <PowerOff size="0.5rem" /> : <Power size="0.5rem" />}
+                {disabled ? <PowerOff size=".6em" /> : <Power size=".6em" />}
               </button>
               <button type="button" className="block-icon-button delete" title="Delete" onClick={() => onDeleteNode(node.id)}>
-                <Trash2 size="0.5rem" />
+                <Trash2 size=".6em" />
               </button>
               {memberIcon ? (
                 <span className="rotation-node-member-icon" title={memberIcon.name}>

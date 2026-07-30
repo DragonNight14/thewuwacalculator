@@ -1,6 +1,7 @@
 /*
   Author: Runor Ewhro
-  Description: Renders the action sequence surface for the calculator rotation flow.
+  Description: Summarizes rotation action playback state from simulation output
+               without changing the authored rotation tree.
 */
 
 import type { CSSProperties as CssProps } from 'react'
@@ -24,6 +25,7 @@ import { fmtRtChng } from '@/shared/lib/formatGameData.ts'
 import { truncTo } from '@/shared/lib/number.ts'
 import {seedRsntById} from "@/modules/calculator/features/resonator/lib/seedData.ts";
 import {withDefResMg} from "@/shared/lib/imageFallback.ts";
+import { unscopedTargetOwnerKey } from '@/domain/gameData/targetRouting.ts'
 
 export interface RotSqncCondC {
   resonatorId: string
@@ -47,9 +49,18 @@ function fmtSttVl(
   return String(value ?? '')
 }
 
+const ACTIVE_RESONATOR_PATH = 'runtime.rotation.activeResonatorId'
+const SELECTED_TARGET_PATH_PREFIX = 'runtime.routing.selectedTargetsByOwnerKey.'
+
 function fmtCondNmbr(value: number): string {
   const truncated = truncTo(value, 2)
   return Number.isInteger(truncated) ? String(truncated) : truncated.toFixed(2).replace(/\.?0+$/, '')
+}
+
+function fmtRsntIdVl(value: string | number | boolean | undefined): string {
+  return typeof value === 'string'
+    ? seedRsntById[value]?.name ?? value
+    : String(value ?? '')
 }
 
 function prsSrcRefFro(value: string): { type: DataSrcType; id: string } | null {
@@ -70,7 +81,7 @@ function findSttForRo(path: string): { state: SourceState; targetPath: boolean }
   const cntrPrfx = 'runtime.state.controls.'
   const targetPath = path.startsWith(targetPrefix)
   const lookupKey = targetPath
-    ? path.slice(targetPrefix.length)
+    ? unscopedTargetOwnerKey(path.slice(targetPrefix.length))
     : path.startsWith(cntrPrfx)
       ? path.slice(cntrPrfx.length)
       : path
@@ -110,9 +121,11 @@ function fmtRotPathVl(
   state: SourceState,
   value: string | number | boolean | undefined,
 ): string {
-  // selected-target paths store resonator ids, so convert them to names when the seed table knows the member.
-  if (path.startsWith('runtime.routing.selectedTargetsByOwnerKey.') && typeof value === 'string') {
-    return seedRsntById[value]?.name ?? value
+  if (
+    path === ACTIVE_RESONATOR_PATH ||
+    path.startsWith(SELECTED_TARGET_PATH_PREFIX)
+  ) {
+    return state.options?.find((option) => option.id === value)?.label ?? fmtRsntIdVl(value)
   }
 
   return fmtSttVl(state, value)
@@ -135,18 +148,22 @@ function fmtRotSqncRt(
   const choice = getChcForRtC(change, choices)
   if (choice) {
     if (change.type === 'set') {
-      return `${choice.label} = ${fmtSttVl(choice.state, change.value)}`
+      return `${choice.label} = ${fmtRotPathVl(choice.state.path, choice.state, change.value)}`
     }
 
     if (change.type === 'add') {
       return `${choice.label} + ${String(change.value)}`
     }
 
-    return `${choice.label} = ${fmtSttVl(choice.state, change.value ?? true)}`
+    return `${choice.label} = ${fmtRotPathVl(choice.state.path, choice.state, change.value ?? true)}`
   }
 
   const display = getRotPathLb(change.path)
   if (!display) {
+    if (change.path === ACTIVE_RESONATOR_PATH && change.type !== 'add') {
+      return `Active Resonator = ${fmtRsntIdVl(change.value ?? true)}`
+    }
+
     return fmtRtChng(change)
   }
 
@@ -286,7 +303,7 @@ export function CtnSqnc({
             >
               <span className="rotation-loop-marker__title">
                 <span className="rotation-loop-marker__badge">
-                  <Glyph fill={entry.kind === 'self' ? 'none' : 'currentColor'} aria-hidden="true" size="0.5rem" />
+                  <Glyph fill={entry.kind === 'self' ? 'none' : 'currentColor'} aria-hidden="true" size="1em" />
                   {badgeText}
                 </span>
                 <span className="entry-name rotation-loop-marker__name">{entry.label}</span>

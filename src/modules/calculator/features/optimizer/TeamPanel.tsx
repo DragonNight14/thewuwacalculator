@@ -6,6 +6,7 @@
 
 import { useCallback, useMemo } from 'react'
 import type { CSSProperties as CssProps } from 'react'
+import { Plus, X } from 'lucide-react'
 import { isNoWeaponId, type ResRuntime, type TeamMemRt } from '@/domain/entities/runtime'
 import { MAX_RES_LVL, makeTeamMember, maxRtInit } from '@/domain/state/defaults'
 import { initWpnStts } from '@/domain/state/sourceStateInit'
@@ -250,7 +251,7 @@ function OptMainEchoC({
         >
           <div className="opt-team__set-head">
             <div className="opt-team__set-icon-wrap opt-team__set-icon-wrap--empty">
-              <span className="opt-team__set-empty-plus">+</span>
+              <span className="opt-team__set-empty-plus"><Plus size="1em" /></span>
             </div>
             <div className="opt-team__set-copy">
               <strong className="co-weapon-card__name">Main Echo</strong>
@@ -305,7 +306,7 @@ function OptMainEchoC({
               onClick={onClearMainEcho}
               aria-label="Remove main echo"
             >
-              ×
+              <X size="1em" />
             </button>
           ) : null}
         </div>
@@ -471,7 +472,7 @@ function OptEchoSetCard({
             <div className="opt-team__set-card opt-team__set-card--empty">
               <div className="opt-team__set-head">
                 <div className="opt-team__set-icon-wrap opt-team__set-icon-wrap--empty">
-                  <span className="opt-team__set-empty-plus">+</span>
+                  <span className="opt-team__set-empty-plus"><Plus size="1em" /></span>
                 </div>
                 <div className="opt-team__set-copy">
                   <strong className="co-weapon-card__name">Set Effects</strong>
@@ -600,7 +601,7 @@ function OptEchoSetCard({
                     onClick={() => onRmvSetPref(setPrefSlot, setId)}
                     aria-label={`Remove ${def.name} set preference`}
                   >
-                    ×
+                    <X size="1em" />
                   </button>
                 ) : null}
               </div>
@@ -670,7 +671,7 @@ function OptEchoSetCard({
             <div className="opt-team__set-card opt-team__set-card--empty">
               <div className="opt-team__set-head">
                 <div className="opt-team__set-icon-wrap opt-team__set-icon-wrap--empty">
-                  <span className="opt-team__set-empty-plus">+</span>
+                  <span className="opt-team__set-empty-plus"><Plus size="1em" /></span>
                 </div>
                 <div className="opt-team__set-copy">
                   <strong className="co-weapon-card__name">Set Effects</strong>
@@ -895,7 +896,7 @@ function OptRtCard({
                 onClick={onRemoveChar}
                 aria-label={`Remove ${displayName} from team`}
               >
-                ×
+                <X size="1em" />
               </button>
             ) : null}
           </div>

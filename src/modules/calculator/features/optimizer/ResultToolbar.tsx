@@ -1,10 +1,7 @@
 /*
   Author: Runor Ewhro
-  Description: "Query console" for one cohesive Expandable surface over the
-               optimizer results. Collapsed it is a single live SQL readout
-               row; expanded, the same row holds the Filter|Find mode toggle and
-               a compact, full-width predicate builder unfolds beneath it. One
-               predicate model drives both subsetting (filter) and jumping (find).
+  Description: Maintains the optimizer result predicate model shared by filtering
+               and find/jump actions, including SQL-like readout serialization.
 */
 
 import { useMemo, useState } from 'react'
@@ -240,19 +237,19 @@ export function ResultToolbar({
             className={`opt-qc__seg-opt${mode === 'filter' ? ' is-on' : ''}`}
             onClick={(event) => { stop(event); onMode('filter') }}
           >
-            <FilterIcon size="0.5rem" /> Filter
+            <FilterIcon size="1em" /> Filter
           </button>
           <button
             type="button"
             className={`opt-qc__seg-opt${mode === 'find' ? ' is-on' : ''}`}
             onClick={(event) => { stop(event); onMode('find') }}
           >
-            <Crosshair size="0.5rem" /> Find
+            <Crosshair size="1em" /> Find
           </button>
         </div>
       ) : (
         <span className="opt-qc__glyph">
-          <Terminal size="0.5rem" />
+          <Terminal size="1em" />
         </span>
       )}
 
@@ -282,7 +279,7 @@ export function ResultToolbar({
       </span>
 
       <span className={`opt-qc__chev${open ? ' is-open' : ''}`} aria-hidden="true">
-        <ChevronDown size="0.5rem" />
+        <ChevronDown size="1em" />
       </span>
     </div>
   )
@@ -346,7 +343,7 @@ export function ResultToolbar({
                 disabled={numValue.trim() === ''}
                 onClick={addNum}
               >
-                <CornerDownLeft size="0.5rem" />
+                <CornerDownLeft size="1em" />
               </button>
             </>
           ) : (
@@ -389,7 +386,7 @@ export function ResultToolbar({
                   disabled={findMatchCount === 0}
                   onClick={() => onFindStep(-1)}
                 >
-                  <ChevronLeft size="0.5rem" />
+                  <ChevronLeft size="1em" />
                 </button>
                 <span className="opt-qc__step-count">
                   {findPreds.length === 0 ? '-' : findMatchCount === 0 ? '0' : `${findMatchIndex || '-'}/${findMatchCount}`}
@@ -401,7 +398,7 @@ export function ResultToolbar({
                   disabled={findMatchCount === 0}
                   onClick={() => onFindStep(1)}
                 >
-                  <ChevronRight size="0.5rem" />
+                  <ChevronRight size="1em" />
                 </button>
               </div>
             ) : null}
@@ -422,7 +419,7 @@ export function ResultToolbar({
                 onClick={() => removePred(index)}
               >
                 <span className="opt-qc__chip-label">{formatPred(pred)}</span>
-                <X size="0.5rem" className="opt-qc__chip-x" />
+                <X size="1rem" className="opt-qc__chip-x" />
               </button>
             ))}
             <button type="button" className="opt-qc__clear" onClick={() => setActivePreds([])}>

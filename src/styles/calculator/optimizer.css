@@ -772,6 +772,40 @@ input:is(.opt-qc__num):focus {
   padding: 0.3rem 0 0.2rem;
 }
 
+.opt-result-row.is-invalid {
+  cursor: not-allowed;
+  opacity: 0.5;
+  border-color: color-mix(in srgb, var(--danger) 35%, transparent);
+  border-style: dashed;
+  background-color: color-mix(in srgb, var(--danger) 8%, transparent);
+  background-image: repeating-linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--danger) 14%, transparent) 0,
+    color-mix(in srgb, var(--danger) 14%, transparent) 1px,
+    transparent 1px,
+    transparent 7px
+  );
+}
+
+.opt-result-row.is-invalid:hover {
+  border-color: color-mix(in srgb, var(--danger) 35%, transparent);
+  background-color: color-mix(in srgb, var(--danger) 8%, transparent);
+  background-image: repeating-linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--danger) 14%, transparent) 0,
+    color-mix(in srgb, var(--danger) 14%, transparent) 1px,
+    transparent 1px,
+    transparent 7px
+  );
+}
+
+.opt-result-row.is-invalid .opt-result-row__col--dmg,
+.opt-result-row.is-invalid .opt-result-row__col--eff {
+  color: var(--danger);
+  text-decoration: line-through;
+  text-decoration-thickness: 1px;
+}
+
 .opt-result-row__col {
   display: flex;
   justify-content: center;
@@ -3160,28 +3194,6 @@ input:is(.opt-qc__num):focus {
   cursor: pointer;
 }
 
-.opt-echo-preview__slot-top {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.45rem;
-}
-
-.opt-echo-preview__cost-pill {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 2.25rem;
-  padding: 0.18rem 0.46rem;
-  border-radius: 999px;
-  border: 1px solid color-mix(in srgb, var(--resonator-accent, var(--accent)) 18%, transparent);
-  background: color-mix(in srgb, var(--text) 4%, transparent);
-  font-size: 0.64rem;
-  font-weight: 800;
-  letter-spacing: 0.04em;
-  color: var(--text);
-}
-
 .opt-echo-preview__slot-body {
   display: flex;
   align-items: flex-start;
@@ -3295,20 +3307,6 @@ input:is(.opt-qc__num):focus {
   font-size: 0.7rem;
   font-weight: 800;
   color: var(--text);
-}
-
-.opt-echo-preview__slot-tag {
-  display: inline-flex;
-  align-items: center;
-  width: fit-content;
-  padding: 0.18rem 0.44rem;
-  border-radius: 999px;
-  background: color-mix(in srgb, var(--resonator-accent, var(--accent)) 10%, transparent);
-  font-size: 0.63rem;
-  font-weight: 800;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: color-mix(in srgb, var(--resonator-accent, var(--accent)) 54%, var(--text));
 }
 
 .opt-echo-preview__slot--empty {
@@ -4496,8 +4494,6 @@ input:is(.opt-qc__num):focus {
   align-self: flex-end;
 }
 
-/* rail header: nameplate left, manual trigger right. */
-
 .odk-rail__head {
   display: flex;
   align-items: center;
@@ -4539,9 +4535,6 @@ input:is(.opt-qc__num):focus {
   opacity: 1;
   box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--odk-accent) 50%, transparent);
 }
-
-/* console manual: cursor-following card explaining every control, grouped by
-   the rail's own sections. */
 
 .odk-man {
   position: fixed;

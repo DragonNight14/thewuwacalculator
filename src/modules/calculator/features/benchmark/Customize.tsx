@@ -1,3 +1,9 @@
+/*
+  Author: Runor Ewhro
+  Description: Owns benchmark-card customization controls and export/import
+               wiring for serialized card style preferences.
+*/
+
 import { useRef, useState } from 'react'
 import type { ChangeEvent, ReactNode } from 'react'
 import { Expandable } from '@/shared/ui/Expandable'
@@ -599,7 +605,7 @@ export function BenchCustomizePanel({
           aria-expanded={drawerOpen}
           aria-label={drawerOpen ? 'Hide controls' : 'Show controls'}
         >
-          <SlidersHorizontal size="0.5rem" aria-hidden="true" />
+          <SlidersHorizontal size="1em" aria-hidden="true" />
         </button>
       ) : null}
       <header className="bench-tune-head">
@@ -789,7 +795,7 @@ export function BenchCustomizePanel({
           title={captureAction === 'download' ? 'Capturing' : 'Capture'}
           aria-label="Capture card"
         >
-          <TbCameraDown aria-hidden="true" size="0.5rem" />
+          <TbCameraDown aria-hidden="true" size="1em" />
         </button>
         <button
           type="button"
@@ -799,7 +805,7 @@ export function BenchCustomizePanel({
           title="Copy to clipboard"
           aria-label="Copy to clipboard"
         >
-          <Clipboard aria-hidden="true" size="0.5rem" />
+          <Clipboard aria-hidden="true" size="1em" />
         </button>
         <button
           type="button"
@@ -808,7 +814,7 @@ export function BenchCustomizePanel({
           title="Import card or group file"
           aria-label="Import card settings"
         >
-          <Upload aria-hidden="true" size="0.5rem" />
+          <Upload aria-hidden="true" size="1em" />
         </button>
         <button
           type="button"
@@ -817,7 +823,7 @@ export function BenchCustomizePanel({
           title="Export everything to JSON"
           aria-label="Export all card settings"
         >
-          <Download aria-hidden="true" size="0.5rem" />
+          <Download aria-hidden="true" size="1em" />
         </button>
       </div>
 

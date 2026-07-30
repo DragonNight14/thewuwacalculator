@@ -1,12 +1,8 @@
 /*
   Author: Runor Ewhro
-  Description: "What's New" surface. Every entry sits in the stream as a compact
-               row; exactly one is always expanded, and opening another collapses
-               the previous. The open entry morphs its row into the full feed
-               (hero + scroll-revealed acts), so recent and older entries share
-               one representation. The dispatch header and live equalizer carry
-               the broadcast identity. No hash opens the most recent entry; a
-               hash opens its target.
+  Description: Drives the changelog route's single-expanded-entry state, hash
+               targeting, reveal timing, and authored entry metadata. No hash
+               opens the most recent entry; a hash opens its target.
 */
 
 import {
@@ -504,7 +500,7 @@ export function WhatsNewPage() {
       />
 
       <Link to="/changelog" className="wn-back">
-        <ChevronLeft size="0.5rem" />
+        <ChevronLeft size="1em" />
         <span>Back to changelog</span>
       </Link>
 

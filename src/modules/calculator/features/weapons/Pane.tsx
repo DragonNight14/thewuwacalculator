@@ -285,7 +285,6 @@ export function Weapon({ runtime, onRtPdt: onRtPdt }: CalcWpnPaneP) {
                 />
                 {toTitle(weaponKey)}
               </span>
-              <span className="hero-chip">{weaponRarity}★</span>
             </div>
           </div>
 

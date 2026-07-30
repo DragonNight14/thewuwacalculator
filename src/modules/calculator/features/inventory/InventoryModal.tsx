@@ -617,7 +617,7 @@ function SvdMkCard({
             onClick={onEquip}
             title="Equip build"
           >
-            <ArrowDownIcon size="0.5rem" />
+            <ArrowDownIcon size="1em" />
           </button>
           <button
             type="button"
@@ -625,7 +625,7 @@ function SvdMkCard({
             onClick={onStrtRnm}
             title="Rename build"
           >
-            <Pencil size="0.5rem" />
+            <Pencil size="1em" />
           </button>
           <button
             type="button"
@@ -633,7 +633,7 @@ function SvdMkCard({
             onClick={onRemove}
             title="Delete build"
           >
-            <Trash2 size="0.5rem" />
+            <Trash2 size="1em" />
           </button>
         </div>
       </div>
@@ -967,7 +967,7 @@ export function InvMdl({
       id: 'inv:copy',
       key: 'copy' as const,
       needsSel: true,
-      icon: <Copy size="0.5rem" />,
+      icon: <Copy size="1em" />,
       label: ({ count }: { count: number }) => `Copy (${count})`,
       title: 'Copy selected echoes (Ctrl/Cmd+C)',
       run: async ({ vals }: { vals: InvEchoEnt[] }) => {
@@ -985,7 +985,7 @@ export function InvMdl({
       id: 'inv:cut',
       key: 'cut' as const,
       needsSel: true,
-      icon: <Scissors size="0.5rem" />,
+      icon: <Scissors size="1em" />,
       label: ({ count }: { count: number }) => `Cut (${count})`,
       title: 'Cut selected echoes (Ctrl/Cmd+X)',
       run: ({ count, ids, vals }: { count: number; ids: string[]; vals: InvEchoEnt[] }) => {
@@ -1016,7 +1016,7 @@ export function InvMdl({
     {
       id: 'inv:paste',
       key: 'paste' as const,
-      icon: <Clipboard size="0.5rem" />,
+      icon: <Clipboard size="1em" />,
       label: 'Paste',
       title: 'Paste echoes into inventory (Ctrl/Cmd+V)',
       float: false,
@@ -1029,7 +1029,7 @@ export function InvMdl({
       key: 'delete' as const,
       needsSel: true,
       danger: true,
-      icon: <Trash2 size="0.5rem" />,
+      icon: <Trash2 size="1em" />,
       label: ({ count }: { count: number }) => `Remove (${count})`,
       title: 'Remove selected echoes (Delete / Backspace)',
       run: ({ count, ids }: { count: number; ids: string[] }) => {
@@ -1568,8 +1568,10 @@ export function InvMdl({
         message={confirmation.message}
         confirmLabel={confirmation.confirmLabel}
         cancelLabel={confirmation.cancelLabel}
+        secondaryLabel={confirmation.secondaryLabel}
         variant={confirmation.variant}
         onConfirm={confirmation.onConfirm}
+        onSecondary={confirmation.onSecondary}
         onCancel={confirmation.onCancel}
       />
     </>

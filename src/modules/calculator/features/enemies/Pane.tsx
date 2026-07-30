@@ -1,6 +1,7 @@
 /*
   Author: Runor Ewhro
-  Description: renders the pane surface for the calculator enemies flow.
+  Description: Applies enemy profile mutations through domain helpers so tower,
+               resistance, class, and status controls preserve encounter state.
 */
 
 import { useEffect, useMemo, useState } from 'react'
@@ -15,6 +16,7 @@ import type { SimResult } from '@/engine/pipeline/types.ts'
 import { getResDtlsBy } from '@/data/gameData/resonators/resonatorDataStore.ts'
 import { readRtPath } from '@/domain/gameData/runtimePath.ts'
 import { NEG_EFFECT_ELEM, negEffectsFor } from '@/domain/gameData/negativeEffects.ts'
+import { getTuneStrainMaxForTeam } from '@/domain/gameData/tuneStrain.ts'
 import { mkSrcSttScp, srcSttOpts } from '@/modules/calculator/model/sourceEval.ts'
 import { fltrEnemyCat, getEnemyCatE } from '@/domain/services/enemyCatalogService.ts'
 import { EnemyPicker } from '@/modules/calculator/features/enemies/Picker.tsx'
@@ -535,6 +537,10 @@ export function CalcEnemyPmg({
   )
   const isCustomMode = isCustEnemyP(enemyProfile)
   const tuneStrain = getEnemyTune(enemyProfile)
+  const tuneStrainMax = useMemo(
+    () => getTuneStrainMaxForTeam(runtime),
+    [runtime],
+  )
   const enemyClass = getRslvEnemy(enemyProfile)
   const resistRows = getEnemyReys(enemyProfile, ENEMYELEMPTN)
   // mirrors the damage pipeline: enemy defense scales linearly with level.
@@ -579,6 +585,14 @@ export function CalcEnemyPmg({
     })
   }, [combatState, onRtPdt, vsblNegFfct])
 
+  useEffect(() => {
+    if (tuneStrain <= tuneStrainMax) {
+      return
+    }
+
+    onNmyPrflChn(setEnemyTune(enemyProfile, tuneStrainMax))
+  }, [enemyProfile, onNmyPrflChn, tuneStrain, tuneStrainMax])
+
   const openPicker = () => {
     enemyPicker.show()
   }
@@ -611,7 +625,7 @@ export function CalcEnemyPmg({
   }
 
   const onTuneStrnCh = (nextValue: number) => {
-    onNmyPrflChn(setEnemyTune(enemyProfile, nextValue))
+    onNmyPrflChn(setEnemyTune(enemyProfile, clampNumber(nextValue, 0, tuneStrainMax)))
   }
 
   const onCmbtSttChn = (
@@ -775,7 +789,6 @@ export function CalcEnemyPmg({
             {resistRows.map(({ elementId, label, attributeKey, value }) => {
               const effRes = value - resShredFor(attributeKey)
               const resMult = resistMultiplier(effRes)
-              if (elementId === 6) console.log(value, effRes, resMult)
               const shifted = Math.abs(effRes - value) >= 0.05
               const sign = effRes < 0 ? 'vuln' : effRes > 0 ? 'resist' : 'zero'
               const fmt = (n: number) => `${n > 0 ? '+' : ''}${n}%`
@@ -836,7 +849,7 @@ export function CalcEnemyPmg({
             desc="Tune Strain"
             value={tuneStrain}
             min={0}
-            max={10}
+            max={tuneStrainMax}
             accent="#c9b35d"
             onChange={onTuneStrnCh}
           />

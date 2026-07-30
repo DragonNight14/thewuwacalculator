@@ -52,6 +52,10 @@ interface RotCtxPack {
   displayContext: Float32Array
 }
 
+function rotTargetSig(target: DamageFeature): string {
+  return `${target.resonatorId}|${target.skill.id}|${target.weight ?? 1}`
+}
+
 // Fallback synthetic target used only when the rotation simulation
 // produces no eligible target entries for the active resonator.
 function mkFllbTgt(seedId: string): OptTargetSkill {
@@ -205,13 +209,10 @@ function packRotContexts(opts: {
   return { contexts, contextWeight, displayContext: dsplCtx }
 }
 
-// Recompile the full rotation context set once per searchable weapon, reusing
-// the base run's target list (the combo space and which rotation entries exist
-// are weapon-independent; only the numeric context values change). Returns the
-// flattened per-weapon contexts + display contexts, or null when there are no
-// searchable weapons. Each weapon needs a full context set rather than a single
-// compact overlay, because weapon-affected slots such as the per-node move
-// multiplier vary across the rotation's contexts.
+// Weapon search recompiles the full rotation context set per candidate weapon.
+// The echo combo space is weapon-independent, but simulated skill rows are not:
+// some effects bake runtime stats into per-node multipliers, so a compact weapon
+// overlay would miss context-specific damage changes.
 export function buildRotWeaponContexts(options: {
   input: OptStartPay
   seed: ReturnType<typeof getResSeedBy>
@@ -236,6 +237,7 @@ export function buildRotWeaponContexts(options: {
 
   const { candidates, level, plan } = candidateSet
   const contextCount = targets.length
+  const targetSig = targets.map(rotTargetSig).join('\n')
 
   // strip the equipped weapon's passive controls so they do not leak into every
   // candidate. echoes are already stripped on rotRt.
@@ -244,6 +246,7 @@ export function buildRotWeaponContexts(options: {
   const weaponContexts = new Float32Array(candidates.length * contextCount * CTX_FLOATS)
   const weaponDisplayContexts = new Float32Array(candidates.length * CTX_FLOATS)
   const weaponIds: string[] = []
+  let weaponCursor = 0
 
   for (let w = 0; w < candidates.length; w += 1) {
     const wpn = candidates[w]!
@@ -265,25 +268,42 @@ export function buildRotWeaponContexts(options: {
       enemy: input.enemyProfile,
     })
 
-    const cmbtByResId = buildCmbtByResId(graph, activeContext, rt.id, targets, input.enemyProfile)
+    const rotNvrn = mkPrepRotNvr(activeContext, seed)
+    const simulated = runFeatSmlt(activeContext, seed, participants, rotNvrn, undefined, {
+      mode: 'personal',
+      detail: 'summary',
+    })
+    const weaponTargets = simulated.rotations.personal.entries.filter((entry) =>
+        isOptRotTgt(entry, input.resonatorId),
+    )
+    if (weaponTargets.length !== contextCount || weaponTargets.map(rotTargetSig).join('\n') !== targetSig) {
+      continue
+    }
+
+    const cmbtByResId = buildCmbtByResId(graph, activeContext, rt.id, weaponTargets, input.enemyProfile)
     const packed = packRotContexts({
-      targets,
+      targets: weaponTargets,
       cmbtByResId,
       activeContext,
       enemy: input.enemyProfile,
       shape,
     })
 
-    weaponContexts.set(packed.contexts, w * contextCount * CTX_FLOATS)
-    weaponDisplayContexts.set(packed.displayContext, w * CTX_FLOATS)
+    weaponContexts.set(packed.contexts, weaponCursor * contextCount * CTX_FLOATS)
+    weaponDisplayContexts.set(packed.displayContext, weaponCursor * CTX_FLOATS)
     weaponIds.push(wpn.id)
+    weaponCursor += 1
+  }
+
+  if (weaponCursor === 0) {
+    return null
   }
 
   return {
-    weaponContexts,
-    weaponDisplayContexts,
+    weaponContexts: weaponContexts.slice(0, weaponCursor * contextCount * CTX_FLOATS),
+    weaponDisplayContexts: weaponDisplayContexts.slice(0, weaponCursor * CTX_FLOATS),
     weaponIds,
-    count: candidates.length,
+    count: weaponCursor,
   }
 }
 
@@ -313,11 +333,10 @@ export function compRotRun(
   // rotation state we want to optimize against.
   const rotRt: ResRuntime = applyPersRot(runtime, input.rotTms, { ignoreLoops: true })
 
-  // Build participant runtimes for the full active team.
   const participants = makeRuntimeMap(rotRt)
 
-  // Build a transient combat graph so we can evaluate all involved teammates
-  // under the same combat snapshot.
+  // Teammate-owned rotation entries are evaluated in one transient graph so
+  // active-target routing and shared enemy state stay consistent.
   const graph = makeCombatGraph({
     actRt: rotRt,
     activeSeed: seed,
@@ -327,27 +346,24 @@ export function compRotRun(
     },
   })
 
-  // Build the active resonator's combat context first. This is reused often.
   const activeContext = makeCombatEnv({
     graph,
     targetSlotId: 'active',
     enemy: input.enemyProfile,
   })
 
-  // Run the feature simulation so we can discover which rotation entries are
-  // valid optimizer targets.
+  // Simulation is the source of optimizer targets because authored rotation
+  // nodes can expand, skip, or reroute before producing damage rows.
   const rotNvrn = mkPrepRotNvr(activeContext, seed)
   const simulated = runFeatSmlt(activeContext, seed, participants, rotNvrn, undefined, {
     mode: 'personal',
     detail: 'summary',
   })
 
-  // Keep only optimizer-eligible rotation targets for the active resonator.
   const targets = simulated.rotations.personal.entries.filter((entry) =>
       isOptRotTgt(entry, input.resonatorId),
   )
 
-  // Encode the optimizer constraints from UI settings such as stat floors, etc.
   const constraints = encStatCstrs(input.settings)
 
   // Use the first real target if available. Otherwise synthesize a fallback
@@ -360,13 +376,10 @@ export function compRotRun(
   // The actual per-target differences are handled later in packed contexts.
   const encoded = encEchoRows(input.invChs, fllbTgt, 'self')
 
-  // Build shared optimizer payload pieces such as costs, sets, kinds, combo maps, etc.
   const shared = mkShrdPay(encoded, input, constraints)
 
-  // Runtime mask describing already-active set state in the stripped runtime.
   const setRtMask = makeSetMask(rotRt, input.setConds)
 
-  // Constant set rows used during evaluation for set logic.
   const setConstLut = buildSetRows(rotRt, input.setConds)
 
   // Precompute generic main-echo buff rows for all inventory echoes.

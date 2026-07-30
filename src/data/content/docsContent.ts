@@ -215,7 +215,8 @@ const benchmarkTopic: DocTopic = {
           type: 'prose',
           text: [
             'Anchor weights... they\'re basically what lets the program rate a build. They are the 0, 100, and 200 reference anchors. Those anchors are reused when the equipped Echo edit does not change the reference search space.',
-            'The equipped build reaches the anchors through only three channels: its Energy Regen target, its completed utility Sonata set plan plus active utility state values, and a selected main Echo support effect that applies beyond the wearer. Non-ER substats, ordinary main stats, and non-preserved sets change active damage but do not move the reference anchors.',
+            'The equipped build reaches the anchors through only three channels: its Energy Regen target, its completed utility Sonata set plan plus active utility state values, and a selected main Echo support effect that applies beyond the wearer. Non-ER substats, ordinary main stats, non-utility Sonata pieces, and self-only main Echo effects change active damage but do not move the reference anchors.',
+            'That split is important: the active build is scored exactly with its current Echoes, current Sonata set rows, and current main Echo effect. The reference anchors are generated builds. They search legal Sonata plans and legal main Echo carriers, but they only inherit utility-set requirements and support-main-Echo locks from the equipped build.',
             'TLDR! This doesn\'t really matter much, i\'m just trying to say, computation is expensive so it would only run the "full" thing when certain stuff (as mentioned earlier) changes because those genuinely affect these anchors... which in turn affect the rating scale.'
           ],
         },
@@ -250,6 +251,7 @@ const benchmarkTopic: DocTopic = {
           text: [
             'Reference builds are generated legal five-Echo builds. "Legal" in the sense that you can get these in the actual game, Wuthering Waves. For example, A build that contains the echo, Hoartoise, while still somehow achieving a 5pc Tidebreaking Courage, 4-4-3-3-3 cost setup is not legal, as that is impossible to have in game. The search enumerates legal cost layouts, legal Sonata layouts, legal main Echo carriers, and legal primary main stats. It rejects any generated build that cannot preserve required utility sets, cannot carry the required support main Echo, or cannot form the requested set plan.',
             'Set pieces are counted per Sonata set the usual way: one Echo can sit in two different sets and count toward each, so a frame is legal as long as its five Echo/set pairs are distinct. The same Echo in the same set is the only redundant case.',
+            'Every generated frame carries three structural choices before substats exist: the Echo cost layout, the Sonata set plan, and the main Echo effect row. The frame scorer applies the generated Sonata rows and selected main Echo effect before evaluating the same packed damage contexts used for the active build.',
             'The no-Echo baseline is scored first with no Echo stats, no Echo set rows, and no main Echo effect. The 100 and 200 anchors then search the same generated build space with different roll budgets and roll qualities.',
           ],
         },
@@ -269,7 +271,8 @@ const benchmarkTopic: DocTopic = {
             '            build five generated Echoes',
             '            apply set plan',
             '            require five distinct Echo/set pairs',
-            '            discard frames with duplicate set/effect signatures',
+            '            encode Echo stats, Sonata rows, Echo kinds, and main Echo effect',
+            '            discard frames with duplicate Sonata-effect / main-Echo-effect signatures',
             '            frames.push(prepared generated build)',
             '',
             'baselineDamage = damage(no Echo frame)',
@@ -392,13 +395,26 @@ const benchmarkTopic: DocTopic = {
     },
     {
       id: 'er-utility',
-      title: '09 ER And Utility',
+      title: '09 ER Utility And Main Echo',
       blocks: [
         {
           type: 'prose',
           text: [
             'Energy Regen is treated as a requirement when the equipped build has an ER total and the resonator is not like Lucilla or Phrolova (ER is genuinely useless for them). The reference build first gets whatever ER comes from chosen main stats and active effects. Any remaining ER is reserved from the substat budget.',
             'The reserved ER line count is a feasibility check. The stat total added to the reference build is the exact missing ER amount, not the rounded-up roll count multiplied by the roll value. That keeps the generated build from receiving extra ER just because the reservation had to count whole substat lines.',
+            'Utility Sonata sets are handled as anchor constraints, not as ordinary active-build stats. If the equipped build has a completed utility set at its max piece count, the generated 100 and 200 builds must retain that set id and piece count. The benchmark also carries over the active control values for that utility set, so a utility set with stacks, toggles, or conditional states is scored under the same enabled state.',
+            'Main Echoes are split the same way. The active build uses the equipped main Echo effect. Reference builds enumerate legal main Echo carriers for each generated frame, but a currently equipped main Echo is locked into the reference search only when it has a non-self support effect. Self-only main Echo effects are treated like normal generated choices, not anchor inputs.',
+          ],
+        },
+        {
+          type: 'table',
+          columns: ['Equipped-build input', 'Anchor behavior'],
+          rows: [
+            ['Energy Regen total', 'becomes a target the generated reference build must satisfy unless the resonator ignores ER'],
+            ['Completed utility Sonata set', 'becomes a required generated set plan entry with the same set id and max piece count'],
+            ['Utility set controls', 'rebuild the benchmark Sonata rows with the same active values/stacks for preserved utility sets'],
+            ['Support main Echo effect', 'locks the generated reference frames to a carrier of that exact main Echo id'],
+            ['Self-only main Echo effect', 'does not move anchors; generated frames choose from legal main Echo effects normally'],
           ],
         },
         {
@@ -426,6 +442,24 @@ const benchmarkTopic: DocTopic = {
             '    generatedStats.energyRegen += missingER',
           ],
         },
+        {
+          type: 'formula',
+          caption: 'FLOW.7',
+          title: 'Utility and main Echo constraints',
+          lines: [
+            'requiredUtilityPlan = completed utility Sonata sets(equippedEchoes)',
+            'requiredMainEcho = equipped main Echo if it has non-self support effect',
+            '',
+            'for each generated setPlan:',
+            '    if requiredUtilityPlan is not retained: reject',
+            '    rebuild Sonata rows with preserved utility control values',
+            '',
+            'for each generated mainEchoChoice:',
+            '    if requiredMainEcho exists and choice.echo.id != requiredMainEcho.id:',
+            '        reject',
+            '    encode choice.mainEchoEffect into the generated frame',
+          ],
+        },
       ],
     },
     {
@@ -441,7 +475,7 @@ const benchmarkTopic: DocTopic = {
         },
         {
           type: 'formula',
-          caption: 'FLOW.7',
+          caption: 'FLOW.8',
           title: 'Exact substat fill',
           lines: [
             'working = candidate stats after main stats',

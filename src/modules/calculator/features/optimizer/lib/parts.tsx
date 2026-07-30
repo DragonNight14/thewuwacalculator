@@ -5,6 +5,7 @@
 */
 
 import type { HTMLAttributes as HtmlAttrs } from 'react'
+import { Plus } from 'lucide-react'
 import type { EchoInstance } from '@/domain/entities/runtime.ts'
 import { getSntSetIco, getSntSetNam } from '@/data/gameData/catalog/sonataSets.ts'
 import { getEchoById } from '@/domain/services/echoCatalogService.ts'
@@ -26,17 +27,13 @@ export function OptPrvwEchoT(props: {
     ...domProps
   } = props
   const definition = echo ? getEchoById(echo.id) : null
-  const slotLabel = index === 0 ? 'Main Echo' : `Echo ${index + 1}`
   const isMainSlot = index === 0
 
   if (!echo || !definition) {
     return (
       <article className={`opt-echo-preview__slot opt-echo-preview__slot--empty${selectMode ? ' selection-mode' : ''}`}>
-        <div className="opt-echo-preview__slot-top">
-          <span className="opt-echo-preview__slot-tag">{slotLabel}</span>
-        </div>
         <div className="opt-echo-preview__empty-shell">
-          <span className="opt-echo-preview__empty-mark">+</span>
+          <span className="opt-echo-preview__empty-mark"><Plus size="1em" /></span>
           <span className="opt-echo-preview__empty">Empty Slot</span>
         </div>
       </article>
@@ -44,7 +41,6 @@ export function OptPrvwEchoT(props: {
   }
 
   const setIcon = getSntSetIco(echo.set)
-  const cost = definition.cost ?? 0
   const sbstEnts = Object.entries(echo.substats)
 
   return (
@@ -52,11 +48,6 @@ export function OptPrvwEchoT(props: {
       className={`opt-echo-preview__slot${isMainSlot ? ' opt-echo-preview__slot--main' : ''}${selectMode ? ' selection-mode' : ''}${selected ? ' focus-selected' : ''}`}
       {...domProps}
     >
-      <div className="opt-echo-preview__slot-top">
-        <span className="opt-echo-preview__slot-tag">{slotLabel}</span>
-        <span className="opt-echo-preview__cost-pill">{cost}C</span>
-      </div>
-
       <div className="opt-echo-preview__slot-body">
         <div className="opt-echo-preview__glyph-frame">
           {definition.icon ? (

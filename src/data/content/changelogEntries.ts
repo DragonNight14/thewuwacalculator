@@ -781,6 +781,36 @@ export const curChngEnts: ChngRcrd[] = [
     ],
     shortDesc: `3.6.1 beta data + new preferences`,
   },
+  {
+    date: '30/07/2026',
+    entries: [
+      {
+        type: 'paragraph',
+        content: `
+          <strong>Rotation sharing is properly here now.</strong> Saved rotations can generate a share token or full link, copy either one, or still export a file. Short remote links use the Worker/KV path when available, and the app falls back to an encoded token when it is not.
+        `,
+      },
+      {
+        type: 'paragraph',
+        content: `
+          The calculator shell also has a compact <strong>team summary</strong>. It gives quick access to active/support switching, skill data, add/swap/remove teammate actions, and teammate config.
+        `,
+      },
+      {
+        type: 'paragraph',
+        content: `
+          <strong>Suggestions and weapon picks got a presentation pass.</strong> Main-stat, set-plan, weapon, and random-build results use clearer ranked rows/cards now; weapon suggestions have an inspection view.
+        `,
+      },
+      {
+        type: 'paragraph',
+        content: `
+          <strong>Benchmark and rotation math had some correctness cleanup too.</strong> Tune Strain now respects the actual team-derived setup, benchmark Tune Strain uses the benchmark team, uptime setup effects scale into their body rows properly.
+        `,
+      },
+    ],
+    shortDesc: `Rotation sharing and more~! (〜^∇^)〜`,
+  },
 ]
 
 export const ltstCurChngE =

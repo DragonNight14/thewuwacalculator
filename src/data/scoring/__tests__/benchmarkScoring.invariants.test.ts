@@ -18,6 +18,7 @@ import { mkSuggVltnCt } from '@/engine/suggestions/shared'
 import type { SuggestContext } from '@/engine/suggestions/types'
 import { ECHO_MAIN_STATS, ECHO_SIDE_STATS } from '@/data/gameData/catalog/echoStats'
 import { assembleBenchmark, buildBenchmark, buildBenchmarkAnchors } from '@/data/scoring/benchmark/search.ts'
+import { preservedMainEchoFor } from '@/data/scoring/benchmark/echoDiscovery.ts'
 import {
   getRotScore,
   rotationBuildBenchmarkReport,
@@ -304,9 +305,7 @@ describe('benchmark scoring invariants', () => {
     120000,
   )
 
-  it('keeps a non-4-cost main echo as the generated benchmark main when its buffs win', () => {
-    // some resonators prefer a nonstandard main echo because its own buff is
-    // stronger than raw cost assumptions, so benchmark generation must preserve it
+  it('does not lock a self-only non-4-cost main echo into generated benchmark anchors', () => {
     const seed = getResSeedBy('1506')
     if (!seed) throw new Error('missing Phoebe seed')
 
@@ -318,6 +317,7 @@ describe('benchmark scoring invariants', () => {
       echoSlot('6000092', 11, false, { key: 'critDmg', value: 44 }, { key: 'atkFlat', value: 150 }),
       echoSlot('6000096', 11, false, { key: 'spectro', value: 30 }, { key: 'atkFlat', value: 100 }),
     ]
+    expect(preservedMainEchoFor(runtime.build.echoes)).toBeNull()
 
     const runtimesById = makeRuntimeMap(runtime)
     const simulation = runResSmlt(runtime, seed, BENCH_ENEMY, runtimesById, {})
@@ -329,6 +329,6 @@ describe('benchmark scoring invariants', () => {
     })
 
     expect(report?.benchmark.builds.benchmark100.echoes.find((echo) => echo.mainEcho)?.echoId).toBe('6000104')
-    expect(report?.benchmark.builds.benchmark200.echoes.find((echo) => echo.mainEcho)?.echoId).toBe('6000104')
+    expect(report?.benchmark.builds.benchmark200.echoes.find((echo) => echo.mainEcho)?.echoId).toBe('6000045')
   })
 })

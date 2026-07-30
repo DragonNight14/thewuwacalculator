@@ -111,6 +111,7 @@ function OptInvEchoCard({
   selMode?: boolean
   onToggle: (event: RctMsVnt<HTMLElement> | KybrVnt<HTMLElement>) => void
 } & HtmlAttrs<HTMLElement>) {
+  const [entered, setEntered] = useState(false)
   const definition = getEchoById(entry.echo.id)
   if (!definition) {
     return null
@@ -119,7 +120,6 @@ function OptInvEchoCard({
   const setIcon = getSntSetIco(entry.echo.set)
   const tileRow = Math.min(Math.floor(index / columns), 6)
   const tileStyle = { '--tile-index': tileRow } as CssProps
-  const [entered, setEntered] = useState(false)
   const onTileEntranceEnd = (event: RctAnmVnt<HTMLElement>) => {
     if (event.animationName === 'echoes-section-in') {
       setEntered(true)
@@ -460,7 +460,7 @@ export function OptimizerInventoryModal({
       id: 'opt-inv:include',
       key: 'copy' as const,
       needsSel: true,
-      icon: <Check size="0.5rem" />,
+      icon: <Check size="1em" />,
       label: ({ count }: { count: number }) => `Include (${count})`,
       title: 'Include selected echoes',
       run: ({ vals }: { vals: InvEchoEnt[] }) => applyEntries(vals, true),
@@ -469,7 +469,7 @@ export function OptimizerInventoryModal({
       id: 'opt-inv:exclude',
       key: 'cut' as const,
       needsSel: true,
-      icon: <Ban size="0.5rem" />,
+      icon: <Ban size="1em" />,
       label: ({ count }: { count: number }) => `Exclude (${count})`,
       title: 'Exclude selected echoes',
       run: ({ vals }: { vals: InvEchoEnt[] }) => applyEntries(vals, false),
@@ -488,7 +488,7 @@ export function OptimizerInventoryModal({
     {
       id: `opt-inv:${entry.id}:include`,
       label: 'Include',
-      icon: <Check size="0.5rem" />,
+      icon: <Check size="1em" />,
       onSelect: () => {
         setPreviewId(entry.id)
         applyEntries([entry], true)
@@ -497,7 +497,7 @@ export function OptimizerInventoryModal({
     {
       id: `opt-inv:${entry.id}:exclude`,
       label: 'Exclude',
-      icon: <Ban size="0.5rem" />,
+      icon: <Ban size="1em" />,
       onSelect: () => {
         setPreviewId(entry.id)
         applyEntries([entry], false)
@@ -507,7 +507,7 @@ export function OptimizerInventoryModal({
     {
       id: `opt-inv:${entry.id}:select`,
       label: 'Select',
-      icon: <Check size="0.5rem" />,
+      icon: <Check size="1em" />,
       onSelect: () => echoSel.addToSelection(entry.id),
     },
   ], [applyEntries, echoSel])

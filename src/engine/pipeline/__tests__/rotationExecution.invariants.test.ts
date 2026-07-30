@@ -8,6 +8,7 @@
 import { describe, expect, it } from 'vitest'
 import type { ResSeed } from '@/domain/entities/runtime'
 import { makeResRuntime, makeEnemy } from '@/domain/state/defaults'
+import { getResSeedBy } from '@/domain/services/resonatorSeedService'
 import { nspcResRot, runResSmlt } from '@/engine/pipeline'
 
 const seed: ResSeed = {
@@ -147,7 +148,7 @@ const seed: ResSeed = {
 
 describe('rotation execution invariants', () => {
   it('executes condition, repeat, and uptime blocks through the feature pipeline', () => {
-    // this combines the common block types so total weighting proves the walker
+    // this combines the common block types so total output proves the walker
     // executes nested features and restores temporary condition state afterwards
     const runtime = makeResRuntime(seed)
     const result = runResSmlt(runtime, seed, makeEnemy())
@@ -155,8 +156,8 @@ describe('rotation execution invariants', () => {
     expect(result.rotations.personal.entries).toHaveLength(4)
     expect(result.perSkill).toHaveLength(4)
     expect(result.perSkill[0]?.avg).toBeGreaterThan(0)
-    expect(result.perSkill[3]?.avg).toBeCloseTo((result.perSkill[0]?.avg ?? 0) * 0.5)
-    expect(result.total.avg).toBeCloseTo((result.perSkill[0]?.avg ?? 0) * 3.5)
+    expect(result.perSkill[3]?.avg).toBeCloseTo(result.perSkill[0]?.avg ?? 0)
+    expect(result.total.avg).toBeCloseTo((result.perSkill[0]?.avg ?? 0) * 4)
     expect(runtime.state.manualBuffs.quick.critRate).toBe(0)
   })
 
@@ -211,6 +212,299 @@ describe('rotation execution invariants', () => {
     expect(result.perSkill).toHaveLength(3)
     expect(result.perSkill[1]?.avg).toBeGreaterThan(result.perSkill[0]?.avg ?? 0)
     expect(result.perSkill[2]?.avg).toBeGreaterThan(result.perSkill[1]?.avg ?? 0)
+  })
+
+  it('scopes attached feature condition effects to that feature node only', () => {
+    const runtime = makeResRuntime(seed)
+    runtime.rotation.personalItems = [
+      {
+        id: 'feature-before-attached',
+        type: 'feature',
+        featureId: 'damage:test-skill',
+        multiplier: 1,
+        enabled: true,
+      },
+      {
+        id: 'feature-with-attached',
+        type: 'feature',
+        featureId: 'damage:test-skill',
+        multiplier: 1,
+        enabled: true,
+        changes: [{
+          type: 'set',
+          path: 'runtime.rotation.formula.flatDmg',
+          value: 100,
+        }],
+      },
+      {
+        id: 'feature-after-attached',
+        type: 'feature',
+        featureId: 'damage:test-skill',
+        multiplier: 1,
+        enabled: true,
+      },
+    ]
+
+    const result = runResSmlt(runtime, seed, makeEnemy())
+    const before = result.perSkill.find((entry) => entry.nodeId === 'feature-before-attached')?.avg ?? 0
+    const attached = result.perSkill.find((entry) => entry.nodeId === 'feature-with-attached')?.avg ?? 0
+    const after = result.perSkill.find((entry) => entry.nodeId === 'feature-after-attached')?.avg ?? 0
+
+    expect(result.perSkill).toHaveLength(3)
+    expect(attached).toBeGreaterThan(before)
+    expect(after).toBeCloseTo(before)
+  })
+
+  it('scales uptime setup condition effects for body feature rows', () => {
+    // uptime setup is an averaged precondition: numeric `set` changes scale the
+    // delta from the current value before body features run, rather than
+    // multiplying the body damage result itself.
+    const runtime = makeResRuntime(seed)
+    runtime.rotation.personalItems = [
+      {
+        id: 'set-base-flat-dmg',
+        type: 'condition',
+        changes: [{
+          type: 'set',
+          path: 'runtime.rotation.formula.flatDmg',
+          value: 20,
+        }],
+      },
+      {
+        id: 'feature-before-uptime',
+        type: 'feature',
+        featureId: 'damage:test-skill',
+        multiplier: 1,
+        enabled: true,
+      },
+      {
+        id: 'uptime-window',
+        type: 'uptime',
+        ratio: 0.5,
+        setup: [
+          {
+            id: 'set-uptime-flat-dmg',
+            type: 'condition',
+            changes: [{
+              type: 'set',
+              path: 'runtime.rotation.formula.flatDmg',
+              value: 100,
+            }],
+          },
+        ],
+        items: [
+          {
+            id: 'feature-during-uptime',
+            type: 'feature',
+            featureId: 'damage:test-skill',
+            multiplier: 1,
+            enabled: true,
+          },
+        ],
+      },
+      {
+        id: 'feature-after-uptime',
+        type: 'feature',
+        featureId: 'damage:test-skill',
+        multiplier: 1,
+        enabled: true,
+      },
+    ]
+    const fullRuntime = makeResRuntime(seed)
+    fullRuntime.rotation.personalItems = [
+      {
+        id: 'set-full-flat-dmg',
+        type: 'condition',
+        changes: [{
+          type: 'set',
+          path: 'runtime.rotation.formula.flatDmg',
+          value: 100,
+        }],
+      },
+      {
+        id: 'feature-full',
+        type: 'feature',
+        featureId: 'damage:test-skill',
+        multiplier: 1,
+        enabled: true,
+      },
+    ]
+
+    const result = runResSmlt(runtime, seed, makeEnemy())
+    const fullResult = runResSmlt(fullRuntime, seed, makeEnemy())
+    const before = result.perSkill.find((entry) => entry.nodeId === 'feature-before-uptime')?.avg ?? 0
+    const during = result.perSkill.find((entry) => entry.nodeId === 'feature-during-uptime')?.avg ?? 0
+    const after = result.perSkill.find((entry) => entry.nodeId === 'feature-after-uptime')?.avg ?? 0
+    const full = fullResult.perSkill.find((entry) => entry.nodeId === 'feature-full')?.avg ?? 0
+
+    expect(after).toBeCloseTo(before)
+    expect(during).toBeCloseTo(before + (full - before) * 0.5)
+  })
+
+  it('runs uptime body nodes at zero uptime without setup condition effects', () => {
+    const runtime = makeResRuntime(seed)
+    runtime.rotation.personalItems = [
+      {
+        id: 'feature-before-uptime',
+        type: 'feature',
+        featureId: 'damage:test-skill',
+        multiplier: 1,
+        enabled: true,
+      },
+      {
+        id: 'uptime-window',
+        type: 'uptime',
+        ratio: 0,
+        setup: [
+          {
+            id: 'set-uptime-flat-dmg',
+            type: 'condition',
+            changes: [{
+              type: 'set',
+              path: 'runtime.rotation.formula.flatDmg',
+              value: 100,
+            }],
+          },
+        ],
+        items: [
+          {
+            id: 'feature-during-uptime',
+            type: 'feature',
+            featureId: 'damage:test-skill',
+            multiplier: 1,
+            enabled: true,
+          },
+        ],
+      },
+    ]
+
+    const result = runResSmlt(runtime, seed, makeEnemy())
+    const before = result.perSkill.find((entry) => entry.nodeId === 'feature-before-uptime')?.avg ?? 0
+    const during = result.perSkill.find((entry) => entry.nodeId === 'feature-during-uptime')?.avg ?? 0
+
+    expect(result.perSkill).toHaveLength(2)
+    expect(during).toBeCloseTo(before)
+  })
+
+  it('scales data effects gated by uptime setup marker conditions', () => {
+    const mornye = getResSeedBy('1209')
+    expect(mornye).toBeTruthy()
+    if (!mornye) {
+      return
+    }
+
+    const makeMornyeRuntime = (ratio: number | null) => {
+      const runtime = makeResRuntime(mornye)
+      runtime.state.manualBuffs.quick.energyRegen = 160
+      runtime.rotation.personalItems = ratio == null
+        ? [
+          {
+            id: 'marker-body',
+            type: 'feature',
+            featureId: 'damage:1209001',
+            multiplier: 1,
+            enabled: true,
+          },
+        ]
+        : [
+          {
+            id: 'marker-uptime',
+            type: 'uptime',
+            ratio,
+            setup: [
+              {
+                id: 'interfered-marker',
+                type: 'condition',
+                changes: [{
+                  type: 'toggle',
+                  path: 'runtime.state.controls.resonator:1209:interfered_marker:active',
+                  value: true,
+                  resonatorId: '1209',
+                }],
+              },
+            ],
+            items: [
+              {
+                id: 'marker-body',
+                type: 'feature',
+                featureId: 'damage:1209001',
+                multiplier: 1,
+                enabled: true,
+              },
+            ],
+          },
+        ]
+
+      return runtime
+    }
+
+    const base = runResSmlt(makeMornyeRuntime(null), mornye, makeEnemy()).perSkill[0]?.avg ?? 0
+    const full = runResSmlt(makeMornyeRuntime(1), mornye, makeEnemy()).perSkill[0]?.avg ?? 0
+    const partial = runResSmlt(makeMornyeRuntime(0.99), mornye, makeEnemy()).perSkill[0]?.avg ?? 0
+
+    expect(full).toBeGreaterThan(base)
+    expect(partial).toBeGreaterThan(base)
+    expect(partial).toBeCloseTo(base + (full - base) * 0.99)
+  })
+
+  it('scales table-based stack effects from uptime setup conditions', () => {
+    const iuno = getResSeedBy('1410')
+    expect(iuno).toBeTruthy()
+    if (!iuno) {
+      return
+    }
+
+    const makeIunoRuntime = (ratio: number | null) => {
+      const runtime = makeResRuntime(iuno)
+      runtime.rotation.personalItems = ratio == null
+        ? [
+          {
+            id: 'wan-light-body',
+            type: 'feature',
+            featureId: 'damage:1410001',
+            multiplier: 1,
+            enabled: true,
+          },
+        ]
+        : [
+          {
+            id: 'wan-light-uptime',
+            type: 'uptime',
+            ratio,
+            setup: [
+              {
+                id: 'wan-light-stacks',
+                type: 'condition',
+                changes: [{
+                  type: 'set',
+                  path: 'runtime.state.controls.resonator:1410:wan_light:stacks',
+                  value: 10,
+                  resonatorId: '1410',
+                }],
+              },
+            ],
+            items: [
+              {
+                id: 'wan-light-body',
+                type: 'feature',
+                featureId: 'damage:1410001',
+                multiplier: 1,
+                enabled: true,
+              },
+            ],
+          },
+        ]
+
+      return runtime
+    }
+
+    const base = runResSmlt(makeIunoRuntime(null), iuno, makeEnemy()).perSkill[0]?.avg ?? 0
+    const full = runResSmlt(makeIunoRuntime(1), iuno, makeEnemy()).perSkill[0]?.avg ?? 0
+    const partial = runResSmlt(makeIunoRuntime(0.59), iuno, makeEnemy()).perSkill[0]?.avg ?? 0
+
+    expect(full).toBeGreaterThan(base)
+    expect(partial).toBeGreaterThan(base)
+    expect(partial).toBeCloseTo(base + (full - base) * 0.59)
   })
 
   it('runs loop segments and tags loop totals by loop id', () => {
@@ -792,6 +1086,80 @@ describe('rotation execution invariants', () => {
     const result = runResSmlt(runtime, conditionalSeed, makeEnemy())
 
     expect(result.perSkill).toHaveLength(1)
+    expect(result.perSkill[0]?.avg).toBeGreaterThan(0)
+  })
+
+  it('persists uptime body condition changes for following loop entries', () => {
+    const conditionalSeed: ResSeed = {
+      ...seed,
+      features: (seed.features ?? []).map((feature) =>
+        feature.id === 'damage:test-skill'
+          ? {
+              ...feature,
+              condition: {
+                type: 'gte' as const,
+                path: 'enemy.status.tuneStrain',
+                value: 4,
+              },
+            }
+          : feature,
+      ),
+    }
+
+    const runtime = makeResRuntime(conditionalSeed)
+    runtime.rotation.personalItems = [
+      {
+        id: 'loop-start',
+        type: 'loop',
+        kind: 'start',
+        loopId: 'loop-a',
+        runs: 2,
+      },
+      {
+        id: 'uptime-window',
+        type: 'uptime',
+        ratio: 1,
+        items: [
+          {
+            id: 'set-tune-strain-in-body',
+            type: 'condition',
+            changes: [
+              {
+                type: 'set',
+                path: 'enemy.status.tuneStrain',
+                value: 4,
+              },
+            ],
+          },
+        ],
+      },
+      {
+        id: 'feature-after-uptime',
+        type: 'feature',
+        featureId: 'damage:test-skill',
+        multiplier: 1,
+        enabled: true,
+        when: {
+          loops: [
+            {
+              loopId: 'loop-a',
+              runs: [2],
+            },
+          ],
+        },
+      },
+      {
+        id: 'loop-end',
+        type: 'loop',
+        kind: 'end',
+        loopId: 'loop-a',
+      },
+    ]
+
+    const result = runResSmlt(runtime, conditionalSeed, makeEnemy())
+
+    expect(result.perSkill).toHaveLength(1)
+    expect(result.perSkill[0]?.nodeId).toBe('feature-after-uptime')
     expect(result.perSkill[0]?.avg).toBeGreaterThan(0)
   })
 })

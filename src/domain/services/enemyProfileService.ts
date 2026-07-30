@@ -16,7 +16,6 @@ import {
   rmTwrOfDvrsR,
 } from '@/domain/entities/enemy'
 
-// clamp a number into a bounded range
 function clamp(value: number, min: number, max: number): number {
   return Math.max(min, Math.min(max, value))
 }
@@ -28,22 +27,18 @@ export interface EnemyResistR {
   value: number
 }
 
-// check whether an enemy profile is custom
 export function isCustEnemyP(profile: EnemyProfile): boolean {
   return profile.source === 'custom'
 }
 
-// read tune strain from an enemy profile with a safe fallback
 export function getEnemyTune(profile: EnemyProfile): number {
   return profile.status?.tuneStrain ?? 0
 }
 
-// resolve a valid enemy class from a profile
 export function getRslvEnemy(profile: EnemyProfile): EnemyClassId {
   return isEnemyClssI(profile.class) ? profile.class : 1
 }
 
-// build display rows for enemy resistances
 export function getEnemyReys(
     profile: EnemyProfile,
     elemPtns: EnemyElemId[],
@@ -56,7 +51,8 @@ export function getEnemyReys(
   }))
 }
 
-// remap custom enemy resistances when toggling tower mode
+// Custom profiles store their own resistance table, so tower mode transforms
+// those values instead of replacing them from a catalog enemy.
 export function rmpCustEnemy(profile: EnemyProfile, nextToa: boolean): EnemyProfile['res'] {
   if (profile.toa === nextToa) {
     return profile.res
@@ -67,7 +63,6 @@ export function rmpCustEnemy(profile: EnemyProfile, nextToa: boolean): EnemyProf
       : rmTwrOfDvrsR(profile.res)
 }
 
-// select a catalog enemy while preserving useful current profile context
 export function selCatEnemyP(
     curProf: EnemyProfile,
     selEnemy: EnemyCatEnt,
@@ -80,7 +75,8 @@ export function selCatEnemyP(
   })
 }
 
-// select a preset enemy profile while preserving current tune strain
+// Presets replace the enemy template but keep Tune Strain as encounter state
+// rather than preset-authored data.
 export function selEnemyPrst(profile: EnemyProfile, preset: EnemyPrstDef): EnemyProfile {
   return {
     ...preset.profile,
@@ -91,7 +87,6 @@ export function selEnemyPrst(profile: EnemyProfile, preset: EnemyPrstDef): Enemy
   }
 }
 
-// toggle tower mode for the current enemy profile
 export function tglEnemyTwrM(
     profile: EnemyProfile,
     selEnemy: EnemyCatEnt | null,
@@ -112,7 +107,6 @@ export function tglEnemyTwrM(
   }
 }
 
-// set enemy level with bounds applied
 export function setEnemyLvl(profile: EnemyProfile, value: number): EnemyProfile {
   return {
     ...profile,
@@ -120,7 +114,6 @@ export function setEnemyLvl(profile: EnemyProfile, value: number): EnemyProfile 
   }
 }
 
-// set enemy class
 export function setEnemyClss(profile: EnemyProfile, enemyClass: EnemyClassId): EnemyProfile {
   return {
     ...profile,
@@ -128,7 +121,6 @@ export function setEnemyClss(profile: EnemyProfile, enemyClass: EnemyClassId): E
   }
 }
 
-// set one enemy resistance value with bounds applied
 export function setEnemyResi(
     profile: EnemyProfile,
     resistNdx: EnemyResistN,
@@ -143,18 +135,22 @@ export function setEnemyResi(
   }
 }
 
-// set enemy tune strain with bounds applied, preserving other state fields
+function normStack(value: number): number {
+  return Number.isFinite(value) ? Math.max(0, Math.floor(value)) : 0
+}
+
+// Enemy status contains heterogeneous condition fields; Tune Strain is the only
+// numeric stack here and must not wipe neighboring toggles/selects.
 export function setEnemyTune(profile: EnemyProfile, value: number): EnemyProfile {
   return {
     ...profile,
     status: {
       ...(profile.status ?? { tuneStrain: 0 }),
-      tuneStrain: clamp(value, 0, 10),
+      tuneStrain: normStack(value),
     },
   }
 }
 
-// read an arbitrary enemy debuff-state value (toggle/stack/select) with a safe fallback
 export function getEnemyState(
   profile: EnemyProfile,
   field: string,
@@ -162,7 +158,8 @@ export function getEnemyState(
   return profile.status?.[field]
 }
 
-// set an arbitrary enemy debuff-state value, preserving tuneStrain and other fields
+// Condition writers share the status bag with Tune Strain, so initialize the
+// base field once and preserve any previously authored state values.
 export function setEnemyState(
   profile: EnemyProfile,
   field: string,

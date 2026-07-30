@@ -326,7 +326,7 @@ export function WeaponConfig({
                   ))}
                 </div>
                 <div className="rotation-saved-filters__search">
-                  <Search size={13} className="rotation-saved-filters__search-icon" />
+                  <Search size="0.8125rem" className="rotation-saved-filters__search-icon" />
                   <input type="text" value={wpnStQuery} onChange={(event) => setWpnStQuery(event.target.value)} placeholder="Search weapons…" className="rotation-saved-filters__search-input" aria-label="Filter weapons" />
                 </div>
               </div>

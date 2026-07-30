@@ -1,6 +1,7 @@
 /*
   Author: Runor Ewhro
-  Description: Provides shared utils helpers for the rotation surface.
+  Description: Shares rotation-node menu assembly, source-state collection, and
+               display aggregation helpers used by editor and simulation views.
 */
 
 import type {
@@ -24,6 +25,7 @@ import {getMainEchoS} from "@/domain/services/runtimeSourceService.ts";
 import {countEchoSets} from "@/engine/pipeline/buildCombatContext.ts";
 import {getEchoSetDe} from "@/data/gameData/echoSets/effects.ts";
 import {negEffectsFor} from "@/domain/gameData/negativeEffects.ts";
+import { getTuneStrainMaxForTeam } from '@/domain/gameData/tuneStrain.ts'
 import {mkCondChc} from "@/modules/calculator/features/rotation/lib/conditions.tsx";
 import type {SkillAggType, SkillDef} from "@/domain/entities/stats.ts";
 import {ATTR_COLORS} from "@/modules/calculator/model/display.ts";
@@ -173,7 +175,7 @@ export function enemyChoices(runtime: ResRuntime, enemyId?: string): CondChoice[
         'tuneStrain',
         'Tune Strain',
         'enemy.status.tuneStrain',
-        10,
+        getTuneStrainMaxForTeam(runtime),
         'Set the target enemy Tune Strain stacks for following rotation actions.',
     )
     const negFfct = negEffectsFor(runtime)

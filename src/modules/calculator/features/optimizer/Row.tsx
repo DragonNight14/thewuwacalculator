@@ -1,6 +1,7 @@
 /*
   Author: Runor Ewhro
-  Description: Renders the row surface for the calculator optimizer flow.
+  Description: Converts optimizer display rows into inert/interactive result
+               rows without re-validating optimizer search output.
 */
 
 import { withDefEchoMg, withDefIconM } from '@/shared/lib/imageFallback.ts'
@@ -33,10 +34,15 @@ export interface OptDisplayRow {
   costs: number[] | null
   sets: OptDsplSetEn[]
   mainEchoIcon: string | null
-  // best weapon for this build when weapon search is active (theory mode), else
-  // null. surfaced as its own column, mirroring the main echo.
+  // Populated only by theory weapon search; null keeps ordinary echo rows on the
+  // historical display shape.
   weaponIcon: string | null
   weaponName: string | null
+  // theory builds that cannot materialize into a legal five-echo loadout (e.g.
+  // the same catalog echo lands in two slots). they still carry an abstract
+  // damage number so they render, but they have no preview and cannot be
+  // equipped, so the row is shown disabled rather than clickable.
+  invalid?: boolean
 }
 
 interface OptRowPrps {
@@ -44,7 +50,6 @@ interface OptRowPrps {
   baseDamage?: number
   base?: boolean
   rotationMode?: boolean
-  // render the weapon column (theory weapon search active)
   showWeapon?: boolean
   selected?: boolean
   onClick?: () => void
@@ -84,9 +89,12 @@ export function Row({
   selected = false,
   onClick,
 }: OptRowPrps) {
-  const { stats, costs, sets, mainEchoIcon, weaponIcon, weaponName, damage } = result
+  const { stats, costs, sets, mainEchoIcon, weaponIcon, weaponName, damage, invalid } = result
   const displayDamage = displayedDamage(damage)
   const diff = formatEfficiency(damage, baseDamage, base)
+  // an invalid build cannot be previewed or equipped, so the row is inert:
+  // no click target, no keyboard/button semantics.
+  const clickable = Boolean(onClick) && !invalid
 
   function viewSetBdgs() {
     if (!sets || sets.length === 0) return <span className="empty-set">…</span>
@@ -128,10 +136,10 @@ export function Row({
 
   return (
     <div
-      className={`opt-result-row${selected ? ' is-selected' : ''}${base ? ' is-base' : ''}`}
-      onClick={onClick}
+      className={`opt-result-row${selected ? ' is-selected' : ''}${base ? ' is-base' : ''}${invalid ? ' is-invalid' : ''}`}
+      onClick={clickable ? onClick : undefined}
       onKeyDown={(event) => {
-        if (!onClick) {
+        if (!clickable || !onClick) {
           return
         }
         if (event.key === 'Enter' || event.key === ' ') {
@@ -139,8 +147,10 @@ export function Row({
           onClick()
         }
       }}
-      role={onClick ? 'button' : undefined}
-      tabIndex={onClick ? 0 : undefined}
+      role={clickable ? 'button' : undefined}
+      tabIndex={clickable ? 0 : undefined}
+      aria-disabled={invalid ? true : undefined}
+      title={invalid ? 'Invalid build: cannot be equipped' : undefined}
     >
       <div className="opt-result-row__col opt-result-row__col--sets">{viewSetBdgs()}</div>
       <div className="opt-result-row__col opt-result-row__col--echo">

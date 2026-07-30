@@ -1,9 +1,10 @@
 /*
   Author: Runor Ewhro
-  Description: renders the pane surface for the calculator suggesstions flow.
+  Description: Coordinates suggestion runs, target routing, result selection,
+               and preview materialization across main-stat, set, weapon, and random modes.
 */
 
-import { cloneElement, isValidElement as isVldElem, useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { cloneElement, isValidElement as isVldElem, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import type { CSSProperties as CssProps, HTMLAttributes as HtmlAttrs } from 'react'
 import type { EnemyProfile, PickFreqWeapon } from '@/domain/entities/appState.ts'
 import type { RandGnrtSets, RandGnrtSetP, WeaponPlanSet } from '@/domain/entities/suggestions.ts'
@@ -17,7 +18,7 @@ import { selActTgtSlc } from '@/domain/state/selectors.ts'
 import { initWpnStts } from '@/domain/state/sourceStateInit.ts'
 import { useAppStore } from '@/domain/state/store.ts'
 import { ECHO_MAIN_STATS, ECHO_SIDE_STATS } from '@/data/gameData/catalog/echoStats.ts'
-import { getSntSetIco } from '@/data/gameData/catalog/sonataSets.ts'
+import { getSntSetClr, getSntSetIco, getSntSetNam } from '@/data/gameData/catalog/sonataSets.ts'
 import { ECHO_SET_DEFS } from '@/data/gameData/echoSets/effects.ts'
 import { applySetPlan, mkEchoMainSt } from '@/engine/suggestions/mutate.ts'
 import { applyMainSta } from '@/engine/suggestions/mainStat-suggestion/utils.ts'
@@ -31,6 +32,8 @@ import {
   mkPrepWpnSu,
   mkSuggVltnCt,
   evalSuggChs,
+  evalSuggChsW,
+  mkNeutralSuggMainEc,
 } from '@/engine/suggestions/shared.ts'
 import { calcSubPrio, type SubstatEntry } from '@/engine/suggestions/substat-priority/compute.ts'
 import { calcSubBench, type SubstatBenchmark } from '@/data/scoring/substatBenchmark.ts'
@@ -50,18 +53,14 @@ import {
   DEFWPNSETS,
   DEFAULT_SUGG,
   ROT_TGT_VL,
-  mkCostSig,
   mkEchoFullSi,
   mkGrpdSbst,
-  costSig,
   recipeSig,
   randomSig,
   wpnSig,
   setsSig,
   inputSig,
   percentDiff,
-  formatDamage,
-  getDiffArrow,
   getDiffLabel,
   getDiffTone,
   getRandSetCn,
@@ -75,7 +74,7 @@ import {
 import { getQppdEchoC } from '@/modules/calculator/features/echoes/lib/echoes.ts'
 import { canMainEchoFitSetPlan as canMainFitSet } from '@/modules/calculator/features/echoes/lib/quickSetup.ts'
 import { WPNTYPETOKEY } from '@/modules/calculator/features/resonator/lib/resonator.ts'
-import { resPssvPrms, weaponStatsAt, withDefWpnMg } from '@/modules/calculator/features/weapons/lib/weapon.ts'
+import { withDefWpnMg } from '@/modules/calculator/features/weapons/lib/weapon.ts'
 import { EchoPicker } from '@/modules/calculator/features/echoes/Picker.tsx'
 import { SetCond } from '@/modules/calculator/features/controls/SetConditional.tsx'
 import { useAppModal } from '@/shared/ui/useAppModal.ts'
@@ -88,10 +87,23 @@ import {
   getBuildBenchmarkBadgeStyle as getBenchBadgeStyle,
 } from '@/modules/calculator/model/buildBenchmarkDisplay.ts'
 import { withDefEchoMg, withDefIconM } from '@/shared/lib/imageFallback.ts'
+import { statIconSrc } from '@/modules/calculator/features/benchmark/ui.tsx'
 import { ContextTrigger } from '@/shared/ui/CtxTrigger.tsx'
 import { EchoGrid, mkEchoGridTm } from '@/shared/ui/EchoGrid.tsx'
-import { SuggsMdl } from '@/modules/calculator/features/suggesstions/Parts.tsx'
+import {
+  ResultBlock,
+  SgcBtn,
+  SpxRank,
+  SpxResult,
+  StatTray,
+  SubStrip,
+  SuggEmpty,
+  SuggsMdl,
+  SuggToolbar,
+  selectableProps,
+} from '@/modules/calculator/features/suggesstions/Parts.tsx'
 import { WeaponConfig } from '@/modules/calculator/features/suggesstions/WeaponConfig.tsx'
+import { WeaponInspect } from '@/modules/calculator/features/suggesstions/WeaponInspect.tsx'
 import {
   targetOpts,
   targetGroups,
@@ -101,9 +113,8 @@ import { runCchdSuggJ } from '@/modules/calculator/features/suggesstions/lib/run
 import { useTstStr } from '@/shared/util/toastStore.ts'
 import { useEchoSrfcM } from '@/modules/calculator/features/echoes/lib/useEchoSurfaceMenu.tsx'
 import { qpEchoAtSlot } from '@/modules/calculator/features/echoes/lib/equip.ts'
-import { Copy, Minus, Plus, TriangleAlert } from 'lucide-react'
+import { Check, Copy, Minus, Plus, RefreshCw, RotateCcw, Search, SlidersHorizontal, TriangleAlert } from 'lucide-react'
 import { useSel } from '@/modules/calculator/lib/sel.tsx'
-import AppLdrVrly from "@/shared/ui/AppLoaderOverlay.tsx";
 import { RichDscr } from '@/shared/ui/RichDescription.tsx'
 
 interface CalcSuggsPan {
@@ -116,6 +127,21 @@ interface CalcSuggsPan {
 interface WpnCard {
   id: string
   plans: WeaponEntry[]
+}
+
+function getSetPlanDisplay(plan: SetPlanSuggest) {
+  return plan.displayPlan?.length
+    ? plan.displayPlan
+    : plan.setPlan.map((entry) => ({ setIds: [entry.setId], pieces: entry.pieces }))
+}
+
+// Stat icons are masks, not images, so inherited row color can drive the fill
+// without each stat carrying its own presentation token.
+function statIconStyle(key: string): CssProps | undefined {
+  const src = statIconSrc(key)
+  return src
+    ? ({ WebkitMaskImage: `url("${src}")`, maskImage: `url("${src}")` } as CssProps)
+    : undefined
 }
 
 const SUGG_RERUN_MS = 300
@@ -245,8 +271,6 @@ export function Suggestions({
       },
     }))
   }, [updActResSug])
-
-
 
   const mutableTargetOptions = useMemo<SuggTgtPtn[]>(
     () => targetOpts(runtime.id, simulation),
@@ -428,8 +452,24 @@ export function Suggestions({
       return 0
     }
 
-    return evalSuggChs(mainSuggVltnCtx, runtime.build.echoes)
+    return evalSuggChsW(
+      mainSuggVltnCtx,
+      runtime.build.echoes,
+      mkNeutralSuggMainEc(runtime.build.echoes),
+    )
   }, [mainSuggVltnCtx, runtime.build.echoes])
+
+  const setPlanBaseDamage = useMemo(() => {
+    if (!suggVltnCtx) {
+      return 0
+    }
+
+    return evalSuggChsW(
+      suggVltnCtx,
+      runtime.build.echoes,
+      mkNeutralSuggMainEc(runtime.build.echoes),
+    )
+  }, [runtime.build.echoes, suggVltnCtx])
 
   const fixedBaseDamage = useMemo(() => {
     if (!fixedSuggVltnCtx) {
@@ -441,7 +481,9 @@ export function Suggestions({
 
   const baseDamage = viewMode === 'mainStats'
     ? mainBaseDamage
-    : usesFixedTargets ? fixedBaseDamage : mutableBaseDamage
+    : viewMode === 'setPlans'
+      ? setPlanBaseDamage
+      : usesFixedTargets ? fixedBaseDamage : mutableBaseDamage
 
   const substatRows = useMemo<SubstatEntry[]>(() => {
     // substat priority is cheap (~30 evals) so it runs inline against the shared
@@ -971,6 +1013,36 @@ export function Suggestions({
     [runtime.build.echoes, selMainStatP],
   )
   const selSetPlan = setPlanRslt[selSetPlanNd] ?? null
+  // Names are fit-tested per row so one long set name does not force every plan
+  // to drop labels.
+  const setPlanListRef = useRef<HTMLDivElement | null>(null)
+  useLayoutEffect(() => {
+    const list = setPlanListRef.current
+    if (!list) {
+      return
+    }
+    const measure = () => {
+      const trays = Array.from(list.querySelectorAll<HTMLElement>('.spx-trays'))
+      list.classList.add('spx-measuring')
+      const fits = trays.map((tray) => tray.scrollWidth <= tray.clientWidth + 0.5)
+      list.classList.remove('spx-measuring')
+      trays.forEach((tray, index) => tray.classList.toggle('spx-trays--named', fits[index]))
+    }
+    measure()
+    // Late font loads can change label widths after the initial layout pass.
+    document.fonts?.ready.then(measure).catch(() => {})
+    let lastWidth = -1
+    const observer = new ResizeObserver((entries) => {
+      const width = entries[0]?.contentRect.width ?? 0
+      if (Math.abs(width - lastWidth) < 0.5) {
+        return
+      }
+      lastWidth = width
+      measure()
+    })
+    observer.observe(list)
+    return () => observer.disconnect()
+  }, [setPlanRslt, viewMode])
   const selSetPlanCh = useMemo(
     () => selSetPlan
       ? applySetPlan(selSetPlan.setPlan, runtime.build.echoes)
@@ -993,6 +1065,12 @@ export function Suggestions({
   }, [wpnRslt])
   const selWpnCard = wpnCards[selWpnNdx] ?? null
   const selWpnPlan = selWpnCard?.plans[0] ?? null
+  // Comparison bars share one local maximum so default/max variants stay visually
+  // comparable within the same weapon result set.
+  const maxWpnDmg = useMemo(
+    () => wpnCards.reduce((max, card) => card.plans.reduce((m, p) => Math.max(m, p.damage), max), 0),
+    [wpnCards],
+  )
   const selRandPlan = randRslt[selRandNdx] ?? null
   const nspcChs = useMemo(
     // the inspect modal always reads from the currently selected tab so one selection surface can serve all suggestion
@@ -1011,13 +1089,11 @@ export function Suggestions({
   const nspcGridTms = useMemo(() => mkEchoGridTm({
     echoes: nspcChs,
   }), [nspcChs])
-  const enemyTuneStrain = useAppStore((state) => state.calculator.session.enemyProfile.status?.tuneStrain ?? 0)
   const { score: randomBuildScore } = useBenchPreview({
     runtime: viewMode === 'random' && selRandPlan ? runtime : null,
     echoes: selRandPlan?.echoes ?? [],
     runtimesById: partRntmById,
     targetSelections: selTrgtByOwn,
-    tuneStrain: enemyTuneStrain,
   })
   const nspcSelTms = useMemo(
     // ids include the rendered index because suggested echoes can legitimately reuse the same uid across empty or
@@ -1034,7 +1110,7 @@ export function Suggestions({
     id: 'suggestions:copy',
     key: 'copy' as const,
     needsSel: true,
-    icon: <Copy size={14} />,
+    icon: <Copy size="1em" />,
     label: ({ count }: { count: number }) => `Copy (${count})`,
     title: 'Copy selected echoes (Ctrl/Cmd+C)',
     run: async ({ vals }: { vals: EchoInstance[] }) => {
@@ -1130,6 +1206,18 @@ export function Suggestions({
     updRandSetPr((preferences) => preferences.filter((entry) => entry.setId !== setId))
   }, [updRandSetPr])
 
+  const targetSelect = (
+    <div className="sgc__target">
+      <LiquidSelect
+        value={selTgtVl}
+        options={targetOptions}
+        groups={targetSkillGroups}
+        onChange={(value) => onTgtChng(String(value))}
+        placeholder="Target Skill"
+      />
+    </div>
+  )
+
   return (
     <div className="suggestions-pane">
       <div className="echoes-pane-header suggestions-pane-header">
@@ -1190,107 +1278,57 @@ export function Suggestions({
       {viewMode === 'mainStats' && (
         <div className="suggestions-list main-stats">
           {rnnnMainStat && null}
-          <div className="pane-section suggestions-controls rotation-pane-controls">
-            <div className="rotation-toolbar">
-              <div className="rotation-toolbar-group">
-                <div className="rotation-toolbar-field ui-inline-field ui-inline-field--wide">
-                  <LiquidSelect
-                    value={selTgtVl}
-                    options={targetOptions}
-                    groups={targetSkillGroups}
-                    onChange={(value) => onTgtChng(String(value))}
-                    placeholder="Target Skill"
-                  />
-                </div>
-              </div>
-              <div className="rotation-toolbar-group">
-                <button
-                  type="button"
-                  className="rotation-button"
-                  onClick={() => selMainStatP && applyEchoes(selMainStatC)}
-                  disabled={!selMainStatP}
-                >
-                  Apply
-                </button>
-                <button
-                  type="button"
-                  className="rotation-button"
-                  onClick={inspectModal.show}
-                  disabled={!selMainStatP}
-                >
-                  Inspect
-                </button>
-                <button
-                  type="button"
-                  className="rotation-button clear"
-                  onClick={() => setSelMainSt(0)}
-                >
-                  Reset Selection
-                </button>
-              </div>
-            </div>
-          </div>
+          <SuggToolbar target={targetSelect}>
+            <SgcBtn variant="ghost" icon={Search} label="Inspect" onClick={inspectModal.show} disabled={!selMainStatP} />
+            <SgcBtn variant="primary" icon={Check} label="Apply" onClick={() => selMainStatP && applyEchoes(selMainStatC)} disabled={!selMainStatP} />
+            <SgcBtn variant="danger" icon={RotateCcw} label="Reset" onClick={() => setSelMainSt(0)} />
+          </SuggToolbar>
 
           {mainStatRslt.length === 0 ? (
-            <div className="suggestions-empty-state">
-              {rnnnMainStat ?
-                <AppLdrVrly text="Generating Main Stat suggestions…"/> :
-                "Select a target above to see main stat suggestions... Make sure you've got echoes equipped~!"
-              }
-            </div>
+            <SuggEmpty
+              running={rnnnMainStat}
+              loadingText="Generating Main Stat suggestions…"
+              idleText="Select a target above to see main stat suggestions... Make sure you've got echoes equipped~!"
+            />
           ) : (
-            mainStatRslt.map((plan, index) => {
-              const diff = percentDiff(plan.damage, baseDamage)
-              const isCurrent = recipeSig(plan.recipes) === curMainStatS
+            <ResultBlock name="Main stats" count={mainStatRslt.length}>
+              <div className="spx-list" style={{ gap: '.5rem'}}>
+                {mainStatRslt.map((plan, index) => {
+                  const isCurrent = recipeSig(plan.recipes) === curMainStatS
 
-              return (
-                <div
-                  key={`main-${index}`}
-                  className={`main-stat-card${selMainStatN === index ? ' selected' : ''}`}
-                  onClick={() => setSelMainSt(index)}
-                >
-                  <div className="main-stat-rows">
-                    <div className="main-stat-header">
-                      <div className="main-stat-title-row">
-                        <span className="main-stat-rank">#{index + 1}</span>
-                        <div className="main-stat-details-container">
-                          <div className="cost-signature">{costSig(plan.recipes)}</div>
-                          <div className="main-stat-details">
-                            <div className="set-plan-damage-container" style={{ marginLeft: 'unset' }}>
-                              <span className="set-plan-damage-main avg">{formatDamage(plan.damage)}</span>
-                            </div>
-                            <span className="main-stat-row-echo">
-                              <span className={`set-plan-damage-diff ${getDiffTone(diff)}`}>
-                                {getDiffLabel(diff, isCurrent)}
-                                {getDiffArrow(diff)}
-                              </span>
-                            </span>
-                          </div>
-                        </div>
+                  return (
+                    <div
+                      key={`main-${index}`}
+                      className={`spx-row${selMainStatN === index ? ' is-selected' : ''}${isCurrent ? ' spx-row--equipped' : ''}`}
+                      style={{ '--row': index } as CssProps}
+                      data-mode={viewMode}
+                      {...selectableProps(selMainStatN === index, () => setSelMainSt(index))}
+                    >
+                      <SpxRank n={index + 1} />
+                      <div className="spx-trays">
+                        {sortRecipes(plan.recipes).map((recipe, recipeIndex) => {
+                          const value = formatStatKeyValue(recipe.primaryKey, ECHO_MAIN_STATS[recipe.cost]?.[recipe.primaryKey] ?? 0)
+                          const side = ECHO_SIDE_STATS[recipe.cost]
+                          const sideValue = side ? formatStatKeyValue(side.key, side.value) : null
+                          return (
+                            <StatTray
+                              key={`${recipe.cost}-${recipe.primaryKey}-${recipeIndex}`}
+                              cost={recipe.cost}
+                              title={`Cost ${recipe.cost} · ${formatStatKeyLabel(recipe.primaryKey)} ${value}${side ? ` + ${formatStatKeyLabel(side.key)} ${sideValue}` : ''}`}
+                              primaryVal={value}
+                              primaryIcon={statIconStyle(recipe.primaryKey)}
+                              subVal={sideValue}
+                              subIcon={side ? statIconStyle(side.key) : undefined}
+                            />
+                          )
+                        })}
                       </div>
+                      <SpxResult value={formatCompactNum(plan.damage)} isCurrent={isCurrent} diff={percentDiff(plan.damage, baseDamage)} />
                     </div>
-
-                    {sortRecipes(plan.recipes).map((recipe, recipeIndex) => (
-                      <div key={`${recipe.cost}-${recipe.primaryKey}-${recipeIndex}`} className="echo-buff main-stat-row">
-                        <div className="main-stat-row-left">
-                          <span className="main-stat-row-slot">Cost {recipe.cost}</span>
-                        </div>
-                        <div className="main-stat-row-pills">
-                          <span className="echo-buff main-stat-pill">
-                            <span className="main-stat-pill-stat">{formatStatKeyLabel(recipe.primaryKey)}</span>
-                            <span className="main-stat-pill-value highlight">{formatStatKeyValue(recipe.primaryKey, ECHO_MAIN_STATS[recipe.cost]?.[recipe.primaryKey] ?? 0)}</span>
-                          </span>
-                          <span className="echo-buff main-stat-pill">
-                            <span className="main-stat-pill-stat">{formatStatKeyLabel(ECHO_SIDE_STATS[recipe.cost]?.key ?? 'atkFlat')}</span>
-                            <span className="main-stat-pill-value highlight">{formatStatKeyValue(ECHO_SIDE_STATS[recipe.cost]?.key ?? 'atkFlat', ECHO_SIDE_STATS[recipe.cost]?.value ?? 0)}</span>
-                          </span>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )
-            })
+                  )
+                })}
+              </div>
+            </ResultBlock>
           )}
         </div>
       )}
@@ -1298,411 +1336,296 @@ export function Suggestions({
       {viewMode === 'setPlans' && (
         <div className="suggestions-list set-plan-ssg">
           {rnnnSetPlns && null}
-          <div className="pane-section suggestions-controls rotation-pane-controls">
-            <div className="rotation-toolbar">
-              <div className="rotation-toolbar-group">
-                <div className="rotation-toolbar-field ui-inline-field ui-inline-field--wide">
-                  <LiquidSelect
-                    value={selTgtVl}
-                    options={targetOptions}
-                    groups={targetSkillGroups}
-                    onChange={(value) => onTgtChng(String(value))}
-                    placeholder="Target Skill"
-                  />
-                </div>
-              </div>
-              <div className="rotation-toolbar-group">
-                <button type="button" className="rotation-button" onClick={setCnfgMdl.show}>
-                  Config
-                </button>
-                <button
-                  type="button"
-                  className="rotation-button"
-                  onClick={() => selSetPlan && applyEchoes(selSetPlanCh)}
-                  disabled={!selSetPlan}
-                >
-                  Apply
-                </button>
-                <button
-                  type="button"
-                  className="rotation-button"
-                  onClick={inspectModal.show}
-                  disabled={!selSetPlan}
-                >
-                  Inspect
-                </button>
-                <button
-                  type="button"
-                  className="rotation-button clear"
-                  onClick={() => setSelSetPla(0)}
-                >
-                  Reset Selection
-                </button>
-              </div>
-            </div>
-          </div>
+          <SuggToolbar target={targetSelect}>
+            <SgcBtn variant="ghost" icon={SlidersHorizontal} label="Config" onClick={setCnfgMdl.show} />
+            <SgcBtn variant="ghost" icon={Search} label="Inspect" onClick={inspectModal.show} disabled={!selSetPlan} />
+            <SgcBtn variant="primary" icon={Check} label="Apply" onClick={() => selSetPlan && applyEchoes(selSetPlanCh)} disabled={!selSetPlan} />
+            <SgcBtn variant="danger" icon={RotateCcw} label="Reset" onClick={() => setSelSetPla(0)} />
+          </SuggToolbar>
 
           {setPlanRslt.length === 0 ? (
-            <div className="suggestions-empty-state">
-              {rnnnSetPlns ?
-                <AppLdrVrly text="Generating Sonata set suggestions…"/> :
-                "Select a target above to see Sonata set suggestions... Make sure you've got echoes equipped~!"
-              }
-            </div>
+            <SuggEmpty
+              running={rnnnSetPlns}
+              loadingText="Generating Sonata set suggestions…"
+              idleText="Select a target above to see Sonata set suggestions... Make sure you've got echoes equipped~!"
+            />
           ) : (
-            setPlanRslt.map((plan, index) => {
-              const diff = percentDiff(plan.avgDamage, baseDamage)
-              const isCurrent = setPlnsQl(plan.setPlan, curSetPlan)
+            <ResultBlock name="Set plan" count={setPlanRslt.length}>
+              <div className="spx-list" ref={setPlanListRef}>
+                {setPlanRslt.map((plan, index) => {
+                  const isCurrent = setPlnsQl(plan.setPlan, curSetPlan)
+                  const displayPlan = getSetPlanDisplay(plan)
 
-              return (
-                <button
-                  key={`set-${index}`}
-                  type="button"
-                  className={`set-plan-card${selSetPlanNd === index ? ' selected' : ''}`}
-                  onClick={() => setSelSetPla(index)}
-                >
-                  <span className="set-plan-rank">#{index + 1}</span>
-                  <span className="set-plan-sets">
-                    {plan.setPlan.map((entry) => {
-                      const setIcon = getSntSetIco(entry.setId)
-                      const setName = ECHO_SET_DEFS.find((set) => set.id === entry.setId)?.name ?? `Set ${entry.setId}`
-                      return (
-                        <span
-                          key={`${entry.setId}-${entry.pieces}`}
-                          className="set-plan-chip"
-                          title={`${entry.pieces}pc · ${setName}`}
-                        >
-                          {setIcon ? (
-                            <img src={setIcon} alt="" className="set-plan-chip__icon" loading="lazy" onError={withDefIconM} />
-                          ) : null}
-                          <span className="set-plan-chip__name">{setName}</span>
-                          <span className="set-plan-chip__pc">{entry.pieces}pc</span>
-                        </span>
-                      )
-                    })}
-                  </span>
-                  <span className="set-plan-damage-container">
-                    <span className="set-plan-damage-main">{formatCompactNum(plan.avgDamage)}</span>
-                    <span className={`set-plan-damage-diff ${getDiffTone(diff)}`}>
-                      {getDiffLabel(diff, isCurrent)}
-                      {getDiffArrow(diff)}
-                    </span>
-                  </span>
-                </button>
-              )
-            })
+                  return (
+                    <div
+                      key={`set-${index}`}
+                      className={`spx-row${selSetPlanNd === index ? ' is-selected' : ''}${isCurrent ? ' spx-row--equipped' : ''}`}
+                      style={{ '--row': index } as CssProps}
+                      data-mode={viewMode}
+                      {...selectableProps(selSetPlanNd === index, () => setSelSetPla(index))}
+                    >
+                      <SpxRank n={index + 1} />
+                      <div className="spx-trays">
+                        {displayPlan.map((entry, entryIndex) => {
+                          const primaryColor = getSntSetClr(entry.setIds[0])
+                          const setNames = entry.setIds.map(getSntSetNam)
+                          return (
+                            <div
+                              key={`${entry.setIds.join('-')}-${entry.pieces}-${entryIndex}`}
+                              className="spx-tray"
+                              style={primaryColor ? { '--spx-set-clr': primaryColor } as CssProps : undefined}
+                              title={`${entry.pieces}pc · ${setNames.join(' / ')}`}
+                            >
+                              <span className="spx-tray__pc">{entry.pieces}<small>pc</small></span>
+                              <span className="spx-tray__coins">
+                                {entry.setIds.map((setId) => {
+                                  const icon = getSntSetIco(setId)
+                                  return icon ? (
+                                    <img key={setId} src={icon} alt="" className="spx-tray__coin" loading="lazy" onError={withDefIconM} />
+                                  ) : null
+                                })}
+                              </span>
+
+                              <span className="spx-tray__name">{setNames[0]}</span>
+                              {entry.setIds.length > 1 ? (<span className="spx-tray__sup">{entry.setIds.length}</span>) : null}
+
+                            </div>
+                          )
+                        })}
+                      </div>
+                      <SpxResult value={formatCompactNum(plan.avgDamage)} isCurrent={isCurrent} diff={percentDiff(plan.avgDamage, baseDamage)} />
+                    </div>
+                  )
+                })}
+              </div>
+            </ResultBlock>
           )}
         </div>
       )}
 
       {viewMode === 'weapons' && (
-        <div className="suggestions-list main-stats">
+        <div className="suggestions-list main-stats" wpsgg-mode={weaponSuggests.mode}>
           {rnnnWpns && null}
-          <div className="pane-section suggestions-controls rotation-pane-controls">
-            <div className="rotation-toolbar">
-              <div className="rotation-toolbar-group">
-                <div className="rotation-toolbar-field ui-inline-field ui-inline-field--wide">
-                  <LiquidSelect
-                    value={selTgtVl}
-                    options={targetOptions}
-                    groups={targetSkillGroups}
-                    onChange={(value) => onTgtChng(String(value))}
-                    placeholder="Target Skill"
-                  />
-                </div>
-              </div>
-              <div className="rotation-toolbar-group">
-                <button type="button" className="rotation-button" onClick={wpnCnfgMdl.show}>
-                  Config
-                </button>
-                <button
-                  type="button"
-                  className="rotation-button"
-                  onClick={() => selWpnPlan && applyWeapon(selWpnPlan)}
-                  disabled={!selWpnCard}
-                >
-                  Apply
-                </button>
-                <button
-                  type="button"
-                  className="rotation-button"
-                  onClick={inspectModal.show}
-                  disabled={!selWpnCard}
-                >
-                  Inspect
-                </button>
-                <button
-                  type="button"
-                  className="rotation-button clear"
-                  onClick={() => setSelWpnNd(0)}
-                >
-                  Reset Selection
-                </button>
-              </div>
-            </div>
-          </div>
+          <SuggToolbar target={targetSelect}>
+            <SgcBtn variant="ghost" icon={SlidersHorizontal} label="Config" onClick={wpnCnfgMdl.show} />
+            <SgcBtn variant="ghost" icon={Search} label="Inspect" onClick={inspectModal.show} disabled={!selWpnCard} />
+            <SgcBtn variant="primary" icon={Check} label="Apply" onClick={() => selWpnPlan && applyWeapon(selWpnPlan)} disabled={!selWpnCard} />
+            <SgcBtn variant="danger" icon={RotateCcw} label="Reset" onClick={() => setSelWpnNd(0)} />
+          </SuggToolbar>
 
           {wpnCards.length === 0 ? (
-            <div className="suggestions-empty-state">
-              {rnnnWpns ?
-                <AppLdrVrly text="Generating weapon suggestions…"/> :
-                'Select a target above to see weapon suggestions.'
-              }
-            </div>
+            <SuggEmpty
+              running={rnnnWpns}
+              loadingText="Generating weapon suggestions…"
+              idleText="Select a target above to see weapon suggestions."
+            />
           ) : (
-            wpnCards.map((card, index) => {
-              const targetMode = wpnSets.mode === 'both' ? wpnSets.target : wpnSets.mode
-              const targetPlan = card.plans.find((p) => p.mode === targetMode) ?? card.plans[0]
-              if (!targetPlan) return null
-              const altPlan = card.plans.find((p) => p !== targetPlan) ?? null
-              const isSolo = !altPlan
-              const targetDiff = percentDiff(targetPlan.damage, baseDamage)
-              const altDiff = altPlan ? percentDiff(altPlan.damage, baseDamage) : 0
-              const isCurrent = targetPlan.weaponId === runtime.build.weapon.id
+            <ResultBlock name="Weapon suggestions" count={wpnCards.length} note="ranked by target dmg">
 
-              return (
-                <div
-                  key={`weapon-${card.id}`}
-                  className={`weapon-sugg-card${isSolo ? ' weapon-sugg-card--solo' : ' weapon-sugg-card--dual'}${selWpnNdx === index ? ' selected' : ''}`}
-                  style={rarityVars(targetPlan.rarity, false, '--weapon-rarity-tint') as CssProps}
-                  onClick={() => setSelWpnNd(index)}
-                  role="button"
-                  tabIndex={0}
-                  onKeyDown={(event) => {
-                    if (event.key === 'Enter' || event.key === ' ') {
-                      event.preventDefault()
-                      setSelWpnNd(index)
-                    }
-                  }}
-                >
-                  <div className="weapon-sugg-meta">
-                    <span className="main-stat-rank weapon-sugg-rank">#{index + 1}</span>
-                    <span className="weapon-sugg-frame">
-                      <img
-                        src={targetPlan.icon}
-                        alt={targetPlan.name}
-                        className="weapon-sugg-icon"
-                        onError={withDefWpnMg}
-                      />
-                    </span>
-                    <div className="weapon-sugg-info">
-                      <span className="weapon-sugg-name">{targetPlan.name}</span>
-                      <div className="weapon-sugg-stats">
-                        <span className="weapon-sugg-pill">
-                          <span className="weapon-sugg-pill-k">ATK</span>
-                          <span className="weapon-sugg-pill-v">{Math.round(targetPlan.baseAtk)}</span>
-                        </span>
-                        <span className="weapon-sugg-pill">
-                          <span className="weapon-sugg-pill-k">{formatStatKeyLabel(targetPlan.statKey)}</span>
-                          <span className="weapon-sugg-pill-v">{formatStatKeyValue(targetPlan.statKey, targetPlan.statValue)}</span>
-                        </span>
-                        <span className="weapon-sugg-pill weapon-sugg-pill--rank">
-                          <span className="weapon-sugg-pill-v">R{targetPlan.rank}</span>
-                        </span>
+              <div className="ws-list">
+                {wpnCards.map((card, index) => {
+                  const targetMode = wpnSets.mode === 'both' ? wpnSets.target : wpnSets.mode
+                  const targetPlan = card.plans.find((p) => p.mode === targetMode) ?? card.plans[0]
+                  if (!targetPlan) return null
+                  const altPlan = card.plans.find((p) => p !== targetPlan) ?? null
+                  const targetDiff = percentDiff(targetPlan.damage, baseDamage)
+                  const altDiff = altPlan ? percentDiff(altPlan.damage, baseDamage) : 0
+                  const isCurrent = targetPlan.weaponId === runtime.build.weapon.id
+                  const targetTone = isCurrent ? 'zero' : getDiffTone(targetDiff)
+                  const weaponType = getWpnById(targetPlan.weaponId)?.weaponType ?? 0
+                  const typeSlug = WPNTYPETOKEY[weaponType as keyof typeof WPNTYPETOKEY]
+                  const typeMask = typeSlug
+                    ? ({
+                        WebkitMaskImage: `url("/assets/game/weapons/types/${typeSlug}.webp")`,
+                        maskImage: `url("/assets/game/weapons/types/${typeSlug}.webp")`,
+                      } as CssProps)
+                    : undefined
+                  const targetPct = maxWpnDmg > 0 ? (targetPlan.damage / maxWpnDmg) * 100 : 0
+                  const altPct = altPlan && maxWpnDmg > 0 ? (altPlan.damage / maxWpnDmg) * 100 : 0
+                  const atkIconStyle = statIconStyle('atk')
+                  const subIconStyle = statIconStyle(targetPlan.statKey)
+
+                  return (
+                    <div
+                      key={`weapon-${card.id}`}
+                      className={`ws-card${selWpnNdx === index ? ' sel' : ''}`}
+                      style={{ ...(rarityVars(targetPlan.rarity, false, '--rar') ?? {}), '--row': index } as CssProps}
+                      {...selectableProps(selWpnNdx === index, () => setSelWpnNd(index))}
+                    >
+                      <div className="ws-art-slice">
+                        <img src={targetPlan.icon} alt={targetPlan.name} className="ws-art" loading="lazy" onError={withDefWpnMg} />
+                        {typeMask ? <span className="ws-wm" style={typeMask} aria-hidden="true" /> : null}
+                        <span className="ws-ref">R{targetPlan.rank}</span>
+                      </div>
+                      <span className="ws-seam" aria-hidden="true" />
+                      <div className="ws-spec">
+                        <div className="ws-info">
+                          <div className="ws-top">
+                            <span className="ws-rank">{index + 1}</span>
+                            <span className="ws-name">{targetPlan.name}</span>
+                          </div>
+                          <div className="ws-specrow">
+                            <span className="ws-stat" title={`ATK ${Math.round(targetPlan.baseAtk)}`}>
+                              {atkIconStyle ? <span className="ws-stat__ico" style={atkIconStyle} aria-hidden="true" /> : null}
+                              <b>{Math.round(targetPlan.baseAtk)}</b>
+                            </span>
+                            <span className="ws-stat" title={`${formatStatKeyLabel(targetPlan.statKey)} ${formatStatKeyValue(targetPlan.statKey, targetPlan.statValue)}`}>
+                              {subIconStyle ? <span className="ws-stat__ico" style={subIconStyle} aria-hidden="true" /> : null}
+                              <b>{formatStatKeyValue(targetPlan.statKey, targetPlan.statValue)}</b>
+                            </span>
+                          </div>
+                        </div>
+                        <div className="ws-modes">
+                          <div className={`ws-mode${altPlan ? '' : ' ws-mode--solo'}`}>
+                            <div className="ws-mode__hd">
+                              <span className="ws-mode__tag">{altPlan ? (targetPlan.mode === 'max' ? 'MAX' : 'DEF') : 'DMG'}</span>
+                              <span className={`ws-diff ${targetTone}`}>
+                                {isCurrent ? 'base' : `${targetDiff > 0 ? '+' : targetDiff < 0 ? '−' : ''}${getDiffLabel(targetDiff, false)}`}
+                              </span>
+                              <span className="ws-dmg">{formatCompactNum(targetPlan.damage)}</span>
+                            </div>
+                            <div className="ws-bar"><i style={{ width: `${targetPct}%` }} /></div>
+                            {!altPlan ? (
+                              <div className="ws-gauge" aria-hidden="true">
+                                <span className="ws-gauge__track">
+                                  <i className="ws-gauge__fill" style={{ width: `${targetPct}%` }} />
+                                </span>
+                                <span className="ws-gauge__legend">
+                                  <span className="ws-gauge__pct">{Math.round(targetPct)}%<small>of best</small></span>
+                                  <span className="ws-gauge__cap">best {formatCompactNum(maxWpnDmg)}</span>
+                                </span>
+                              </div>
+                            ) : null}
+                          </div>
+                          {altPlan ? (
+                            <div className="ws-mode">
+                              <div className="ws-mode__hd">
+                                <span className="ws-mode__tag">{altPlan.mode === 'max' ? 'MAX' : 'DEF'}</span>
+                                <span className={`ws-diff ${getDiffTone(altDiff)}`}>
+                                  {`${altDiff > 0 ? '+' : altDiff < 0 ? '−' : ''}${getDiffLabel(altDiff, false)}`}
+                                </span>
+                                <span className="ws-dmg">{formatCompactNum(altPlan.damage)}</span>
+                              </div>
+                              <div className="ws-bar"><i style={{ width: `${altPct}%` }} /></div>
+                            </div>
+                          ) : null}
+                        </div>
                       </div>
                     </div>
-                  </div>
-
-                  <div className="weapon-sugg-results">
-                    <div className="weapon-sugg-result weapon-sugg-result--target">
-                      {!isSolo ? (
-                        <span className="weapon-sugg-mode-tag">{targetPlan.mode === 'max' ? 'MAX' : 'DEF'}</span>
-                      ) : null}
-                      <span className="weapon-sugg-damage">{formatDamage(targetPlan.damage)}</span>
-                      <span className={`set-plan-damage-diff weapon-sugg-diff ${getDiffTone(targetDiff)}`}>
-                        {getDiffLabel(targetDiff, isCurrent)}
-                        {getDiffArrow(targetDiff)}
-                      </span>
-                    </div>
-                    {!isSolo && altPlan ? (
-                      <div className="weapon-sugg-result weapon-sugg-result--alt">
-                        <span className="weapon-sugg-mode-tag">{altPlan.mode === 'max' ? 'MAX' : 'DEF'}</span>
-                        <span className="weapon-sugg-damage">{formatDamage(altPlan.damage)}</span>
-                        <span className={`set-plan-damage-diff weapon-sugg-diff ${getDiffTone(altDiff)}`}>
-                          {getDiffLabel(altDiff, false)}
-                          {getDiffArrow(altDiff)}
-                        </span>
-                      </div>
-                    ) : null}
-                  </div>
-                </div>
-              )
-            })
+                  )
+                })}
+              </div>
+            </ResultBlock>
           )}
         </div>
       )}
 
       {viewMode === 'random' && (
         <div className="suggestions-list random-view">
-          <div className="pane-section suggestions-controls rotation-pane-controls">
-            <div className="rotation-toolbar">
-              <div className="rotation-toolbar-group">
-                <div className="rotation-toolbar-field ui-inline-field ui-inline-field--wide">
-                  <LiquidSelect
-                    value={selTgtVl}
-                    options={targetOptions}
-                    groups={targetSkillGroups}
-                    onChange={(value) => onTgtChng(String(value))}
-                    placeholder="Target Skill"
-                  />
-                </div>
-              </div>
-              <div className="rotation-toolbar-group">
-                <button type="button" className="rotation-button" onClick={randCnfgMdl.show}>
-                  Config
-                </button>
-                <button
-                  type="button"
-                  className="rotation-button"
-                  onClick={() => selRandPlan && applyEchoes(selRandPlan.echoes)}
-                  disabled={!selRandPlan}
-                >
-                  Apply
-                </button>
-                <button
-                  type="button"
-                  className="rotation-button"
-                  onClick={inspectModal.show}
-                  disabled={!selRandPlan}
-                >
-                  Inspect
-                </button>
-                <button type="button" className="rotation-button" onClick={() => void runRandom(true)}>
-                  {rnnnRand ? 'Running...': 'Regenerate'}
-                </button>
-                <button
-                  type="button"
-                  className="rotation-button clear"
-                  onClick={() => setSelRandNd(0)}
-                >
-                  Reset
-                </button>
-              </div>
-            </div>
-          </div>
+          <SuggToolbar target={targetSelect} dense>
+            <SgcBtn variant="ghost" icon={SlidersHorizontal} label="Config" onClick={randCnfgMdl.show} />
+            <SgcBtn variant="ghost" icon={Search} label="Inspect" onClick={inspectModal.show} disabled={!selRandPlan} />
+            <SgcBtn variant="ghost" icon={RefreshCw} label={rnnnRand ? 'Running' : 'Regenerate'} onClick={() => void runRandom(true)} disabled={rnnnRand} />
+            <SgcBtn variant="primary" icon={Check} label="Apply" onClick={() => selRandPlan && applyEchoes(selRandPlan.echoes)} disabled={!selRandPlan} />
+            <SgcBtn variant="danger" icon={RotateCcw} label="Reset" onClick={() => setSelRandNd(0)} />
+          </SuggToolbar>
 
           {(randRslt.length === 0 || rnnnRand) ? (
-            <div className="suggestions-empty-state">
-              <AppLdrVrly text="Generating random echo builds…"/>
-            </div>
+            <SuggEmpty running loadingText="Generating random echo builds…" />
           ) : (
-            randRslt.map((plan, index) => {
-              const diff = percentDiff(plan.damage, baseDamage)
-              const isCurrent = mkEchoFullSi(plan.echoes) === curEchoSig
-              const grpdSbst = mkGrpdSbst(plan.echoes).slice(0, 6)
+            <ResultBlock name="Random builds" count={randRslt.length}>
+              <div className="spx-list">
+                {randRslt.map((plan, index) => {
+                  const isCurrent = mkEchoFullSi(plan.echoes) === curEchoSig
+                  const grpdSbst = mkGrpdSbst(plan.echoes).slice(0, 6)
 
-              return (
-                <div
-                  key={`random-${index}`}
-                  className={`main-stat-card${selRandNdx === index ? ' selected' : ''}`}
-                  onClick={() => setSelRandNd(index)}
-                >
-                  <div className="main-stat-rows">
-                    <div className="main-stat-header">
-                      <div className="main-stat-title-row">
-                        <span className="main-stat-rank">#{index + 1}</span>
-                        <div className="main-stat-details-container">
-                          <div className="cost-signature">{mkCostSig(plan.echoes)}</div>
-                          <div className="main-stat-details">
-                            <div className="set-plan-damage-container" style={{ marginLeft: 'unset' }}>
-                              <span className="set-plan-damage-main avg">{formatDamage(plan.damage)}</span>
-                            </div>
-                            <span className="main-stat-row-echo">
-                              <span className={`set-plan-damage-diff ${getDiffTone(diff)}`}>
-                                {getDiffLabel(diff, isCurrent)}
-                                {getDiffArrow(diff)}
-                              </span>
-                            </span>
+                  return (
+                    <div
+                      key={`random-${index}`}
+                      className={`spx-row${selRandNdx === index ? ' is-selected' : ''}${isCurrent ? ' spx-row--equipped' : ''}`}
+                      style={{ '--row': index } as CssProps}
+                      data-mode={viewMode}
+                      {...selectableProps(selRandNdx === index, () => setSelRandNd(index))}
+                    >
+                      <div className="sst-main">
+                        <div className="sst-lead">
+                          <SpxRank n={index + 1} />
+                          <div className="spx-trays">
+                            {sortChsForDs(plan.echoes).map((echo) => {
+                              const cost = getQppdEchoC(echo)
+                              const key = echo.mainStats.primary.key
+                              const value = formatStatKeyValue(key, echo.mainStats.primary.value)
+                              const subKey = echo.mainStats.secondary.key
+                              const subValue = formatStatKeyValue(subKey, echo.mainStats.secondary.value)
+                              return (
+                                <StatTray
+                                  key={echo.uid}
+                                  cost={cost}
+                                  title={`Cost ${cost} · ${formatStatKeyLabel(key)} ${value} + ${formatStatKeyLabel(subKey)} ${subValue}`}
+                                  primaryVal={value}
+                                  primaryIcon={statIconStyle(key)}
+                                  subVal={subValue}
+                                  subIcon={statIconStyle(subKey)}
+                                />
+                              )
+                            })}
                           </div>
                         </div>
+                        <SubStrip
+                          subs={grpdSbst.map((entry) => ({
+                            key: entry.key,
+                            label: entry.label,
+                            value: entry.value,
+                            icon: statIconStyle(entry.key),
+                          }))}
+                        />
                       </div>
+                      <SpxResult value={formatCompactNum(plan.damage)} isCurrent={isCurrent} diff={percentDiff(plan.damage, baseDamage)} />
                     </div>
-
-                    {sortChsForDs(plan.echoes).map((echo) => (
-                      <div key={echo.uid} className="echo-buff main-stat-row">
-                        <div className="main-stat-row-left">
-                          <span className="main-stat-row-slot">Cost {getQppdEchoC(echo)}</span>
-                        </div>
-                        <div className="main-stat-row-pills random">
-                          <span className="echo-buff main-stat-pill">
-                            <span className="main-stat-pill-stat">{formatStatKeyLabel(echo.mainStats.primary.key)}</span>
-                            <span className="main-stat-pill-value highlight">{formatStatKeyValue(echo.mainStats.primary.key, echo.mainStats.primary.value)}</span>
-                          </span>
-                          <span className="echo-buff main-stat-pill">
-                            <span className="main-stat-pill-stat">{formatStatKeyLabel(echo.mainStats.secondary.key)}</span>
-                            <span className="main-stat-pill-value highlight">{formatStatKeyValue(echo.mainStats.secondary.key, echo.mainStats.secondary.value)}</span>
-                          </span>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-
-                  {grpdSbst.length > 0 && (
-                    <div className="sub-stat-row-pills">
-                      {grpdSbst.map((entry) => (
-                        <span key={entry.key} className="echo-buff main-stat-pill subs">
-                          <span className="main-stat-pill-stat">∑{entry.label}</span>
-                          <span className="main-stat-pill-value highlight">{entry.value}</span>
-                        </span>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              )
-            })
+                  )
+                })}
+              </div>
+            </ResultBlock>
           )}
         </div>
       )}
 
       {viewMode === 'substats' && (
         <div className="suggestions-list substat-view">
-          <div className="pane-section suggestions-controls rotation-pane-controls">
-            <div className="rotation-toolbar">
-              <div className="rotation-toolbar-group">
-                <div className="rotation-toolbar-field ui-inline-field ui-inline-field--wide">
-                  <LiquidSelect
-                    value={selTgtVl}
-                    options={targetOptions}
-                    groups={targetSkillGroups}
-                    onChange={(value) => onTgtChng(String(value))}
-                    placeholder="Target Skill"
-                  />
-                </div>
-              </div>
-              <div className="subx-rolls">
-                <span className="subx-rolls__lbl">Steps</span>
-                <div className="subx-rolls__stepper" role="group" aria-label="Number of steps to add or remove">
-                  <button
-                    type="button"
-                    className="subx-rolls__btn"
-                    onClick={() => setSubSteps(substatSteps - 1)}
-                    disabled={substatSteps <= 1}
-                    aria-label="Fewer steps"
-                  >
-                    <Minus size={14} aria-hidden="true" />
-                  </button>
-                  <input
-                    type="number"
-                    className="subx-rolls__val"
-                    min={1}
-                    max={88}
-                    value={substatSteps}
-                    onChange={(event) => setSubSteps(Number(event.target.value))}
-                    aria-label="Steps to add or remove"
-                  />
-                  <button
-                    type="button"
-                    className="subx-rolls__btn"
-                    onClick={() => setSubSteps(substatSteps + 1)}
-                    disabled={substatSteps >= 88}
-                    aria-label="More steps"
-                  >
-                    <Plus size={14} aria-hidden="true" />
-                  </button>
-                </div>
+          <SuggToolbar target={targetSelect}>
+            <div className="subx-rolls">
+              <span className="subx-rolls__lbl">Steps</span>
+              <div className="subx-rolls__stepper" role="group" aria-label="Number of steps to add or remove">
+                <button
+                  type="button"
+                  className="subx-rolls__btn"
+                  onClick={() => setSubSteps(substatSteps - 1)}
+                  disabled={substatSteps <= 1}
+                  aria-label="Fewer steps"
+                >
+                  <Minus size="0.875rem" aria-hidden="true" />
+                </button>
+                <input
+                  type="number"
+                  className="subx-rolls__val"
+                  min={1}
+                  max={88}
+                  value={substatSteps}
+                  onChange={(event) => setSubSteps(Number(event.target.value))}
+                  aria-label="Steps to add or remove"
+                />
+                <button
+                  type="button"
+                  className="subx-rolls__btn"
+                  onClick={() => setSubSteps(substatSteps + 1)}
+                  disabled={substatSteps >= 88}
+                  aria-label="More steps"
+                >
+                  <Plus size="0.875rem" aria-hidden="true" />
+                </button>
               </div>
             </div>
-          </div>
+          </SuggToolbar>
 
           <SubPrioTables rows={substatView} benchmark={substatBenchmark} steps={substatSteps} />
         </div>
@@ -1733,177 +1656,15 @@ export function Suggestions({
                 : undefined
         }
       >
-        {viewMode === 'weapons' && selWpnPlan && selWpnCard && (() => {
-          const inspectTargetMode = wpnSets.mode === 'both' ? wpnSets.target : wpnSets.mode
-          const inspectTarget = selWpnCard.plans.find((p) => p.mode === inspectTargetMode) ?? selWpnPlan
-          const inspectAlt = selWpnCard.plans.find((p) => p !== inspectTarget) ?? null
-          const inspectTargetDiff = percentDiff(inspectTarget.damage, baseDamage)
-          const inspectAltDiff = inspectAlt ? percentDiff(inspectAlt.damage, baseDamage) : 0
-          const inspectIsCurrent = inspectTarget.weaponId === runtime.build.weapon.id
-          const inspectIsDual = !!inspectAlt
-          const equippedWpnId = runtime.build.weapon.id
-          const equippedDef = equippedWpnId ? getWpnById(equippedWpnId) : null
-          const equippedLevel = runtime.build.weapon.level
-          const equippedRank = runtime.build.weapon.rank
-          const equippedStats = equippedDef ? weaponStatsAt(equippedDef, equippedLevel) : null
-          const equippedParams = equippedDef ? resPssvPrms(equippedDef.passive.params, equippedRank) : []
-          const showCompare = !!equippedDef && equippedWpnId !== inspectTarget.weaponId
-
-          const renderColumn = (
-            kind: 'equipped' | 'inspected',
-            opts: {
-              cap: string
-              icon: string
-              name: string
-              rarity: number
-              level: number
-              rank: number
-              baseAtk: number
-              statKey: string
-              statValue: number
-              damage: number
-              diff: number
-              diffLabelIsCurrent: boolean
-              showAlt: boolean
-              altMode?: 'default' | 'max'
-              altDamage?: number
-              altDiff?: number
-              targetMode?: 'default' | 'max'
-              passiveName?: string
-              passiveDesc?: string
-              passiveParams: string[]
-            },
-          ) => (
-            <div
-              className={`weapon-inspect__col weapon-inspect__col--${kind}`}
-              style={rarityVars(opts.rarity, false, '--weapon-rarity-tint') as CssProps}
-            >
-              <header className="weapon-inspect__col-head">
-                <span className="weapon-inspect__col-cap">{opts.cap}</span>
-              </header>
-              <div className="weapon-inspect__identity">
-                <span className="weapon-inspect__frame">
-                  <img src={opts.icon} alt={opts.name} className="weapon-inspect__icon" onError={withDefWpnMg} />
-                </span>
-                <div className="weapon-inspect__title">
-                  <h3 className="weapon-inspect__name">{opts.name}</h3>
-                  <div className="weapon-inspect__tags">
-                    <span className="weapon-inspect__rarity" aria-label={`${opts.rarity}-star`}>
-                      {'★'.repeat(opts.rarity)}
-                    </span>
-                    <span className="weapon-inspect__sep" aria-hidden />
-                    <span>Lv. {opts.level}</span>
-                    <span className="weapon-inspect__sep" aria-hidden />
-                    <span>R{opts.rank}</span>
-                  </div>
-                </div>
-              </div>
-
-              <div className="weapon-inspect__specs">
-                <div className="weapon-inspect__spec">
-                  <span className="weapon-inspect__spec-k">Base ATK</span>
-                  <span className="weapon-inspect__spec-v">{Math.round(opts.baseAtk)}</span>
-                </div>
-                <div className="weapon-inspect__spec">
-                  <span className="weapon-inspect__spec-k">{formatStatKeyLabel(opts.statKey)}</span>
-                  <span className="weapon-inspect__spec-v">{formatStatKeyValue(opts.statKey, opts.statValue)}</span>
-                </div>
-              </div>
-
-              <div className="weapon-inspect__block">
-                <div className="weapon-inspect__block-label">Damage</div>
-                <div className="weapon-inspect__output">
-                  <div className={`weapon-inspect__output-row${kind === 'inspected' ? ' weapon-inspect__output-row--target' : ''}${opts.targetMode ? ' weapon-inspect__output-row--withtag' : ''}`}>
-                    {opts.targetMode ? (
-                      <span className="weapon-inspect__mode-tag">{opts.targetMode === 'max' ? 'MAX' : 'DEF'}</span>
-                    ) : null}
-                    <span className="weapon-inspect__output-damage">{formatDamage(opts.damage)}</span>
-                    {kind === 'equipped' ? (
-                      <span className="set-plan-damage-diff weapon-inspect__diff zero">base</span>
-                    ) : (
-                      <span className={`set-plan-damage-diff weapon-inspect__diff ${getDiffTone(opts.diff)}`}>
-                        {getDiffLabel(opts.diff, opts.diffLabelIsCurrent)}
-                        {getDiffArrow(opts.diff)}
-                      </span>
-                    )}
-                  </div>
-                  {opts.showAlt && opts.altDamage !== undefined && opts.altDiff !== undefined && opts.altMode ? (
-                    <div className="weapon-inspect__output-row weapon-inspect__output-row--alt weapon-inspect__output-row--withtag">
-                      <span className="weapon-inspect__mode-tag">{opts.altMode === 'max' ? 'MAX' : 'DEF'}</span>
-                      <span className="weapon-inspect__output-damage">{formatDamage(opts.altDamage)}</span>
-                      <span className={`set-plan-damage-diff weapon-inspect__diff ${getDiffTone(opts.altDiff)}`}>
-                        {getDiffLabel(opts.altDiff, false)}
-                        {getDiffArrow(opts.altDiff)}
-                      </span>
-                    </div>
-                  ) : null}
-                </div>
-              </div>
-
-              <div className="weapon-inspect__block">
-                <div className="weapon-inspect__block-label">
-                  Passive{opts.passiveName ? ` · ${opts.passiveName}` : ''}
-                </div>
-                {opts.passiveDesc ? (
-                  <RichDscr
-                    description={opts.passiveDesc}
-                    params={opts.passiveParams}
-                    className="weapon-inspect-desc"
-                  />
-                ) : (
-                  <p className="suggestions-modal-hint">No passive description.</p>
-                )}
-              </div>
-            </div>
-          )
-
-          return (
-            <div className={`weapon-inspect ${showCompare ? 'weapon-inspect--compare' : 'weapon-inspect--solo'}`}>
-              {showCompare && equippedDef && equippedStats
-                ? renderColumn('equipped', {
-                    cap: 'Equipped',
-                    icon: equippedDef.icon,
-                    name: equippedDef.name,
-                    rarity: equippedDef.rarity,
-                    level: equippedLevel,
-                    rank: equippedRank,
-                    baseAtk: equippedStats.atk,
-                    statKey: equippedDef.statKey,
-                    statValue: equippedStats.scndStatVl,
-                    damage: baseDamage,
-                    diff: 0,
-                    diffLabelIsCurrent: true,
-                    showAlt: false,
-                    passiveName: equippedDef.passive.name,
-                    passiveDesc: equippedDef.passive.desc,
-                    passiveParams: equippedParams,
-                  })
-                : null}
-              {renderColumn('inspected', {
-                cap: showCompare ? 'Inspected' : 'Weapon',
-                icon: inspectTarget.icon,
-                name: inspectTarget.name,
-                rarity: inspectTarget.rarity,
-                level: inspectTarget.level,
-                rank: inspectTarget.rank,
-                baseAtk: inspectTarget.baseAtk,
-                statKey: inspectTarget.statKey,
-                statValue: inspectTarget.statValue,
-                damage: inspectTarget.damage,
-                diff: inspectTargetDiff,
-                diffLabelIsCurrent: inspectIsCurrent,
-                showAlt: !!inspectAlt,
-                altMode: inspectAlt?.mode,
-                altDamage: inspectAlt?.damage,
-                altDiff: inspectAlt ? inspectAltDiff : undefined,
-                targetMode: inspectIsDual ? inspectTarget.mode : undefined,
-                passiveName: inspectTarget.pssvName,
-                passiveDesc: inspectTarget.pssvDesc,
-                passiveParams: inspectTarget.params,
-              })}
-            </div>
-          )
-        })()}
+        {viewMode === 'weapons' && selWpnPlan && selWpnCard && (
+          <WeaponInspect
+            wpnSets={wpnSets}
+            target={selWpnPlan}
+            card={selWpnCard}
+            baseDamage={baseDamage}
+            runtime={runtime}
+          />
+        )}
         {viewMode === 'random' && selRandPlan && (
           <div className="suggestions-inspect-score-row">
             <span className="suggestions-config-label">Build Score</span>
@@ -2089,7 +1850,7 @@ export function Suggestions({
                   </span>
                   {randMainInvalid ? (
                     <span className="rc-echo-invalid" aria-hidden>
-                      <TriangleAlert size={11} strokeWidth={2.6} />
+                      <TriangleAlert size="0.6875rem" strokeWidth={2.6} />
                     </span>
                   ) : null}
                 </button>

@@ -1,6 +1,7 @@
 /*
   Author: Runor Ewhro
-  Description: docs surface rendered as a bench of method instruments.
+  Description: Binds authored docs content to route anchors and live method
+               calculators without embedding engine constants in page markup.
 */
 
 import {
@@ -14,7 +15,7 @@ import {
   type PointerEvent as RctPntrVnt,
 } from 'react'
 import { useLocation } from 'react-router-dom'
-import { Search } from 'lucide-react'
+import { ChevronLeft, ChevronRight, Search } from 'lucide-react'
 import {
   docTopics,
   type DocBlock,
@@ -421,6 +422,39 @@ type SpaceRoute = 'optimizer' | 'suggestions'
 type SuggestObjective = 'direct' | 'rotation'
 type SuggestMode = 'mainStats' | 'setPlans'
 
+interface SpaceLeverProps {
+  label: string
+  options: ReadonlyArray<{ id: string, text: string }>
+  value: string
+  onPick: (id: string) => void
+  disabled?: boolean
+  note?: string
+}
+
+function SpaceLever({ label, options, value, onPick, disabled, note }: SpaceLeverProps) {
+  return (
+    <div className="docs-space__lever" data-disabled={disabled || undefined}>
+      <span className="docs-space__lever-label">{label}</span>
+      <div className="docs-space__seg" role="group" aria-label={label}>
+        {options.map((opt) => (
+          <button
+            key={opt.id}
+            type="button"
+            className="docs-space__seg-btn"
+            data-on={value === opt.id || undefined}
+            aria-pressed={value === opt.id}
+            disabled={disabled}
+            onClick={() => onPick(opt.id)}
+          >
+            {opt.text}
+          </button>
+        ))}
+      </div>
+      {note ? <span className="docs-space__lever-note">{note}</span> : null}
+    </div>
+  )
+}
+
 function SearchSpace() {
   const [route, setRoute] = useState<SpaceRoute>('optimizer')
   const [mode, setMode] = useState<SpaceMode>('inventory')
@@ -471,39 +505,10 @@ function SearchSpace() {
 
   const [showFull, setShowFull] = useState(false)
 
-  const Lever = ({ label, options, value, onPick, disabled, note }: {
-    label: string
-    options: ReadonlyArray<{ id: string, text: string }>
-    value: string
-    onPick: (id: string) => void
-    disabled?: boolean
-    note?: string
-  }) => (
-    <div className="docs-space__lever" data-disabled={disabled || undefined}>
-      <span className="docs-space__lever-label">{label}</span>
-      <div className="docs-space__seg" role="group" aria-label={label}>
-        {options.map((opt) => (
-          <button
-            key={opt.id}
-            type="button"
-            className="docs-space__seg-btn"
-            data-on={value === opt.id || undefined}
-            aria-pressed={value === opt.id}
-            disabled={disabled}
-            onClick={() => onPick(opt.id)}
-          >
-            {opt.text}
-          </button>
-        ))}
-      </div>
-      {note ? <span className="docs-space__lever-note">{note}</span> : null}
-    </div>
-  )
-
   return (
     <div className="docs-space">
       <div className="docs-space__levers">
-        <Lever
+        <SpaceLever
           label="Route"
           options={[{ id: 'optimizer', text: 'Optimizer' }, { id: 'suggestions', text: 'Suggestions' }]}
           value={route}
@@ -511,13 +516,13 @@ function SearchSpace() {
         />
         {isSuggestions ? (
           <>
-            <Lever
+            <SpaceLever
               label="Objective"
               options={[{ id: 'direct', text: 'Direct' }, { id: 'rotation', text: 'Rotation' }]}
               value={objective}
               onPick={(id) => setObjective(id as SuggestObjective)}
             />
-            <Lever
+            <SpaceLever
               label="Pass"
               options={[{ id: 'mainStats', text: 'Main Stats' }, { id: 'setPlans', text: 'Set Plans' }]}
               value={suggestMode}
@@ -526,13 +531,13 @@ function SearchSpace() {
           </>
         ) : (
           <>
-        <Lever
+        <SpaceLever
           label="Search"
           options={[{ id: 'inventory', text: 'Inventory' }, { id: 'theory', text: 'Theory' }]}
           value={mode}
           onPick={(id) => setMode(id as SpaceMode)}
         />
-        <Lever
+        <SpaceLever
           label="Objective"
           options={[{ id: 'single', text: 'Single skill' }, { id: 'rotation', text: 'Rotation' }]}
           value={optObjective}
@@ -540,7 +545,7 @@ function SearchSpace() {
           disabled={!isTheory}
           note={!isTheory ? 'same' : undefined}
         />
-        <Lever
+        <SpaceLever
           label="Engine"
           options={[{ id: 'gpu', text: 'GPU' }, { id: 'cpu', text: 'CPU' }]}
           value={engine}
@@ -548,7 +553,7 @@ function SearchSpace() {
           disabled={isTheory}
           note={isTheory ? 'same' : undefined}
         />
-        <Lever
+        <SpaceLever
           label="Main-stat filter"
           options={[{ id: 'off', text: 'Off' }, { id: 'on', text: 'On' }]}
           value={isTheory ? 'on' : filter}
@@ -1085,9 +1090,9 @@ export function DocsPage() {
         </div>
 
         <div className="docs-cycler" aria-label="Cycle methods">
-          <button type="button" className="docs-cycler__btn" onClick={() => cycle(-1)} disabled={activeIdx === 0} aria-label="Previous method">‹</button>
+          <button type="button" className="docs-cycler__btn" onClick={() => cycle(-1)} disabled={activeIdx === 0} aria-label="Previous method"><ChevronLeft size="1em" /></button>
           <span className="docs-cycler__pos" aria-hidden="true">{pad2(activeIdx + 1)} <span className="docs-cycler__total">/ {pad2(docTopics.length)}</span></span>
-          <button type="button" className="docs-cycler__btn" onClick={() => cycle(1)} disabled={activeIdx === docTopics.length - 1} aria-label="Next method">›</button>
+          <button type="button" className="docs-cycler__btn" onClick={() => cycle(1)} disabled={activeIdx === docTopics.length - 1} aria-label="Next method"><ChevronRight size="1em" /></button>
         </div>
       </div>
 

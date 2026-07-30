@@ -37,7 +37,7 @@ function normBenchTune(value: number | null | undefined): number {
     return BENCH_ENEMY.status?.tuneStrain ?? 0
   }
 
-  return Math.max(0, Math.min(10, Number(value)))
+  return Math.max(0, Math.floor(Number(value)))
 }
 
 export function makeBenchEnemy(tuneStrain: number | null | undefined): EnemyProfile {

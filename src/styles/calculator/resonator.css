@@ -159,15 +159,6 @@
   mask-size: contain;
 }
 
-.res-tag-tooltip {
-  position: fixed;
-  left: 0;
-  top: 0;
-  z-index: 1200;
-  pointer-events: none;
-  will-change: transform;
-}
-
 .res-tag-tooltip__card {
   width: min(20rem, calc(100vw - 24px));
   padding: 0.85rem 0.95rem 0.65rem;
@@ -177,31 +168,6 @@
   box-shadow:
     0 1px 0 color-mix(in srgb, var(--text) 6%, transparent) inset,
     0 18px 40px -18px rgba(0, 0, 0, 0.55);
-  opacity: 0;
-  transform: translateY(6px) scale(0.985);
-  transition:
-    opacity 180ms ease,
-    transform 180ms cubic-bezier(0.2, 0.8, 0.2, 1);
-}
-
-.res-tag-tooltip[data-open='true'] .res-tag-tooltip__card {
-  opacity: 1;
-  transform: translateY(0) scale(1);
-}
-
-.res-tag-tooltip[data-closing='true'] .res-tag-tooltip__card {
-  opacity: 0;
-  transform: translateY(4px) scale(0.99);
-}
-
-:is(.no-entrance-anim, .reduce-animation) .res-tag-tooltip__card {
-  transition: opacity 90ms linear;
-  transform: none;
-}
-
-:is(.no-entrance-anim, .reduce-animation) .res-tag-tooltip[data-open='true'] .res-tag-tooltip__card,
-:is(.no-entrance-anim, .reduce-animation) .res-tag-tooltip[data-closing='true'] .res-tag-tooltip__card {
-  transform: none;
 }
 
 .res-tag-tooltip__head {
@@ -433,7 +399,7 @@
   z-index: 1;
   display: flex;
   align-items: center;
-  gap: 0.9rem;
+  gap: 0.5rem;
   min-width: 0;
   padding-top: 0.7rem;
   border-top: 1px solid color-mix(in srgb, var(--el) 18%, var(--item-border));
@@ -443,20 +409,14 @@
   display: flex;
   flex-direction: row;
   align-items: center;
-  gap: 0.6rem;
+  gap: 0.25rem;
   min-width: 0;
-}
-
-.resonator-pane-v2 .res-load--wpn {
-  flex: 0 1 auto;
-  min-width: 0;
-  max-width: 50%;
 }
 
 .resonator-pane-v2 .res-load--squad {
   flex: 1 1 auto;
   min-width: 0;
-  padding-left: 1rem;
+  padding-left: .5rem;
   border-left: 1px solid color-mix(in srgb, var(--el) 16%, var(--item-border));
 }
 
@@ -721,7 +681,7 @@
 .resonator-pane-v2 .res-mate__crown {
   position: absolute;
   top: -0.5px;
-  right: 0.78rem;
+  right: 0.74rem;
   width: var(--rmate-gap);
   transform: translateY(-50%);
   z-index: 2;
@@ -1952,6 +1912,16 @@
 
 .skills-modal-content .rotation-view-toggle {
   margin: 0.9rem 0;
+}
+
+.skills-modal-switch {
+  --mcc-line-soft: color-mix(in srgb, var(--picker-modal-border) 55%, transparent);
+  justify-self: end;
+  margin-right: 0.6rem;
+}
+
+.app-modal-header-top:has(.skills-modal-switch) {
+  grid-template-columns: auto minmax(0, 1fr) auto;
 }
 
 .skills-modal-content-area {

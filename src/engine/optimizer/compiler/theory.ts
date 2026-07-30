@@ -37,6 +37,7 @@ import {
   ARCHETYPE,
   ECHO_STAT_STRIDE,
   MAIN_BUFF_LEN,
+  META0,
   SCALING_ATK,
   SCALING_DEF,
   SCALING_ER,
@@ -496,17 +497,20 @@ function addRotCtxMs(
     return
   }
 
-  const packedSkill = new Uint32Array(
+  const u32 = new Uint32Array(
       context.buffer,
       context.byteOffset,
       context.length,
-  )[base + SKILL_ID] ?? 0
+  )
+  const packedSkill = u32[base + SKILL_ID] ?? 0
+  const meta0 = u32[base + META0] ?? 0
 
   addNormalCtxMs(statMask, mainMask, {
     scalingAtk: context[base + SCALING_ATK] ?? 0,
     scalingHp: context[base + SCALING_HP] ?? 0,
     scalingDef: context[base + SCALING_DEF] ?? 0,
     scalingEr: context[base + SCALING_ER] ?? 0,
+    characterId: meta0 & 0xfff,
     skillMask: packedSkill & 0x7fff,
     elemIndex: Math.max(0, Math.min(5, (packedSkill >>> 15) & 0x7)),
   })
@@ -530,8 +534,15 @@ function mkCntrMasks(payload: PrepTheoryTarget | PrepTheoryRot): {
   const mainMask = emptyMask(MAIN_BUFF_LEN)
 
   if (payload.mode === 'theoryRotation') {
-    for (let index = 0; index < payload.contextCount; index += 1) {
-      addRotCtxMs(statMask, mainMask, payload.contexts, index * payload.contextStride)
+    const scan = (contexts: Float32Array): void => {
+      for (let base = 0; base + payload.contextStride <= contexts.length; base += payload.contextStride) {
+        addRotCtxMs(statMask, mainMask, contexts, base)
+      }
+    }
+
+    scan(payload.contexts)
+    if (payload.weaponContexts) {
+      scan(payload.weaponContexts)
     }
     return { statMask, mainMask }
   }

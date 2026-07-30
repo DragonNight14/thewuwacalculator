@@ -80,8 +80,6 @@
   line-height: 1.2;
 }
 
-/* single-line ellipsis lives on the text's own (blockified) span: text-overflow
-   is ignored on the flex row that centers the optional leading icon. */
 .liquid-select__value-text,
 .liquid-select__option-text {
   min-width: 0;

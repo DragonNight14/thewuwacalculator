@@ -1,7 +1,7 @@
 /*
   Author: Runor Ewhro
-  Description: renders the shared application shell, including the toolbar,
-               sidebar navigation, route outlet, and global overlay UI.
+  Description: Owns route-shell layout state, global shortcut handling, and the
+               context entry points shared across calculator routes.
 */
 
 import { useEffect, useLayoutEffect as useLytFfct, useMemo, useState, type CSSProperties as CssProps } from 'react'
@@ -21,6 +21,7 @@ import { FaSun } from 'react-icons/fa'
 import { FaMicrochip } from 'react-icons/fa6'
 import { RxActivityLog as RxCtvtLog } from 'react-icons/rx'
 import { GiSchoolBag} from 'react-icons/gi'
+import { ToolbarTeam } from '@/modules/calculator/features/teams/ToolbarTeam.tsx'
 import { NtfcTstCntn } from '@/shared/ui/NotificationToast'
 import { CookieBanner } from '@/shared/ui/CookieBanner'
 import { useCkBnnr } from '@/app/hooks/useCookieBanner.ts'
@@ -261,10 +262,6 @@ function RtChrmCntn() {
     return () => window.removeEventListener('keydown', onKeyDown)
   }, [rtChrmMenu.actions])
 
-  const freqItems = useAppStore((state) => state.ui.itemFreq)
-  // debug
-  useEffect(() => console.log('These are your tracked item usage stats on this app:\n', freqItems), [])
-
   return (
     <ContextTrigger
       asChild
@@ -283,6 +280,8 @@ function RtChrmCntn() {
           <span />
           <span />
         </button>
+
+        {isCalcRt ? <ToolbarTeam /> : null}
 
         {isCalcRt && !moveTlbrToSd ? (
           <div className="toolbar-group">

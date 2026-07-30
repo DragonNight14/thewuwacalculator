@@ -5,7 +5,7 @@
 */
 
 import {useMemo, type HTMLAttributes as HtmlAttrs, type CSSProperties as CssProps} from 'react'
-import { ChevronDown } from 'lucide-react'
+import { ChevronDown, Plus } from 'lucide-react'
 import type { EchoInstance, ResRuntime } from '@/domain/entities/runtime.ts'
 import { getEchoById } from '@/domain/services/echoCatalogService.ts'
 import { listStatesFor } from '@/domain/services/gameDataService.ts'
@@ -41,6 +41,7 @@ import { hideBrknMg, withDefIconM } from '@/shared/lib/imageFallback.ts'
 import { fmtDscr } from '@/shared/lib/formatDescription.ts'
 import { IoArchive } from 'react-icons/io5'
 import { RiDeleteBin2Fill as DeleteBinIcon } from 'react-icons/ri'
+import { scopedTargetOwnerKey } from '@/domain/gameData/targetRouting.ts'
 
 const TTLS_GRPS: { label: string; keys: string[] }[] = [
   { label: 'Offense', keys: ['atkFlat', 'atkPercent', 'critRate', 'critDmg'] },
@@ -105,7 +106,7 @@ export function EchoSlot({
         onClick={onOpenPicker}
       >
         <div className="echo-slot-icon echo-slot-icon--empty">
-          <span className="echo-slot-icon-plus">+</span>
+          <span className="echo-slot-icon-plus"><Plus size="1em" /></span>
         </div>
         <div className="echo-slot-info">
           <span className="echo-slot-label">Slot {index + 1}</span>
@@ -280,7 +281,9 @@ function EchoSetSttPa({
     ? getTeamTgtPt(runtime, runtime.id, targetMode)
     : []
   const curTgt = sourceState
-    ? selectedTargets[sourceState.ownerKey] ?? null
+    ? selectedTargets[scopedTargetOwnerKey(runtime.id, sourceState.ownerKey)]
+      ?? selectedTargets[sourceState.ownerKey]
+      ?? null
     : null
   const fllbTgt = targetOptions[0]?.value ?? null
   const selTgt = (
@@ -312,7 +315,7 @@ function EchoSetSttPa({
     if (!sourceState) {
       return
     }
-    setResTrgtSl(runtime.id, sourceState.ownerKey, tgtResId)
+    setResTrgtSl(runtime.id, scopedTargetOwnerKey(runtime.id, sourceState.ownerKey), tgtResId)
   }
 
   const targetPills = targetOptions.length > 0 ? (

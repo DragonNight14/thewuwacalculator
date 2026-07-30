@@ -16,6 +16,7 @@ import { makeTeamMember, maxRtInit } from '@/domain/state/defaults'
 import { initWpnStts, maxWpnRt } from '@/domain/state/sourceStateInit'
 import { matTeamMemFr } from '@/domain/state/runtimeMaterialization'
 import { AppModal } from '@/shared/ui/AppModal.tsx'
+import { CnfrMdl } from '@/shared/ui/ConfirmationModal.tsx'
 import { useAppModal, useAppMdlVl } from '@/shared/ui/useAppModal.ts'
 import { mainPortal } from '@/shared/lib/portalTarget.ts'
 import type {SelectOption, SelectGroup} from '@/shared/ui/LiquidSelect'
@@ -1118,7 +1119,7 @@ export function Optimizer() {
     id: 'optimizer-preview:copy',
     key: 'copy' as const,
     needsSel: true,
-    icon: <Copy size="0.5rem" />,
+    icon: <Copy size="1em" />,
     label: ({ count }: { count: number }) => `Copy (${count})`,
     title: 'Copy selected echoes (Ctrl/Cmd+C)',
     run: async ({ vals }: { vals: EchoInstance[] }) => {
@@ -1980,55 +1981,26 @@ export function Optimizer() {
         <Rules />
       </AppModal>
 
-      <AppModal
-        state={quickPickModal.dialogProps}
-        variant="confirmation"
-        tone="info"
-        ariaLabel="Equip optimizer result"
-        onClose={quickPickModal.hide}
-      >
-        <div className="confirmation-modal__body">
-          <h2 className="confirmation-modal__title">
-            Equip optimizer result
-          </h2>
-          <div className="confirmation-modal__message">
-            Choose whether to apply this result to the optimizer sim only or to both sim and live.
-          </div>
-        </div>
-        <div className="confirmation-modal__actions rotation-load-choice-actions">
-          <button
-            type="button"
-            className="confirmation-modal__btn confirmation-modal__btn--cancel"
-            onClick={quickPickModal.hide}
-          >
-            Cancel
-          </button>
-          <button
-            type="button"
-            className="confirmation-modal__btn confirmation-modal__btn--confirm"
-            onClick={() => {
-              if (quickPickModal.value != null) {
-                applyOptRslt(quickPickModal.value)
-              }
-              quickPickModal.hide()
-            }}
-          >
-            Sim
-          </button>
-          <button
-            type="button"
-            className="confirmation-modal__btn confirmation-modal__btn--confirm"
-            onClick={() => {
-              if (quickPickModal.value != null) {
-                applyOptResult(quickPickModal.value)
-              }
-              quickPickModal.hide()
-            }}
-          >
-            Sim & Live
-          </button>
-        </div>
-      </AppModal>
+      <CnfrMdl
+        visible={quickPickModal.dialogProps.visible}
+        open={quickPickModal.dialogProps.open}
+        closing={quickPickModal.dialogProps.closing}
+        portalTarget={mdlPrtlTgt}
+        title="Equip optimizer result"
+        message="Choose whether to apply this result to the optimizer sim only, or to both sim and live."
+        confirmLabel="Sim & Live"
+        secondaryLabel="Sim only"
+        cancelLabel="Cancel"
+        onConfirm={() => {
+          if (quickPickModal.value != null) applyOptResult(quickPickModal.value)
+          quickPickModal.hide()
+        }}
+        onSecondary={() => {
+          if (quickPickModal.value != null) applyOptRslt(quickPickModal.value)
+          quickPickModal.hide()
+        }}
+        onCancel={quickPickModal.hide}
+      />
 
       <SetCond
         {...setCondsMdl}

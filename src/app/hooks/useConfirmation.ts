@@ -13,16 +13,24 @@ interface CnfrStt {
   message: ReactNode
   confirmLabel?: string
   cancelLabel?: string
+  // Secondary is a distinct commit path, not a second cancel path; callers use
+  // it when the same prompt can complete through two valid mutations.
+  secondaryLabel?: string
   variant?: 'info' | 'danger'
   onConfirm: () => void
+  onSecondary?: () => void
 }
 
 export function useCnfr() {
   const modal = useAppMdlVl<CnfrStt>()
 
-  // run the confirm callback, then close the modal
   const onCnfr = useCallback(() => {
     modal.value?.onConfirm()
+    modal.hide()
+  }, [modal])
+
+  const onScnd = useCallback(() => {
+    modal.value?.onSecondary?.()
     modal.hide()
   }, [modal])
 
@@ -34,9 +42,11 @@ export function useCnfr() {
     message: modal.value?.message ?? '',
     confirmLabel: modal.value?.confirmLabel,
     cancelLabel: modal.value?.cancelLabel,
+    secondaryLabel: modal.value?.secondaryLabel,
     variant: modal.value?.variant,
     confirm: modal.show,
     onConfirm: onCnfr,
+    onSecondary: modal.value?.onSecondary ? onScnd : undefined,
     onCancel: modal.hide,
   }
 }

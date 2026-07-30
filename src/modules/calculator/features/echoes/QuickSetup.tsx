@@ -1,3 +1,9 @@
+/*
+  Author: Runor Ewhro
+  Description: Provides quick echo-build generation controls, validating cost,
+               Sonata, and main-stat constraints before applying generated echoes.
+*/
+
 import { useEffect, useMemo, useState, type CSSProperties } from 'react'
 import type { EchoInstance } from '@/domain/entities/runtime.ts'
 import { getEchoById, listEchoes } from '@/domain/services/echoCatalogService.ts'
@@ -397,7 +403,7 @@ export function QuickSetup({
                       onError={withDefEchoMg}
                     />
                   ) : (
-                    <span className="eqs-lead__ph" aria-hidden>+</span>
+                    <span className="eqs-lead__ph" aria-hidden><Plus size="1em" /></span>
                   )}
                   {mainEchoInvalid ? (
                     <span className="eqs-lead__invalid" aria-hidden>

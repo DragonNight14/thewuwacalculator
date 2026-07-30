@@ -1,7 +1,7 @@
 /*
   Author: Runor Ewhro
-  Description: Renders the compact slot-overwrite preview used by echo equip
-               submenus so users can compare the current slot against the candidate echo.
+  Description: Builds the slot-overwrite comparison payload for echo equip
+               submenus without mutating the current build.
 */
 
 import type { EchoInstance } from '@/domain/entities/runtime.ts'
@@ -31,7 +31,7 @@ export function EchoQpCmprdn({
           />
         </div>
         <div className="echo-equip-preview__arrow" aria-hidden="true">
-          <ArrowRight size="0.5rem" />
+          <ArrowRight size="1em" />
         </div>
         <div className="echo-equip-preview__card">
           <span className="echo-equip-preview__label">Equip</span>

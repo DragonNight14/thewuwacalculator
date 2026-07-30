@@ -106,6 +106,8 @@ function getVarClss(
       }
     case 'saved-rotation-editor':
       return { contentClass: 'app-modal-panel saved-rotation-editor-modal' }
+    case 'rotation-share':
+      return { contentClass: 'app-modal-panel rot-share-modal' }
     case 'rotation-action-list':
       return {
         contentClass: 'app-modal-panel confirmation-modal confirmation-modal--info rotation-action-list-modal',

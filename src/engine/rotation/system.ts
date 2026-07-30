@@ -171,6 +171,10 @@ interface RotVrlyStt {
 
   // formula-stat writes apply only inside later rotation feature calculations
   formulaStats: RotFormulaStats
+
+  // partial uptime setup writes leave marker/state conditions truthy for body
+  // evaluation while scaling any data-driven effects gated by those paths.
+  effectScalesByRuntimePath: Record<string, Record<string, number>>
 }
 
 export interface PrepRotNvrn {
@@ -212,7 +216,7 @@ interface RotationExec {
   mtrlGrphVrsn: number
   mtrlGrph: CombatGraph | null
 
-  // branch weight, mainly used by uptime nodes
+  // branch weight kept for result aggregation paths that explicitly weight rows
   weight: number
 
   // summary runs keep numeric totals but skip per-hit detail allocation
@@ -599,7 +603,6 @@ function slcSkllForFe(skill: SkillDef, feature: FeatDef): SkillDef {
 }
 
 // multiply a full damage result by a branch weight
-// used mostly for uptime branches where a node only applies some fraction of the time
 function scaleResult(result: ReturnType<typeof calcSkillDamage>, weight: number) {
   if (weight === 1) {
     return result
@@ -697,6 +700,7 @@ function mkRotStt(
       enemyPaths: {},
       activeResonatorId: undefined,
       formulaStats: {},
+      effectScalesByRuntimePath: {},
     },
     rslvRtCch: {},
     mtrlGrphVrsn: -1,
@@ -724,7 +728,121 @@ function cloneRotation(state: RotationExec): RotationExec {
   }
 }
 
-// fetch the runtime of the primary slot for current state
+function mergeScopedRotRslt(
+  state: RotationExec,
+  scopedState: RotationExec,
+): RotationExec {
+  state.entries.push(...scopedState.entries)
+  if (state.nspcNtrs && scopedState.nspcNtrs) {
+    state.nspcNtrs.push(...scopedState.nspcNtrs)
+  }
+
+  return state
+}
+
+function diffFlatOverlay<T extends RotVrlyVl>(
+  before: Record<string, T> | undefined,
+  after: Record<string, T> | undefined,
+): Record<string, T> {
+  const changes: Record<string, T> = {}
+  if (!after) {
+    return changes
+  }
+
+  for (const [path, value] of Object.entries(after)) {
+    if (!Object.is(before?.[path], value)) {
+      changes[path] = value
+    }
+  }
+
+  return changes
+}
+
+function diffNestedOverlay<T extends RotVrlyVl>(
+  before: Record<string, Record<string, T>>,
+  after: Record<string, Record<string, T>>,
+): Record<string, Record<string, T>> {
+  const changes: Record<string, Record<string, T>> = {}
+
+  for (const [ownerId, values] of Object.entries(after)) {
+    const ownerChanges = diffFlatOverlay(before[ownerId], values)
+    if (Object.keys(ownerChanges).length > 0) {
+      changes[ownerId] = ownerChanges
+    }
+  }
+
+  return changes
+}
+
+function mergeNestedOverlay<T extends RotVrlyVl>(
+  current: Record<string, Record<string, T>>,
+  changes: Record<string, Record<string, T>>,
+): Record<string, Record<string, T>> {
+  let next = current
+
+  for (const [ownerId, values] of Object.entries(changes)) {
+    next = {
+      ...next,
+      [ownerId]: {
+        ...(next[ownerId] ?? {}),
+        ...values,
+      },
+    }
+  }
+
+  return next
+}
+
+function mergePtmBodyOverlay(
+  state: RotationExec,
+  setupState: RotationExec,
+  resultState: RotationExec,
+): RotationExec {
+  const runtimeChanges = diffNestedOverlay(setupState.overlay.rtPthsByRejq, resultState.overlay.rtPthsByRejq)
+  const routingChanges = diffNestedOverlay(setupState.overlay.routingPaths, resultState.overlay.routingPaths)
+  const enemyChanges = diffFlatOverlay(setupState.overlay.enemyPaths, resultState.overlay.enemyPaths)
+  const formulaChanges = diffFlatOverlay(setupState.overlay.formulaStats, resultState.overlay.formulaStats)
+  const effectScaleChanges = diffNestedOverlay(
+    setupState.overlay.effectScalesByRuntimePath,
+    resultState.overlay.effectScalesByRuntimePath,
+  )
+  const activeChanged = !Object.is(setupState.overlay.activeResonatorId, resultState.overlay.activeResonatorId)
+  const hasChanges =
+    activeChanged ||
+    Object.keys(runtimeChanges).length > 0 ||
+    Object.keys(routingChanges).length > 0 ||
+    Object.keys(enemyChanges).length > 0 ||
+    Object.keys(formulaChanges).length > 0 ||
+    Object.keys(effectScaleChanges).length > 0
+
+  if (!hasChanges) {
+    return state
+  }
+
+  return {
+    ...state,
+    overlay: {
+      ...state.overlay,
+      version: state.overlay.version + 1,
+      rtPthsByRejq: mergeNestedOverlay(state.overlay.rtPthsByRejq, runtimeChanges),
+      routingPaths: mergeNestedOverlay(state.overlay.routingPaths, routingChanges),
+      enemyPaths: {
+        ...state.overlay.enemyPaths,
+        ...enemyChanges,
+      },
+      formulaStats: {
+        ...state.overlay.formulaStats,
+        ...formulaChanges,
+      },
+      activeResonatorId: activeChanged ? resultState.overlay.activeResonatorId : state.overlay.activeResonatorId,
+      effectScalesByRuntimePath: mergeNestedOverlay(state.overlay.effectScalesByRuntimePath, effectScaleChanges),
+    },
+    rslvRtCch: {},
+    mtrlGrphVrsn: -1,
+    mtrlGrph: null,
+  }
+}
+
 function getPrmrRt(state: RotationExec): ResRuntime | null {
   return getRslvPartR(state, state.environment.prmrResId)
 }
@@ -985,6 +1103,7 @@ function getMatGrph(state: RotationExec): CombatGraph {
   const nextGraph: CombatGraph = {
     ...baseGraph,
     activeSlotId,
+    effectScalesByRuntimePath: state.overlay.effectScalesByRuntimePath,
     participants: {
       ...baseGraph.participants,
     },
@@ -1026,9 +1145,8 @@ function getMatGrph(state: RotationExec): CombatGraph {
   return nextGraph
 }
 
-// resolve one participant plus its current combat context
-// when overlay writes exist, the context is rebuilt from the materialized graph
-// so later nodes always see the latest temporary runtime and enemy state
+// Overlay writes invalidate the prebuilt contexts; after the first write, each
+// participant context is rebuilt from the materialized graph.
 function getPart(state: RotationExec, resonatorId: string): RotPartStt | null {
   const slotId = findCombatPart(getBaseGraph(state), resonatorId)
   if (!slotId) {
@@ -1061,7 +1179,6 @@ function getPart(state: RotationExec, resonatorId: string): RotPartStt | null {
   }
 }
 
-// list every graph participant as a RotationParticipantState
 function listParts(state: RotationExec): RotPartStt[] {
   const graph = state.overlay.version === 0 ? getBaseGraph(state) : getMatGrph(state)
 
@@ -1419,6 +1536,115 @@ function readPathValue(value: unknown, path: string): unknown {
   return cursor
 }
 
+function scaleRtChng(
+  state: RotationExec,
+  change: RtChng,
+  fallbackResId: string,
+  scale: number | undefined,
+): RtChng | null {
+  if (scale === undefined || scale === 1) {
+    return change
+  }
+
+  const boundedScale = Math.max(0, Math.min(1, scale))
+  if (boundedScale <= 0) {
+    return null
+  }
+
+  if (shldScaleRtFfctPath(change.path)) {
+    return change
+  }
+
+  if (change.type === 'toggle') {
+    return change
+  }
+
+  if (change.type === 'add') {
+    return {
+      ...change,
+      value: change.value * boundedScale,
+    }
+  }
+
+  if (typeof change.value !== 'number') {
+    return change
+  }
+
+  if (!Number.isFinite(change.value)) {
+    return null
+  }
+
+  const currentValue = Number(readRtChngVl(state, change, fallbackResId))
+  const currentNumber = Number.isFinite(currentValue) ? currentValue : 0
+
+  return {
+    ...change,
+    value: currentNumber + (change.value - currentNumber) * boundedScale,
+  }
+}
+
+function getRuntimeEffectScalePath(path: string): string | null {
+  const nrmlPath = path.replace(/^runtime\./, '')
+  if (
+    nrmlPath.startsWith('state.controls.') ||
+    nrmlPath.startsWith('state.manualBuffs.') ||
+    nrmlPath.startsWith('state.combat.') ||
+    nrmlPath.startsWith('base.') ||
+    nrmlPath.startsWith('build.weapon.') ||
+    nrmlPath.startsWith('build.echoes.')
+  ) {
+    return nrmlPath
+  }
+
+  return null
+}
+
+function shldScaleRtFfctPath(path: string): boolean {
+  return path.replace(/^runtime\./, '').startsWith('state.controls.')
+}
+
+function withRtEffectScale(
+  state: RotationExec,
+  resonatorId: string,
+  path: string,
+  scale: number | undefined,
+): RotationExec {
+  if (scale === undefined || scale >= 1) {
+    return state
+  }
+
+  const runtimePath = getRuntimeEffectScalePath(path)
+  if (!runtimePath) {
+    return state
+  }
+
+  const boundedScale = Math.max(0, Math.min(1, scale))
+  if (boundedScale <= 0) {
+    return state
+  }
+
+  return {
+    ...state,
+    overlay: {
+      ...state.overlay,
+      version: state.overlay.version + 1,
+      effectScalesByRuntimePath: {
+        ...state.overlay.effectScalesByRuntimePath,
+        [resonatorId]: {
+          ...(state.overlay.effectScalesByRuntimePath[resonatorId] ?? {}),
+          [runtimePath]: Math.min(
+            state.overlay.effectScalesByRuntimePath[resonatorId]?.[runtimePath] ?? 1,
+            boundedScale,
+          ),
+        },
+      },
+    },
+    rslvRtCch: {},
+    mtrlGrphVrsn: -1,
+    mtrlGrph: null,
+  }
+}
+
 // read the current value addressed by a runtime change after overlays have been applied
 // used mainly by inspection mode so the ui can display what a condition node changed
 function readRtChngVl(
@@ -1532,21 +1758,25 @@ function runFeatNode(
   fallbackResId: string,
 ): RotationExec {
   const ownResId = resNodeResId(state, node, fallbackResId)
+  const scopedState = (node.changes ?? []).length > 0 ? cloneRotation(state) : state
 
   // node.changes are applied before evaluating this feature,
   // so the feature sees the updated local overlay state
   const lclFeatStt = (node.changes ?? []).reduce(
     (nextState, change) => applyRtChng(nextState, change, ownResId),
-    state,
+    scopedState,
+  )
+  const finishScoped = (nextState: RotationExec): RotationExec => (
+    scopedState === state ? nextState : mergeScopedRotRslt(state, nextState)
   )
 
   const featureData = findFeatOwn(lclFeatStt, node.featureId, ownResId)
   if (!featureData) {
-    return ppndNspcEnt(lclFeatStt, {
+    return finishScoped(ppndNspcEnt(lclFeatStt, {
       nodeId: node.id,
       nodeType: node.type,
       executed: true,
-    })
+    }))
   }
 
   const { participant, feature } = featureData
@@ -1560,29 +1790,29 @@ function runFeatNode(
   )
 
   if (!evalCond(feature.condition, featureScope)) {
-    return ppndNspcEnt(lclFeatStt, {
+    return finishScoped(ppndNspcEnt(lclFeatStt, {
       nodeId: node.id,
       nodeType: node.type,
       executed: true,
-    })
+    }))
   }
 
   const nodeState = resFeatNodeS(actRt, node)
   if (!nodeState.enabled) {
-    return ppndNspcEnt(lclFeatStt, {
+    return finishScoped(ppndNspcEnt(lclFeatStt, {
       nodeId: node.id,
       nodeType: node.type,
       executed: true,
-    })
+    }))
   }
 
   const skill = findSkill(participant.runtime, participant.seed, feature.skillId)
   if (!skill) {
-    return ppndNspcEnt(lclFeatStt, {
+    return finishScoped(ppndNspcEnt(lclFeatStt, {
       nodeId: node.id,
       nodeType: node.type,
       executed: true,
-    })
+    }))
   }
 
   const skillResult = prprRtSkll(participant.runtime, skill, {
@@ -1593,11 +1823,11 @@ function runFeatNode(
   })
 
   if (skillResult.visible === false) {
-    return ppndNspcEnt(lclFeatStt, {
+    return finishScoped(ppndNspcEnt(lclFeatStt, {
       nodeId: node.id,
       nodeType: node.type,
       executed: true,
-    })
+    }))
   }
 
   const ftrdSkll = slcSkllForFe(skillResult, feature)
@@ -1703,11 +1933,11 @@ function runFeatNode(
   )
 
   if (!shldNcldFeat(scaledSkill, wghtRslt)) {
-    return ppndNspcEnt(lclFeatStt, {
+    return finishScoped(ppndNspcEnt(lclFeatStt, {
       nodeId: node.id,
       nodeType: node.type,
       executed: true,
-    })
+    }))
   }
 
   lclFeatStt.entries.push({
@@ -1743,11 +1973,12 @@ function runFeatNode(
   })
 
   // some features append follow-up nodes after they fire
+  const mergedState = finishScoped(nspcStt)
   if (!feature.after?.length) {
-    return nspcStt
+    return mergedState
   }
 
-  return runRotTms(nspcStt, feature.after, participant.seed.id)
+  return runRotTms(mergedState, feature.after, participant.seed.id)
 }
 
 // execute a condition node by applying all runtime changes
@@ -1756,6 +1987,7 @@ function runCondNode(
   state: RotationExec,
   node: Extract<RotationNode, { type: 'condition' }>,
   fallbackResId: string,
+  changeScale?: number,
 ): RotationExec {
   const scpResId = resNodeResId(state, node, fallbackResId)
   const participant = getPart(state, scpResId)
@@ -1767,11 +1999,33 @@ function runCondNode(
     })
   }
 
-  const nextState = node.changes.reduce(
-    (nextState, change) => applyRtChng(nextState, change, scpResId),
-    state,
-  )
-  const prmrChng = node.changes[0]
+  let nextState = state
+  let prmrChng: RtChng | undefined
+  for (const change of node.changes) {
+    const scaleByEffect = changeScale !== undefined && shldScaleRtFfctPath(change.path)
+    const scaledChange = scaleRtChng(nextState, change, scpResId, changeScale)
+    if (!scaledChange) {
+      continue
+    }
+
+    nextState = applyRtChng(nextState, scaledChange, scpResId)
+    if (
+      changeScale !== undefined &&
+      (
+        scaleByEffect ||
+        scaledChange.type === 'toggle' ||
+        (scaledChange.type === 'set' && typeof scaledChange.value !== 'number')
+      )
+    ) {
+      nextState = withRtEffectScale(
+        nextState,
+        scaledChange.resonatorId ?? scpResId,
+        scaledChange.path,
+        changeScale,
+      )
+    }
+    prmrChng ??= scaledChange
+  }
 
   return ppndNspcEnt(nextState, {
     nodeId: node.id,
@@ -1839,12 +2093,13 @@ function runRptNode(
 }
 
 // helper for setup lists used by uptime nodes
-// setup can mutate overlay state before the weighted uptime branch is evaluated
+// setup can mutate overlay state before an uptime body is evaluated
 // for setup-only usage, branch entries are ignored and only resulting state is carried forward
 function runStpTms(
   state: RotationExec,
   items: RotationNode[] | undefined,
   fallbackResId: string,
+  changeScale?: number,
 ): RotationExec {
   if (!items?.length) {
     return state
@@ -1868,7 +2123,7 @@ function runStpTms(
     }
 
     if (item.type === 'condition') {
-      nextState = runCondNode(nextState, item, fallbackResId)
+      nextState = runCondNode(nextState, item, fallbackResId, changeScale)
       continue
     }
 
@@ -1909,8 +2164,9 @@ function runStpTms(
       // setup items only need to carry forward the resulting overlay/cache state here
       if (ratio > 0) {
         let branchState = cloneRotation(nextState)
-        branchState = runStpTms(branchState, item.setup, scpResId)
-        branchState = runStpTms(branchState, item.items, scpResId)
+        const nestedChangeScale = (changeScale ?? 1) * ratio
+        branchState = runStpTms(branchState, item.setup, scpResId, nestedChangeScale)
+        branchState = runStpTms(branchState, item.items, scpResId, nestedChangeScale)
         nextState = {
           ...nextState,
           overlay: branchState.overlay,
@@ -1954,8 +2210,8 @@ function runStpTms(
   return nextState
 }
 
-// execute an uptime node by running its child list inside a weighted branch
-// branch entries are merged back into the parent, but the parent's own weight remains unchanged
+// execute an uptime node by scaling numeric setup effects before running its body
+// body entries are merged back into the parent, but the parent's own weight remains unchanged
 function runPtmNode(
   state: RotationExec,
   node: Extract<RotationNode, { type: 'uptime' }>,
@@ -1988,23 +2244,12 @@ function runPtmNode(
     ),
   )
 
-  if (ratio <= 0) {
-    return ppndNspcEnt(state, {
-      nodeId: node.id,
-      nodeType: node.type,
-      executed: true,
-      value: {
-        kind: 'uptime',
-        ratio,
-      },
-    })
-  }
-
   let branchState = cloneRotation(state)
-  branchState = runStpTms(branchState, node.setup, scpResId)
+  branchState = runStpTms(branchState, node.setup, scpResId, ratio)
+  const setupState = branchState
   branchState = {
     ...branchState,
-    weight: state.weight * ratio,
+    weight: state.weight,
     entries: [],
   }
 
@@ -2015,7 +2260,9 @@ function runPtmNode(
     state.nspcNtrs.push(...result.nspcNtrs)
   }
 
-  return ppndNspcEnt(state, {
+  const nextState = mergePtmBodyOverlay(state, setupState, result)
+
+  return ppndNspcEnt(nextState, {
     nodeId: node.id,
     nodeType: node.type,
     executed: true,

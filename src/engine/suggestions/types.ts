@@ -9,6 +9,7 @@ import type { RandGnrtSets, WeaponPlanSet } from '@/domain/entities/suggestions'
 import type { ResRuntime, ResSeed, EchoInstance } from '@/domain/entities/runtime'
 import type { SntSetConds } from '@/domain/entities/sonataSetConditionals'
 import type { FinalStats, UnifiedBuffPool, ResBaseStats, SkillDef } from '@/domain/entities/stats'
+import type { EffectContext } from '@/domain/gameData/contracts'
 import type { MainStatRecipe } from '@/engine/suggestions/mainStat-suggestion/utils'
 import type { OptTargetSkill } from '@/engine/optimizer/target/selectedSkill'
 import type { OptStatWeight } from '@/engine/optimizer/search/filtering.ts'
@@ -36,6 +37,7 @@ export interface SuggestInput {
 export interface DrctSuggCtx {
   mode: 'target'
   runtime: ResRuntime
+  effectContext: EffectContext
   selectedSkill: OptTargetSkill
   sourceBaseStats: ResBaseStats
   sourceFinals: FinalStats
@@ -50,6 +52,7 @@ export interface DrctSuggCtx {
 export interface RotSuggCtx {
   mode: 'rotation'
   runtime: ResRuntime
+  effectContext: EffectContext
   selectedSkill: OptTargetSkill
   sourceBaseStats: ResBaseStats
   sourceFinals: FinalStats
@@ -99,6 +102,10 @@ export interface RandomPrep {
 export interface PrepWeaponPlan {
   context: SuggestContext
   qppdChs: Array<EchoInstance | null>
+  seed: ResSeed
+  enemy: EnemyProfile
+  runtimesById: Record<string, ResRuntime>
+  selectedTargets: Record<string, string | null>
   weaponType: number
   level: number
   rank: number

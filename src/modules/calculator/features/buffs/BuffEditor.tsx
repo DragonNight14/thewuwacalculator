@@ -463,7 +463,7 @@ export function BuffEditor({
       id: 'manual-buffs:copy',
       key: 'copy',
       needsSel: true,
-      icon: <Copy size="0.5rem" />,
+      icon: <Copy size="1em" />,
       label: ({ count }) => `Copy (${count})`,
       title: 'Copy selection (Ctrl/Cmd+C)',
       run: async ({ vals }) => {
@@ -474,7 +474,7 @@ export function BuffEditor({
       id: 'manual-buffs:cut',
       key: 'cut',
       needsSel: true,
-      icon: <Scissors size="0.5rem" />,
+      icon: <Scissors size="1em" />,
       label: ({ count }) => `Cut (${count})`,
       title: 'Cut selection (Ctrl/Cmd+X)',
       run: async ({ ids, vals }) => {
@@ -484,7 +484,7 @@ export function BuffEditor({
     {
       id: 'manual-buffs:duplicate',
       needsSel: true,
-      icon: <CopyPlus size="0.5rem" />,
+      icon: <CopyPlus size="1em" />,
       label: ({ count }) => `Duplicate (${count})`,
       title: 'Duplicate selection',
       run: ({ vals }) => {
@@ -506,7 +506,7 @@ export function BuffEditor({
       key: 'delete',
       needsSel: true,
       danger: true,
-      icon: <Trash2 size="0.5rem" />,
+      icon: <Trash2 size="1em" />,
       label: ({ count }) => `Delete (${count})`,
       title: 'Delete selection (Delete / Backspace)',
       run: ({ ids }) => {
@@ -1148,7 +1148,7 @@ export function BuffEditor({
                     }))
                   }}
                 >
-                  {modifier.enabled ? <Power size="0.5rem" /> : <PowerOff size="0.5rem" />}
+                  {modifier.enabled ? <Power size=".6em" /> : <PowerOff size=".6em" />}
                 </button>
                 <button
                   type="button"
@@ -1160,7 +1160,7 @@ export function BuffEditor({
                     dplcMnlMod(modifier)
                   }}
                 >
-                  <CopyPlus size="0.5rem" />
+                  <CopyPlus size=".6em" />
                 </button>
                 <button
                   type="button"
@@ -1172,7 +1172,7 @@ export function BuffEditor({
                     rmMnlMod(modifier.id)
                   }}
                 >
-                  <Trash2 size="0.5rem" />
+                  <Trash2 size=".6em" />
                 </button>
               </div>
             </div>
@@ -1224,7 +1224,7 @@ export function BuffEditor({
               aria-label="Presets"
               onClick={presetModal.show}
             >
-              <Sparkles size="0.5rem" />
+              <Sparkles size=".6em" />
             </button>
             <button
               type="button"
@@ -1232,7 +1232,7 @@ export function BuffEditor({
               title="Add modifier"
               onClick={addMnlMod}
             >
-              <Plus size="0.5rem" />
+              <Plus size=".6em" />
             </button>
           </div>
         </div>
@@ -1316,8 +1316,10 @@ export function BuffEditor({
         message={confirmation.message}
         confirmLabel={confirmation.confirmLabel}
         cancelLabel={confirmation.cancelLabel}
+        secondaryLabel={confirmation.secondaryLabel}
         variant={confirmation.variant}
         onConfirm={confirmation.onConfirm}
+        onSecondary={confirmation.onSecondary}
         onCancel={confirmation.onCancel}
       />
     </>

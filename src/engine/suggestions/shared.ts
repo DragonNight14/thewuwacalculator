@@ -6,11 +6,13 @@
 */
 
 import type { FeatureResult } from '@/domain/gameData/contracts'
+import type { EffectContext } from '@/domain/gameData/contracts'
 import type { WeaponPlanSet } from '@/domain/entities/suggestions'
 import type { ResRuntime, ResSeed } from '@/domain/entities/runtime'
 import { makeRuntimeMap } from '@/domain/state/runtimeAdapters'
 import { makeRuntimeCat } from '@/domain/services/runtimeSourceService'
 import { listSkillsFor } from '@/domain/services/gameDataService'
+import { getResDtlsBy } from '@/data/gameData/resonators/resonatorDataStore'
 import type { OptStatWeight } from '@/engine/optimizer/search/filtering.ts'
 import { makeStatWeights } from '@/engine/optimizer/search/filtering.ts'
 import { isOptDmgSkll, isOptRotTgt, sumOptRotDmg } from '@/engine/optimizer/rules/eligibility.ts'
@@ -37,7 +39,7 @@ import { packTargetCtx } from '@/engine/optimizer/context/pack'
 import { evalTarget } from '@/engine/optimizer/target/evaluate'
 import { applyPersRot } from '@/engine/optimizer/rotation/runtime'
 import { makeCombatGraph, findCombatPart } from '@/domain/state/combatGraph'
-import { makeCombatEnv } from '@/engine/pipeline/buildCombatContext'
+import { countEchoSets, makeCombatEnv } from '@/engine/pipeline/buildCombatContext'
 import { getResSeedBy } from '@/domain/services/resonatorSeedService'
 import { makeSkillCtx, prprRtSkll } from '@/engine/pipeline/prepareRuntimeSkill'
 import { mkPrepRotNvr, runFeatSmlt } from '@/engine/rotation/system'
@@ -47,6 +49,7 @@ import { CTX_FLOATS, MAIN_BUFF_LEN } from '@/engine/optimizer/config/constants'
 import type { PrepOptTgtCt } from '@/engine/optimizer/target/context'
 import type { EnemyProfile } from '@/domain/entities/appState'
 import type { SkillDef } from '@/domain/entities/stats'
+import { makeTeamComp } from '@/domain/gameData/teamComposition'
 
 interface RotTgtCtx {
   skill: FeatureResult['skill']
@@ -61,6 +64,47 @@ function setRowOpts(input: SuggestInput, runtime: ResRuntime) {
 
   return {
     dynamicStateParts: listDynamicSetStateParts(runtime),
+  }
+}
+
+function mkSuggFxCtx(
+    combat: ReturnType<typeof makeCombatEnv>,
+): EffectContext {
+  const resDtlsById = getResDtlsBy()
+  const graph = combat.graph
+  const targetPart = graph.participants[combat.targetSlotId]
+  const activePart = graph.participants[graph.activeSlotId] ?? targetPart
+  const targetRuntime = targetPart?.runtime ?? combat.runtime
+  const activeRuntime = activePart?.runtime ?? combat.runtime
+  const teamMemberIds = Array.from(
+      new Set(Object.values(graph.participants).map((participant) => participant.resonatorId)),
+  )
+
+  return {
+    team: makeTeamComp(teamMemberIds),
+    source: {
+      type: 'resonator',
+      id: combat.runtime.id,
+      negativeEffectSources: resDtlsById[combat.runtime.id]?.negativeEffectSources,
+    },
+    target: {
+      type: 'resonator',
+      id: targetRuntime.id,
+      negativeEffectSources: resDtlsById[targetRuntime.id]?.negativeEffectSources,
+    },
+    sourceRuntime: combat.runtime,
+    targetRuntime,
+    activeRuntime,
+    targetRuntimeId: targetRuntime.id,
+    activeResonatorId: activeRuntime.id,
+    teamMemberIds,
+    echoSetCounts: countEchoSets(combat.runtime.build.echoes),
+    selectedTargetsByOwnerKey: {
+      ...(targetPart?.slot.routing.selectedTargetsByOwnerKey ?? {}),
+    },
+    baseStats: combat.baseStats,
+    finalStats: combat.finalStats,
+    enemy: combat.enemy,
   }
 }
 
@@ -335,6 +379,7 @@ export function mkDrctSuggCt(
   return {
     mode: 'target',
     runtime,
+    effectContext: mkSuggFxCtx(prepared.combat),
     selectedSkill: prepared.selectedSkill,
     sourceBaseStats: prepared.combat.baseStats,
     sourceFinals: prepared.combat.finalStats,
@@ -495,6 +540,7 @@ export function mkRotSuggCtx(
   return {
     mode: 'rotation',
     runtime: rotRt,
+    effectContext: mkSuggFxCtx(activeContext),
     selectedSkill: fllbSkll,
     sourceBaseStats: activeContext.baseStats,
     sourceFinals: activeContext.finalStats,
@@ -611,6 +657,10 @@ export function mkPrepWpnSu(
   return {
     context,
     qppdChs: input.runtime.build.echoes,
+    seed: input.seed,
+    enemy: input.enemy,
+    runtimesById: input.runtimesById,
+    selectedTargets: input.selectedTargets,
     weaponType: input.seed.weaponType,
     level: input.runtime.build.weapon.level,
     rank: input.runtime.build.weapon.rank,

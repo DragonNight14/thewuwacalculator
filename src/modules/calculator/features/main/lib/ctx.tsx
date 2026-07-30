@@ -13,7 +13,7 @@ import type { SkillTabKey } from '@/domain/entities/resonator.ts'
 import { useAppModal } from '@/shared/ui/useAppModal.ts'
 import { useAppStore } from '@/domain/state/store.ts'
 import { seedRsntById } from '@/modules/calculator/features/resonator/lib/seedData.ts'
-import { RES_MENU, getResDtls } from '@/modules/calculator/features/resonator/lib/resonator.ts'
+import { RES_MENU, getResDtls, getResonator, type ResView } from '@/modules/calculator/features/resonator/lib/resonator.ts'
 import { ResPckr } from '@/modules/calculator/features/resonator/Picker.tsx'
 import { SkillData } from '@/modules/calculator/features/resonator/SkillData.tsx'
 import { mainPortal } from '@/shared/lib/portalTarget.ts'
@@ -214,6 +214,27 @@ export function CalcProv({
       ?? (actRt?.id === skllDataTrgt.resonatorId ? actRt : null)
     : null
 
+  // Skill-data lookup is limited to materialized team members so the modal can
+  // resolve each candidate's runtime-specific tab data.
+  const skllDataRstr = useMemo<ResView[]>(() => {
+    if (!actRt) {
+      return []
+    }
+
+    return [actRt.id, ...actRt.build.team.slice(1)].flatMap((memberId) => {
+      if (!memberId) {
+        return []
+      }
+
+      const view = getResonator(memberId)
+      return view ? [view] : []
+    })
+  }, [actRt])
+
+  const swtcSkllRes = useCallback((resonatorId: string) => {
+    setSkllDataT((prev) => (prev ? { ...prev, resonatorId } : prev))
+  }, [])
+
   const swtcToEnts = useMemo<MenuEntry[]>(() => {
     // surface the recent queue first so the right-click path mirrors the
     // primary resonator-switching affordances used elsewhere in the app.
@@ -232,7 +253,7 @@ export function CalcProv({
       {
         id: 'main-switch:picker',
         label: 'See all resonators',
-        icon: <SqrRrwUpRght size="0.5rem" />,
+        icon: <SqrRrwUpRght size="1em" />,
         onSelect: openResPckr,
       },
     ]
@@ -387,7 +408,7 @@ export function CalcProv({
         }}
       />
       <SkillData
-        key={`${skllDataTrgt?.resonatorId ?? 'none'}:${skllDataTrgt?.tab ?? 'none'}`}
+        key={skllDataTrgt?.tab ?? 'none'}
         visible={skillData.visible}
         open={skillData.open}
         closing={skillData.closing}
@@ -395,6 +416,8 @@ export function CalcProv({
         resonatorId={skllDataTrgt?.resonatorId ?? null}
         runtime={skllDataRt}
         requestedTab={skllDataTrgt?.tab ?? null}
+        roster={skllDataRstr}
+        onSwitchMember={swtcSkllRes}
         onClose={clsSkllData}
       />
     </calcCtx.Provider>

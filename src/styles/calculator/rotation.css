@@ -608,7 +608,7 @@
   z-index: 1;
 }
 
-.rotation-item:hover {
+.rotation-item:not(:has(.expanded)):hover {
   border-color: color-mix(in srgb, var(--rotation-item-accent) 18%, var(--item-border));
   background:
     linear-gradient(90deg,
@@ -618,7 +618,7 @@
   box-shadow: 0 0.15rem 0.5rem color-mix(in srgb, var(--rotation-item-accent) 8%, transparent);
 }
 
-.rotation-item:hover::before {
+.rotation-item:not(:has(.expanded)):hover::before {
   background: color-mix(in srgb, var(--rotation-item-accent) 72%, transparent);
   top: 14%;
   bottom: 14%;
@@ -963,7 +963,7 @@
   flex-direction: column;
   gap: 0.45rem;
   border-radius: 0.85rem;
-  background: color-mix(in srgb, var(--surface) 50%, transparent);
+  background: color-mix(in srgb, var(--surface) 10%, transparent);
   padding: 0.35rem;
 }
 
@@ -5646,11 +5646,6 @@
 }
 
 .rss-sequence__loop-runs {
-  flex-shrink: 0;
-  padding: 0.1rem 0.4rem;
-  border-radius: 999px;
-  background: color-mix(in srgb, var(--rotation-loop-color) 18%, transparent);
-  border: 1px solid color-mix(in srgb, var(--rotation-loop-color) 28%, transparent);
   color: color-mix(in srgb, var(--rotation-loop-color) 82%, var(--text));
   font-size: 0.6rem;
   font-weight: 950;
@@ -5768,6 +5763,11 @@
 .rotation-saved-list > :nth-child(8)  { animation-delay: 280ms; }
 .rotation-list-container > :nth-child(n+9),
 .rotation-saved-list > :nth-child(n+9) { animation-delay: 300ms; }
+
+.rotation-pane.entrance-settled .rotation-item-wrapper,
+.rotation-pane.entrance-settled .rotation-block-wrapper {
+  animation: none;
+}
 
 @media (prefers-reduced-motion: reduce) {
   .rotation-pane > .rotation-pane-header,

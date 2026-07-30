@@ -90,7 +90,7 @@ export function getOptCtx({
       {
         id: 'optimizer-menu:switch-resonator',
         label: 'Switch Resonator...',
-        icon: <SqrRrwUpRght size="0.5rem" />,
+        icon: <SqrRrwUpRght size="1em" />,
         onSelect: onPickRes,
       },
       // combo mode needs a rotation with feature nodes; without one only skill
@@ -99,7 +99,7 @@ export function getOptCtx({
       ...(comboAvailable ? [{
         id: 'optimizer-menu:target-mode',
         label: 'Target Mode...',
-        icon: <Crosshair size="0.5rem" />,
+        icon: <Crosshair size="1em" />,
         submenu: [
           {
             id: 'optimizer-menu:target-mode:skill',
@@ -118,7 +118,7 @@ export function getOptCtx({
       {
         id: 'optimizer-menu:compute-mode',
         label: 'Compute Mode...',
-        icon: <Cpu size="0.5rem" />,
+        icon: <Cpu size="1em" />,
         submenu: [
           {
             id: 'optimizer-menu:compute-mode:gpu',
@@ -137,7 +137,7 @@ export function getOptCtx({
       {
         id: 'optimizer-menu:portrait-mode',
         label: 'Portrait Mode...',
-        icon: <ImageIcon size="0.5rem" />,
+        icon: <ImageIcon size="1em" />,
         submenu: [
           {
             id: 'optimizer-menu:portrait-mode:sprite',
@@ -156,7 +156,7 @@ export function getOptCtx({
       {
         id: 'optimizer-menu:target',
         label: 'Target...',
-        icon: <Crosshair size="0.5rem" />,
+        icon: <Crosshair size="1em" />,
         disabled: targetItems.length === 0,
         submenu: targetItems,
       },
@@ -164,33 +164,33 @@ export function getOptCtx({
       {
         id: 'optimizer-menu:sync-live',
         label: 'Sync Live',
-        icon: <RotateCcw size="0.5rem" />,
+        icon: <RotateCcw size="1em" />,
         disabled: isLoading,
         onSelect: onSync,
       },
       {
         id: 'optimizer-menu:run',
         label: 'Run',
-        icon: <Play size="0.5rem" />,
+        icon: <Play size="1em" />,
         disabled: isLoading || pending,
         onSelect: onRun,
       },
       {
         id: 'optimizer-menu:halt',
         label: 'Halt',
-        icon: <Square size="0.5rem" />,
+        icon: <Square size="1em" />,
         onSelect: onHalt,
       },
       {
         id: 'optimizer-menu:reset',
         label: 'Reset',
-        icon: <RotateCcw size="0.5rem" />,
+        icon: <RotateCcw size="1em" />,
         onSelect: onReset,
       },
       {
         id: 'optimizer-menu:clear',
         label: 'Clear',
-        icon: <Eraser size="0.5rem" />,
+        icon: <Eraser size="1em" />,
         onSelect: onClear,
       },
     ],

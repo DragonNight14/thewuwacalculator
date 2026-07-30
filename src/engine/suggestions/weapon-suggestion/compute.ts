@@ -7,7 +7,7 @@
 
 import type { DataSrcRef, EffectContext, SourceState } from '@/domain/gameData/contracts'
 import type { ResRuntime, WeaponState } from '@/domain/entities/runtime'
-import type { UnifiedBuffPool, SkillDef } from '@/domain/entities/stats'
+import type { SkillDef } from '@/domain/entities/stats'
 import type { GenWpn } from '@/domain/entities/weapon'
 import type { WeaponPlanSet, WpnStCfg } from '@/domain/entities/suggestions'
 import { listWpnsByTy } from '@/domain/services/weaponCatalogService'
@@ -17,10 +17,12 @@ import {
   weaponStatsAt,
 } from '@/domain/services/weaponPlan'
 import { listStatesFor } from '@/domain/services/gameDataService'
-import { makeTeamComp } from '@/domain/gameData/teamComposition'
-import { countEchoSets } from '@/engine/pipeline/buildCombatContext'
-import { calcFinalStats } from '@/engine/formulas/finalStats'
-import { applyCandRt, applyCandSk } from '@/engine/effects/dataEffects'
+import { countEchoSets, makeCombatEnv } from '@/engine/pipeline/buildCombatContext'
+import { applyCandSk } from '@/engine/effects/dataEffects'
+import { makeRuntimeMap } from '@/domain/state/runtimeAdapters'
+import { makeCombatGraph } from '@/domain/state/combatGraph'
+import { listRtSkills } from '@/domain/services/runtimeSourceService'
+import { prprRtSkll } from '@/engine/pipeline/prepareRuntimeSkill'
 import { makeOptContext } from '@/engine/optimizer/context/compiled'
 import { packTargetCtx } from '@/engine/optimizer/context/pack'
 import { CTX_FLOATS } from '@/engine/optimizer/config/constants'
@@ -155,22 +157,6 @@ function mkCtrls(
   return vals
 }
 
-// apply one weapon secondary stat into a candidate pool
-function addSecStat(pool: UnifiedBuffPool, key: string, val: number): void {
-  if (key === 'atkPercent') pool.atk.percent += val
-  else if (key === 'hpPercent') pool.hp.percent += val
-  else if (key === 'defPercent') pool.def.percent += val
-  else if (key === 'critRate') pool.critRate += val
-  else if (key === 'critDmg') pool.critDmg += val
-  else if (key === 'energyRegen') pool.energyRegen += val
-  else if (key === 'tuneBreakBoost') pool.tuneBreakBoost += val
-}
-
-// clone a pool so one candidate cannot leak stat mutations into another
-function clnPool(pool: UnifiedBuffPool): UnifiedBuffPool {
-  return structuredClone(pool) as UnifiedBuffPool
-}
-
 // build the transient runtime view used for candidate conditions
 function mkCandRt(
     rt: ResRuntime,
@@ -193,14 +179,40 @@ function mkCandRt(
   }
 }
 
+// rebuild the stripped candidate through the normal combat pipeline so
+// post-stat conversions see the candidate weapon's base and secondary stats.
+function mkCandCombat(
+    rt: ResRuntime,
+    input: PrepWeaponPlan,
+): ReturnType<typeof makeCombatEnv> {
+  const participants = makeRuntimeMap(rt, input.runtimesById)
+  const graph = makeCombatGraph({
+    actRt: rt,
+    activeSeed: input.seed,
+    partRts: participants,
+    targetsByRes: {
+      [rt.id]: input.selectedTargets ?? {},
+    },
+  })
+
+  return makeCombatEnv({
+    graph,
+    targetSlotId: 'active',
+    enemy: input.enemy,
+  })
+}
+
 // build a single-source effect context for the candidate weapon
 function mkFxCtx(
     rt: ResRuntime,
+    combat: ReturnType<typeof makeCombatEnv>,
     ctx: SuggestContext,
     input: PrepWeaponPlan,
 ): EffectContext {
+  const base = ctx.effectContext
+
   return {
-    team: makeTeamComp([rt.id]),
+    ...base,
     source: { type: 'resonator', id: rt.id },
     target: { type: 'resonator', id: rt.id },
     sourceRuntime: rt,
@@ -208,12 +220,25 @@ function mkFxCtx(
     activeRuntime: rt,
     targetRuntimeId: rt.id,
     activeResonatorId: rt.id,
-    teamMemberIds: [rt.id],
     echoSetCounts: countEchoSets(input.qppdChs),
-    selectedTargetsByOwnerKey: {},
-    baseStats: ctx.sourceBaseStats,
+    baseStats: combat.baseStats,
+    finalStats: combat.finalStats,
     enemy: ctx.enemy,
   }
+}
+
+function prepCandSkill(
+    rt: ResRuntime,
+    combat: ReturnType<typeof makeCombatEnv>,
+    skill: SkillDef,
+    cand: Parameters<typeof applyCandSk>[1],
+): SkillDef {
+  const raw = listRtSkills(rt).find((entry) => entry.id === skill.id)
+  if (raw) {
+    return prprRtSkll(rt, raw, combat)
+  }
+
+  return applyCandSk(skill, cand)
 }
 
 // apply candidate passive effects and return the resulting final stats and skills
@@ -224,7 +249,7 @@ function prepWpnFx(
     input: PrepWeaponPlan,
 ): {
   rt: ResRuntime
-  pool: UnifiedBuffPool
+  combat: ReturnType<typeof makeCombatEnv>
   sklls: SkillDef[]
 } {
   const stats = resWpnStat(wpn, input)
@@ -236,43 +261,27 @@ function prepWpnFx(
     baseAtk: stats.atk,
   }
   const rt = mkCandRt(ctx.runtime, wpnSt, ctrls)
-  const pool = clnPool(ctx.pool)
-  const baseCtx = mkFxCtx(rt, ctx, input)
+  const combat = mkCandCombat(rt, input)
+  const baseCtx = mkFxCtx(rt, combat, ctx, input)
   const source: DataSrcRef = { type: 'weapon', id: wpn.id }
-
-  addSecStat(pool, wpn.statKey, stats.statVal)
 
   const cand = {
     baseCtx,
     source,
     srcRt: rt,
     tgtRt: rt,
-    baseStats: ctx.sourceBaseStats,
-    enemy: ctx.enemy,
-  }
-
-  applyCandRt(pool, cand, 'preStats')
-  const preFin = calcFinalStats(ctx.sourceBaseStats, pool, stats.atk)
-
-  applyCandRt(pool, {
-    ...cand,
-    finalStats: preFin,
-    srcFinal: preFin,
-  }, 'postStats')
-
-  const fin = calcFinalStats(ctx.sourceBaseStats, pool, stats.atk)
-  const src = {
-    ...cand,
-    finalStats: fin,
-    srcFinal: fin,
+    baseStats: combat.baseStats,
+    enemy: combat.enemy,
+    finalStats: combat.finalStats,
+    srcFinal: combat.finalStats,
   }
 
   const baseSklls = ctx.mode === 'target' ? [ctx.skll] : ctx.sklls
-  const sklls = baseSklls.map((skll) => applyCandSk(skll, src))
+  const sklls = baseSklls.map((skll) => prepCandSkill(rt, combat, skll, cand))
 
   return {
     rt,
-    pool,
+    combat,
     sklls,
   }
 }
@@ -286,14 +295,12 @@ function mkDrctCtx(
 ): DrctSuggCtx {
   const prep = prepWpnFx(wpn, mode, base, input)
   const skll = prep.sklls[0] ?? base.skll
-  const stats = resWpnStat(wpn, input)
-  const fin = calcFinalStats(base.sourceBaseStats, prep.pool, stats.atk)
   const comp = makeOptContext({
     resonatorId: prep.rt.id,
     runtime: prep.rt,
     skill: skll,
-    finalStats: fin,
-    enemy: base.enemy,
+    finalStats: prep.combat.finalStats,
+    enemy: prep.combat.enemy,
     combatState: prep.rt.state.combat,
   })
   const combo = Math.max(1, input.qppdChs.filter((echo) => echo != null).length)
@@ -302,9 +309,11 @@ function mkDrctCtx(
     ...base,
     runtime: prep.rt,
     selectedSkill: selOptTgtSkl(skll),
-    sourceFinals: fin,
-    pool: prep.pool,
+    sourceBaseStats: prep.combat.baseStats,
+    sourceFinals: prep.combat.finalStats,
+    pool: prep.combat.buffs,
     skll,
+    enemy: prep.combat.enemy,
     pckdCtx: packTargetCtx({
       compiled: comp,
       skill: skll,
@@ -327,8 +336,7 @@ function mkRotCtx(
     input: PrepWeaponPlan,
 ): RotSuggCtx {
   const prep = prepWpnFx(wpn, mode, base, input)
-  const stats = resWpnStat(wpn, input)
-  const fin = calcFinalStats(base.sourceBaseStats, prep.pool, stats.atk)
+  const fin = prep.combat.finalStats
   const contexts = new Float32Array(base.contextCount * CTX_FLOATS)
 
   for (let ndx = 0; ndx < base.contextCount; ndx += 1) {
@@ -363,8 +371,10 @@ function mkRotCtx(
     ...base,
     runtime: prep.rt,
     selectedSkill: prep.sklls[0] ? selOptTgtSkl(prep.sklls[0]) : base.selectedSkill,
+    sourceBaseStats: prep.combat.baseStats,
     sourceFinals: fin,
-    pool: prep.pool,
+    pool: prep.combat.buffs,
+    enemy: prep.combat.enemy,
     sklls: prep.sklls,
     contexts,
   }

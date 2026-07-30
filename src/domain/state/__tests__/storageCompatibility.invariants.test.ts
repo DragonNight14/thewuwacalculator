@@ -368,10 +368,9 @@ describe('storage compatibility', () => {
     expect(seed).toBeDefined()
     state.calculator.profiles[resonatorId] = makeResProfile(seed!)
 
-    const profile = state.calculator.profiles[resonatorId]
-    type LegacyWeapon = typeof profile.runtime.build.weapon & { baseAtk?: number }
     const raw = structuredClone(state)
     const rawProfile = raw.calculator.profiles[resonatorId]
+    type LegacyWeapon = typeof rawProfile.runtime.build.weapon & { baseAtk?: number }
     ;(rawProfile.runtime.build.weapon as LegacyWeapon).baseAtk = 12345
     raw.calculator.inventoryBuilds.push({
       id: 'legacy-build',

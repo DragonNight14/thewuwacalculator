@@ -160,7 +160,7 @@ export function RailManual() {
               role="presentation"
             >
               <div ref={cardRef} className="odk-man__card">
-                <div className="odk-man__head">Console manual</div>
+                <div className="odk-man__head">Manual</div>
                 {MANUAL.map((section) => (
                   <div key={section.label} className="odk-man__section">
                     <span className="odk-man__section-label">{section.label}</span>

@@ -241,6 +241,9 @@ function dsplRowFor(
     const summary = isBagRslt(entry)
       ? thryBagSum(ptmzRsltPyld, entry)
       : thryIdSum(entry)
+    // same resolution the preview uses: when it returns null the build cannot
+    // become a legal loadout, so the row is flagged invalid (no preview/equip).
+    const invalid = matThryRsltCh(ptmzRsltPyld, entry) === null
     return {
       damage: entry.damage,
       costs: summary.costs,
@@ -248,6 +251,7 @@ function dsplRowFor(
       mainEchoIcon: summary.mainEchoIcon,
       ...weapon,
       stats: evalThryRsltS(ptmzRsltPyld, entry),
+      invalid,
     }
   }
 

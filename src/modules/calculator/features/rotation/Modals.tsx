@@ -1,6 +1,7 @@
 /*
   Author: Runor Ewhro
-  Description: Renders the modals surface for the calculator rotation flow.
+  Description: Owns rotation modal forms and picker contracts for feature,
+               condition, block, loop, and source-state edits.
 */
 
 import type {
@@ -1221,7 +1222,7 @@ export function Loop({
                 >
                   <div className="rotation-loop-card__head">
                     <span className="rotation-loop-marker__badge">
-                      {row.kind === 'start' ? <Play fill="currentColor" size="0.5rem" /> : linkedStart ? <Square fill="currentColor" size="0.5rem" /> : <X size="0.5rem" />}
+                      {row.kind === 'start' ? <Play fill="currentColor" size="1em" /> : linkedStart ? <Square fill="currentColor" size="1em" /> : <X size="1em" />}
                       {row.kind}
                     </span>
                     {row.kind === 'start' ? (

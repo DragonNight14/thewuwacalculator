@@ -510,6 +510,7 @@ export interface EffectContext {
   sourceFinalStats?: FinalStats
   finalStats?: FinalStats
   selectedTargetsByOwnerKey?: Record<string, string | null>
+  effectScalesByRuntimePath?: Record<string, Record<string, number>>
   enemy?: EnemyProfile
 }
 

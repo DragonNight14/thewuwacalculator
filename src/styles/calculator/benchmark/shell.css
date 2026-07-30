@@ -955,12 +955,21 @@
   animation: none;
 }
 
+.app-modal-panel.confirmation-modal:has(.bench-report-settings-modal) {
+  width: min(28rem, calc(100vw - 2rem));
+}
+
 .bench-report-settings-modal {
   --rs-accent: var(--confirm-accent, var(--accent, #20bfb9));
   --rs-line: color-mix(in srgb, var(--text) 12%, transparent);
   --rs-muted: color-mix(in srgb, var(--text) 52%, transparent);
+  display: flex;
+  flex-direction: column;
   width: 100%;
   gap: 0;
+  padding: 1.4rem 1.5rem;
+  max-height: min(80vh, 42rem);
+  overflow: auto;
 }
 
 .bench-rs-head {

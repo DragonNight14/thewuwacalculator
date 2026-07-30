@@ -1,6 +1,7 @@
 /*
   Author: Runor Ewhro
-  Description: renders the calculator page.
+  Description: Mounts the calculator route variants, guards active runtime
+               initialization, and attaches share-link import handling.
 */
 
 import { Suspense, lazy, useEffect, useRef, useState } from 'react'
@@ -15,6 +16,8 @@ import { Inventory } from '@/modules/calculator/features/inventory/Inventory.tsx
 import { Calculator } from '@/modules/calculator/features/main/Calculator.tsx'
 import { CalcProv } from '@/modules/calculator/features/main/lib/ctx.tsx'
 import AppLdrVrly from '@/shared/ui/AppLoaderOverlay'
+import { ImportSurfaceProvider } from '@/infra/imports/ImportSurface.tsx'
+import { ShareLinkWatcher } from '@/infra/imports/ShareLinkWatcher.tsx'
 
 export type CalcSurface = 'calculator' | 'optimizer' | 'benchmark'
 
@@ -43,7 +46,6 @@ export function CalcPage({ surface = 'calculator' }: CalcPageProps) {
     partRtsById: partRntmById,
     actTgtSels,
   } = useAppStore(selWorkDrvd)
-  const enemyTuneStrain = useAppStore((state) => state.calculator.session.enemyProfile.status?.tuneStrain ?? 0)
   const swtcToRes = useAppStore((state) => state.swRes)
   const bumpPickerFreq = useAppStore((state) => state.bumpPickFr)
   const [isCllpMode, setIsCllpMod] = useState(() =>
@@ -120,7 +122,6 @@ export function CalcPage({ surface = 'calculator' }: CalcPageProps) {
     runtime: actRt,
     runtimesById: partRntmById,
     targetSelections: actTgtSels,
-    tuneStrain: enemyTuneStrain,
     enabled: hasActProf,
   })
 
@@ -130,6 +131,8 @@ export function CalcPage({ surface = 'calculator' }: CalcPageProps) {
         actRt={actRt}
         prtcRntmById={partRntmById}
       >
+      <ImportSurfaceProvider>
+      <ShareLinkWatcher enabled={surface === 'calculator'} />
       <div ref={layoutRef} className={`layout ${isCllpMode ? 'collapsed-mode' : ''}`}>
         <Inventory />
 
@@ -147,6 +150,7 @@ export function CalcPage({ surface = 'calculator' }: CalcPageProps) {
 
         <ResQBbbl />
       </div>
+      </ImportSurfaceProvider>
       </CalcProv>
   )
 }

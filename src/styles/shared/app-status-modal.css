@@ -318,6 +318,38 @@
   border-top: 1px solid color-mix(in srgb, var(--picker-modal-border) 70%, transparent);
 }
 
+.app-status-modal__btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  padding: 0.52rem 0.95rem;
+  border: 1px solid color-mix(in srgb, var(--picker-modal-accent, var(--accent, #6b7cff)) 16%, var(--picker-modal-border, rgba(27, 36, 53, 0.14)));
+  border-radius: 0.75rem;
+  background: color-mix(in srgb, var(--picker-modal-text, #1b2435) 2%, transparent);
+  color: var(--picker-modal-text, #1b2435);
+  font-family: inherit;
+  font-size: 0.86rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition:
+    transform 200ms cubic-bezier(0.22, 1, 0.36, 1),
+    border-color 200ms ease,
+    box-shadow 220ms ease,
+    background 220ms ease;
+}
+
+.app-status-modal__btn:is(:hover, :focus-visible) {
+  transform: translateY(-1px);
+  border-color: color-mix(in srgb, var(--picker-modal-accent, var(--accent, #6b7cff)) 34%, var(--picker-modal-border, rgba(27, 36, 53, 0.14)));
+  box-shadow: 0 0.4rem 0.8rem rgba(15, 23, 42, 0.08);
+}
+
+.app-status-modal__btn:active {
+  transform: translateY(0) scale(0.97);
+  transition-duration: 80ms;
+}
+
 @media (max-width: 600px) {
   .app-status-bento {
     grid-template-columns: 1fr 1fr;

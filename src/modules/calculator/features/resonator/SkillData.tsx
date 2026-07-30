@@ -4,14 +4,15 @@
                inside the calculator's skill-data modal.
 */
 
-import { useMemo, useState } from 'react'
+import { type CSSProperties, useMemo, useState } from 'react'
 import type { SkillTabKey } from '@/domain/entities/resonator'
 import type { ResRuntime } from '@/domain/entities/runtime'
 import { AppModal } from '@/shared/ui/AppModal'
 import { RichDscr } from '@/shared/ui/RichDescription'
 import { MdlClsBttn } from '@/shared/ui/ModalCloseButton'
-import { getResonator, getResDtls } from '@/modules/calculator/features/resonator/lib/resonator.ts'
+import { getResonator, getResDtls, type ResView } from '@/modules/calculator/features/resonator/lib/resonator.ts'
 import { ATTR_COLORS } from '@/modules/calculator/model/display.ts'
+import { withDefResMg } from '@/shared/lib/imageFallback.ts'
 import {
   fmtSkllKey,
   mrgDscrKywr,
@@ -26,6 +27,8 @@ interface ResSkllDataM {
   resonatorId: string | null
   runtime: ResRuntime | null
   requestedTab?: SkillTabKey | null
+  roster?: ResView[]
+  onSwitchMember?: (resonatorId: string) => void
   onClose: () => void
 }
 
@@ -36,6 +39,8 @@ export function SkillData({
   resonatorId,
   runtime,
   requestedTab = null,
+  roster = [],
+  onSwitchMember,
   onClose,
 }: ResSkllDataM) {
   const resonator = useMemo(() => (resonatorId ? getResonator(resonatorId) : null), [resonatorId])
@@ -77,6 +82,32 @@ export function SkillData({
               <div className="panel-overline">Skill Data</div>
               <h3 className="panel-heading-title">{resonator?.name ?? resonatorId}</h3>
             </div>
+            {onSwitchMember && roster.length > 1 ? (
+              <div className="mcc-switch skills-modal-switch" role="group" aria-label="Switch resonator view">
+                {roster.map((mate) => {
+                  const isCurrent = mate.id === resonatorId
+                  const label = isCurrent ? `${mate.name} (current view)` : `Switch to ${mate.name}`
+                  return (
+                    <button
+                      key={mate.id}
+                      type="button"
+                      className={`mcc-switch-chip${isCurrent ? ' active' : ''}`}
+                      style={{ '--mcc-switch-accent': ATTR_COLORS[mate.attribute] } as CSSProperties}
+                      aria-pressed={isCurrent}
+                      aria-label={label}
+                      title={label}
+                      onClick={() => {
+                        if (!isCurrent) {
+                          onSwitchMember(mate.id)
+                        }
+                      }}
+                    >
+                      <img src={mate.profile} alt="" onError={withDefResMg} />
+                    </button>
+                  )
+                })}
+              </div>
+            ) : null}
             <MdlClsBttn onClick={onClose} />
           </div>
         </div>

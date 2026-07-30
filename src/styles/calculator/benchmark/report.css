@@ -9,12 +9,6 @@
     transform 180ms var(--bench-ease);
 }
 
-.bench-main > .bench-section,
-.bench-main-stack > .bench-section {
-  content-visibility: auto;
-  contain-intrinsic-block-size: auto 24rem;
-}
-
 .bench-main-body {
   display: grid;
   grid-template-columns: minmax(0, 7fr) minmax(18rem, 3fr);
@@ -30,8 +24,6 @@
 
 .bench-main-stack {
   display: grid;
-  position: sticky;
-  top: var(--bench-stack-stick-top, 0px);
   align-self: start;
   height: max-content;
   gap: 1rem;

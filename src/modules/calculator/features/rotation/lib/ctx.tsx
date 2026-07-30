@@ -15,11 +15,12 @@ import {
   Plus,
   RotateCcw,
   Save,
+  Share2,
   Trash2,
   UserRoundSearch as UserRndSrch,
   X,
 } from 'lucide-react'
-import { PiDownloadSimpleBold as PiDwnlSmplBo, PiUploadSimpleBold as PiPldSmplBol } from 'react-icons/pi'
+import { PiDownloadSimpleBold as PiDwnlSmplBo } from 'react-icons/pi'
 import { CgListTree } from 'react-icons/cg'
 import type { InvRotEnt } from '@/domain/entities/inventoryStorage'
 import type { RotationNode } from '@/domain/gameData/contracts'
@@ -69,7 +70,7 @@ interface GetRotSvdIte {
   edit: EditConfig
   onActs: () => void
   onEdit: () => void
-  onExport: () => void
+  onShare: () => void
   onLoad: () => void
   onDel: () => void
 }
@@ -93,25 +94,25 @@ export function getRotEditCt({
     {
       id: 'add-feature',
       label: 'Feature',
-      icon: <Plus size="0.5rem" />,
+      icon: <Plus size="1em" />,
       onSelect: onAddFeat,
     },
     {
       id: 'add-condition',
       label: 'Condition',
-      icon: <Plus size="0.5rem" />,
+      icon: <Plus size="1em" />,
       onSelect: onAddCond,
     },
     {
       id: 'add-block',
       label: 'Block',
-      icon: <Plus size="0.5rem" />,
+      icon: <Plus size="1em" />,
       onSelect: onAddBlock,
     },
     {
       id: 'loopify-rotation',
       label: 'Loopify',
-      icon: <ListRestart size="0.5rem" />,
+      icon: <ListRestart size="1em" />,
       onSelect: onLoopify,
     },
     { type: 'separator' },
@@ -119,20 +120,20 @@ export function getRotEditCt({
       ? {
           id: 'preset',
           label: 'Preset',
-          icon: <RotateCcw size="0.5rem" />,
+          icon: <RotateCcw size="1em" />,
           onSelect: onPreset,
         }
       : null,
     {
       id: 'save',
       label: 'Save',
-      icon: <Save size="0.5rem" />,
+      icon: <Save size="1em" />,
       onSelect: onSave,
     },
     {
       id: 'clear',
       label: 'Clear',
-      icon: <X size="0.5rem" />,
+      icon: <X size="1em" />,
       danger: true,
       onSelect: onClear,
     },
@@ -141,7 +142,7 @@ export function getRotEditCt({
       ? {
           id: 'append',
           label: 'Append...',
-          icon: <ListPlus size="0.5rem" />,
+          icon: <ListPlus size="1em" />,
           submenu: append.map((entry) => ({
             id: `append:${entry.value}`,
             label: entry.label,
@@ -178,7 +179,7 @@ export function getRotSvdPan({
       {
         id: 'sort-by',
         label: 'Sort by...',
-        icon: <ArrowUpAZ size="0.5rem" />,
+        icon: <ArrowUpAZ size="1em" />,
         submenu: [
           { id: 'sort-date', label: 'Date', onSelect: () => onSortBy('date') },
           { id: 'sort-name', label: 'Name', onSelect: () => onSortBy('name') },
@@ -188,7 +189,7 @@ export function getRotSvdPan({
       },
       {
         id: 'sort-order',
-        icon: sort === 'desc' ? <RrwUpNrrwWid size="0.5rem" /> : <RrwDownNrrwW size="0.5rem" />,
+        icon: sort === 'desc' ? <RrwUpNrrwWid size="1em" /> : <RrwDownNrrwW size="1em" />,
         label: sort === 'desc' ? 'Ascending' : 'Descending',
         onSelect: onSort,
       },
@@ -196,13 +197,13 @@ export function getRotSvdPan({
       {
         id: 'import',
         label: 'Import',
-        icon: <RrwDownNrrwW size="0.5rem" />,
+        icon: <RrwDownNrrwW size="1em" />,
         onSelect: pickImport,
       },
       {
         id: 'clear-saved',
         label: 'Clear',
-        icon: <X size="0.5rem" />,
+        icon: <X size="1em" />,
         danger: true,
         disabled: !canClear,
         onSelect: onClear,
@@ -211,7 +212,7 @@ export function getRotSvdPan({
       {
         id: 'filter',
         label: 'Filter...',
-        icon: <Funnel size="0.5rem" />,
+        icon: <Funnel size="1em" />,
         submenu: [
           { id: 'filter-all', label: 'All', onSelect: () => onFilter('all') },
           { id: 'filter-personal', label: 'Personal', onSelect: () => onFilter('personal') },
@@ -220,7 +221,7 @@ export function getRotSvdPan({
       },
       {
         id: 'auto-search-active',
-        icon: <UserRndSrch size="0.5rem" />,
+        icon: <UserRndSrch size="1em" />,
         label: auto ? 'Disable active search' : 'Search active resonator',
         onSelect: () => {
           void seedName
@@ -236,7 +237,7 @@ export function getRotSvdIte({
   edit,
   onActs,
   onEdit,
-  onExport,
+  onShare,
   onLoad,
   onDel,
 }: GetRotSvdIte): MenuEntry[] {
@@ -245,32 +246,32 @@ export function getRotSvdIte({
       {
         id: 'show-actions',
         label: 'Actions',
-        icon: <CgListTree size="0.5rem" />,
+        icon: <CgListTree size="1em" />,
         onSelect: onActs,
       },
       {
         id: 'edit-saved',
         label: 'Edit details',
-        icon: <Pencil size="0.5rem" />,
+        icon: <Pencil size="1em" />,
         onSelect: onEdit,
       },
       {
-        id: 'export-saved',
-        label: 'Export',
-        icon: <PiPldSmplBol size="0.5rem" />,
-        onSelect: onExport,
+        id: 'share-saved',
+        label: 'Share',
+        icon: <Share2 size="1em" />,
+        onSelect: onShare,
       },
       {
         id: 'load-saved',
         label: 'Load',
-        icon: <PiDwnlSmplBo size="0.5rem" />,
+        icon: <PiDwnlSmplBo size="1em" />,
         onSelect: onLoad,
       },
       { type: 'separator' },
       {
         id: 'delete-saved',
         label: 'Delete',
-        icon: <Trash2 size="0.5rem" />,
+        icon: <Trash2 size="1em" />,
         danger: true,
         onSelect: onDel,
       },

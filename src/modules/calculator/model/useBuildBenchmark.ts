@@ -25,6 +25,7 @@ import {
   makeBenchEnemy,
 } from '@/modules/calculator/model/benchmarkAssumptions.ts'
 import { useBenchTarget } from '@/modules/calculator/model/useBenchTarget.ts'
+import { getTuneStrainMaxForTeam } from '@/domain/gameData/tuneStrain.ts'
 
 declare global {
   interface Window {
@@ -46,7 +47,6 @@ export interface UseAsmBenchScoreIn {
   runtime: ResRuntime | null
   runtimesById: Record<string, ResRuntime>
   targetSelections: Record<string, string | null>
-  tuneStrain?: number
   debounceMs?: number
   exposeLogger?: boolean
   enabled?: boolean
@@ -98,8 +98,7 @@ function useAsmBenchTarget({
   runtime,
   runtimesById,
   targetSelections,
-  tuneStrain,
-}: Pick<UseAsmBenchScoreIn, 'runtime' | 'runtimesById' | 'targetSelections' | 'tuneStrain'>): AsmBenchTarget {
+}: Pick<UseAsmBenchScoreIn, 'runtime' | 'runtimesById' | 'targetSelections'>): AsmBenchTarget {
   // assumed benchmark mode runs on a cloned runtime/team map so benchmark
   // scoring can apply its fixed enemy and assumptions without mutating app state
   const benchRt = useMemo(
@@ -114,9 +113,13 @@ function useAsmBenchTarget({
     () => (benchRt ? getResSeedBy(benchRt.id) ?? null : null),
     [benchRt],
   )
+  const benchTuneStrain = useMemo(
+    () => getTuneStrainMaxForTeam(benchRt),
+    [benchRt],
+  )
   const benchEnemy = useMemo(
-    () => makeBenchEnemy(tuneStrain),
-    [tuneStrain],
+    () => makeBenchEnemy(benchTuneStrain),
+    [benchTuneStrain],
   )
   const benchTgt = useBenchTarget({
     targetRuntime: benchRt,
@@ -149,6 +152,7 @@ export function useBenchScore({
   const [score, setScore] = useState<number | null>(null)
   const scoreRuntimeRef = useRef(runtime?.id ?? null)
 
+  /* eslint-disable react-hooks/set-state-in-effect -- these effects synchronize worker/cache state with the current benchmark target. */
   useEffect(() => {
     let cancelled = false
     // reset visible score when the resonator changes, but keep same-runtime
@@ -200,6 +204,7 @@ export function useBenchScore({
       window.clearTimeout(timeoutId)
     }
   }, [debounceMs, enabled, enemy, runtimesById, runtime, simulation])
+  /* eslint-enable react-hooks/set-state-in-effect */
 
   const logBenchmark = useCallback(() => {
     if (!runtime) {
@@ -223,6 +228,7 @@ export function useBenchScore({
       })
   }, [enemy, runtimesById, runtime, simulation])
 
+  /* eslint-disable react-hooks/set-state-in-effect -- this resets stale showcase output before the async detail worker resolves. */
   useEffect(() => {
     if (!exposeLogger || typeof window === 'undefined') {
       return
@@ -248,22 +254,20 @@ export function usePrefetchAsmBench({
   runtime,
   runtimesById,
   targetSelections,
-  tuneStrain,
   enabled = true,
-}: Pick<UseAsmBenchScoreIn, 'runtime' | 'runtimesById' | 'targetSelections' | 'tuneStrain' | 'enabled'>): void {
+}: Pick<UseAsmBenchScoreIn, 'runtime' | 'runtimesById' | 'targetSelections' | 'enabled'>): void {
   const prefetchedRef = useRef<string | null>(null)
   const target = useAsmBenchTarget({
     runtime,
     runtimesById,
     targetSelections,
-    tuneStrain,
   })
 
   useEffect(() => {
     if (!enabled || !target.runtime || !target.simulation) {
       return
     }
-    const signature = `${target.runtime.id}|${JSON.stringify(targetSelections)}`
+    const signature = `${target.runtime.id}|${target.enemy.status?.tuneStrain ?? 0}|${JSON.stringify(targetSelections)}`
     if (prefetchedRef.current === signature) {
       return
     }
@@ -289,7 +293,6 @@ export function useAsmBenchScore({
   runtime,
   runtimesById,
   targetSelections,
-  tuneStrain,
   debounceMs,
   exposeLogger = false,
   enabled = true,
@@ -298,7 +301,6 @@ export function useAsmBenchScore({
     runtime,
     runtimesById,
     targetSelections,
-    tuneStrain,
   })
 
   return useBenchScore({
@@ -384,6 +386,7 @@ export function useBenchShowcase({
       window.clearTimeout(timeoutId)
     }
   }, [debounceMs, enabled, enemy, runtimesById, runtime, simulation])
+  /* eslint-enable react-hooks/set-state-in-effect */
 
   return state
 }
@@ -407,6 +410,7 @@ export function useBenchReport({
   const handledRefreshRef = useRef(0)
   const reportOptionsRef = useRef(reportOptions)
 
+  /* eslint-disable react-hooks/set-state-in-effect -- report state tracks the async report worker lifecycle. */
   useEffect(() => {
     reportOptionsRef.current = reportOptions
   }, [reportOptions])
@@ -469,6 +473,7 @@ export function useBenchReport({
       cancelBenchReport()
     }
   }, [debounceMs, enabled, enemy, refreshToken, runtimesById, runtime, simulation])
+  /* eslint-enable react-hooks/set-state-in-effect */
 
   return {
     report,
@@ -483,7 +488,6 @@ export function useBenchPreview({
   echoes,
   runtimesById,
   targetSelections,
-  tuneStrain,
   debounceMs,
 }: Omit<UseAsmBenchScoreIn, 'exposeLogger'> & {
   echoes: Array<EchoInstance | null>
@@ -505,7 +509,6 @@ export function useBenchPreview({
     runtime: benchRt,
     runtimesById,
     targetSelections,
-    tuneStrain,
     debounceMs,
   })
 }

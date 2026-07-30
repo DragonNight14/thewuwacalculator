@@ -238,7 +238,7 @@ export function Echoes({
         id: 'echo:copy',
         key: 'copy',
         needsSel: true,
-        icon: <Copy size="0.5rem" />,
+        icon: <Copy size="1em" />,
         label: ({ count }) => `Copy (${count})`,
         title: 'Copy selected echoes (Ctrl/Cmd+C)',
         run: async ({ vals }) => {
@@ -256,7 +256,7 @@ export function Echoes({
         id: 'echo:cut',
         key: 'cut',
         needsSel: true,
-        icon: <Scissors size="0.5rem" />,
+        icon: <Scissors size="1em" />,
         label: ({ count }) => `Cut (${count})`,
         title: 'Cut selected echoes (Ctrl/Cmd+X)',
         run: async ({ ids, vals }) => {
@@ -276,7 +276,7 @@ export function Echoes({
       {
         id: 'echo:paste',
         key: 'paste',
-        icon: <FileImage size="0.5rem" />,
+        icon: <FileImage size="1em" />,
         label: 'Paste',
         title: 'Paste echoes (Ctrl/Cmd+V)',
         float: false,
@@ -289,7 +289,7 @@ export function Echoes({
         key: 'delete',
         needsSel: true,
         danger: true,
-        icon: <Trash2 size="0.5rem" />,
+        icon: <Trash2 size="1em" />,
         label: ({ count }) => `Remove (${count})`,
         title: 'Remove selected echoes (Delete / Backspace)',
         run: ({ ids }) => {
@@ -314,13 +314,10 @@ export function Echoes({
         echo ? getEchoScrPr(runtime.id, echo) : null,
     )
   }, [hasWeights, runtime.id, runtime.build.echoes])
-  const enemyTuneStrain = useAppStore((state) => state.calculator.session.enemyProfile.status?.tuneStrain ?? 0)
-
   const { score: buildScore } = useAsmBenchScore({
     runtime,
     runtimesById: partRntmById,
     targetSelections: selTrgtByOwn,
-    tuneStrain: enemyTuneStrain,
   })
 
   const mdlPrtlTgt = mainPortal()
@@ -1164,8 +1161,10 @@ export function Echoes({
               message={confirmation.message}
               confirmLabel={confirmation.confirmLabel}
               cancelLabel={confirmation.cancelLabel}
+              secondaryLabel={confirmation.secondaryLabel}
               variant={confirmation.variant}
               onConfirm={confirmation.onConfirm}
+              onSecondary={confirmation.onSecondary}
               onCancel={confirmation.onCancel}
           />
         </section>

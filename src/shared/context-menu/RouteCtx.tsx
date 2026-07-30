@@ -11,6 +11,7 @@ import { useShallow } from 'zustand/react/shallow'
 import { useCnfr } from '@/app/hooks/useConfirmation'
 import { selActResId } from '@/domain/state/selectors'
 import { useAppStore } from '@/domain/state/store'
+import { TeamConsoleHost } from '@/modules/calculator/features/teams/ConsoleHost.tsx'
 import { AppSttsMdl } from '@/shared/ui/AppStatusModal'
 import { CnfrMdl } from '@/shared/ui/ConfirmationModal'
 import { useAppModal } from '@/shared/ui/useAppModal'
@@ -269,8 +270,10 @@ export function RtMenuProv({ children }: { children: ReactNode }) {
         message={confirmation.message}
         confirmLabel={confirmation.confirmLabel}
         cancelLabel={confirmation.cancelLabel}
+        secondaryLabel={confirmation.secondaryLabel}
         variant={confirmation.variant}
         onConfirm={confirmation.onConfirm}
+        onSecondary={confirmation.onSecondary}
         onCancel={confirmation.onCancel}
       />
       <AppSttsMdl
@@ -279,6 +282,7 @@ export function RtMenuProv({ children }: { children: ReactNode }) {
         closing={appStatus.closing}
         onClose={appStatus.hide}
       />
+      <TeamConsoleHost />
     </RouteCtx.Provider>
   )
 }

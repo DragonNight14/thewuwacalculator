@@ -1,8 +1,7 @@
 /*
   Author: Runor Ewhro
-  Description: renders the resonator configuration pane, including picker
-               access, level and chain controls, runtime state controls, and
-               skill-data entry points.
+  Description: Applies resonator identity, progression, and runtime-control
+               mutations while keeping picker and skill-data entry points wired.
 */
 
 import type {CSSProperties as CssProps} from 'react'
@@ -579,13 +578,10 @@ export function Resonator({
   const weaponDef = getWeapon(runtime.build.weapon.id)
   const weaponIcon = weaponDef?.icon ?? '/assets/game/default.webp'
   const weaponRarity = weaponDef?.rarity ?? 4
-  const enemyTuneStrain = useAppStore((state) => state.calculator.session.enemyProfile.status?.tuneStrain ?? 0)
-
   const { score: buildScore } = useAsmBenchScore({
     runtime,
     runtimesById: partRntmById,
     targetSelections: selTrgtByOwn,
-    tuneStrain: enemyTuneStrain,
     exposeLogger: true,
   })
 
@@ -729,7 +725,7 @@ export function Resonator({
                 <span className="res-card__refine">
                   <span className="res-card__stars" aria-label={`${weaponRarity} star`}>
                     {Array.from({ length: weaponRarity }).map((_, index) => (
-                      <Star key={index} size="0.625rem" strokeWidth={0} className="res-card__star" />
+                      <Star key={index} size="0.5rem" strokeWidth={0} className="res-card__star" />
                     ))}
                   </span>
                   <span className="res-card__rank">R{runtime.build.weapon.rank}</span>
@@ -761,7 +757,7 @@ export function Resonator({
                     >
                       <span className="res-mate__crown" aria-label={`${mate.rarity} star`}>
                         {Array.from({ length: mate.rarity }).map((_, starIndex) => (
-                          <Star key={starIndex} size="0.5rem" strokeWidth={0} className="res-mate__star" aria-hidden="true" />
+                          <Star key={starIndex} size="1em" strokeWidth={0} className="res-mate__star" aria-hidden="true" />
                         ))}
                       </span>
                       <span className="res-mate__pic">
@@ -792,7 +788,7 @@ export function Resonator({
                   ) : (
                     <span key={`empty-${index}`} className="res-mate res-mate--empty">
                       <span className="res-mate__pic res-mate__pic--empty">
-                        <UserPlus size="0.5rem" aria-hidden="true" />
+                        <UserPlus size="1em" aria-hidden="true" />
                       </span>
                       <span className="res-mate__text">
                         <span className="res-mate__name res-mate__name--empty">Empty Slot</span>

@@ -31,4 +31,5 @@ export interface CombatPart {
 export interface CombatGraph {
   activeSlotId: SlotId
   participants: Record<SlotId, CombatPart>
+  effectScalesByRuntimePath?: Record<string, Record<string, number>>
 }

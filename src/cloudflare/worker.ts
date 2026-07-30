@@ -8,10 +8,14 @@ import {
   onExchangeCode,
   onRefreshToken,
   type GglAuthEnv,
-  type GoogleAuthResult,
 } from '../infra/googleDrive/server/googleOAuthServer'
+import {
+  onShareRequest,
+  type ShareEnv,
+  type ShareServerResult,
+} from '../infra/shares/server/shareServer'
 
-interface CldfEnv extends GglAuthEnv {
+interface CldfEnv extends GglAuthEnv, ShareEnv {
   ASSETS: {
     fetch(input: RequestInfo | URL, init?: RequestInit): Promise<Response>
   }
@@ -19,11 +23,13 @@ interface CldfEnv extends GglAuthEnv {
 
 const CANONICAL_HOST = 'thewuwacalculator.com'
 
-function makeJsonResponse({ body, status }: GoogleAuthResult): Response {
-  return new Response(JSON.stringify(body), {
+function makeJsonResponse({ body, status, headers }: ShareServerResult): Response {
+  const contentType = headers?.['Content-Type'] ?? 'application/json'
+  return new Response(typeof body === 'string' ? body : JSON.stringify(body), {
     status,
     headers: {
-      'Content-Type': 'application/json',
+      ...headers,
+      'Content-Type': contentType,
     },
   })
 }
@@ -56,6 +62,20 @@ async function onApiRqst(request: Request, env: CldfEnv): Promise<Response | nul
 
   if (url.pathname === '/api/refresh-token') {
     return makeJsonResponse(await onRefreshToken({ body, env, method: request.method }))
+  }
+
+  if (url.pathname === '/api/shares' || url.pathname.startsWith('/api/shares/')) {
+    const clientId = request.headers.get('CF-Connecting-IP')
+      ?? request.headers.get('x-forwarded-for')?.split(',')[0]?.trim()
+      ?? 'local'
+
+    return makeJsonResponse(await onShareRequest({
+      body,
+      clientId,
+      env,
+      method: request.method,
+      requestUrl: request.url,
+    }))
   }
 
   return null

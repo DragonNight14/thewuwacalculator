@@ -1,3 +1,9 @@
+/*
+  Author: Runor Ewhro
+  Description: Projects benchmark report trees from the scoring engine without
+               recomputing damage or contribution math.
+*/
+
 import { Fragment, useMemo } from 'react'
 import type { CSSProperties as CssProps } from 'react'
 import type { ReactNode } from 'react'
@@ -662,6 +668,39 @@ function getBenchmarkFeatureTabLabel(tab: string, fallback?: string): string {
   return toTitle(tab || 'feature')
 }
 
+function groupRotationFeatureRows(rows: BenchmarkFeature[]): BenchmarkFeature[] {
+  const bySkillId = new Map<string, BenchmarkFeature>()
+
+  for (const row of rows) {
+    const existing = bySkillId.get(row.skillId)
+    if (existing) {
+      existing.weightedDamage += row.weightedDamage
+      existing.damage = existing.weightedDamage
+      continue
+    }
+
+    bySkillId.set(row.skillId, {
+      ...row,
+      damage: row.weightedDamage,
+      sharePct: 0,
+    })
+  }
+
+  const grouped = [...bySkillId.values()]
+  const total = grouped.reduce((sum, row) => sum + Math.max(0, row.weightedDamage), 0)
+
+  return grouped
+    .map((row) => ({
+      ...row,
+      sharePct: total > 0 ? (Math.max(0, row.weightedDamage) / total) * 100 : 0,
+    }))
+    .sort((a, b) => b.weightedDamage - a.weightedDamage)
+}
+
+function countRotationFeatureIds(rows: BenchmarkFeature[]): number {
+  return new Set(rows.map((row) => row.skillId)).size
+}
+
 function RotationFeatures({
   rows,
   groups,
@@ -669,10 +708,7 @@ function RotationFeatures({
   rows: BenchmarkFeature[]
   groups: BenchmarkFeatureGroups
 }) {
-  const ranked = useMemo(
-    () => rows.slice().sort((a, b) => b.weightedDamage - a.weightedDamage),
-    [rows],
-  )
+  const ranked = useMemo(() => groupRotationFeatureRows(rows), [rows])
 
   const typeSegments = useMemo(
     () => groups.skillTypes.map((group, index) => groupToSegment(
@@ -710,7 +746,7 @@ function RotationFeatures({
               <th>Feature</th>
               <th>Talent Node</th>
               <th>Skill Type</th>
-              <th className="num">Damage</th>
+              <th className="num">Total Damage</th>
               <th className="num">Share</th>
             </tr>
           </thead>
@@ -718,7 +754,7 @@ function RotationFeatures({
             {ranked.map((row) => {
               const type = getSkillType(row.skillType)
               return (
-                <tr key={`${row.skillId}:${row.label}`}>
+                <tr key={row.skillId}>
                   <td>{row.label}</td>
                   <td>{getBenchmarkFeatureTabLabel(row.tab)}</td>
                   <td>
@@ -729,7 +765,7 @@ function RotationFeatures({
                       {type.short ?? type.label}
                     </span>
                   </td>
-                  <td className="num">{formatCompactNum(row.damage)}</td>
+                  <td className="num">{formatCompactNum(row.weightedDamage)}</td>
                   <td className="num">{formatTruncCompact(row.sharePct, 1)}%</td>
                 </tr>
               )
@@ -862,7 +898,7 @@ export function BuildDossier({
         {showRotationFeatures ? (
         <div>
           <span>Features</span>
-          <strong>{build.features.length}</strong>
+          <strong>{countRotationFeatureIds(build.features)}</strong>
         </div>
         ) : null}
       </div>

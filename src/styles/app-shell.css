@@ -557,6 +557,11 @@ body.split-resizing * {
 :is(.no-entrance-anim, .reduce-animation) .rotation-when-rung,
 :is(.no-entrance-anim, .reduce-animation) .rotation-when-editor__empty-orbit-ring,
 :is(.no-entrance-anim, .reduce-animation) .toolbar-icon-button,
+:is(.no-entrance-anim, .reduce-animation) .hamburger-button,
+:is(.no-entrance-anim, .reduce-animation) .toolbar-title,
+:is(.no-entrance-anim, .reduce-animation) .tps-triad > *,
+:is(.no-entrance-anim, .reduce-animation) .sidebar-content > *,
+:is(.no-entrance-anim, .reduce-animation) .sidebar-footer > *,
 :is(.no-entrance-anim, .reduce-animation) .toolbar-group {
 
   animation-duration: 0.01ms !important;

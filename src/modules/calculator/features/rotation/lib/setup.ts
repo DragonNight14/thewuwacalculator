@@ -15,6 +15,7 @@ import {
   getStateTeamTag,
   getTeamTgtPt,
 } from '@/modules/calculator/features/controls/lib/runtimeStateUtils'
+import { scopedTargetOwnerKey } from '@/domain/gameData/targetRouting.ts'
 import { getStateText } from '@/modules/calculator/model/sourceStateDisplay'
 import {
   enemyChoices,
@@ -224,6 +225,7 @@ export function mkRotCondChc(
       }
 
       const display = getStateText(state)
+      const routeKey = scopedTargetOwnerKey(member.id, state.ownerKey)
 
       return [mkCondChc(
         member,
@@ -231,9 +233,9 @@ export function mkRotCondChc(
           id: `${state.id}:target`,
           label: `${display.label} Target`,
           source: state.source,
-          ownerKey: state.ownerKey,
+          ownerKey: routeKey,
           controlKey: `${state.controlKey}:target`,
-          path: `runtime.routing.selectedTargetsByOwnerKey.${state.ownerKey}`,
+          path: `runtime.routing.selectedTargetsByOwnerKey.${routeKey}`,
           kind: 'select' as const,
           options: options.map((option) => ({
             id: option.value,
