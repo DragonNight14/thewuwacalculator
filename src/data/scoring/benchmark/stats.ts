@@ -521,7 +521,7 @@ export function makeBenchmarkInvariantStats(finalStats: FinalStats): BenchmarkSt
     invariantLeaf('defShred', 'DEF Shred', finalStats.defShred, fmtInvariantPct(finalStats.defShred)),
     invariantLeaf('dmgVuln', 'DMG Vulnerability', finalStats.dmgVuln, fmtInvariantPct(finalStats.dmgVuln)),
     invariantLeaf('shieldBonus', 'Shield Bonus', finalStats.shieldBonus, fmtInvariantPct(finalStats.shieldBonus)),
-    invariantLeaf('special', 'Special', finalStats.special, fmtInvariantPct(finalStats.special)),
+    invariantLeaf('finalDmg', 'Final DMG', finalStats.finalDmg, fmtInvariantPct(finalStats.finalDmg)),
   ].filter((row): row is BenchmarkStatTreeLeaf => row != null)
   if (combatChildren.length > 0) {
     root.push({

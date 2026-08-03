@@ -32,7 +32,7 @@ export const CTX_SHLD_BONUS = 17
 export const CTX_DMG_BONUS = 18
 export const CTX_AMPLIFY = 19
 export const CTX_FLAT_DMG = 20
-export const CTX_SPECIAL = 21
+export const CTX_FINAL_DMG = 21
 export const CTX_NEG_MULT = 22
 export const CTX_TUNE_BREAK = 23
 export const CTX_RES_SHRED = 24
@@ -91,7 +91,7 @@ export function packCompCtx(context: CompTargetSkill): Float32Array {
   out[CTX_DMG_BONUS] = context.statDmgBonus
   out[CTX_AMPLIFY] = context.statAmp
   out[CTX_FLAT_DMG] = context.statFlatDmg
-  out[CTX_SPECIAL] = context.statSpec
+  out[CTX_FINAL_DMG] = context.statFinalDmg
   out[CTX_NEG_MULT] = context.negEfxMult
   out[CTX_TUNE_BREAK] = context.statTuneBrcq
   out[CTX_RES_SHRED] = context.statResShrd

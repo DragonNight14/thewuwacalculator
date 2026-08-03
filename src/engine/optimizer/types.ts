@@ -203,7 +203,7 @@ export interface CompTargetSkill {
   statDmgBonus: number
   statAmp: number
   statFlatDmg: number
-  statSpec: number
+  statFinalDmg: number
   resMult: number
   defMult: number
   dmgReduction: number

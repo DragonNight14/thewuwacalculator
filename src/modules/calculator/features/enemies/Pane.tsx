@@ -248,11 +248,12 @@ function effectScope(
   }
 }
 
-function dmgVulnMath(
+function topStatMath(
   runtime: ResRuntime,
   state: SourceState,
   enemy: EnemyProfile,
   simulation: SimResult | null,
+  stat: 'dmgVuln' | 'finalDmg',
 ): Array<{ id: string; label: string; value: number; equation: string; active: boolean }> {
   const scope = effectScope(runtime, state, enemy, simulation)
 
@@ -260,7 +261,7 @@ function dmgVulnMath(
     .flatMap((effect) => {
       const active = evalCond(effect.condition, scope)
       return effect.operations.flatMap((operation, index) => {
-        if (operation.type !== 'add_top_stat' || operation.stat !== 'dmgVuln') {
+        if (operation.type !== 'add_top_stat' || operation.stat !== stat) {
           return []
         }
 
@@ -376,7 +377,7 @@ function readRtValue(runtime: ResRuntime, state: SourceState): string | number |
 
 function ResCombatTuneCard({ card, runtime, enemy, simulation, onRtPdt }: ResCombatStatePrps) {
   const state = card.states[0]
-  const mathRows = state ? dmgVulnMath(runtime, state, enemy, simulation) : []
+  const mathRows = state ? topStatMath(runtime, state, enemy, simulation, 'finalDmg') : []
   const total = mathRows.reduce((sum, row) => sum + row.value, 0)
 
   const active = total > 0
@@ -388,7 +389,7 @@ function ResCombatTuneCard({ card, runtime, enemy, simulation, onRtPdt }: ResCom
         <h4 className="combat-tune-card__title">{card.title}</h4>
         <div className="combat-tune-card__output">
           <span className="combat-tune-card__output-value">{fmtPct(total)}</span>
-          <span className="combat-tune-card__output-label">DMG taken</span>
+          <span className="combat-tune-card__output-label">Final DMG</span>
         </div>
       </header>
       <RichDscr
@@ -426,7 +427,7 @@ function ResCombatTuneCard({ card, runtime, enemy, simulation, onRtPdt }: ResCom
 }
 
 function ResCombatPlainCard({ card, runtime, enemy, simulation, onRtPdt }: ResCombatStatePrps) {
-  const mathRows = card.states.flatMap((state) => dmgVulnMath(runtime, state, enemy, simulation))
+  const mathRows = card.states.flatMap((state) => topStatMath(runtime, state, enemy, simulation, 'dmgVuln'))
 
   return (
     <article className="pane-section res-combat-plain-card">

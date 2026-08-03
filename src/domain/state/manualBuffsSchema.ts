@@ -45,6 +45,26 @@ const skillTypeSchema = z.enum([
   'hack',
 ])
 
+// Preserve imported and persisted buffs written before the finalDmg rename.
+const mnlTopStatSchema = z.preprocess(
+  (value) => value === 'special' ? 'finalDmg' : value,
+  z.enum([
+    'flatDmg',
+    'amplify',
+    'critRate',
+    'critDmg',
+    'energyRegen',
+    'healingBonus',
+    'shieldBonus',
+    'dmgBonus',
+    'defIgnore',
+    'defShred',
+    'dmgVuln',
+    'tuneBreakBoost',
+    'finalDmg',
+  ]),
+)
+
 // discriminated manual modifier schema
 const mnlModSchm = z.union([
   z.object({
@@ -61,21 +81,7 @@ const mnlModSchm = z.union([
     enabled: z.boolean(),
     label: z.string().optional(),
     scope: z.literal('topStat'),
-    stat: z.enum([
-      'flatDmg',
-      'amplify',
-      'critRate',
-      'critDmg',
-      'energyRegen',
-      'healingBonus',
-      'shieldBonus',
-      'dmgBonus',
-      'defIgnore',
-      'defShred',
-      'dmgVuln',
-      'tuneBreakBoost',
-      'special',
-    ]),
+    stat: mnlTopStatSchema,
     value: z.number(),
   }).strict(),
   z.object({

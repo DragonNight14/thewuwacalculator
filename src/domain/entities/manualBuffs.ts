@@ -22,7 +22,7 @@ export type MnlTopStatKe =
     | 'defShred'
     | 'dmgVuln'
     | 'tuneBreakBoost'
-    | 'special'
+    | 'finalDmg'
 
 export type MnlModVlKey = keyof ModBuff
 export type MnlNegFfctModKey = keyof NegEffectBuff

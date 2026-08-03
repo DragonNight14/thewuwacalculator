@@ -411,7 +411,7 @@ export function packTargetCtx(options: {
   let pckdMplf = 1 + (compiled.statAmp / 100)
   let pckdCritRate = normalized.critRate / 100
   let pckdCritDmg = normalized.critDmg / 100
-  let packedAux0 = 1 + (compiled.statSpec / 100)
+  let packedAux0 = 1 + (compiled.statFinalDmg / 100)
 
   // archetype-specific packing adjusts how the execution backend interprets multiplier terms
   switch (archetype) {
@@ -440,7 +440,7 @@ export function packTargetCtx(options: {
       pckdMplf = 1 + (compiled.statAmp / 100)
       pckdCritRate = compiled.negEfxCritoo
       pckdCritDmg = compiled.negEfxCritsa
-      packedAux0 = 1 + (compiled.statSpec / 100)
+      packedAux0 = 1 + (compiled.statFinalDmg / 100)
       break
 
     case ARCH_DAMAGE:

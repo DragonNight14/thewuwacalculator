@@ -118,7 +118,7 @@ struct Params {
     dmgReductionTotal: f32,
     dmgBonus:     f32,
     dmgAmplify:   f32,
-    special:      f32,
+    dmgVuln:      f32,
 
     critRate:     f32,
     critDmg:      f32,
@@ -341,7 +341,7 @@ fn applyOverlay(w: u32) -> Params {
     p.resMult           = v3.x;
     p.defMult           = v3.y;
     p.dmgReductionTotal = v3.z;
-    p.special           = v3.w;
+    p.dmgVuln           = v3.w;
     return p;
 }
 

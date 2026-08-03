@@ -441,7 +441,7 @@ export function formatManualModifierPreview(modifier: MnlMod): string {
   }
 
   if (modifier.scope === 'topStat') {
-    const suffix = modifier.stat === 'flatDmg' || modifier.stat === 'special' || modifier.stat === 'tuneBreakBoost'
+    const suffix = modifier.stat === 'flatDmg' || modifier.stat === 'finalDmg' || modifier.stat === 'tuneBreakBoost'
       ? ''
       : '%'
     return `${getOptionLabel(DVNCTOPSTATP, modifier.stat)} ${formatValue(modifier.value, suffix)}`

@@ -28,6 +28,7 @@ import {
   DMG_AMP,
   DMG_BNS,
   DMG_RED,
+  DMG_VULN,
   FINAL_ATK,
   FINAL_DEF,
   FINAL_HP,
@@ -43,7 +44,6 @@ import {
   SCALING_HP,
   SET_MASK,
   SKILL_ID,
-  OPT_CTX_SPEC,
   TOGGLES,
 } from '@/engine/optimizer/config/constants.ts'
 import { compOptTgtCt } from '@/engine/optimizer/target/context.ts'
@@ -150,7 +150,7 @@ function decodeTargetCtx(context: Float32Array) {
     dmgReduction: context[DMG_RED],
     dmgBonus: context[DMG_BNS],
     dmgAmplify: context[DMG_AMP],
-    special: context[OPT_CTX_SPEC],
+    dmgVulnPct: context[DMG_VULN],
     critRate: context[CRIT_RATE],
     critDmg: context[CRIT_DMG],
   }
@@ -187,7 +187,7 @@ function mkSnapDlt(
     dmgBonus: right.finalStats.dmgBonus - left.finalStats.dmgBonus,
     amplify: right.finalStats.amplify - left.finalStats.amplify,
     flatDmg: right.finalStats.flatDmg - left.finalStats.flatDmg,
-    special: right.finalStats.special - left.finalStats.special,
+    finalDmg: right.finalStats.finalDmg - left.finalStats.finalDmg,
     resShred: right.finalStats.resShred - left.finalStats.resShred,
     defIgnore: right.finalStats.defIgnore - left.finalStats.defIgnore,
     defShred: right.finalStats.defShred - left.finalStats.defShred,
@@ -334,7 +334,7 @@ function mkSkllSnap(
       dmgBonus: prepared.context.finalStats.dmgBonus,
       amplify: prepared.context.finalStats.amplify,
       flatDmg: prepared.context.finalStats.flatDmg,
-      special: prepared.context.finalStats.special,
+      finalDmg: prepared.context.finalStats.finalDmg,
       resShred:
           prepared.context.finalStats.attribute.all.resShred +
           prepared.context.finalStats.attribute[prepared.skill.element].resShred,

@@ -45,7 +45,7 @@ import {
   STAT_HP_PCT,
   STAT_RES_SHRED,
   STAT_SHIELD_BON,
-  STAT_SPECIAL,
+  STAT_FINAL_DMG,
   STAT_TUNE_BREAK,
 } from '@/engine/optimizer/config/constants.ts'
 import {
@@ -94,7 +94,7 @@ import {
   CTX_NEG_MULT as OPTCTXNEGFvl,
   CTX_RES_SHRED as OPTCTXSTTCRE,
   CTX_SHLD_BONUS as OPTCTXSTTCSH,
-  CTX_SPECIAL as OPTCTXSTTCSP,
+  CTX_FINAL_DMG as OPTCTXFINALDMG,
   CTX_TUNE_BREAK as OPTCTXSTTCTU,
   CTX_TUNE_BOOST as OPTCTXTUNERP,
   CTX_TUNE_CRIT as OPTCTXTUNErf,
@@ -302,7 +302,7 @@ function evalPckdCtxD(
 
   const dmgBnsPct = context[contextOffset + OPTCTXSTTCDM] + comboVector[STAT_DMG_BONUS]
   const amplifyPct = context[contextOffset + OPTCTXSTTCMP] + comboVector[STAT_AMPLIFY]
-  const specialPct = context[contextOffset + OPTCTXSTTCSP] + comboVector[STAT_SPECIAL]
+  const finalDmgPct = context[contextOffset + OPTCTXFINALDMG] + comboVector[STAT_FINAL_DMG]
 
   const flatDmg =
       context[contextOffset + OPTCTXSTTCFL] +
@@ -463,7 +463,7 @@ function evalPckdCtxD(
           (1 + negFfctMltp) *
           (1 + amplifyPct / 100) *
           (1 + dmgBnsPct / 100) *
-          (1 + specialPct / 100) *
+          (1 + finalDmgPct / 100) *
           resMult *
           defMult *
           (1 + dmgVulnPct / 100)
@@ -491,7 +491,7 @@ function evalPckdCtxD(
           (1 + dmgVulnPct / 100) *
           (1 + dmgBnsPct / 100) *
           (1 + amplifyPct / 100) *
-          (1 + specialPct / 100)
+          (1 + finalDmgPct / 100)
 
       const crit = normal * critDmg
       return critRate >= 1 ? crit : (crit * critRate) + (normal * (1 - critRate))

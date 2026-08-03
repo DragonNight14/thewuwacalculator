@@ -120,7 +120,7 @@ struct Params {
     dmgReductionTotal: f32,
     dmgBonus:     f32,
     dmgAmplify:   f32,
-    special:      f32,
+    dmgVuln:      f32,
 
     // crit stats and special toggle bits
     critRate:     f32,
@@ -1026,7 +1026,7 @@ fn loadRotationParams(ctxIndex: u32) -> Params {
     p.dmgReductionTotal = rotationContexts[base + 16u];
     p.dmgBonus = rotationContexts[base + 17u];
     p.dmgAmplify = rotationContexts[base + 18u];
-    p.special = rotationContexts[base + 19u];
+    p.dmgVuln = rotationContexts[base + 19u];
 
     p.critRate = rotationContexts[base + 20u];
     p.critDmg = rotationContexts[base + 21u];

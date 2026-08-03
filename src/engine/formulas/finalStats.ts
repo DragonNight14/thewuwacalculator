@@ -46,7 +46,7 @@ export function calcFinalStats(
     defShred: pool.defShred,
     dmgVuln: pool.dmgVuln,
     tbb: baseStats.tuneBreakBoost + pool.tuneBreakBoost,
-    special: pool.special,
+    finalDmg: pool.finalDmg,
     immunities: pool.immunities,
   }
 }
