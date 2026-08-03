@@ -772,6 +772,30 @@
         "trigger": "Always active at 5pc.",
         "description": "ATK +15%."
       }
+    ],
+    "extraEffects": [
+      {
+        "id": "energy-regen-attribute-dmg",
+        "label": "Energy Regen Attribute DMG Bonus",
+        "stage": "postStats",
+        "operations": [
+          {
+            "type": "add_attribute_mod",
+            "attribute": "all",
+            "mod": "dmgBonus",
+            "value": {
+              "type": "const",
+              "value": 30
+            }
+          }
+        ],
+        "condition": {
+          "type": "gte",
+          "from": "finalStats",
+          "path": "energyRegen",
+          "value": 250
+        }
+      }
     ]
   },
   {

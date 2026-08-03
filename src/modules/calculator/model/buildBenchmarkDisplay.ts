@@ -88,7 +88,7 @@ export function getBuildBenchmarkTrackPct(score: number | null): number {
 }
 
 export function formatBuildBenchmarkScore(score: number | null): string {
-  return score == null ? '-' : `${Math.max(0, Math.round(score))}%`
+  return score == null ? '-' : `${Math.max(0, Math.trunc(score))}%`
 }
 
 export function getBuildBenchmarkBadgeStyle(score: number): BuildBenchmarkStyle {

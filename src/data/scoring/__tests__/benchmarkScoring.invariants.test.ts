@@ -8,24 +8,35 @@
 import { describe, expect, it } from 'vitest'
 import { listChsByCos } from '@/domain/services/echoCatalogService'
 import { getResSeedBy, listResSds } from '@/domain/services/resonatorSeedService'
-import { makeEnemy, makeResRuntime, normProfTeam } from '@/domain/state/defaults'
+import { makeEnemy, makeResRuntime, makeTeamMember, normProfTeam } from '@/domain/state/defaults'
 import { makeRuntimeMap } from '@/domain/state/runtimeAdapters'
 import { matRtFromPro } from '@/domain/state/runtimeMaterialization'
+import { initWpnStts } from '@/domain/state/sourceStateInit'
+import { catWpnAtk } from '@/domain/state/weaponState'
+import { maxResRt } from '@/domain/gameData/resonatorMax'
+import { getResDtlsBy } from '@/data/gameData/resonators/resonatorDataStore'
 import type { ResProf } from '@/domain/entities/profile'
 import type { EchoInstance } from '@/domain/entities/runtime'
 import { runResSmlt } from '@/engine/pipeline'
+import { sumOptRotDmg } from '@/engine/optimizer/rules/eligibility'
 import { mkSuggVltnCt } from '@/engine/suggestions/shared'
 import type { SuggestContext } from '@/engine/suggestions/types'
 import { ECHO_MAIN_STATS, ECHO_SIDE_STATS } from '@/data/gameData/catalog/echoStats'
 import { assembleBenchmark, buildBenchmark, buildBenchmarkAnchors } from '@/data/scoring/benchmark/search.ts'
 import { preservedMainEchoFor } from '@/data/scoring/benchmark/echoDiscovery.ts'
 import {
+  getDefaultRotationBenchmarkScore,
   getRotScore,
   rotationBuildBenchmarkReport,
   type BuildBenchmark,
 } from '@/data/scoring/buildBenchmark.ts'
 import { makeBenchmarkKey } from '@/data/scoring/buildBenchmarkKey'
-import { applyBenchAsm, BENCH_ENEMY } from '@/modules/calculator/model/benchmarkAssumptions'
+import {
+  applyBenchAsm,
+  BENCH_ENEMY,
+  makeBenchEnemy,
+} from '@/modules/calculator/model/benchmarkAssumptions'
+import { getTuneStrainMaxForTeam } from '@/domain/gameData/tuneStrain'
 
 const prodAppLoaders = import.meta.glob('../../../../prod-app.json', {
   query: '?raw',
@@ -305,6 +316,103 @@ describe('benchmark scoring invariants', () => {
     120000,
   )
 
+  it('keeps team-buffed Brant maximum-roll builds within the generated 200% anchor', () => {
+    const seed = getResSeedBy('1206')
+    if (!seed) throw new Error('missing Brant seed')
+    const lupaSeed = getResSeedBy('1207')
+    const mornyeSeed = getResSeedBy('1209')
+    if (!lupaSeed || !mornyeSeed) throw new Error('missing Brant teammate seed')
+
+    let runtime = maxResRt(
+      makeResRuntime(seed),
+      getResDtlsBy()[seed.id],
+      { targetSequence: 6 },
+    )
+    const previousWeaponId = runtime.build.weapon.id
+    runtime = {
+      ...runtime,
+      build: {
+        ...runtime.build,
+        weapon: catWpnAtk({
+          id: '21020036',
+          level: 90,
+          rank: 5,
+        }),
+      },
+    }
+    runtime = applyBenchAsm(initWpnStts(runtime, {
+      weaponId: runtime.build.weapon.id,
+      prevWpnId: previousWeaponId,
+      maxed: true,
+    }))
+
+    const maxSubstats = {
+      energyRegen: 12.4,
+      critDmg: 21,
+      critRate: 10.5,
+      atkPercent: 11.6,
+      basicAtk: 11.6,
+    }
+    runtime.build.echoes = [
+      echoSlot('6000084', 14, true, { key: 'critDmg', value: 44 }, { key: 'atkFlat', value: 150 }, maxSubstats),
+      echoSlot('6000074', 14, false, { key: 'energyRegen', value: 32 }, { key: 'atkFlat', value: 100 }, maxSubstats),
+      echoSlot('6000079', 14, false, { key: 'energyRegen', value: 32 }, { key: 'atkFlat', value: 100 }, maxSubstats),
+      echoSlot('6000064', 14, false, { key: 'atkPercent', value: 18 }, { key: 'hpFlat', value: 2280 }, maxSubstats),
+      echoSlot('6000070', 14, false, { key: 'atkPercent', value: 18 }, { key: 'hpFlat', value: 2280 }, maxSubstats),
+    ]
+
+    const lupa = makeTeamMember(lupaSeed)
+    lupa.build.weapon = { id: '21010036', rank: 1, baseAtk: 587.5 }
+    const mornye = makeTeamMember(mornyeSeed)
+    mornye.build.weapon = { id: '21010066', rank: 1, baseAtk: 412.5 }
+    runtime.build.team = ['1206', '1207', '1209']
+    runtime.teamRuntimes = [lupa, mornye]
+    Object.assign(runtime.state.controls, {
+      'team:1207:resonator:1207:wildfire_banner:active': true,
+      'team:1207:team:1207:pack_hunt:active': true,
+      'team:1207:team:1207:pack_hunt:stacks': '2',
+      'team:1207:team:1207:stand_by_me_warrior:active': true,
+      'team:1207:inherent:1207:lvl70:stacks': '3',
+      'team:1207:weapon:21010036:passive:ult_buff': true,
+      'team:1207:weapon:21010036:passive:fusion_buff': true,
+      'team:1209:resonator:1209:interfered_marker:active': true,
+      'team:1209:resonator:1209:recursion:active': true,
+      'team:1209:resonator:1209:decoupling:active': true,
+      'team:1209:team:1209:high_syntony_field:active': true,
+      'team:1209:weapon:21010066:passive:active': true,
+    })
+
+    expect(runtime.state.controls['resonator:1206:my_moment:active']).toBe(true)
+
+    const runtimesById = makeRuntimeMap(runtime)
+    const enemy = makeBenchEnemy(getTuneStrainMaxForTeam(runtime))
+    const simulation = runResSmlt(runtime, seed, enemy, runtimesById, {})
+    const result = getDefaultRotationBenchmarkScore({
+      runtime,
+      simulation,
+      enemy,
+      runtimesById,
+    })
+    const benchmark = result.benchmark
+    if (!benchmark) throw new Error('missing Brant benchmark')
+    const rotationDamage = sumOptRotDmg(
+      simulation.rotations.personal.entries,
+      runtime.id,
+    )
+
+    expect(result.score).toBeLessThanOrEqual(200)
+    expect(simulation.finalStats.attribute.all.dmgBonus).toBeGreaterThanOrEqual(30)
+    expect(Math.abs(rotationDamage - benchmark.userDamage))
+      .toBeLessThanOrEqual(Math.max(1, rotationDamage * 1e-4))
+    expect(benchmark.userDamage).toBeLessThanOrEqual(benchmark.perfectionDamage)
+    expect(benchmark.builds.benchmark200.echoes.map((echo) => echo.primary.key))
+      .toContain('atkPercent')
+    expect(benchmark.builds.benchmark200.statRows.find((row) => row.key === 'basicAtk')?.substatCount)
+      .toBe(5)
+    expect(benchmark.builds.benchmark200.statRows.reduce((total, row) => total + row.substatCount, 0))
+      .toBeCloseTo(25, 8)
+  }, 120000)
+
   it('does not lock a self-only non-4-cost main echo into generated benchmark anchors', () => {
     const seed = getResSeedBy('1506')
     if (!seed) throw new Error('missing Phoebe seed')
@@ -329,6 +437,8 @@ describe('benchmark scoring invariants', () => {
     })
 
     expect(report?.benchmark.builds.benchmark100.echoes.find((echo) => echo.mainEcho)?.echoId).toBe('6000104')
-    expect(report?.benchmark.builds.benchmark200.echoes.find((echo) => echo.mainEcho)?.echoId).toBe('6000045')
-  })
+    // Corrected legal-substat ranking makes Capitaneus the independent maximum
+    // winner too; `preservedMainEchoFor` remaining null is the no-lock contract.
+    expect(report?.benchmark.builds.benchmark200.echoes.find((echo) => echo.mainEcho)?.echoId).toBe('6000104')
+  }, 120000)
 })
