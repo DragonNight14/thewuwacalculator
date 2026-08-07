@@ -33,13 +33,13 @@ export interface DirectSkillCtx {
   critDmg: number
   dmgBonus: number
   amplify: number
-  special: number
+  finalDmg: number
   resMult: number
   defMult: number
   dmgVulnMult: number
   dmgBonusMult: number
   ampMult: number
-  specMult: number
+  finalDmgMult: number
   scalingAtk: number
   scalingHp: number
   scalingDef: number
@@ -183,7 +183,7 @@ function calcDamageCtx(
   const dmgBnsMltp = 1 + damageBonusPct / 100
   const amplifyMult = 1 + amplifyPct / 100
   const dmgVulnMltp = 1 + dmgVulnPct / 100
-  const specialMult = 1 + finalStats.special / 100
+  const finalDmgMult = 1 + finalStats.finalDmg / 100
 
   // crit values are stored as percents in final stats, so convert to ratios
   const critRate =
@@ -216,7 +216,7 @@ function calcDamageCtx(
     damageBonusMultiplier: dmgBnsMltp,
     amplifyMultiplier: amplifyMult,
     dmgVulnMultiplier: dmgVulnMltp,
-    specialMultiplier: specialMult,
+    finalDmgMultiplier: finalDmgMult,
     critRate,
     critDmg,
   }
@@ -336,13 +336,13 @@ function makeDirectSkill(
     critDmg: shared.critDmg * 100,
     dmgBonus: (shared.damageBonusMultiplier - 1) * 100,
     amplify: (shared.amplifyMultiplier - 1) * 100,
-    special: (shared.specialMultiplier - 1) * 100,
+    finalDmg: (shared.finalDmgMultiplier - 1) * 100,
     resMult: shared.resMult,
     defMult: shared.defenseMultiplier,
     dmgVulnMult: shared.dmgVulnMultiplier,
     dmgBonusMult: shared.damageBonusMultiplier,
     ampMult: shared.amplifyMultiplier,
-    specMult: shared.specialMultiplier,
+    finalDmgMult: shared.finalDmgMultiplier,
     scalingAtk: skill.scaling.atk,
     scalingHp: skill.scaling.hp,
     scalingDef: skill.scaling.def,
@@ -407,7 +407,7 @@ function calcDirectDmg(
       direct.dmgVulnMult *
       direct.dmgBonusMult *
       direct.ampMult *
-      direct.specMult
+      direct.finalDmgMult
 
   return makeDmgResult(skill.hits, (hit) => {
     const normal = (baseAbility * hit.multiplier + direct.flatDmg) * dmgMltp
@@ -617,7 +617,7 @@ function calcNegEffect(
       (1 + finalStats.amplify / 100) *
       (1 + ggrgFfctType.amplify / 100) *
       (1 + ggrgFfctType.dmgBonus / 100) *
-      (1 + finalStats.special / 100)
+      (1 + finalStats.finalDmg / 100)
 
   const damage =
     perStackBase *

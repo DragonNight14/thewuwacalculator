@@ -61,6 +61,7 @@ export interface SetDef {
     label: string
     operations: EffectOp[]
     condition: CondExpr
+    stage?: EffectDef['stage']
     targetScope?: EffectDef['targetScope']
   }>
 }
@@ -290,6 +291,7 @@ function makeEffect(
   condition?: CondExpr,
   targetScope: EffectDef['targetScope'] = 'self',
   description?: string,
+  stage?: EffectDef['stage'],
 ): EffectDef {
   return {
     id: `echoSet:${setId}:${effectId}`,
@@ -300,6 +302,7 @@ function makeEffect(
     targetScope,
     ...(condition ? { condition } : {}),
     ...(description ? { description } : {}),
+    ...(stage ? { stage } : {}),
     operations,
   }
 }
@@ -529,6 +532,8 @@ function mkSetPkg(def: SetDef): SrcPkg {
         effect.operations,
         andCond(setGte(def.id, pieceReq), effect.condition),
         effect.targetScope,
+        undefined,
+        effect.stage,
       ),
     )
   }

@@ -227,7 +227,7 @@ export type TopBuffStatK =
     | 'shieldBonus'
     | 'dmgBonus'
     | 'tuneBreakBoost'
-    | 'special'
+    | 'finalDmg'
 
 // scope for a damage immunity (see ImmunitySet). `all` zeroes every attack against the enemy;
 // the others zero attacks matching the given element(s), skill type(s), or negative-effect archetype(s).

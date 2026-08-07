@@ -102,7 +102,7 @@ function fmtTopStatLb(stat: string): string {
     dmgBonus: 'DMG Bonus',
     dmgVuln: 'DMG Vulnerability',
     tuneBreakBoost: 'Tune Break Boost',
-    special: 'Special',
+    finalDmg: 'Final DMG',
   }
 
   return labels[stat] ?? toTitle(stat)
@@ -249,7 +249,7 @@ function targetUsesTopStat(target: SkillStateSummaryTarget, stat: string): boole
         stat === 'defIgnore' ||
         stat === 'defShred' ||
         stat === 'dmgVuln' ||
-        stat === 'special'
+        stat === 'finalDmg'
     )
   }
 
@@ -272,7 +272,7 @@ function targetUsesTopStat(target: SkillStateSummaryTarget, stat: string): boole
   }
 
   if (isNgFfctSkll(target)) {
-    return stat === 'amplify' || stat === 'defIgnore' || stat === 'defShred' || stat === 'dmgVuln' || stat === 'special'
+    return stat === 'amplify' || stat === 'defIgnore' || stat === 'defShred' || stat === 'dmgVuln' || stat === 'finalDmg'
   }
 
   return false

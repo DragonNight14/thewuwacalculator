@@ -97,7 +97,7 @@ struct Params {
     dmgReductionTotal: f32,
     dmgBonus:     f32,
     dmgAmplify:   f32,
-    special:      f32,
+    dmgVuln:      f32,
 
     critRate:     f32,
     critDmg:      f32,

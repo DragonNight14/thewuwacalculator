@@ -3,7 +3,7 @@
   Description: Searches valid build space for baseline, benchmark, and maximum builds.
 */
 import type { EchoInstance } from '@/domain/entities/runtime';
-import { SUBSTAT_KEYS, getSbstStepP } from '@/data/gameData/catalog/echoStats';
+import { ECHO_MAIN_STATS, SUBSTAT_KEYS, getSbstStepP } from '@/data/gameData/catalog/echoStats';
 import { MAIN_BUFF_LEN } from '@/engine/optimizer/config/constants';
 import { mkSuggMainEc } from '@/engine/suggestions/shared';
 import type { SuggestContext } from '@/engine/suggestions/types';
@@ -149,15 +149,23 @@ function limitUsefulStatsByImpact(
     limit: number
     floor: number
     ratioFloor: number
+    reserveErSlot?: boolean
   },
 ): Set<string> {
+  const requiresEr = !options.ignoreEr && options.targetEr > 0
+  // ER is a hard feasibility constraint. Candidate branching reserves its slot
+  // separately so an ER-scaling resonator does not let ER consume one of the
+  // damage-stat slots and push a legal stat out of the search.
+  const reservesErSlot = requiresEr && options.reserveErSlot === true
+  const rankedLimit = Math.max(0, options.limit - (reservesErSlot ? 1 : 0))
+  const rankedFloor = Math.min(options.floor, rankedLimit)
   const ranked = [...impacts.entries()]
-    .filter(([, impact]) => impact > 0)
+    .filter(([key, impact]) => impact > 0 && (!reservesErSlot || key !== ENERGY_REGEN))
     .sort((left, right) => right[1] - left[1] || left[0].localeCompare(right[0]))
 
-  if (ranked.length <= options.limit) {
+  if (ranked.length <= rankedLimit) {
     const all = new Set(ranked.map(([key]) => key))
-    if (!options.ignoreEr && options.targetEr > 0) {
+    if (requiresEr) {
       all.add(ENERGY_REGEN)
     }
     return all
@@ -167,15 +175,15 @@ function limitUsefulStatsByImpact(
   const limited = new Set<string>()
   for (const [key, impact] of ranked) {
     if (
-      limited.size < options.floor
-      || (limited.size < options.limit && impact >= maxImpact * options.ratioFloor)
+      limited.size < rankedFloor
+      || (limited.size < rankedLimit && impact >= maxImpact * options.ratioFloor)
     ) {
       limited.add(key)
     }
   }
 
   // ER preservation is an anchor constraint, not only a damage-preference stat.
-  if (!options.ignoreEr && options.targetEr > 0) {
+  if (requiresEr) {
     limited.add(ENERGY_REGEN)
   }
 
@@ -298,19 +306,35 @@ export function buildBenchmarkAnchors(
   if (ignoreEr) {
     sharedUsefulImpacts.delete(ENERGY_REGEN)
   }
-  const mainUsefulStats = limitUsefulStatsByImpact(sharedUsefulImpacts, {
+  // Rank each candidate family only against stats that are legal in that
+  // family. A main-only elemental stat must not consume a substat rank and
+  // evict a legal damage roll (Brant + team buffs can otherwise lose Basic
+  // Attack DMG from the 200% anchor), and the inverse applies to substat-only
+  // damage types during main-stat enumeration.
+  const legalMainStats = new Set(
+    Object.values(ECHO_MAIN_STATS).flatMap((stats) => Object.keys(stats)),
+  )
+  const mainUsefulImpacts = new Map(
+    [...sharedUsefulImpacts].filter(([key]) => legalMainStats.has(key)),
+  )
+  const substatUsefulImpacts = new Map(
+    [...sharedUsefulImpacts].filter(([key]) => SUBSTAT_KEYS.includes(key)),
+  )
+  const mainUsefulStats = limitUsefulStatsByImpact(mainUsefulImpacts, {
     ignoreEr,
     targetEr,
     limit: MAIN_IMPACT_STAT_LIMIT,
     floor: MAIN_IMPACT_STAT_FLOOR,
     ratioFloor: MAIN_IMPACT_RATIO_FLOOR,
+    reserveErSlot: true,
   })
-  const substatUsefulStats = limitUsefulStatsByImpact(sharedUsefulImpacts, {
+  const substatUsefulStats = limitUsefulStatsByImpact(substatUsefulImpacts, {
     ignoreEr,
     targetEr,
     limit: SUBSTAT_IMPACT_STAT_LIMIT,
     floor: SUBSTAT_IMPACT_STAT_FLOOR,
     ratioFloor: SUBSTAT_IMPACT_RATIO_FLOOR,
+    reserveErSlot: true,
   })
   const usefulSubKeys = SUBSTAT_KEYS.filter((entry) => substatUsefulStats.has(entry))
   const usefulDamageSubKeys = usefulSubKeys.filter((entry) => entry !== ENERGY_REGEN)
@@ -362,7 +386,11 @@ export function buildBenchmarkAnchors(
     const cap = caps[ENERGY_REGEN] ?? 0
     if (roll <= 0 || cap <= 0) return null
 
-    const count = Math.ceil((missing - 0.000001) / roll)
+    // `targetEr` is accumulated through Float32 echo rows, while legal roll
+    // values are ordinary JS numbers. Compare in roll-count space so a target
+    // such as 62.0000019 ER remains exactly five legal 12.4 rolls instead of
+    // being rounded up to an impossible sixth roll.
+    const count = Math.ceil((missing / roll) - 0.000001)
     if (count > cap || count > params.substatGoal + 0.0001) return null
     return { count, total: missing }
   }

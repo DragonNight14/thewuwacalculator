@@ -33,8 +33,8 @@ type ShrdDmgCtx = {
   ampMult: number
   dmgVulnPct: number
   dmgVulnMult: number
-  specPrcn: number
-  specMult: number
+  finalDmgPct: number
+  finalDmgMult: number
   critRatePrcn: number
   critRate: number
   critDmgPrcn: number
@@ -255,8 +255,8 @@ function mkShrdDmgCtx(
       ampMult: 0,
       dmgVulnPct: 0,
       dmgVulnMult: 0,
-      specPrcn: 0,
-      specMult: 0,
+      finalDmgPct: 0,
+      finalDmgMult: 0,
       critRatePrcn: 0,
       critRate: 0,
       critDmgPrcn: 0,
@@ -328,7 +328,7 @@ function mkShrdDmgCtx(
     skillTypeAll.dmgVuln +
     skillTypeBuff.dmgVuln +
     skillBuffs.dmgVuln
-  const specPrcn = finalStats.special
+  const finalDmgPct = finalStats.finalDmg
   const critRatePrcn =
     finalStats.critRate +
     attributeAll.critRate +
@@ -362,8 +362,8 @@ function mkShrdDmgCtx(
     ampMult: 1 + amplifyPct / 100,
     dmgVulnPct: dmgVulnPct,
     dmgVulnMult: 1 + dmgVulnPct / 100,
-    specPrcn: specPrcn,
-    specMult: 1 + specPrcn / 100,
+    finalDmgPct,
+    finalDmgMult: 1 + finalDmgPct / 100,
     critRatePrcn: critRatePrcn,
     critRate: critRatePrcn / 100,
     critDmgPrcn: critDmgPrcn,
@@ -438,7 +438,7 @@ function commonLines(finalStats: FinalStats, skill: SkillDef, shared: ShrdDmgCtx
       { label: shared.skillTypeLabel, value: shared.skillTypeBuff.dmgVuln },
       { label: 'Skill', value: shared.skillBuffs.dmgVuln },
     ])}`,
-    `mod.special = ${fmtPct(shared.specPrcn)} = Global ${fmtPct(finalStats.special)}`,
+    `mod.finalDmg = ${fmtPct(shared.finalDmgPct)} = Global ${fmtPct(finalStats.finalDmg)}`,
     `crit.rate = ${fmtPct(shared.critRatePrcn)} = ${fmtSrcDdnd([
       { label: 'Base', value: finalStats.critRate },
       { label: 'Elem All', value: shared.attributeAll.critRate },
@@ -563,7 +563,7 @@ function drctBrkd(
     ].join('\n'),
     equation: shared.zeroed
       ? `out.normal = ${fmtInt(entry.normal)} = 0 (enemy base RES shortcut)`
-      : `out.normal = ${fmtInt(entry.normal)} = ${baseDmgSgmn} x (1 + ${fmtPct(shared.dmgBonusPrcn)}) x (1 + ${fmtPct(shared.ampPrcn)}) x (1 + ${fmtPct(shared.dmgVulnPct)}) x ${pctMul(shared.defMult, 10)} x ${pctMul(shared.resMult, 10)} x (1 + ${fmtPct(shared.specPrcn)})`,
+      : `out.normal = ${fmtInt(entry.normal)} = ${baseDmgSgmn} x (1 + ${fmtPct(shared.dmgBonusPrcn)}) x (1 + ${fmtPct(shared.ampPrcn)}) x (1 + ${fmtPct(shared.dmgVulnPct)}) x ${pctMul(shared.defMult, 10)} x ${pctMul(shared.resMult, 10)} x (1 + ${fmtPct(shared.finalDmgPct)})`,
     sections,
   }
 }
@@ -840,7 +840,7 @@ function negBreakdown(
     `mod.dmgBonus = ${fmtPct(ggrgFfctType.dmgBonus)} = Effect ${fmtPct(ggrgFfctType.dmgBonus)}`,
     `mod.amp = ${fmtPct(finalStats.amplify + ggrgFfctType.amplify)} = Global ${fmtPct(finalStats.amplify)} + Effect ${fmtPct(ggrgFfctType.amplify)}`,
     `mod.vuln = ${fmtPct(dmgVuln)} = Global ${fmtPct(finalStats.dmgVuln)} + Elem All ${fmtPct(attributeAll.dmgVuln)} + ${element} ${fmtPct(attrElement.dmgVuln)} + Effect ${fmtPct(ggrgFfctType.dmgVuln)}`,
-    `mod.special = ${fmtPct(finalStats.special)}`,
+    `mod.finalDmg = ${fmtPct(finalStats.finalDmg)}`,
     `crit.rate = ${fmtPct(critRatePrcn)}`,
     `crit.dmg = ${fmtPct(critDmgPrcn)}`,
   )
@@ -853,7 +853,7 @@ function negBreakdown(
         ? `out.avg = ${fmtInt(entry.avg)} = guaranteed crit`
         : `out.avg = ${fmtInt(entry.avg)} = ${fmtInt(entry.normal)} x (1 + ${fmtPct(critRatePrcn)} x (${fmtPct(critDmgPrcn)} - 1))`,
     ].join('\n'),
-    equation: `out.normal = ${fmtInt(entry.normal)} = ${fmtNum(perStackBase, 2)} x ${fmtPct(ttlHitScl * 100)} x ${fmtMulPct(negFfctMltp)} x ${pctMul(defenseMult, 10)} x ${pctMul(resMult, 10)} x (1 + ${fmtPct(finalStats.amplify + ggrgFfctType.amplify)}) x (1 + ${fmtPct(ggrgFfctType.dmgBonus)}) x (1 + ${fmtPct(dmgVuln)}) x (1 + ${fmtPct(finalStats.special)})`,
+    equation: `out.normal = ${fmtInt(entry.normal)} = ${fmtNum(perStackBase, 2)} x ${fmtPct(ttlHitScl * 100)} x ${fmtMulPct(negFfctMltp)} x ${pctMul(defenseMult, 10)} x ${pctMul(resMult, 10)} x (1 + ${fmtPct(finalStats.amplify + ggrgFfctType.amplify)}) x (1 + ${fmtPct(ggrgFfctType.dmgBonus)}) x (1 + ${fmtPct(dmgVuln)}) x (1 + ${fmtPct(finalStats.finalDmg)})`,
     sections,
   }
 }

@@ -125,7 +125,7 @@ function anchorCacheKey(
   const equipped = runtime.build.echoes
   const utilityPlan = utilityPlanFor(equipped)
   return makeBenchmarkKey({
-    kind: 'benchmark-anchors-v3',
+    kind: 'benchmark-anchors-v6',
     // strip echoes: their substats / main stats / non-preserved sets and main
     // Echoes do not move the anchors.
     runtime: { ...runtime, build: { ...runtime.build, echoes: [] } },

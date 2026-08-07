@@ -811,6 +811,19 @@ export const curChngEnts: ChngRcrd[] = [
     ],
     shortDesc: `Rotation sharing and more~! (〜^∇^)〜`,
   },
+  {
+    date: '01/08/2026',
+    patchVersion: '3.6.1 beta',
+    entries: [
+      {
+        type: 'paragraph',
+        content: `
+          <strong>3.6.1 beta data</strong> has been updated.
+        `,
+      }
+    ],
+    shortDesc: `3.6.1 beta update`,
+  },
 ]
 
 export const ltstCurChngE =

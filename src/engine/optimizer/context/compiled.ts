@@ -123,7 +123,7 @@ function getEnemyRes(
   return enemy.res[ATTR_ENEMY_RES[element]]
 }
 
-// build the special multiplier buckets used by level-scaled special damage skills
+// build the multiplier buckets used by level-scaled damage skills
 function makeLevelScale(options: {
   finalStats: FinalStats
   skill: SkillDef
@@ -189,7 +189,7 @@ function makeLevelScale(options: {
   }
 }
 
-// build the special multiplier buckets used by negative-effect archetypes
+// build the multiplier buckets used by negative-effect archetypes
 function makeNegBase(options: {
   finalStats: FinalStats
   skill: SkillDef
@@ -257,7 +257,7 @@ function makeNegBase(options: {
     dmgVuln,
     dmgBonus: ggrgFfctType.dmgBonus,
     amplify: (amplifyMult - 1) * 100,
-    special: finalStats.special,
+    finalDmg: finalStats.finalDmg,
     multiplier: negFfctBuff.multiplier,
     critRate: ((skill.negativeEffectCritRate ?? 0) * 100) + negFfctBuff.critRate,
     critDmg: ((skill.negativeEffectCritDmg ?? 1) * 100) + negFfctBuff.critDmg,
@@ -311,7 +311,7 @@ export function makeOptContext(options: {
   let sttcCritDmg = direct.critDmg
   let sttcDmgBns = direct.dmgBonus
   let sttcMplf = direct.amplify
-  let sttcSpec = direct.special
+  let statFinalDmg = direct.finalDmg
   let sttcTuneBrkB = finalStats.tbb
   let sttcDmgVuln = (direct.dmgVulnMult - 1) * 100
   let negFfctMltp = 0
@@ -336,7 +336,7 @@ export function makeOptContext(options: {
       sttcCritDmg = buckets.critDmg
       sttcDmgBns = buckets.dmgBonus
       sttcMplf = buckets.amplify
-      sttcSpec = 0
+      statFinalDmg = 0
       sttcTuneBrkB = buckets.tuneBreakBoost
       sttcDmgVuln = buckets.dmgVuln
       break
@@ -357,7 +357,7 @@ export function makeOptContext(options: {
       sttcCritDmg = buckets.critDmg
       sttcDmgBns = buckets.dmgBonus
       sttcMplf = buckets.amplify
-      sttcSpec = 0
+      statFinalDmg = 0
       sttcTuneBrkB = buckets.tuneBreakBoost
       sttcDmgVuln = buckets.dmgVuln
       break
@@ -382,7 +382,7 @@ export function makeOptContext(options: {
       sttcCritDmg = buckets.critDmg
       sttcDmgBns = buckets.dmgBonus
       sttcMplf = buckets.amplify
-      sttcSpec = buckets.special
+      statFinalDmg = buckets.finalDmg
       sttcDmgVuln = buckets.dmgVuln
       negFfctMltp = buckets.multiplier
       negFfctFxdMv = skill.fixedMv ?? 0
@@ -430,7 +430,7 @@ export function makeOptContext(options: {
     statDmgBonus: sttcDmgBns,
     statAmp: sttcMplf,
     statFlatDmg: finalStats.flatDmg,
-    statSpec: sttcSpec,
+    statFinalDmg,
 
     resMult,
     defMult,

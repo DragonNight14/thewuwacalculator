@@ -908,7 +908,7 @@ function addBaseFormulaStats(finalStats: FinalStats, formula: RotFormulaStats): 
   finalStats.amplify += formula.dmgAmp ?? 0
   finalStats.dmgVuln += formula.dmgVuln ?? 0
   finalStats.tbb += formula.tuneBreakBoost ?? 0
-  finalStats.special += formula.special ?? 0
+  finalStats.finalDmg += formula.finalDmg ?? 0
   finalStats.flatDmg += formula.flatDmg ?? 0
   finalStats.attribute.all.resShred += formula.resIgnore ?? 0
 }

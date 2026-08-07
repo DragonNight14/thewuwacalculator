@@ -25,7 +25,7 @@ export type RotFormulaStatKey =
   | 'dmgAmp'
   | 'dmgVuln'
   | 'tuneBreakBoost'
-  | 'special'
+  | 'finalDmg'
   | 'flatDmg'
   | 'mvAdd'
   | 'mvScale'
@@ -58,7 +58,7 @@ export const ROT_FORMULA_STAT_DEFS: RotFormulaStatDef[] = [
   { key: 'dmgAmp', label: 'DMG Amplify', description: 'Adds DMG Amplify to later damage formulas.' },
   { key: 'dmgVuln', label: 'DMG Vulnerability', description: 'Adds DMG Vulnerability to later damage formulas.' },
   { key: 'tuneBreakBoost', label: 'Tune Break Boost', description: 'Adds Tune Break Boost to later tune, hack, or tune-related formulas.' },
-  { key: 'special', label: 'Special', description: 'Adds Special to later formulas that use the special multiplier.' },
+  { key: 'finalDmg', label: 'Final DMG', description: 'Adds Final DMG to later formulas that use the final damage multiplier.' },
   { key: 'flatDmg', label: 'Flat DMG', description: 'Adds Flat DMG to later direct damage formulas.' },
   { key: 'mvAdd', label: 'MV Add', description: 'Adds to the MV of later feature formulas where an MV exists.' },
   { key: 'mvScale', label: 'MV Scale', description: 'Scales the MV of later feature formulas where an MV exists.' },
@@ -67,6 +67,9 @@ export const ROT_FORMULA_STAT_DEFS: RotFormulaStatDef[] = [
 ]
 
 const ROT_FORMULA_STAT_KEYS = new Set(ROT_FORMULA_STAT_DEFS.map((definition) => definition.key))
+const LEGACY_ROT_FORMULA_STAT_KEYS: Record<string, RotFormulaStatKey> = {
+  special: 'finalDmg',
+}
 
 export function getRotFormulaStatKey(path: string): RotFormulaStatKey | null {
   const normalized = path.startsWith('runtime.') ? path : `runtime.${path}`
@@ -74,7 +77,8 @@ export function getRotFormulaStatKey(path: string): RotFormulaStatKey | null {
     return null
   }
 
-  const key = normalized.slice(ROT_FORMULA_PATH_PREFIX.length)
+  const storedKey = normalized.slice(ROT_FORMULA_PATH_PREFIX.length)
+  const key = LEGACY_ROT_FORMULA_STAT_KEYS[storedKey] ?? storedKey
   return ROT_FORMULA_STAT_KEYS.has(key as RotFormulaStatKey) ? key as RotFormulaStatKey : null
 }
 

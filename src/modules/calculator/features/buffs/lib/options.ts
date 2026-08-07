@@ -64,7 +64,7 @@ export const DVNCTOPSTATP: Array<BuffOption<MnlTopStatKe>> = [
   { value: 'defShred', label: 'DEF Shred' },
   { value: 'dmgVuln', label: 'DMG Vulnerability' },
   { value: 'tuneBreakBoost', label: 'Tune Break Boost' },
-  { value: 'special', label: 'Special Modifier' },
+  { value: 'finalDmg', label: 'Final DMG' },
 ]
 
 export const DVNCTTRBPTNS: Array<BuffOption> = [

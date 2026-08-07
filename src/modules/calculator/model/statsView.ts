@@ -453,7 +453,7 @@ export function makeStatsTree(finalStats: FinalStats): StatTreeNode[] {
       { kind: 'leaf', key: 'dmgVuln', label: 'DMG Vulnerability', value: finalStats.dmgVuln, displayValue: fmtPct(finalStats.dmgVuln) },
       { kind: 'leaf', key: 'shieldBonus', label: 'Shield Bonus', value: finalStats.shieldBonus, displayValue: fmtPct(finalStats.shieldBonus) },
       { kind: 'leaf', key: 'tuneBreakBoost', label: 'Tune Break Boost', value: finalStats.tbb, displayValue: fmtNum(finalStats.tbb) },
-      { kind: 'leaf', key: 'special', label: 'Special', value: finalStats.special, displayValue: fmtPct(finalStats.special) },
+      { kind: 'leaf', key: 'finalDmg', label: 'Final DMG', value: finalStats.finalDmg, displayValue: fmtPct(finalStats.finalDmg) },
     ],
   })
 

@@ -92,7 +92,7 @@ function makeFinalStats(overrides: Partial<FinalStats> = {}): FinalStats {
     defShred: 0,
     dmgVuln: 0,
     tbb: 0,
-    special: 0,
+    finalDmg: 0,
     ...overrides,
   }
 }
@@ -430,7 +430,7 @@ describe('damage formula invariants', () => {
       amplify: 25,
       dmgBonus: 40,
       dmgVuln: 15,
-      special: 10,
+      finalDmg: 10,
       skillType: {
         ...makeFinalStats().skillType,
         resonanceSkill: {
@@ -449,6 +449,7 @@ describe('damage formula invariants', () => {
     expect(text).toContain('// Skill DMG')
     expect(text).toContain('out.normal =')
     expect(text).toContain('mod.dmgBonus =')
+    expect(text).toContain('mod.finalDmg =')
     expect(text).toContain('crit.rate =')
   })
 

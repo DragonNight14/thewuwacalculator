@@ -1598,7 +1598,7 @@ const negativeEffectsTopic: DocTopic = {
         {
           type: 'prose',
           text: [
-            'Tune Break and negative effects do not read the same bonus buckets. Tune Break reads the dedicated tune damage-bonus bucket plus Tune Break Boost. Negative effects read the effect-type bucket for that skill, the effect-specific multiplier bucket, vulnerability, and special.',
+            'Tune Break and negative effects do not read the same bonus buckets. Tune Break reads the dedicated tune damage-bonus bucket plus Tune Break Boost. Negative effects read the effect-type bucket for that skill, the effect-specific multiplier bucket, vulnerability, and Final DMG.',
             'For both branches, element RES shred, defense shred, and vulnerability are still element-aware. The effect element is Spectro for Frazzle, Aero for Erosion, Fusion for Burst, Glacio for Chafe, and Electro for Flare.',
           ],
         },
@@ -1620,7 +1620,7 @@ const negativeEffectsTopic: DocTopic = {
             'effectBonusMult = (1 + bonuses that would apply)',
             '                * (1 + effect-type amplify)',
             '                * (1 + effect-type damage bonus)',
-            '                * (1 + special)',
+            '                * (1 + finalDmg)',
             '',
             'effectMultiplier = 1 + effect-specific multiplier',
           ],

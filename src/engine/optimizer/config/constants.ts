@@ -42,7 +42,7 @@ export const STAT_SHIELD_BON = 10
 export const STAT_DMG_BONUS = 11
 export const STAT_AMPLIFY = 12
 export const STAT_FLAT_DMG = 13
-export const STAT_SPECIAL = 14
+export const STAT_FINAL_DMG = 14
 export const STAT_FUSION_RES = 15
 export const STAT_TUNE_BREAK = 16
 export const STAT_RES_SHRED = 17
@@ -138,7 +138,6 @@ export const AUX0 = 31
 export const ARCHETYPE = 32
 
 // aliases for fields reused under multiple semantic names
-export const OPT_CTX_SPEC = DMG_VULN
 export const OPT_COMBAT_AUX = AUX0
 
 // eh... it's convenient

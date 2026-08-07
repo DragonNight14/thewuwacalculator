@@ -113,7 +113,7 @@ export interface UnifiedBuffPool {
   defShred: number
   dmgVuln: number
   tuneBreakBoost: number
-  special: number
+  finalDmg: number
   immunities: ImmunitySet
 }
 
@@ -147,7 +147,7 @@ export interface FinalStats {
   defShred: number
   dmgVuln: number
   tbb: number
-  special: number
+  finalDmg: number
   immunities?: ImmunitySet
 }
 
