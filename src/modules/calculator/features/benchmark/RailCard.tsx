@@ -59,7 +59,7 @@ export interface RailCardModel {
 }
 
 export interface ShowcaseBuildModel {
-  statsView: StatsView | null
+  combatStatsView: StatsView | null
   buildStatsView: StatsView | null
   charId: string
   hasWeights: boolean
@@ -277,7 +277,7 @@ export function RailCard({
         {isShowcase && showcaseBuild ? (
           <ShowcaseBuild
             echoes={showcaseBuild.echoes}
-            statsView={showcaseBuild.statsView}
+            combatStatsView={showcaseBuild.combatStatsView}
             buildStatsView={showcaseBuild.buildStatsView}
             sonataSets={showcaseBuild.sonataSets}
             score={score}

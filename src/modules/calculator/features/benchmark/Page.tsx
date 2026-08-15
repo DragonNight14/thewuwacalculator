@@ -67,7 +67,6 @@ import {
   readProfClip,
   writeProfClip,
 } from '@/modules/calculator/features/benchmark/profileClipboard.ts'
-
 import {
   BENCH_RAIL_ENTER_MS, BENCH_RAIL_EXIT_MS, BENCH_RAIL_RESIZE_MS,
   BENCH_SURFACE_ENTER_MS, BENCH_SURFACE_EXIT_MS, type BenchmarkEchoSelection, type CssVars, type DetailBuildKey,
@@ -970,8 +969,12 @@ export function Benchmark() {
     const buildSeed = seedRsntById[railRuntime.id] ?? null
     const buildStats = buildSeed ? getBuildStats(railRuntime, resResBaseSt(buildSeed, railRuntime.base.level)) : null
     const buildStatsView = buildStats ? makeStatsView(railRuntime, buildStats) : null
+    const combatStatsView =
+      benchmarkRuntime?.id === railRuntime.id && simulation?.finalStats
+        ? makeStatsView(benchmarkRuntime, simulation.finalStats)
+        : null
     return {
-      statsView: buildStatsView,
+      combatStatsView,
       buildStatsView,
       charId: railRuntime.id,
       hasWeights: getMaxEchoSc(railRuntime.id) > 0,
@@ -983,7 +986,7 @@ export function Benchmark() {
         name: getSntSetNam(entry.id),
       })),
     }
-  }, [railRuntime])
+  }, [benchmarkRuntime, railRuntime, simulation])
 
   const attrIcon = getAttributeIconSrc(selectedSeed?.attribute)
   const canSwitchSelected = Boolean(selectedResId && selectedResId !== actResId)
