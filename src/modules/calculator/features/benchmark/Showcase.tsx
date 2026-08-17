@@ -263,7 +263,7 @@ function ShowcaseEcho({
 }
 export function ShowcaseBuild({
   echoes,
-  statsView,
+  combatStatsView,
   buildStatsView,
   sonataSets,
   score,
@@ -283,7 +283,7 @@ export function ShowcaseBuild({
   blank,
 }: {
   echoes: Array<EchoInstance | null>
-  statsView: StatsView | null
+  combatStatsView: StatsView | null
   buildStatsView: StatsView | null
   sonataSets: ShowcaseSonataEntry[]
   score: number | null
@@ -374,15 +374,15 @@ export function ShowcaseBuild({
           </div>
         ) : null}
 
-        {statsView ? (
+        {combatStatsView ? (
           <div className="showcase-ladder" data-highlight={statsColumn}>
             <div className="showcase-ladder-head" aria-hidden="true">
               <span className="showcase-ladder-head-lead" />
               <span className="showcase-ladder-col showcase-ladder-col--build">Build</span>
               <span className="showcase-ladder-col showcase-ladder-col--combat">Combat</span>
             </div>
-            <div className="showcase-ladder-group" style={{ '--rows': statsView.mainStats.length } as CssVars}>
-              {statsView.mainStats.map((row) => (
+            <div className="showcase-ladder-group" style={{ '--rows': combatStatsView.mainStats.length } as CssVars}>
+              {combatStatsView.mainStats.map((row) => (
                 <ShowcaseStatRow
                   key={row.key}
                   row={row}
@@ -392,8 +392,8 @@ export function ShowcaseBuild({
                 />
               ))}
             </div>
-            <div className="showcase-ladder-group" style={{ '--rows': statsView.secondaryStats.length } as CssVars}>
-              {statsView.secondaryStats.map((row) => (
+            <div className="showcase-ladder-group" style={{ '--rows': combatStatsView.secondaryStats.length } as CssVars}>
+              {combatStatsView.secondaryStats.map((row) => (
                 <ShowcaseStatRow
                   key={row.key}
                   row={row}
