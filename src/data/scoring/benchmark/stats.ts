@@ -15,6 +15,7 @@ import { ATTR_COLORS } from '@/modules/calculator/model/display.ts';
 import { getSkillType } from '@/modules/calculator/model/skillTypes.ts';
 import { truncTo } from '@/shared/lib/number.ts';
 import type { BenchmarkOverviewStatRow, BenchmarkOverviewStats, BenchmarkStatTreeLeaf, BenchmarkStatTreeNode, BenchmarkSubstatEntry, BuildBenchmark } from './types.ts';
+import { resolveBenchmarkStats } from './scoring.ts';
 import {
   aggregateSubstats,
   ENERGY_REGEN,
@@ -395,6 +396,14 @@ export function makeBenchmarkOverviewStats({
   const critDmg = source.critDmg + echoStats.critDmg + setBonus.critDmg + mainAt(16)
   const allAttrBonus = source.attribute.all.dmgBonus + setBonus.bonusBase + mainAt(17)
   const allSkillBonus = source.skillType.all.dmgBonus
+  const resolved = resolveBenchmarkStats(ctx, {
+    stats,
+    sets: setRows,
+    kinds,
+    comboIds,
+    mainEchoBuffs,
+    mainIndex,
+  })
 
   const elementRows: Array<{ key: AttributeKey; label: string; value: number }> = [
     { key: 'aero', label: 'Aero DMG Bonus', value: echoStats.aero + setBonus.aero + mainAt(6) },
@@ -407,14 +416,14 @@ export function makeBenchmarkOverviewStats({
 
   return {
     mainStats: [
-      makeOverviewRow('atk', 'ATK', source.atk.base, source.atk.final + atkBonus),
-      makeOverviewRow('hp', 'HP', source.hp.base, source.hp.final + hpBonus),
-      makeOverviewRow('def', 'DEF', source.def.base, source.def.final + defBonus),
+      makeOverviewRow('atk', 'ATK', source.atk.base, resolved?.atk ?? source.atk.final + atkBonus),
+      makeOverviewRow('hp', 'HP', source.hp.base, resolved?.hp ?? source.hp.final + hpBonus),
+      makeOverviewRow('def', 'DEF', source.def.base, resolved?.def ?? source.def.final + defBonus),
     ],
     secondaryStats: [
-      makeOverviewRow('energyRegen', 'Energy Regen', source.energyRegen, energyRegen),
-      makeOverviewRow('critRate', 'Crit Rate', source.critRate, critRate),
-      makeOverviewRow('critDmg', 'Crit DMG', source.critDmg, critDmg),
+      makeOverviewRow('energyRegen', 'Energy Regen', source.energyRegen, resolved?.er ?? energyRegen),
+      makeOverviewRow('critRate', 'Crit Rate', source.critRate, resolved?.cr ?? critRate),
+      makeOverviewRow('critDmg', 'Crit DMG', source.critDmg, resolved?.cd ?? critDmg),
       makeOverviewRow('healingBonus', 'Healing Bonus', source.healingBonus, source.healingBonus + echoStats.healingBonus),
       makeOverviewRow('tuneBreakBoost', 'Tune Break Boost', source.tbb, source.tbb),
     ],

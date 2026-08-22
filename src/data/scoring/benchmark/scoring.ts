@@ -5,7 +5,45 @@
 */
 
 import { evalTarget } from '@/engine/optimizer/target/evaluate'
+import type { OptResultStats } from '@/engine/optimizer/types.ts'
 import type { SuggestContext } from '@/engine/suggestions/types'
+
+interface EncodedBenchmarkBuild {
+  stats: Float32Array
+  sets: Uint8Array
+  kinds: Uint16Array
+  comboIds: Int32Array
+  mainEchoBuffs: Float32Array
+  mainIndex: number
+}
+
+function evaluateContext(
+    context: Float32Array,
+    ctx: SuggestContext,
+    build: EncodedBenchmarkBuild,
+) {
+  return evalTarget({
+    context,
+    stats: build.stats,
+    setConstLut: ctx.setConstLut,
+    mainEchoBuffs: build.mainEchoBuffs,
+    sets: build.sets,
+    kinds: build.kinds,
+    comboIds: build.comboIds,
+    mainIndex: build.mainIndex,
+  })
+}
+
+// Resolve the same representative combat-stat snapshot used by optimizer
+// result rows. Rotation damage still scores every weighted context below.
+export function resolveBenchmarkStats(
+    ctx: SuggestContext,
+    build: EncodedBenchmarkBuild,
+): OptResultStats | null {
+  const context = ctx.mode === 'target' ? ctx.pckdCtx : ctx.displayContext
+  if (!context) return null
+  return evaluateContext(context, ctx, build)?.stats ?? null
+}
 
 export function scoreStats(
     ctx: SuggestContext,
@@ -17,14 +55,12 @@ export function scoreStats(
     mainIndex: number,
 ): number {
   if (ctx.mode === 'target') {
-    return evalTarget({
-      context: ctx.pckdCtx,
+    return evaluateContext(ctx.pckdCtx, ctx, {
       stats,
-      setConstLut: ctx.setConstLut,
-      mainEchoBuffs,
       sets,
       kinds,
       comboIds,
+      mainEchoBuffs,
       mainIndex,
     })?.damage ?? 0
   }

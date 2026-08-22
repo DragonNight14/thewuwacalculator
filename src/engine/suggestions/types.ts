@@ -65,6 +65,8 @@ export interface RotSuggCtx {
   contextStride: number
   contextWeight: Float32Array
   contextCount: number
+  /** representative skill-damage context used for user-facing resolved stats */
+  displayContext: Float32Array | null
   setConstLut: Float32Array
 }
 
