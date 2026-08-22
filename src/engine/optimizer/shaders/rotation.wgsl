@@ -229,18 +229,18 @@ fn jingranFireOfLifeRate(skillId: u32, level: u32) -> f32 {
     let index = max(0u, min(19u, level - 1u));
     if (skillHash == JINGRAN_SOUL_RAID_SKILL_HASH) {
         return array<f32, 20>(
-            0.0796, 0.086, 0.0923, 0.1016, 0.1079,
-            0.1154, 0.126, 0.1364, 0.1466, 0.1577,
-            0.1708, 0.1839, 0.1966, 0.2097, 0.2227,
-            0.2355, 0.2486, 0.2616, 0.2746, 0.2877,
+            0.0797, 0.0862, 0.0928, 0.1019, 0.1084,
+            0.1159, 0.1263, 0.1367, 0.1472, 0.1582,
+            0.1713, 0.1844, 0.1974, 0.2105, 0.2235,
+            0.2365, 0.2496, 0.2625, 0.2757, 0.2888,
         )[index];
     }
     if (skillHash == JINGRAN_STARDOME_SKILL_HASH) {
         return array<f32, 20>(
-            0.0815, 0.088, 0.0948, 0.104, 0.1108,
-            0.1185, 0.129, 0.1398, 0.1505, 0.1618,
-            0.175, 0.1885, 0.2018, 0.2149, 0.2284,
-            0.2416, 0.2549, 0.2684, 0.2816, 0.2949,
+            0.1089, 0.1179, 0.1268, 0.1394, 0.1484,
+            0.1585, 0.1728, 0.187, 0.2014, 0.2165,
+            0.2345, 0.2524, 0.27, 0.2879, 0.3058,
+            0.3236, 0.3415, 0.3594, 0.377, 0.3949,
         )[index];
     }
     return 0.0;
@@ -251,7 +251,8 @@ fn jingranFireOfLifeMultiplier(charId: f32, skillId: u32, finalHp: f32, toggles:
         return 0.0;
     }
     let rate = jingranFireOfLifeRate(skillId, jingranLiberationLevel(toggles));
-    return min(max(finalHp, 0.0), 35000.0) * 0.001 * rate;
+    let seqBoost = select(1.0, 1.4, decodeSequence(params) >= 2.0);
+    return min(max(finalHp - 25000.0, 0.0), 25000.0) * 0.001 * rate * seqBoost;
 }
 
 // range checker with support for "disabled" ranges where min > max
@@ -864,7 +865,9 @@ fn evalMainPos(
 
     var dmgBonus = pre.dmgBonusBase + bonus * INV_100;
     if (pre.charId == 1212.0) {
-        dmgBonus += min(max(pre.finalHpBase * 0.00008, 0.0), 2.8) * jingranFortune(pre.toggles) * INV_100;
+        let baseFusion = min(max(pre.finalHpBase * 0.0015, 0.0), 75.0);
+        let fortuneFusion = min(max(pre.finalHpBase * 0.00005, 0.0), 2.5) * jingranFortune(pre.toggles);
+        dmgBonus += (baseFusion + fortuneFusion) * INV_100;
     }
 
     let set33Enabled = (setRuntimeMask & SET_RUNTIME_TOGGLE_SET33_CHONGMING) != 0u;
@@ -889,9 +892,9 @@ fn evalMainPos(
     }
 
     if (pre.charId == 1212.0) {
-        var jingranAtk = min(max(pre.finalHpBase * 0.052, 0.0), 1820.0);
+        var jingranAtk = min(max(pre.finalHpBase * 0.036, 0.0), 1800.0);
         if (decodeSequence(params) >= 3.0 && jingranEverflow(pre.toggles)) {
-            jingranAtk = min(max(pre.finalHpBase * 0.072, 0.0), 2520.0);
+            jingranAtk = min(max(pre.finalHpBase * 0.05, 0.0), 2500.0);
         }
         finalAtk += jingranAtk;
     }

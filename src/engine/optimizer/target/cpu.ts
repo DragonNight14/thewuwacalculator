@@ -202,13 +202,16 @@ function calcShoreCritDmg(charId: number, finalER: number, innerOn: boolean, sup
 function calcJingranAtk(charId: number, sequence: number, finalHp: number, everflowOn: boolean): number {
   if (charId !== 1212) return 0
   return sequence >= 3 && everflowOn
-    ? Math.min(Math.max(0, finalHp * 0.072), 2520)
-    : Math.min(Math.max(0, finalHp * 0.052), 1820)
+    ? Math.min(Math.max(0, finalHp * 0.05), 2500)
+    : Math.min(Math.max(0, finalHp * 0.036), 1800)
 }
 
 function calcJingranFusion(charId: number, finalHp: number, fortuneStacks: number): number {
-  if (charId !== 1212 || fortuneStacks <= 0) return 0
-  return (Math.min(Math.max(0, finalHp * 0.00008), 2.8) * fortuneStacks) / 100
+  if (charId !== 1212) return 0
+  return (
+    Math.min(Math.max(0, finalHp * 0.0015), 75) +
+    Math.min(Math.max(0, finalHp * 0.00005), 2.5) * Math.max(0, fortuneStacks)
+  ) / 100
 }
 
 // select the matching elemental bonus bucket from base stats + set bonus
@@ -624,6 +627,7 @@ export function evalTgtCpuCmPrepped(options: {
             prepared.multiplier +
             calcJingranFireOfLifeMultiplier(
                 prepared.charId,
+                prepared.sequence,
                 prepared.skillId,
                 finalHpBase,
                 prepared.togglesBits,
