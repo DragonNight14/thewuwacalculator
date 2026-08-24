@@ -1,32 +1,26 @@
 /*
   Author: Runor Ewhro
-  Description: derives a resonator's "build" stats: the values that come purely
-               from the equipped build: base stats, trace nodes, the weapon's
-               secondary stat, equipped echo main/sub stats, and the always-on
-               (unsettable) echo set + main echo buffs. Every toggleable combat
-               state, stack, manual input, and resonator kit (skill/forte/
-               sequence) buff is excluded, so this reads as the gear baseline
-               beneath the live combat stats. Not benchmark-specific.
+  Description: derives a resonator's "build" stats: base stats, equipped gear,
+               and every effect whose activation is fixed by that concrete
+               build. Toggleable combat state, stacks, active targeting, manual
+               inputs, and enemy state remain excluded. Not benchmark-specific.
 */
 
 import type { ResRuntime } from '@/domain/entities/runtime'
-import type { DataSrcRef } from '@/domain/gameData/contracts'
+import type { EffectContext, EffectDef } from '@/domain/gameData/contracts.ts'
 import type { FinalStats, ResBaseStats } from '@/domain/entities/stats'
-import { calcFinalStats } from '@/engine/formulas/finalStats'
-import { applyRtDataF } from '@/engine/effects/dataEffects'
+import { isBuildBoundEffect } from '@/domain/gameData/effectActivation.ts'
+import { getGameData } from '@/data/gameData/index.ts'
+import { evalCond } from '@/engine/effects/evaluator.ts'
+import { calcFinalStats } from '@/engine/formulas/finalStats.ts'
+import { applyRtDataF } from '@/engine/effects/dataEffects.ts'
 import { mkRtBaseBuff } from '@/engine/pipeline/buildCombatContext'
-import { wpnAtkAt } from '@/domain/state/weaponState'
-import { makeCombatState, makeCustomBuff } from '@/domain/state/defaults'
+import { makeCombatState, makeCustomBuff, makeEnemy } from '@/domain/state/defaults'
+import { wpnAtkAt } from '@/domain/state/weaponState.ts'
 
-// the only buff sources that count toward build stats: echo set sonatas and
-// the main echo's own passives. Resonator/weapon-effect sources are excluded.
-function isEchoBuffSource(source: DataSrcRef): boolean {
-  return source.type === 'echoSet' || source.type === 'echo'
-}
-
-// clear every toggleable input so only unconditional buffs survive condition
-// evaluation. Stack/input-driven buffs collapse to their zero default and drop
-// out; always-on buffs still apply.
+// Clear toggleable inputs as a second line of defense. The effect classifier
+// keeps control-driven effects out entirely; neutral state also prevents an
+// accidentally admitted condition from inheriting the live combat setup.
 function neutralizeRuntime(runtime: ResRuntime): ResRuntime {
   return {
     ...runtime,
@@ -39,32 +33,52 @@ function neutralizeRuntime(runtime: ResRuntime): ResRuntime {
   }
 }
 
+function includeBuildEffect(effect: EffectDef, context: EffectContext): boolean {
+  const owner = effect.ownerKey ? getGameData().ownersByKey[effect.ownerKey] : undefined
+  if (!isBuildBoundEffect(effect, owner)) return false
+
+  const scope = {
+    sourceRuntime: context.sourceRuntime,
+    sourceFinalStats: context.sourceFinalStats,
+    targetRuntime: context.targetRuntime,
+    activeRuntime: context.activeRuntime,
+    context,
+    pool: context.pool,
+    baseStats: context.baseStats,
+    finalStats: context.finalStats,
+  }
+  return evalCond(owner?.unlockWhen, scope) && evalCond(owner?.visibleWhen, scope)
+}
+
 export function getBuildStats(runtime: ResRuntime, baseStats: ResBaseStats): FinalStats {
   const neutral = neutralizeRuntime(runtime)
-  const wpnAtk = wpnAtkAt(runtime.build.weapon.id, runtime.build.weapon.level)
-
-  // base + trace nodes + weapon secondary stat + echo main/sub stats
-  // (manual buffs and combat-state derived effects neutralize to nothing).
+  const weaponAttack = wpnAtkAt(runtime.build.weapon.id, runtime.build.weapon.level)
   const pool = mkRtBaseBuff(neutral)
-
   const options = {
     teamRuntime: neutral,
     actResId: neutral.id,
     baseStats,
+    enemy: makeEnemy(),
     includeEchoSets: true,
   }
 
-  // layer in only the unsettable echo set + main echo buffs, across both
-  // effect stages exactly like the live pipeline.
-  const preStatsPool = applyRtDataF(neutral, pool, options, 'preStats', isEchoBuffSource)
-  const preStats = calcFinalStats(baseStats, preStatsPool, wpnAtk)
+  const preStatsPool = applyRtDataF(
+    neutral,
+    pool,
+    options,
+    'preStats',
+    undefined,
+    includeBuildEffect,
+  )
+  const preStats = calcFinalStats(baseStats, preStatsPool, weaponAttack)
   const postStatsPool = applyRtDataF(
     neutral,
     preStatsPool,
     { ...options, finalStats: preStats },
     'postStats',
-    isEchoBuffSource,
+    undefined,
+    includeBuildEffect,
   )
 
-  return calcFinalStats(baseStats, postStatsPool, wpnAtk)
+  return calcFinalStats(baseStats, postStatsPool, weaponAttack)
 }
