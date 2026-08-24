@@ -24,7 +24,8 @@ import { BENCHMARK_ROLL_SOURCE, ENERGY_REGEN, MAXIMUM_ROLL_SOURCE, normalizeRoll
 import { cloneEchoSlot, makeSetSummary, preservedMainEchoFor, retainsUtilityPlan, utilityPlanFor } from './echoDiscovery.ts';
 import { assembleBenchmark, benchmarkErTarget, buildBenchmark, buildBenchmarkAnchors, LEAN_SCORE_OPTIONS, type BenchCancelCheck, type BenchmarkAnchors, type BuildBenchmarkOptions } from './search.ts';
 import { makeBenchmarkKey } from '@/data/scoring/buildBenchmarkKey';
-import { loadPersistedAnchors, persistAnchor } from './anchorStore.ts';
+import { getGameDataMode } from '@/data/gameData';
+import { BENCHMARK_ANCHOR_CACHE_REVISION, loadPersistedAnchors, persistAnchor } from './anchorStore.ts';
 
 
 
@@ -125,7 +126,9 @@ function anchorCacheKey(
   const equipped = runtime.build.echoes
   const utilityPlan = utilityPlanFor(equipped)
   return makeBenchmarkKey({
-    kind: 'benchmark-anchors-v6',
+    kind: 'benchmark-anchors',
+    revision: BENCHMARK_ANCHOR_CACHE_REVISION,
+    gameDataMode: getGameDataMode(),
     // strip echoes: their substats / main stats / non-preserved sets and main
     // Echoes do not move the anchors.
     runtime: { ...runtime, build: { ...runtime.build, echoes: [] } },
@@ -599,11 +602,31 @@ export function rotationBuildBenchmarkReport(
     rotationMode: true,
   }, simulation)
 
-  return context ? buildBenchmarkReport(
-    withUtilitySetRows(context, benchmarkRuntime, setConds, utilityPlan),
+  if (!context) {
+    return null
+  }
+
+  const benchmarkContext = withUtilitySetRows(context, benchmarkRuntime, setConds, utilityPlan)
+  // Grade-only and report jobs must be assembled from the same anchor contract.
+  // This also lets report generation refresh the persisted fast-path cache
+  // instead of maintaining an uncached second source of benchmark truth.
+  const benchmark = existingBenchmark ?? cachedBuildBenchmark(
+    benchmarkContext,
+    benchmarkRuntime,
+    enemy,
+    runtimesById,
+    LEAN_SCORE_OPTIONS,
+    checkCancel,
+  )
+  if (!benchmark) {
+    return null
+  }
+
+  return buildBenchmarkReport(
+    benchmarkContext,
     runtime.build.echoes,
     options,
-    existingBenchmark,
+    benchmark,
     {
       id: defaultRotation.id,
       name: defaultRotation.label,
@@ -611,7 +634,7 @@ export function rotationBuildBenchmarkReport(
       items: cloneRotNds(defaultRotation.items),
     },
     checkCancel,
-  ) : null
+  )
 }
 
 export interface DefaultRotationBenchmarkResult {

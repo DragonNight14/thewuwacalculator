@@ -16,14 +16,19 @@ import type { BenchmarkAnchors } from './search.ts'
 const DB_NAME = 'wuwa-benchmark'
 const STORE_NAME = 'anchors'
 const DB_VERSION = 1
+// Persisted anchors encode scoring-engine and generated-data assumptions that
+// are not fully represented by a user's runtime. Bump this whenever those
+// assumptions change so an older bundle cannot grade a current build.
+export const BENCHMARK_ANCHOR_CACHE_REVISION = 8
 // Anchor bundles are KB-scale plain objects, so a generous on-disk set is cheap
 // while still capping unbounded growth across many resonators/enemies.
 const MAX_STORED_ANCHORS = 48
 
-interface StoredAnchor {
+export interface StoredAnchor {
   key: string
   anchors: BenchmarkAnchors
   ts: number
+  revision?: number
 }
 
 function getIndexedDb(): IDBFactory | null {
@@ -65,6 +70,15 @@ function storeFor(db: IDBDatabase, mode: IDBTransactionMode): IDBObjectStore {
   return db.transaction(STORE_NAME, mode).objectStore(STORE_NAME)
 }
 
+export function selectCurrentAnchorEntries(
+  rows: readonly StoredAnchor[],
+): Array<[string, BenchmarkAnchors]> {
+  return rows
+    .filter((row) => row.revision === BENCHMARK_ANCHOR_CACHE_REVISION)
+    .sort((left, right) => left.ts - right.ts)
+    .map((row) => [row.key, row.anchors])
+}
+
 // Read every persisted anchor, oldest first, so the caller can rebuild an LRU
 // map by re-inserting in order (the most-recently-used ends up newest).
 export async function loadPersistedAnchors(): Promise<Array<[string, BenchmarkAnchors]>> {
@@ -75,8 +89,7 @@ export async function loadPersistedAnchors(): Promise<Array<[string, BenchmarkAn
       const request = storeFor(db, 'readonly').getAll()
       request.onsuccess = () => {
         const rows = (request.result as StoredAnchor[]) ?? []
-        rows.sort((left, right) => left.ts - right.ts)
-        resolve(rows.map((row) => [row.key, row.anchors] as [string, BenchmarkAnchors]))
+        resolve(selectCurrentAnchorEntries(rows))
       }
       request.onerror = () => resolve([])
     } catch {
@@ -93,7 +106,12 @@ export function persistAnchor(key: string, anchors: BenchmarkAnchors): void {
     if (!db) return
     try {
       const store = storeFor(db, 'readwrite')
-      store.put({ key, anchors, ts: Date.now() } satisfies StoredAnchor)
+      store.put({
+        key,
+        anchors,
+        ts: Date.now(),
+        revision: BENCHMARK_ANCHOR_CACHE_REVISION,
+      } satisfies StoredAnchor)
       const allRequest = store.getAll()
       allRequest.onsuccess = () => {
         const rows = (allRequest.result as StoredAnchor[]) ?? []

@@ -227,6 +227,10 @@ export function Echoes({
     [runtime.build.echoes],
   )
   const selection = useSel({
+    // The parser owns Cmd/Ctrl+V while it is open. Keeping the pane's standby
+    // paste shortcut active here prevents the browser from dispatching the
+    // image paste event that the parser listens for.
+    active: !parserModal.visible,
     surfaceId: CHSSELFCSSCP,
     ariaLabel: 'Echo selection actions',
     items: selTms,

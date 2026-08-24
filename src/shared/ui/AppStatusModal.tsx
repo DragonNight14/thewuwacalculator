@@ -10,7 +10,7 @@ import { CURRENT_VERSION } from '@/shared/lib/appMetadata'
 import { getLinkedWhatsNew, ltstCurChngE } from '@/data/content/changelogEntries'
 
 const STATUS_DATA = {
-  lastUpdated: '30/07/2026',
+  lastUpdated: '18/08/2026',
   overallState: 'stable' as const,
   patchVersion: CURRENT_VERSION,
   dataSources: [
@@ -20,20 +20,16 @@ const STATUS_DATA = {
   notes: [
     'HEWO~! (˶˃ ᵕ ˂˶)',
     'Remember, Pheobe is joy, Pheobe is love, Pheobe is everything..',
-    'There\'s new stuff (see more below).',
     'A reminder, there\'s a discord server up, if you\'d like to make suggestions or report bugs you unfortunately found... or you just wanna join a discord, feel free.'
   ],
   coverage: [
     { title: 'Resonators', status: 'ok' as const,  desc: 'All resonators supported.' },
     { title: 'Weapons',    status: 'ok' as const,  desc: 'All weapons supported.' },
     { title: 'Echoes',     status: 'ok' as const,  desc: 'All echoes and sonata sets supported.' },
-    { title: 'Enemies',    status: 'wip' as const,  desc: '3.6 enemies not yet supported.' },
+    { title: 'Enemies',    status: 'ok' as const,  desc: 'All enemies supported.' },
   ],
   recentChanges: [
-    'Suggestions section ui refactor.',
-    'Some scoring math fixes.',
-    'New team summary thingy on the tool bar',
-    'More stuff...',
+    '3.6 patch stuff.',
   ],
   knownIssues: [
     "there's none."

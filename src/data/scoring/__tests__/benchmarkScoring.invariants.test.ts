@@ -19,11 +19,13 @@ import type { ResProf } from '@/domain/entities/profile'
 import type { EchoInstance } from '@/domain/entities/runtime'
 import { runResSmlt } from '@/engine/pipeline'
 import { sumOptRotDmg } from '@/engine/optimizer/rules/eligibility'
-import { mkSuggVltnCt } from '@/engine/suggestions/shared'
+import { mkSuggMainEc, mkSuggVltnCt } from '@/engine/suggestions/shared'
 import type { SuggestContext } from '@/engine/suggestions/types'
 import { ECHO_MAIN_STATS, ECHO_SIDE_STATS } from '@/data/gameData/catalog/echoStats'
 import { assembleBenchmark, buildBenchmark, buildBenchmarkAnchors } from '@/data/scoring/benchmark/search.ts'
-import { preservedMainEchoFor } from '@/data/scoring/benchmark/echoDiscovery.ts'
+import { makeBenchmarkEchoFrame, preservedMainEchoFor } from '@/data/scoring/benchmark/echoDiscovery.ts'
+import { makeBenchmarkOverviewStats } from '@/data/scoring/benchmark/stats.ts'
+import { resolveBenchmarkStats } from '@/data/scoring/benchmark/scoring.ts'
 import {
   getDefaultRotationBenchmarkScore,
   getRotScore,
@@ -211,12 +213,13 @@ async function runBenchmark(profile: ResProf) {
     profile.runtime.routing.selectedTargetsByOwnerKey,
   )
   const input = { runtime, simulation, enemy, runtimesById }
+  const scoreResult = getDefaultRotationBenchmarkScore(input)
   const report = rotationBuildBenchmarkReport(input)
   if (!report) {
     throw new Error(`no benchmark for ${profile.resonatorId}`)
   }
 
-  return { input, report }
+  return { input, report, scoreResult }
 }
 
 const norm = (value: unknown) => JSON.parse(
@@ -224,6 +227,45 @@ const norm = (value: unknown) => JSON.parse(
 )
 
 describe('benchmark scoring invariants', () => {
+  it('uses conversion-aware evaluator totals in benchmark overview stats', () => {
+    const hpEchoes = buildInvariantEchoes('hpPercent')
+    const nonHpEchoes = buildInvariantEchoes('critDmg')
+    const context = benchmarkContextFor('1212', hpEchoes)
+    if (!context) throw new Error('missing Jingran benchmark context')
+
+    const overviewFor = (echoes: Array<EchoInstance | null>) => {
+      const concrete = echoes.filter((echo): echo is EchoInstance => echo != null)
+      const frame = makeBenchmarkEchoFrame(context, concrete, mkSuggMainEc(context, echoes))
+      const build = {
+        stats: frame.stats,
+        sets: frame.sets,
+        kinds: frame.kinds,
+        comboIds: frame.comboIds,
+        mainEchoBuffs: frame.mainEchoBuffs,
+        mainIndex: frame.mainIndex,
+      }
+      return {
+        overview: makeBenchmarkOverviewStats({
+          ctx: context,
+          ...build,
+          setRows: frame.sets,
+        }),
+        resolved: resolveBenchmarkStats(context, build),
+      }
+    }
+
+    const withoutHp = overviewFor(nonHpEchoes)
+    const withHp = overviewFor(hpEchoes)
+    const withoutHpAtk = withoutHp.overview.mainStats.find((row) => row.key === 'atk')?.total
+    const withHpAtk = withHp.overview.mainStats.find((row) => row.key === 'atk')?.total
+
+    expect(withoutHp.resolved).not.toBeNull()
+    expect(withHp.resolved).not.toBeNull()
+    expect(withoutHpAtk).toBeCloseTo(withoutHp.resolved?.atk ?? 0, 5)
+    expect(withHpAtk).toBeCloseTo(withHp.resolved?.atk ?? 0, 5)
+    expect(withHpAtk).toBeGreaterThan(withoutHpAtk ?? Number.POSITIVE_INFINITY)
+  })
+
   it('builds compact deterministic request keys', () => {
     const left = makeBenchmarkKey({ runtime: { id: 'fixture-a', level: 90 }, values: new Float32Array([1, 2, 3]) })
     const right = makeBenchmarkKey({ values: new Float32Array([1, 2, 3]), runtime: { level: 90, id: 'fixture-a' } })
@@ -306,8 +348,13 @@ describe('benchmark scoring invariants', () => {
 
       const fingerprints = []
       for (const profile of profiles) {
-        const { input, report } = await runBenchmark(profile)
+        const { input, report, scoreResult } = await runBenchmark(profile)
         fingerprints.push(fingerprint(report.benchmark))
+        expect(scoreResult.score).toBeCloseTo(report.benchmark.percent * 100, 8)
+        expect(scoreResult.benchmark?.baselineDamage).toBe(report.benchmark.baselineDamage)
+        expect(scoreResult.benchmark?.benchmarkDamage).toBe(report.benchmark.benchmarkDamage)
+        expect(scoreResult.benchmark?.perfectionDamage).toBe(report.benchmark.perfectionDamage)
+        expect(scoreResult.benchmark?.userDamage).toBe(report.benchmark.userDamage)
         expect(getRotScore(input)).toBeCloseTo(report.benchmark.percent * 100, 4)
       }
 

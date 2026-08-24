@@ -498,6 +498,10 @@ export function mkRotSuggCtx(
   const setRtMask = makeSetMask(rotRt, input.setConds, setRows)
   const contexts = new Float32Array(targets.length * CTX_FLOATS)
   const contextWeight = new Float32Array(targets.length)
+  let displayContext: Float32Array | null = null
+  let displayLowestPositive = Number.POSITIVE_INFINITY
+  let displayLowestCrit = Number.POSITIVE_INFINITY
+  let displayLowestZero = Number.POSITIVE_INFINITY
 
   // pack one optimizer context per rotation target
   for (let index = 0; index < targets.length; index += 1) {
@@ -535,6 +539,33 @@ export function mkRotSuggCtx(
     }
     contexts.set(pckdCtx, index * CTX_FLOATS)
     contextWeight[index] = target.weight
+
+    // Match rotation optimizer result presentation: use a normal damage target,
+    // preferring the lowest positive weight and then the lowest crit aggregate.
+    // Benchmark damage still sums every context; this one only resolves the
+    // representative combat stat line shown beside that score.
+    if (skill.archetype === 'skillDamage') {
+      const critSum = compiled.statCritRate + compiled.statCritDmg
+      const displayValue = Number.isFinite(target.weight) ? target.weight : 1
+      if (
+        displayValue > 0
+        && (
+          displayValue < displayLowestPositive
+          || (displayValue === displayLowestPositive && critSum < displayLowestCrit)
+        )
+      ) {
+        displayLowestPositive = displayValue
+        displayLowestCrit = critSum
+        displayContext = new Float32Array(pckdCtx)
+      } else if (
+        displayLowestPositive === Number.POSITIVE_INFINITY
+        && displayValue === 0
+        && critSum < displayLowestZero
+      ) {
+        displayLowestZero = critSum
+        displayContext = new Float32Array(pckdCtx)
+      }
+    }
   }
 
   return {
@@ -548,6 +579,7 @@ export function mkRotSuggCtx(
     contextStride: CTX_FLOATS,
     contextWeight: contextWeight,
     contextCount: targets.length,
+    displayContext,
     pool: activeContext.buffs,
     sklls: targets.map((target) => target.skill),
     resIds: targets.map((target) => target.resonatorId),

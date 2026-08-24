@@ -202,16 +202,17 @@ function calcJingranAtk(characterId: number, sequence: number, finalHp: number, 
   }
 
   return sequence >= 3 && everflowOn
-    ? Math.min(Math.max(0, finalHp * 0.072), 2520)
-    : Math.min(Math.max(0, finalHp * 0.052), 1820)
+    ? Math.min(Math.max(0, finalHp * 0.05), 2500)
+    : Math.min(Math.max(0, finalHp * 0.036), 1800)
 }
 
 function calcJingranFusion(characterId: number, finalHp: number, fortuneStacks: number): number {
-  if (characterId !== 1212 || fortuneStacks <= 0) {
+  if (characterId !== 1212) {
     return 0
   }
 
-  return Math.min(Math.max(0, finalHp * 0.00008), 2.8) * fortuneStacks
+  return Math.min(Math.max(0, finalHp * 0.0015), 75) +
+    Math.min(Math.max(0, finalHp * 0.00005), 2.5) * Math.max(0, fortuneStacks)
 }
 
 // remove special resonator-side conversions so packed context stores normalized base terms
@@ -402,6 +403,7 @@ export function packTargetCtx(options: {
 
   let pckdMltp = ttlHitScl - calcJingranFireOfLifeMultiplier(
       compiled.characterId,
+      compiled.sequence,
       skillId,
       compiled.statFinHp,
       toggles,

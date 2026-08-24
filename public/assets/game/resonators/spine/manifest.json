@@ -284,6 +284,28 @@
       ]
     }
   },
+  "1212": {
+    "slug": "jingran",
+    "slugs": {
+      "portrait": "jingran",
+      "luckdraw": "jingran"
+    },
+    "portrait": {
+      "skel": "skel.skel",
+      "atlas": "atlas.atlas",
+      "pages": [
+        "texture-0.webp",
+        "texture-1.webp"
+      ]
+    },
+    "luckdraw": {
+      "skel": "skel.skel",
+      "atlas": "atlas.atlas",
+      "pages": [
+        "texture.webp"
+      ]
+    }
+  },
   "1301": {
     "slug": "kakaluo",
     "slugs": {
@@ -586,6 +608,28 @@
       "atlas": "atlas.atlas",
       "pages": [
         "texture.webp"
+      ]
+    },
+    "luckdraw": {
+      "skel": "skel.skel",
+      "atlas": "atlas.atlas",
+      "pages": [
+        "texture.webp"
+      ]
+    }
+  },
+  "1413": {
+    "slug": "qingxiao",
+    "slugs": {
+      "portrait": "qingxiao",
+      "luckdraw": "qingxiao"
+    },
+    "portrait": {
+      "skel": "skel.skel",
+      "atlas": "atlas.atlas",
+      "pages": [
+        "texture-0.webp",
+        "texture-1.webp"
       ]
     },
     "luckdraw": {
