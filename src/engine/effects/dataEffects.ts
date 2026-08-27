@@ -749,6 +749,7 @@ export function applyRtDataF(
     options: DataFfctPtns = {},
     stage: 'preStats' | 'postStats' = 'preStats',
     sourceFilter?: (source: DataSrcRef) => boolean,
+    effectFilter?: (effect: EffectDef, context: EffectContext) => boolean,
 ): UnifiedBuffPool {
   const next = baseBuffs
 
@@ -766,6 +767,10 @@ export function applyRtDataF(
     const scope = mkEvalScp(context)
 
     for (const effect of effects) {
+      if (effectFilter && !effectFilter(effect, context)) {
+        continue
+      }
+
       if (!ffctTrgtRt(effect, context)) {
         continue
       }

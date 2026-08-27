@@ -163,6 +163,50 @@ async function inlineCardStyleAssets(card: HTMLElement): Promise<() => void> {
   }
 }
 
+function freezeVerdictFigureLayout(card: HTMLElement): () => void {
+  const figure = card.querySelector<HTMLElement>('.showcase-verdict-figure')
+  const grade = figure?.querySelector<HTMLElement>('.showcase-grade-mark')
+  const score = figure?.querySelector<HTMLElement>('.showcase-grade-score')
+  if (!figure || !grade || !score) {
+    return () => {}
+  }
+
+  const figureRect = figure.getBoundingClientRect()
+  const gradeRect = grade.getBoundingClientRect()
+  const scoreRect = score.getBoundingClientRect()
+  if (figureRect.width <= 0 || figureRect.height <= 0) {
+    return () => {}
+  }
+
+  const nodes = [figure, grade, score]
+  const originals = nodes.map((node) => node.getAttribute('style'))
+  const px = (value: number) => `${Math.round(value * 1000) / 1000}px`
+
+  figure.style.setProperty('display', 'block', 'important')
+  figure.style.setProperty('position', 'relative', 'important')
+  figure.style.setProperty('width', px(figureRect.width), 'important')
+  figure.style.setProperty('height', px(figureRect.height), 'important')
+  figure.style.setProperty('flex', 'none', 'important')
+
+  for (const [node, rect] of [[grade, gradeRect], [score, scoreRect]] as const) {
+    node.style.setProperty('position', 'absolute', 'important')
+    node.style.setProperty('inset', 'auto', 'important')
+    node.style.setProperty('left', px(rect.left - figureRect.left), 'important')
+    node.style.setProperty('top', px(rect.top - figureRect.top), 'important')
+    node.style.setProperty('width', px(rect.width), 'important')
+    node.style.setProperty('height', px(rect.height), 'important')
+    node.style.setProperty('white-space', 'nowrap', 'important')
+  }
+
+  return () => {
+    for (const [index, node] of nodes.entries()) {
+      const original = originals[index]
+      if (original == null) node.removeAttribute('style')
+      else node.setAttribute('style', original)
+    }
+  }
+}
+
 export async function renderBuildCardPng(card: HTMLElement): Promise<Blob> {
   await document.fonts?.ready
   const [{ toBlob }, fontEmbedCSS] = await Promise.all([import('html-to-image'), buildFontEmbedCss()])
@@ -170,6 +214,10 @@ export async function renderBuildCardPng(card: HTMLElement): Promise<Blob> {
   // up to 3x on HiDPI screens, balancing crispness against PNG size / canvas limits.
   const pixelRatio = Math.min(3, Math.max(2, window.devicePixelRatio || 1))
 
+  // The isolated SVG used by html-to-image can lay out an embedded display font
+  // with fallback metrics before painting the real glyphs. Preserve the live
+  // grade/score geometry so the score cannot shift onto the ruler in the PNG.
+  const restoreVerdictLayout = freezeVerdictFigureLayout(card)
   card.dataset.capturing = 'true'
   try {
     const restoreCardCss = await inlineCardStyleAssets(card)
@@ -196,6 +244,7 @@ export async function renderBuildCardPng(card: HTMLElement): Promise<Blob> {
     }
   } finally {
     delete card.dataset.capturing
+    restoreVerdictLayout()
   }
 }
 
