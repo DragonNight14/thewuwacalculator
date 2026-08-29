@@ -239,6 +239,17 @@ function opMtchSkll(operation: EffectOp, selectedSkill: OptTargetSkill): boolean
     return false
   }
 
+  if (operation.match.elements && !operation.match.elements.includes(selectedSkill.element)) {
+    return false
+  }
+
+  if (
+      operation.match.labelIncludes &&
+      !operation.match.labelIncludes.some((label) => selectedSkill.label.includes(label))
+  ) {
+    return false
+  }
+
   return true
 }
 

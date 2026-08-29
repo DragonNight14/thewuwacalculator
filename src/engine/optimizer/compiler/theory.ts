@@ -716,6 +716,7 @@ function applyTheoryRows<T extends PrepTheoryTarget | PrepTheoryRot>(
       ? payload.selectedSkill
       : {
         id: 'theory:rotation',
+        label: 'Rotation',
         tab: 'rotation',
         element: 'physical' as const,
         skillType: [],

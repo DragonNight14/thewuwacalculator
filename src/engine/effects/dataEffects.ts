@@ -609,6 +609,17 @@ function skllMtchRule(skill: SkillDef, operation: EffectOp): boolean {
     return false
   }
 
+  if (operation.match.elements && !operation.match.elements.includes(skill.element)) {
+    return false
+  }
+
+  if (
+      operation.match.labelIncludes &&
+      !operation.match.labelIncludes.some((label) => skill.label.includes(label))
+  ) {
+    return false
+  }
+
   return true
 }
 

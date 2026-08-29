@@ -63,7 +63,7 @@ export interface StateGroup {
 
 interface SkillStateSummaryTarget {
   resonatorId: string
-  skill: Pick<SkillDef, 'id' | 'tab' | 'skillType' | 'element' | 'archetype' | 'aggregationType' | 'scaling' | 'fixedDmg'>
+  skill: Pick<SkillDef, 'id' | 'label' | 'tab' | 'skillType' | 'element' | 'archetype' | 'aggregationType' | 'scaling' | 'fixedDmg'>
 }
 
 type EffectOperation = EffectDef['operations'][number]
@@ -209,6 +209,17 @@ function matchTargetsSkill(
   if (
       match.skillTypes?.length &&
       !target.skill.skillType.some((type) => match.skillTypes!.includes(type))
+  ) {
+    return false
+  }
+
+  if (match.elements?.length && !match.elements.includes(target.skill.element)) {
+    return false
+  }
+
+  if (
+      match.labelIncludes?.length &&
+      !match.labelIncludes.some((label) => target.skill.label.includes(label))
   ) {
     return false
   }

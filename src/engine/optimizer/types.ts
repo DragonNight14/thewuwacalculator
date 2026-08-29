@@ -245,6 +245,7 @@ export interface PrepTargetSkill extends PrepOptShrdP {
   skill: SkillDef
   selectedSkill: {
     id: string
+    label: string
     tab: string
     element: SkillDef['element']
     skillType: SkillDef['skillType']

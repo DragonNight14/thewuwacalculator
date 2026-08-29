@@ -28,6 +28,7 @@ import type {
 } from '@/domain/gameData/contracts.ts'
 import { makeTeamComp } from '@/domain/gameData/teamComposition.ts'
 import { getEchoById } from '@/domain/services/echoCatalogService.ts'
+import { listSkillsFor } from '@/domain/services/gameDataService.ts'
 import { getResSeedBy, resResBaseSt } from '@/domain/services/resonatorSeedService.ts'
 import { getWpnById } from '@/domain/services/weaponCatalogService.ts'
 import { wpnAtkAt } from '@/domain/state/weaponState.ts'
@@ -354,7 +355,7 @@ function evalPresetValue(formula: FormExpr, scope: EffectScope): number {
   return Number.isFinite(value) ? value : 0
 }
 
-function skillTargetBase(match: SkllMtchRule | undefined): Array<{
+function skillTargetBase(match: SkllMtchRule | undefined, runtime: ResRuntime): Array<{
   matchMode: MnlSkllMtchM
   skillId?: string
   tab?: string
@@ -376,6 +377,30 @@ function skillTargetBase(match: SkllMtchRule | undefined): Array<{
     skillIds?: string[]
     tabs?: string[]
     skillTypes?: SkillTypeKey[]
+    elements?: AttributeKey[]
+    labelIncludes?: string[]
+  }
+
+  const matchDimensions = [
+    typed.skillIds,
+    typed.tabs,
+    typed.skillTypes,
+    typed.elements,
+    typed.labelIncludes,
+  ]
+      .filter((values) => values?.length).length
+  if (typed.elements?.length || typed.labelIncludes?.length || matchDimensions > 1) {
+    const skillIds = listSkillsFor('resonator', runtime.id)
+        .filter((skill) => (
+          (!typed.skillIds?.length || typed.skillIds.includes(skill.id)) &&
+          (!typed.tabs?.length || typed.tabs.includes(skill.tab)) &&
+          (!typed.skillTypes?.length || skill.skillType.some((type) => typed.skillTypes!.includes(type))) &&
+          (!typed.elements?.length || typed.elements.includes(skill.element)) &&
+          (!typed.labelIncludes?.length || typed.labelIncludes.some((label) => skill.label.includes(label)))
+        ))
+        .map((skill) => skill.id)
+
+    return [...new Set(skillIds)].map((skillId) => ({ matchMode: 'skillId', skillId }))
   }
 
   rows.push(...(typed.skillIds ?? []).map((skillId) => ({ matchMode: 'skillId' as const, skillId })))
@@ -562,7 +587,7 @@ export function presetToManualModifiers(
     }
 
     if (operation.type === 'add_skill_mod') {
-      return skillTargetBase(operation.match).map((target) => withLabel({
+      return skillTargetBase(operation.match, runtime).map((target) => withLabel({
         id: makeModId(),
         enabled: true,
         label: entry.label,
@@ -575,7 +600,7 @@ export function presetToManualModifiers(
     }
 
     if (operation.type === 'add_skill_multiplier') {
-      return skillTargetBase(operation.match).map((target) => withLabel({
+      return skillTargetBase(operation.match, runtime).map((target) => withLabel({
         id: makeModId(),
         enabled: true,
         label: entry.label,
@@ -587,7 +612,7 @@ export function presetToManualModifiers(
     }
 
     if (operation.type === 'add_skill_hit_multiplier') {
-      return skillTargetBase(operation.match).map((target) => withLabel({
+      return skillTargetBase(operation.match, runtime).map((target) => withLabel({
         id: makeModId(),
         enabled: true,
         label: entry.label,
@@ -600,7 +625,7 @@ export function presetToManualModifiers(
     }
 
     if (operation.type === 'scale_skill_multiplier') {
-      return skillTargetBase(operation.match).map((target) => withLabel({
+      return skillTargetBase(operation.match, runtime).map((target) => withLabel({
         id: makeModId(),
         enabled: true,
         label: entry.label,
@@ -612,7 +637,7 @@ export function presetToManualModifiers(
     }
 
     if (operation.type === 'add_skill_scalar') {
-      return skillTargetBase(operation.match).map((target) => withLabel({
+      return skillTargetBase(operation.match, runtime).map((target) => withLabel({
         id: makeModId(),
         enabled: true,
         label: entry.label,
