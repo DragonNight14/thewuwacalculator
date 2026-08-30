@@ -61,6 +61,7 @@ function rotTargetSig(target: DamageFeature): string {
 function mkFllbTgt(seedId: string): OptTargetSkill {
   return {
     id: `rotation:${seedId}`,
+    label: 'Rotation',
     tab: 'rotation',
     element: 'physical',
     skillType: [],

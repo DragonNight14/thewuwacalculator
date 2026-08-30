@@ -12,6 +12,9 @@ export interface OptTargetSkill {
   // stable skill id used for exact effect matching
   id: string
 
+  // display label used by effects that target a named skill family
+  label: string
+
   // source tab/category the skill belongs to
   tab: string
 
@@ -29,6 +32,7 @@ export interface OptTargetSkill {
 export function selOptTgtSkl(skill: SkillDef): OptTargetSkill {
   return {
     id: skill.id,
+    label: skill.label,
     tab: skill.tab,
     element: skill.element,
     skillType: skill.skillType,

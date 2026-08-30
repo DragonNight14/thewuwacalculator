@@ -209,6 +209,8 @@ export interface SkllMtchRule {
   skillIds?: string[]
   tabs?: string[]
   skillTypes?: SkillTypeKey[]
+  elements?: AttributeKey[]
+  labelIncludes?: string[]
 }
 
 export type BaseStatKey = 'atk' | 'hp' | 'def'
