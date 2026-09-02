@@ -4,7 +4,7 @@
                Handles saving, loading, and deleting team loadout snapshots.
 */
 
-import { Save, Trash2, Layers, Plus } from 'lucide-react'
+import { Trash2, Layers } from 'lucide-react'
 import type { InvTeamLoadout, TeamLoadoutSnap } from '@/domain/entities/teamLoadout.ts'
 import { useTstStr } from '@/shared/util/toastStore.ts'
 import { useCnfr } from '@/app/hooks/useConfirmation.ts'
@@ -13,7 +13,6 @@ import { CnfrMdl } from '@/shared/ui/ConfirmationModal.tsx'
 interface TeamLoadoutManagerProps {
   loadouts: InvTeamLoadout[]
   portalTarget: HTMLElement | null
-  onSaveLoadout: (name: string, loadout: TeamLoadoutSnap) => void
   onLoadLoadout: (loadout: InvTeamLoadout) => void
   onDeleteLoadout: (id: string) => void
 }
@@ -21,7 +20,6 @@ interface TeamLoadoutManagerProps {
 export function TeamLoadoutManager({
   loadouts,
   portalTarget,
-  onSaveLoadout,
   onLoadLoadout,
   onDeleteLoadout,
 }: TeamLoadoutManagerProps) {
