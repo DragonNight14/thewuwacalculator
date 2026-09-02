@@ -5,7 +5,7 @@
 */
 
 import { Trash2, Layers } from 'lucide-react'
-import type { InvTeamLoadout, TeamLoadoutSnap } from '@/domain/entities/teamLoadout.ts'
+import type { InvTeamLoadout } from '@/domain/entities/teamLoadout.ts'
 import { useTstStr } from '@/shared/util/toastStore.ts'
 import { useCnfr } from '@/app/hooks/useConfirmation.ts'
 import { CnfrMdl } from '@/shared/ui/ConfirmationModal.tsx'
