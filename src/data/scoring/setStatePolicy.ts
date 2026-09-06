@@ -55,8 +55,10 @@ export const SET_RULES: Partial<Record<string, SetRule>> = {
   '1306': { type: 'include', sets: [3, 9, 20] }, // Augusta
   '1307': { type: 'include', sets: [3, 9] }, // Buling
   '1308': { type: 'include', sets: [3, 9, 32] }, // Rebecca
-  '1309': { type: 'include', sets: [3, 9] }, // Rover: Electro
-  '1310': { type: 'include', sets: [3, 9] }, // Rover: Electro
+  '1309': { type: 'include', sets: [3, 9, 36] }, // Rover: Electro
+  '1310': { type: 'include', sets: [3, 9, 36] }, // Rover: Electro
+  '1311': { type: 'include', sets: [3, 9, 36] }, // hsin
+  '1312': { type: 'include', sets: [3, 9, 36] }, // suoming
   '1402': { type: 'include', sets: [4, 9] }, // Yangyang
   '1403': { type: 'include', sets: [4, 9] }, // Aalto
   '1404': { type: 'include', sets: [4, 9] }, // Jiyan

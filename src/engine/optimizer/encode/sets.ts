@@ -12,10 +12,11 @@ import {
   type SntSetConds,
 } from '@/domain/entities/sonataSetConditionals.ts'
 import type { ResRuntime } from '@/domain/entities/runtime.ts'
+import { SET_SLOT_COUNT } from '@/engine/optimizer/config/constants.ts'
 
 // hard limit for set ids that can be encoded in optimizer buffers
-// must stay equal to SET_SLOT_COUNT and the shaders' SET_SLOTS (covers ids 0..35)
-export const SETCNSTLUTSE = 36
+// must stay equal to the shaders' SET_SLOTS (covers ids 0..38)
+export const SETCNSTLUTSE = SET_SLOT_COUNT
 
 // number of piece-count buckets stored per set:
 // 0-piece, 1-piece, 2-piece, 3-piece, and 5-piece style buckets

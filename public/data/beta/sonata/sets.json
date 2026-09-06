@@ -32,5 +32,8 @@
   { "id": 32, "name": "Shadow of Shattered Dreams", "icon": "/assets/game/sonata/icons/shadowOfShatteredDreams.webp", "color": "#C72C25" },
   { "id": 33, "name": "Song of Feathered Trace", "icon": "/assets/game/sonata/icons/songOfFeatheredTrace.webp", "color": "#FFFFFF" },
   { "id": 34, "name": "Heart of Evil's Purge", "icon": "/assets/game/sonata/icons/heartOfEvilsPurge.webp", "color": "#55FEB5" },
-  { "id": 35, "name": "Lamp of Nether Road", "icon": "/assets/game/sonata/icons/lampOfNetherRoad.webp", "color": "#F0744E" }
+  { "id": 35, "name": "Lamp of Nether Road", "icon": "/assets/game/sonata/icons/lampOfNetherRoad.webp", "color": "#F0744E" },
+  { "id": 36, "name": "Heart of Sworn Vigil", "icon": "/assets/game/sonata/icons/heartOfSwornVigil.webp", "color": "#B46BFE" },
+  { "id": 37, "name": "Flash of Electric Reflection", "icon": "/assets/game/sonata/icons/flashOfElectricReflection.webp", "color": "#B46BFE" },
+  { "id": 38, "name": "Flower of Tinged Yearning", "icon": "/assets/game/sonata/icons/flowerOfTingedYearning.webp", "color": "#9DDA2D" }
 ]
