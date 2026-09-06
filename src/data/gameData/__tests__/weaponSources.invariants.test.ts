@@ -77,6 +77,53 @@ describe('generated weapon source invariants', () => {
     }
   })
 
+  it('authors the beta Unison weapon passives without stacking the two mind states', () => {
+    const sources = JSON.parse(betaSourcesRaw) as SrcPkg[]
+    const rue = weaponSource(sources, '21020107')
+    const jadehaven = weaponSource(sources, '21050116')
+
+    expect(rue.effects).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        id: 'weapon:21020107:binding-mind',
+        targetScope: 'teamWide',
+        condition: {
+          type: 'and',
+          values: [
+            { type: 'truthy', from: 'sourceRuntime', path: 'state.controls.weapon:21020107:passive:unison' },
+            {
+              type: 'not',
+              value: { type: 'truthy', from: 'sourceRuntime', path: 'state.controls.weapon:21020107:passive:yearning_mind' },
+            },
+          ],
+        },
+      }),
+      expect.objectContaining({
+        id: 'weapon:21020107:yearning-mind',
+        targetScope: 'self',
+        operations: [expect.objectContaining({ value: expect.objectContaining({ values: [40, 50, 60, 70, 80] }) })],
+      }),
+    ]))
+
+    expect(jadehaven.effects).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        id: 'weapon:21050116:skill',
+        operations: expect.arrayContaining([
+          expect.objectContaining({ type: 'add_skilltype_mod', skillType: 'resonanceSkill', mod: 'amplify' }),
+          expect.objectContaining({
+            type: 'add_skill_mod',
+            match: { skillTypes: ['resonanceSkill'], elements: ['electro'] },
+            mod: 'resShred',
+          }),
+        ]),
+      }),
+      expect.objectContaining({
+        id: 'weapon:21050116:electro-flare',
+        targetScope: 'teamWide',
+        operations: [expect.objectContaining({ skillType: 'electroFlare', mod: 'amplify' })],
+      }),
+    ]))
+  })
+
   it.each(MODES)('%s preserves visible passive parameter order', (_mode, catalogRaw) => {
     const catalog = JSON.parse(catalogRaw) as GenWpn[]
 
@@ -87,6 +134,22 @@ describe('generated weapon source invariants', () => {
     expect(weaponCatalog(catalog, '21030034').passive.params[0]).toEqual([
       '6%', '7.5%', '9%', '10.5%', '12%',
     ])
+  })
+
+  it.each(MODES)('%s uses passive names for source and effect labels', (_mode, catalogRaw, sourcesRaw) => {
+    const catalog = JSON.parse(catalogRaw) as GenWpn[]
+    const sources = JSON.parse(sourcesRaw) as SrcPkg[]
+
+    for (const source of sources.filter((candidate) => candidate.source.type === 'weapon')) {
+      const passiveName = weaponCatalog(catalog, source.source.id).passive.name
+
+      expect(source.owners?.map((owner) => owner.label)).toEqual(
+        (source.owners ?? []).map(() => passiveName),
+      )
+      expect(source.effects?.map((effect) => effect.label)).toEqual(
+        (source.effects ?? []).map(() => passiveName),
+      )
+    }
   })
 
   it.each(MODES)('%s authors Everbright Polestar as Fusion Liberation RES ignore', (_mode, _catalogRaw, sourcesRaw) => {

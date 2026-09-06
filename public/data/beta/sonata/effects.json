@@ -2023,5 +2023,192 @@
         "description": "Gaining a Shield increases Crit. Rate by 5% per stack, up to 4 stacks, for 5s. At 4 stacks, grants 15% Fusion DMG Bonus."
       }
     ]
+  },
+  {
+    "id": 36,
+    "name": "Heart of Sworn Vigil",
+    "setMax": 5,
+    "desc": {
+      "twoPiece": "Electro DMG +10%",
+      "fivePiece": "Inflicting Electro Flare, obtaining Unison, or triggering Unison Response increases the Resonator's Crit. Rate by 15% and grants 22.5% Electro DMG Bonus for 30s."
+    },
+    "twoPiece": [
+      {
+        "value": 10,
+        "path": [
+          "attribute",
+          "electro",
+          "dmgBonus"
+        ]
+      }
+    ],
+    "fivePiece": null,
+    "states": {
+      "swornVigil5pc": {
+        "max": [
+          {
+            "value": 15,
+            "path": [
+              "critRate"
+            ]
+          },
+          {
+            "value": 22.5,
+            "path": [
+              "attribute",
+              "electro",
+              "dmgBonus"
+            ]
+          }
+        ]
+      }
+    },
+    "parts": [
+      {
+        "key": "twoPiece",
+        "label": "Electro DMG +10%",
+        "trigger": "Always active at 2pc.",
+        "description": "Increases Electro DMG by 10%."
+      },
+      {
+        "key": "swornVigil5pc",
+        "label": "5pc Crit. Rate and Electro DMG Buff",
+        "trigger": "Triggered by inflicting Electro Flare, obtaining Unison, or triggering Unison Response.",
+        "description": "Increases the Resonator's Crit. Rate by 15% and grants 22.5% Electro DMG Bonus for 30s."
+      }
+    ]
+  },
+  {
+    "id": 37,
+    "type": "utility",
+    "name": "Flash of Electric Reflection",
+    "setMax": 5,
+    "desc": {
+      "twoPiece": "Electro DMG +10%",
+      "fivePiece": "Inflicting Electro Flare grants the Resonator 10% Electro DMG Bonus for 15s. While this effect is active, casting Outro Skill grants the incoming Resonator 25% Electro DMG Bonus for 15s."
+    },
+    "twoPiece": [
+      {
+        "value": 10,
+        "path": [
+          "attribute",
+          "electro",
+          "dmgBonus"
+        ]
+      }
+    ],
+    "fivePiece": null,
+    "states": {
+      "electricReflect5pc": {
+        "max": [
+          {
+            "value": 10,
+            "path": [
+              "attribute",
+              "electro",
+              "dmgBonus"
+            ]
+          }
+        ]
+      },
+      "electricReflectOutro": {
+        "max": [
+          {
+            "value": 25,
+            "path": [
+              "attribute",
+              "electro",
+              "dmgBonus"
+            ],
+            "targetScope": "activeOther"
+          }
+        ]
+      }
+    },
+    "parts": [
+      {
+        "key": "twoPiece",
+        "label": "Electro DMG +10%",
+        "trigger": "Always active at 2pc.",
+        "description": "Increases Electro DMG by 10%."
+      },
+      {
+        "key": "electricReflect5pc",
+        "label": "5pc Electro DMG Buff",
+        "trigger": "Triggered by inflicting Electro Flare.",
+        "description": "Inflicting Electro Flare grants the Resonator 10% Electro DMG Bonus for 15s."
+      },
+      {
+        "key": "electricReflectOutro",
+        "label": "5pc Incoming Electro",
+        "trigger": "Triggered by casting Outro Skill while the 5pc Electro DMG buff is active.",
+        "description": "Casting Outro Skill while the first effect is active grants the incoming Resonator 25% Electro DMG Bonus for 15s."
+      }
+    ]
+  },
+  {
+    "id": 38,
+    "type": "utility",
+    "name": "Flower of Tinged Yearning",
+    "setMax": 5,
+    "desc": {
+      "twoPiece": "Healing Bonus +10%",
+      "fivePiece": "Healing a Resonator in the team increases the ATK of all Resonators in the team by 10% for 30s. While this effect is active, obtaining Unison or triggering Unison Response increases the team's ATK by an additional 15%."
+    },
+    "twoPiece": [
+      {
+        "value": 10,
+        "path": [
+          "healingBonus"
+        ]
+      }
+    ],
+    "fivePiece": null,
+    "states": {
+      "tingedYearning5pc": {
+        "max": [
+          {
+            "value": 10,
+            "path": [
+              "atk",
+              "percent"
+            ],
+            "targetScope": "teamWide"
+          }
+        ]
+      },
+      "tingedYearningUnison": {
+        "max": [
+          {
+            "value": 15,
+            "path": [
+              "atk",
+              "percent"
+            ],
+            "targetScope": "teamWide"
+          }
+        ]
+      }
+    },
+    "parts": [
+      {
+        "key": "twoPiece",
+        "label": "Healing Bonus +10%",
+        "trigger": "Always active at 2pc.",
+        "description": "Increases Healing Bonus by 10%."
+      },
+      {
+        "key": "tingedYearning5pc",
+        "label": "5pc Team ATK",
+        "trigger": "Triggered by healing a Resonator in the team.",
+        "description": "Healing a Resonator in the team increases the team's ATK by 10% for 30s. Effects of the same name cannot stack."
+      },
+      {
+        "key": "tingedYearningUnison",
+        "label": "5pc Unison Team ATK",
+        "trigger": "Triggered by obtaining Unison or triggering Unison Response while the healing buff is active.",
+        "description": "While the healing buff is active, obtaining Unison or triggering Unison Response increases the team's ATK by an additional 15%."
+      }
+    ]
   }
 ]

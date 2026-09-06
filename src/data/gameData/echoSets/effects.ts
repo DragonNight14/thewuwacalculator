@@ -311,13 +311,16 @@ function findPart(def: SetDef, key: string): SetPart | undefined {
   return def.parts.find((entry) => entry.key === key)
 }
 
-function partLabel(def: SetDef, key: string, fallback: string): string {
-  return findPart(def, key)?.label ?? fallback
-}
-
 function partDescription(def: SetDef, key: string, fallback?: string): string | undefined {
   const part = findPart(def, key)
   return part?.description ?? fallback ?? part?.label
+}
+
+// Effect labels identify the set bonus itself. The corresponding SourceState
+// keeps the part label for the toggle/enabler control (for example, "Fusion
+// DMG +10%").
+function effectName(def: SetDef, pieceCount: number): string {
+  return `${def.name} ${pieceCount}pc`
 }
 
 function mainPieceKey(pieceReq: number): 'onePiece' | 'threePiece' | 'fivePiece' {
@@ -363,7 +366,7 @@ function mkSetPkg(def: SetDef): SrcPkg {
         makeEffect(
           def.id,
           '1pc',
-          partLabel(def, 'onePiece', '1pc Effect'),
+          effectName(def, 1),
           buffs.map((buff) => pathOp(buff.path, constVal(buff.value))),
           setGte(def.id, 1),
           targetScope,
@@ -380,7 +383,7 @@ function mkSetPkg(def: SetDef): SrcPkg {
         makeEffect(
           def.id,
           '2pc',
-          partLabel(def, 'twoPiece', '2pc Effect'),
+          effectName(def, 2),
           buffs.map((buff) => pathOp(buff.path, constVal(buff.value))),
           setGte(def.id, 2),
           targetScope,
@@ -399,7 +402,7 @@ function mkSetPkg(def: SetDef): SrcPkg {
         makeEffect(
           def.id,
           `${pieceReq}pc`,
-          partLabel(def, pieceKey, `${pieceReq}pc Effect`),
+          effectName(def, pieceReq),
           buffs.map((buff) => pathOp(buff.path, constVal(buff.value))),
           setGte(def.id, pieceReq),
           targetScope,
@@ -440,7 +443,7 @@ function mkSetPkg(def: SetDef): SrcPkg {
           makeEffect(
             def.id,
             stateId,
-            part?.label ?? stateId,
+            effectName(def, pieceReq),
             buffs.map((buff) => pathOp(buff.path, constVal(buff.value))),
             effectCond(truthyCond(def.id, stateId)),
             targetScope,
@@ -492,7 +495,7 @@ function mkSetPkg(def: SetDef): SrcPkg {
           makeEffect(
             def.id,
             stateId,
-            part?.label ?? stateId,
+            effectName(def, pieceReq),
             pairs.map(({ perStack, max }) =>
               pathOp(
                 perStack.path,
@@ -512,7 +515,7 @@ function mkSetPkg(def: SetDef): SrcPkg {
         makeEffect(
           def.id,
           `${stateId}:max`,
-          `${part?.label ?? stateId} Max Stacks`,
+          effectName(def, pieceReq),
           buffs.map((buff) => pathOp(buff.path, constVal(buff.value))),
           andCond(setGte(def.id, pieceReq), eqCtrl(def.id, stateId, stateMaxVal(state))),
           targetScope,

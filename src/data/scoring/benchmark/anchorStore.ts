@@ -19,7 +19,7 @@ const DB_VERSION = 1
 // Persisted anchors encode scoring-engine and generated-data assumptions that
 // are not fully represented by a user's runtime. Bump this whenever those
 // assumptions change so an older bundle cannot grade a current build.
-export const BENCHMARK_ANCHOR_CACHE_REVISION = 9
+export const BENCHMARK_ANCHOR_CACHE_REVISION = 10
 // Anchor bundles are KB-scale plain objects, so a generous on-disk set is cheap
 // while still capping unbounded growth across many resonators/enemies.
 const MAX_STORED_ANCHORS = 48

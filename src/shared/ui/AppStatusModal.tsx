@@ -10,7 +10,7 @@ import { CURRENT_VERSION } from '@/shared/lib/appMetadata'
 import { getLinkedWhatsNew, ltstCurChngE } from '@/data/content/changelogEntries'
 
 const STATUS_DATA = {
-  lastUpdated: '18/08/2026',
+  lastUpdated: '06/09/2026',
   overallState: 'stable' as const,
   patchVersion: CURRENT_VERSION,
   dataSources: [
@@ -19,17 +19,18 @@ const STATUS_DATA = {
   ],
   notes: [
     'HEWO~! (˶˃ ᵕ ˂˶)',
-    'Remember, Pheobe is joy, Pheobe is love, Pheobe is everything..',
-    'A reminder, there\'s a discord server up, if you\'d like to make suggestions or report bugs you unfortunately found... or you just wanna join a discord, feel free.'
+    '3.7.0 beta is here, HSIN & SUOMING along with other 3.7.0 beta stuff have been added to the calculator. Except enemies, as usual.',
+    'A reminder, there\'s a discord server up, if you\'d like to make suggestions or report bugs you unfortunately found... or you just wanna join a discord, feel free.',
+    'Take care~!'
   ],
   coverage: [
     { title: 'Resonators', status: 'ok' as const,  desc: 'All resonators supported.' },
     { title: 'Weapons',    status: 'ok' as const,  desc: 'All weapons supported.' },
     { title: 'Echoes',     status: 'ok' as const,  desc: 'All echoes and sonata sets supported.' },
-    { title: 'Enemies',    status: 'ok' as const,  desc: 'All enemies supported.' },
+    { title: 'Enemies',    status: 'ok' as const,  desc: 'All but 3.7 enemies supported.' },
   ],
   recentChanges: [
-    '3.6 patch stuff.',
+    '3.7.0 beta update.',
   ],
   knownIssues: [
     "there's none."

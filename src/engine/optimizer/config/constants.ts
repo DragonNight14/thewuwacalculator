@@ -13,7 +13,9 @@ export const ROT_GPU_JOB = 10_000_000
 
 // structural packing sizes used throughout the optimizer
 export const ECHOES_PER_SET = 5
-export const SET_SLOT_COUNT = 36
+// Set ids index directly into CPU/GPU count arrays, so this is max id + 1.
+// Keep it synchronized with SETCNSTLUTSE and the shaders' SET_SLOTS.
+export const SET_SLOT_COUNT = 39
 export const CTX_FLOATS = 36
 // ECHO_STAT_STRIDE is the live search encoding (encode/echoes.ts and the
 // target/rotation cpu evaluators + gpu shaders read it): echo-rollable stats
