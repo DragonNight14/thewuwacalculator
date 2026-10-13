@@ -111,10 +111,10 @@ export function PrvcPlcyPage() {
 
             <p>
               For any concerns, contact me via{' '}
-              <a href="mailto:rewhro@icloud.com?subject=Regarding%20the%20Calculator">email</a>.
+              <a href="mailto:i@ssjrunor.com?subject=Regarding%20the%20Calculator">email</a>.
             </p>
 
-            <p className="page-last-updated">Last updated: 13 October 2025</p>
+            <p className="page-last-updated">Last updated: 13 October 2026</p>
           </div>
         </section>
       </div>
