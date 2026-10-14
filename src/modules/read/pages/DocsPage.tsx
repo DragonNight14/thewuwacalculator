@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Binds authored docs content to route anchors and live method
+  description: binds authored docs content to route anchors and live method
                calculators without embedding engine constants in page markup.
 */
 
@@ -87,7 +87,7 @@ function AnchorScale() {
   const damage = lerp(domainMin, domainMax, t)
   const percent = scorePct(damage, baseline, reference, maximum)
   const grade = gradeFor(percent)
-  // Keep raw damage-to-maximum percentage separate from the piecewise score scale.
+  // keep raw damage-to-maximum percentage separate from the piecewise score scale.
   const flatPct = (damage / maximum) * 100
 
   const setFromClientX = useCallback((clientX: number) => {
@@ -388,7 +388,7 @@ const SUGGESTION_SPACE = {
   },
 } as const
 
-// The unfiltered inventory GPU estimate bounds the shared search-space scale.
+// the unfiltered inventory gpu estimate bounds the shared search-space scale.
 const SPACE_MAX = SPACE_DATA.inventory.off.gpu
 const SUGGEST_SPACE_MAX = SUGGESTION_SPACE.rotation.mainStats.evalCalls
 
@@ -655,7 +655,7 @@ function MicroGauge({ instrument }: { instrument: DocTopic['instrument'] }) {
     )
   }
   if (instrument === 'searchSpace') {
-    // Encode successive order-of-magnitude reductions as a fixed staircase.
+    // encode successive order-of-magnitude reductions as a fixed staircase.
     const widths = [56, 34, 20, 12]
     return (
       <svg className="docs-micro" viewBox="0 0 60 22" aria-hidden="true">
@@ -943,7 +943,7 @@ export function DocsPage() {
     if (next) selectTopic(next.id)
   }, [activeIdx, selectTopic])
 
-  // Resolve cross-topic anchors after the destination topic has rendered.
+  // resolve cross-topic anchors after the destination topic has rendered.
   useEffect(() => {
     if (!pendingScroll.current) return
     const id = pendingScroll.current
@@ -977,7 +977,7 @@ export function DocsPage() {
     else if (event.key === 'ArrowLeft' || event.key === 'ArrowUp') { event.preventDefault(); cycle(-1) }
   }, [cycle])
 
-  // Register the shared slash shortcut for documentation search.
+  // register the shared slash shortcut for documentation search.
   useEffect(() => {
     const handler = (event: KeyboardEvent) => {
       if (event.key !== '/' || event.ctrlKey || event.metaKey || event.altKey) return

@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Levenshtein distance, shared by every reader that matches OCR
+  description: levenshtein distance, shared by every reader that matches ocr
                text against a known list of names.
 */
 

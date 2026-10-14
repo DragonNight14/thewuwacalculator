@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Verifies grouped inventory pagination preserves source ordering,
+  description: verifies grouped inventory pagination preserves source ordering,
                counts, page bounds, and stale-page clamping.
 */
 

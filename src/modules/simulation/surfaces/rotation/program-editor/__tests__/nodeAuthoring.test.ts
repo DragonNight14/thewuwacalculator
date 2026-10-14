@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Verifies canonical node construction, preamble generation,
+  description: verifies canonical node construction, preamble generation,
                attachments, feature replacement, and authored state writes.
 */
 
@@ -188,7 +188,7 @@ describe('rotation editor palette node construction', () => {
     })
   })
 
-  it('rejects a stale condition drag instead of creating a partial node', () => {
+  it('rejects a stale condition drag without creating a node', () => {
     expect(makePaletteNode({
       kind: 'condition',
       label: 'Missing',
@@ -483,7 +483,7 @@ describe('writes attached to a step', () => {
       .toEqual(['Stacks'])
   })
 
-  it('holds edited writes as authored so the rows show them before the next run', () => {
+  it('shows authored write edits in rows before the next run', () => {
     const edited = applyFeatureConditionChanges(
       sectionsWithStep(stepWithWrites()),
       'step-1',
@@ -542,7 +542,7 @@ describe('saved rotation inspection', () => {
     expect(findNode(projected, 'appended')).toEqual(findNode(full!.sections, 'appended'))
   })
 
-  it('can refresh the standing last-run program instead of a changed persisted program', () => {
+  it('refreshes the standing last-run program after persisted changes', () => {
     const seed = seedRsntById[DEF_RES_ID]
     const feature = seed ? listFeatsFor('resonator', seed.id)[0] : undefined
     expect(seed).toBeDefined()

@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Tracks optimizer discovery and evaluation progress with bounded
+  description: tracks optimizer discovery and evaluation progress with bounded
                wall-clock throughput estimates.
 */
 
@@ -22,8 +22,8 @@ export function mkPrgrTrck(
   let evalStart = initialPhase === 'evaluating' ? startTime : 0
   const ratePts: Array<{ time: number; done: number }> = []
 
-  // Report conservative wall-clock throughput instead of per-message bursts.
-  // Worker progress arrives in chunks, so instantaneous rates can be
+  // report conservative throughput over elapsed wall-clock time.
+  // worker progress arrives in chunks, so instantaneous rates can be
   // much higher than the run can sustain.
   const calcSpeed = (now: number) => {
     if (phase !== 'evaluating' || evalStart <= 0) {
@@ -79,12 +79,12 @@ export function mkPrgrTrck(
     })
   }
 
-  // Publish the exact denominator before the first worker delta replaces it
+  // publish the exact denominator before the first worker delta replaces it
   // with an independently estimated upper bound.
   emit(performance.now())
 
   return {
-    // Generated batches may raise an estimate; exact totals may also lower it.
+    // generated batches may raise an estimate; exact totals may also lower it.
     setTotal(total: number, exact = false) {
       curTotal = exact
           ? Math.max(0, total)
@@ -97,7 +97,7 @@ export function mkPrgrTrck(
       emit(performance.now())
     },
 
-    // Reset sampling when evaluation begins so discovery throughput cannot
+    // reset sampling when evaluation begins so discovery throughput cannot
     // skew the evaluation estimate.
     setPhase(next: import('@/engine/optimizer/types').OptPrgrPh) {
       if (phase === next) {

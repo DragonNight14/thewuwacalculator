@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Resolves the canonical opening-state choices and default values
+  description: resolves the canonical opening-state choices and default values
                used when authoring a rotation preamble.
 */
 
@@ -15,7 +15,7 @@ export interface PreambleChoice {
   state: SourceState
 }
 
-/** The same state selection used by the editor's Generate preamble action. */
+/** the same state selection used by the editor's generate preamble action. */
 export function openingConditionChoices<T extends PreambleChoice>(choices: readonly T[]): T[] {
   const seen = new Set<string>()
   return choices.filter((choice) => {
@@ -28,7 +28,7 @@ export function openingConditionChoices<T extends PreambleChoice>(choices: reado
   })
 }
 
-/** Default value chosen when the editor adds an opening condition. */
+/** default value chosen when the editor adds an opening condition. */
 export function openingConditionValue(state: SourceState): string | number | boolean {
   if (state.defaultValue !== undefined) return state.defaultValue
   if (state.kind === 'toggle') return true

@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: shared weapon helper utilities for looking up catalog entries,
+  description: shared weapon helper utilities for looking up catalog entries,
                formatting stat displays, resolving level-scaled values,
                selecting passive params by rank, and applying fallback images.
 */
@@ -34,7 +34,7 @@ export const WPN_STAT_CNS: Record<string, string> = {
   tuneBreakBoost: '/assets/game/stats/icons/tune-break-boost.png',
 }
 
-// stats that should be shown as percentages instead of raw flat values
+// stats displayed as percentages.
 const RT_STAT_KEYS = new Set(['critRate', 'critDmg', 'atkPercent', 'energyRegen', 'defPercent', 'hpPercent'])
 
 // safe catalog lookup wrapper used by ui/features

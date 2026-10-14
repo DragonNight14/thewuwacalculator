@@ -1,7 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Holds session-only enemy-console requests and atomically commits
-               drafted target and runtime edits to the owning scenario.
+  description: stores session-only enemy-console requests and commits target and runtime edits to the selected scenario.
 */
 
 import { useCallback, useEffect, useMemo } from 'react'
@@ -38,8 +37,8 @@ function EnemyConsoleSession({ closeRequest }: { closeRequest: () => void }) {
   const commitScenarioConfig = useAppStore((state) => state.commitScenarioConfig)
   const modal = useAppModal()
 
-  // Replay the draft against current scenario state and commit target/runtime
-  // changes together, rather than issuing independent store writes.
+  // replay the draft against current scenario state and commit target and
+  // runtime changes atomically.
   const commitDraft = useCallback((reducer: (current: EnemyConfigDraft) => EnemyConfigDraft) => {
     commitScenarioConfig(scenarioId, (scenario) => {
       const currentRuntime = actResId ? materializeScenarioRuntime(scenario, actResId) : null
@@ -71,7 +70,7 @@ function EnemyConsoleSession({ closeRequest }: { closeRequest: () => void }) {
     [activeSeed, prepWork],
   )
 
-  // Depend on the stable callback, not the modal object rebuilt by state changes.
+  // depend on the stable callback, not the modal object rebuilt by state changes.
   const { show } = modal
   useEffect(() => {
     show()

@@ -1,7 +1,7 @@
 /*
   Author: Runor Ewhro
-  Description: Resolves route metadata and structured-data payloads used by
-               static SEO output and the client head synchronizer.
+  description: resolves route metadata and structured-data payloads used by
+               static seo output and the client head synchronizer.
 */
 
 import seoConfig from '@/shared/lib/seoRoutes.json'

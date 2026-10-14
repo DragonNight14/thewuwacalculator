@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: builds a runtime combat context and prepares runtime skills by
+  description: builds a runtime combat context and prepares runtime skills by
                resolving base skill data and then applying combat-dependent
                skill effects for a specific active runtime.
 */

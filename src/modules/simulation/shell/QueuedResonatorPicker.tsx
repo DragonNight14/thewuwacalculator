@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Maintains queued resonator selection and commits the chosen catalog entry to its owner.
+  description: maintains queued resonator selection and commits the chosen catalog entry to its owner.
 */
 
 import { DisplayImage } from '@/shared/ui/DisplayImage'
@@ -24,8 +24,8 @@ interface SafeArea {
   bottom: number
 }
 
-// Keep the bubble inside the content aperture: the chrome head and the roster
-// column own the edges, and a bubble parked over them reads as buried.
+// keep the picker inside the main content area: the chrome head and the roster
+// column own the edges, and the picker must stay inside these edges.
 function getSafeArea(): SafeArea {
   const vw = window.innerWidth
   const vh = window.innerHeight
@@ -43,7 +43,7 @@ function getSafeArea(): SafeArea {
   }
 }
 
-function getSnapCrds(
+function getSnapCoordinates(
   position: SnapPosition,
   area: SafeArea,
   bw: number,
@@ -83,50 +83,48 @@ function resolveSnap(x: number, y: number, area: SafeArea, bw: number, bh: numbe
   return `${vertical}-${horizontal}` as SnapPosition
 }
 
-export function ResQBbbl() {
+export function QueuedResonatorPicker() {
   const queue = useResQStr((s) => s.queue)
   const snapPosition = useResQStr((s) => s.snapPosition)
   const setSnapPstn = useResQStr((s) => s.setSnapPstn)
   const swtcToRes = useAppStore((s) => s.swRes)
 
-  const bubbleRef = useRef<HTMLDivElement>(null)
+  const pickerRef = useRef<HTMLDivElement>(null)
   const [pos, setPos] = useState<{ x: number; y: number } | null>(null)
   const [dragging, setDragging] = useState(false)
   const dragOffset = useRef({ x: 0, y: 0 })
   const mounted = useRef(false)
 
-  // The transition aperture is its own stacking context nested under the chrome
-  // head and roster, so a fixed child of it stays buried however high it stacks.
-  // Mount on the shell instead, where the theme tokens are declared too.
+  // mount under the app shell for the correct stacking context and theme tokens.
   const host = (typeof document === 'undefined'
     ? null
     : document.querySelector<HTMLElement>('.app-shell')) ?? bodyPortal()
 
-  // Compute snap on mount and when snap position changes
+  // compute snap on mount and when snap position changes
   useEffect(() => {
     if (dragging || queue.length === 0 || !host) return
 
-    // Defer first calculation to next frame so bubble has rendered
+    // defer the first calculation until the picker has rendered.
     const id = requestAnimationFrame(() => {
-      const el = bubbleRef.current
+      const el = pickerRef.current
       if (!el) return
       const rect = el.getBoundingClientRect()
-      const coords = getSnapCrds(snapPosition, getSafeArea(), rect.width, rect.height)
+      const coords = getSnapCoordinates(snapPosition, getSafeArea(), rect.width, rect.height)
       setPos(coords)
       mounted.current = true
     })
     return () => cancelAnimationFrame(id)
   }, [snapPosition, dragging, queue.length, host])
 
-  // Recalculate on resize
+  // recalculate on resize
   useEffect(() => {
     if (queue.length === 0) return
     function handleResize() {
-      const el = bubbleRef.current
+      const el = pickerRef.current
       if (!el) return
       const rect = el.getBoundingClientRect()
       const snap = useResQStr.getState().snapPosition
-      const coords = getSnapCrds(snap, getSafeArea(), rect.width, rect.height)
+      const coords = getSnapCoordinates(snap, getSafeArea(), rect.width, rect.height)
       setPos(coords)
     }
     window.addEventListener('resize', handleResize)
@@ -135,7 +133,7 @@ export function ResQBbbl() {
 
   const onPointerDown = useCallback((e: React.PointerEvent) => {
     e.preventDefault()
-    const el = bubbleRef.current
+    const el = pickerRef.current
     if (!el) return
     const rect = el.getBoundingClientRect()
 
@@ -151,7 +149,7 @@ export function ResQBbbl() {
   const onPointerMove = useCallback(
     (e: React.PointerEvent) => {
       if (!dragging) return
-      const el = bubbleRef.current
+      const el = pickerRef.current
       if (!el) return
       const rect = el.getBoundingClientRect()
       const area = getSafeArea()
@@ -173,7 +171,7 @@ export function ResQBbbl() {
     }
     if (!dragging) return
     setDragging(false)
-    const el = bubbleRef.current
+    const el = pickerRef.current
     if (!el || !pos) return
     const rect = el.getBoundingClientRect()
     const snap = resolveSnap(pos.x, pos.y, getSafeArea(), rect.width, rect.height)
@@ -187,7 +185,7 @@ export function ResQBbbl() {
     zIndex: 900,
     left: pos?.x ?? undefined,
     top: pos?.y ?? undefined,
-    // Before first measurement, park off-screen so it doesn't flash at 0,0
+    // the initial off-screen position prevents a flash at 0,0 before measurement.
     ...(!pos ? { right: SNAP_MARGIN, bottom: SNAP_MARGIN, left: 'auto', top: 'auto' } : {}),
     transition: dragging
       ? 'opacity 180ms ease'
@@ -196,16 +194,16 @@ export function ResQBbbl() {
   }
 
   return createPortal(
-    <div ref={bubbleRef} className="rqb" style={style}>
+    <div ref={pickerRef} className="queued-resonator-picker" style={style}>
       <DisplayImage
         src={queue[0].icon}
-        alt={queue[0].name} className="rqb__icon"
+        alt={queue[0].name} className="queued-resonator-picker__icon"
         draggable={false}
         onError={withDefResMg}
         onClick={() => swtcToRes(queue[0].id)}
         title={`Switch to ${queue[0].name}`}
       />
-      <div className="rqb__grip"
+      <div className="queued-resonator-picker__grip"
         onPointerDown={onPointerDown}
         onPointerMove={onPointerMove}
         onPointerUp={onPointerUp}
@@ -216,7 +214,7 @@ export function ResQBbbl() {
       {queue.length > 1 && (
         <DisplayImage
           src={queue[1].icon}
-          alt={queue[1].name} className="rqb__icon"
+          alt={queue[1].name} className="queued-resonator-picker__icon"
           draggable={false}
           onError={withDefResMg}
           onClick={() => swtcToRes(queue[1].id)}

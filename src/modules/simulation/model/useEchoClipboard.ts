@@ -1,7 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Owns loadout clipboard serialization, paste normalization, and
-               result reporting for every Simulation Echo editor.
+  description: serializes loadouts, normalizes pasted data, and reports results for simulation echo editors.
 */
 
 import { useCallback } from 'react'

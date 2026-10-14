@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Defines the unique live scenario workspace. Saved scenario
+  description: defines the unique live scenario workspace. saved scenario
                snapshots belong to the artifact library, never this workspace.
 */
 
@@ -47,7 +47,7 @@ export function copyScenarioRecords(
 ): ScenarioWorkspace['scenariosById'] {
   const descriptors = Object.getOwnPropertyDescriptors(records)
   if (replacement) {
-    // Loaded records can be getter-only. Replace the descriptor in the new
+    // loaded records can be getter-only. replace the descriptor in the new
     // map without assigning through that getter or hydrating unrelated records.
     descriptors[replacement.id] = {
       value: replacement,

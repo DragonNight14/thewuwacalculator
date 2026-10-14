@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Feature attachment bag (conditions + child features) and
+  description: feature attachment bag (conditions + child features) and
                normalization from the legacy feature.changes write list.
 */
 
@@ -22,7 +22,7 @@ export function isRotFeatureNode(node: RotationNode): node is RotFeatureNode {
   return node.type === 'feature'
 }
 
-/** Stable ids for conditions lifted from legacy `changes` arrays. */
+/** stable ids for conditions lifted from legacy `changes` arrays. */
 export function legacyAttachedConditionId(parentId: string, index: number): string {
   return `${parentId}:attached:cond:${index}`
 }
@@ -42,7 +42,7 @@ function changeToCondition(
 }
 
 /**
- * Flatten every state write attached to a feature, whether stored as legacy
+ * flatten every state write attached to a feature, whether stored as legacy
  * `changes` or as `attached.conditions`.
  */
 export function attachedConditionChanges(
@@ -57,8 +57,8 @@ export function attachedConditionChanges(
 }
 
 /**
- * Fold legacy `changes` into `attached.conditions` and drop nested attach on
- * child features. Idempotent.
+ * fold legacy `changes` into `attached.conditions` and drop nested attach on
+ * child features. idempotent.
  */
 export function normalizeFeatureAttachments(node: RotFeatureNode): RotFeatureNode {
   const existingConditions = (node.attached?.conditions ?? []).filter(isRotConditionNode)
@@ -86,7 +86,7 @@ export function normalizeFeatureAttachments(node: RotFeatureNode): RotFeatureNod
   }
 }
 
-/** Child features may not carry attachments of their own. */
+/** child features may not carry attachments of their own. */
 export function stripFeatureAttachments(node: RotFeatureNode): RotFeatureNode {
   if (!node.attached && !node.changes) {
     return node
@@ -98,8 +98,8 @@ export function stripFeatureAttachments(node: RotFeatureNode): RotFeatureNode {
 }
 
 /**
- * Replace a feature's attached conditions from a flat write list (UI editors).
- * Keeps any attached features already on the node.
+ * replace a feature's attached conditions from a flat write list (ui editors).
+ * keeps any attached features already on the node.
  */
 export function featureWithAttachedConditions(
   node: RotFeatureNode,

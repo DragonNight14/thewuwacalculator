@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Protects cross-link navigation ordering and retryable route
+  description: protects cross-link navigation ordering and retryable route
                chunks, the two contracts hidden behind page transitions.
 */
 
@@ -37,7 +37,7 @@ describe('route chunk loading', () => {
     expect(route.isWarm()).toBe(true)
   })
 
-  it('releases a failed request so a later intent can retry', async () => {
+  it('releases failed requests for later retries', async () => {
     const Page = () => null
     const load = vi.fn<() => Promise<ComponentType<object>>>()
       .mockRejectedValueOnce(new Error('stale deployment chunk'))

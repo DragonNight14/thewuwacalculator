@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Derives selectable node order, visibility, and aggregate fold
+  description: derives selectable node order, visibility, and aggregate fold
                identities from projected editor sections.
 */
 
@@ -32,7 +32,7 @@ function isSelectable(node: EditorNode): boolean {
 }
 
 /*
-  A tenure group and its first step share a node id. Attached children use a
+  a tenure group and its first step share a node id. attached children use a
   suffixed identity so the two independent fold states cannot collide.
 */
 export function carryFoldId(nodeId: string): string {
@@ -49,7 +49,7 @@ function blockFoldId(node: EditorNode): string {
 }
 
 /**
- * Every fold control the tree currently draws. Sections, authored containers,
+ * every fold control the tree currently draws. sections, authored containers,
  * and compact same-owner/source row runs all share `shutIds`, so the toolbar
  * can close the complete visual tree with one state replacement.
  */
@@ -80,15 +80,14 @@ export function collectEditorVisualFoldIds(
 }
 
 /**
- * Select All uses owning blocks as representatives. Repeat and uptime blocks
- * carry their descendants, but loops are flow markers: their body entries are
- * peers in the pane's authored list and must remain selected in the page too.
+ * select all uses repeat and uptime blocks to represent their descendants.
+ * loop body entries remain separately selected because loops are flow markers.
  */
 function collectRootIds(nodes: readonly EditorNode[], out: string[]): void {
   for (const node of nodes) {
     if (isEditorBlock(node) && node.type === 'loop') {
-      // A wrapped head is only a visual continuation; its selectable tail
-      // represents the loop marker. Both segments still contribute body rows.
+      // a wrapped head is only a visual continuation; its selectable tail
+      // represents the loop marker. both segments still contribute body rows.
       if (
         node.wrap !== 'head'
         && node.wrap !== 'middle'
@@ -106,7 +105,7 @@ function collectRootIds(nodes: readonly EditorNode[], out: string[]): void {
       continue
     }
 
-    // A setup branch has no selectable header of its own. This fallback only
+    // a setup branch has no selectable header of its own. this fallback only
     // matters for a standalone setup; inside an uptime, the uptime represented
     // the whole branch before traversal reached here.
     if (isEditorBlock(node) && node.type === 'setup') {
@@ -171,11 +170,9 @@ export function buildEditorSelectionModel(
 }
 
 /**
- * Flat execution has no selectable container rows. Its selectable universe is
- * therefore every authored leaf that appears in the trace, including leaves
- * stored in a loop pass template or a non-checked-out pass fork. Select All is
- * deliberately the same list: the tree-only owning-block collapse has no
- * representative to apply to on this surface.
+ * flat execution selects every authored leaf in the trace, including loop
+ * templates and inactive pass forks. its select-all list is identical because
+ * flat rows have no selectable container.
  */
 export function buildFlatEditorSelectionModel(
   sections: readonly EditorSection[],

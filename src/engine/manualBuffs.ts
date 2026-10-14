@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Applies manual quick buffs and custom manual modifiers to
+  description: applies manual quick buffs and custom manual modifiers to
                unified buff pools and individual skill definitions.
 */
 
@@ -235,14 +235,14 @@ export function applyMnlSkll(skill: SkillDef, manualBuffs: ManualBuffs): SkillDe
   return next
 }
 
-/** One manual row's contribution to a skill scalar, kept for the register's readouts. */
+/** one manual row's contribution to a skill scalar, kept for the register's readouts. */
 export interface MnlSclrWrite {
   field: MnlSkllSclrK
   label: string
   value: number
 }
 
-/** One named manual contribution to a shared top-level stat. */
+/** one named manual contribution to a shared top-level stat. */
 export interface MnlTopStatWrite {
   stat: MnlTopStatKe
   label: string
@@ -250,9 +250,9 @@ export interface MnlTopStatWrite {
 }
 
 /**
- * Read enabled top-stat rows back for result attribution.
+ * read enabled top-stat rows back for result attribution.
  *
- * The final pool only retains their sum. Keeping this read beside the manual
+ * the final pool only retains their sum. keeping this read beside the manual
  * buff application rules ensures a rotation trace uses the same eligibility
  * rules without putting presentation bookkeeping into the combat pool.
  */
@@ -276,12 +276,9 @@ export function listMnlTopStatWrites(
 }
 
 /*
-  Which manual rows moved a scalar on this skill, and what each is called.
-
-  `applyMnlSkll` only returns the sum, and the resolver it runs inside caches
-  its result, so a trace taken there would go silent the second time a skill
-  came up. Reading the rows back off the resolved skill is cache-proof and asks
-  the same question of the same matcher.
+  list manual rows that change this skill. `applyMnlSkll` returns only a sum,
+  and its cached resolver cannot provide a trace on later calls. read rows
+  from the resolved skill and apply the same matcher.
 */
 export function listMnlSclrWrites(
     skill: SkillDef,

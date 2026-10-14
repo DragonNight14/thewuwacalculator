@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: stable invariants for evaluation scoring internals, request-key
+  description: stable invariants for evaluation scoring internals, request-key
                determinism, and anchor cache reuse.
 */
 
@@ -44,8 +44,8 @@ import { makeEchoMainStatProfileKey } from '../echoMainStatProfile'
 import * as evaluationReport from '../evaluation/report'
 
 function buildInvariantEchoes(subKey: string): Array<EchoInstance | null> {
-  // anchors should be reusable across different substat layouts, so this keeps
-  // cost and main-stat structure stable while swapping one rolled substat family
+  // keep cost and main-stat structure stable while swapping one rolled substat
+  // family to verify anchor reuse across layouts.
   const spec: Array<[number, string]> = [
     [4, 'critRate'],
     [4, 'critDmg'],
@@ -125,7 +125,7 @@ const norm = (value: unknown) => JSON.parse(
 
 describe('evaluation scoring invariants', () => {
   it('applies the ranked tier limits and fifth-ranked stat minimum to the supplied build', () => {
-    // wwcalc-current-resonator-1610-2026-09-24T01-56-29. The report always uses
+    // wwcalc-current-resonator-1610-2026-09-24t01-56-29. the report always uses
     // the default rotation; retain the supplied build, team, and combat state.
     const profile = JSON.parse(referenceCalibration) as ResProf
     const seed = getResSeedBy(profile.resonatorId)!
@@ -139,7 +139,7 @@ describe('evaluation scoring invariants', () => {
       memberId: teamMemberId(runtime.id), runtime, simulation, enemy, runtimesById,
     }, { sections: { rotationFeatures: false, upgradePaths: false, echoStatsTable: true } })!
     expect(report).toBeTruthy()
-    // Pin the real build's score under the 16-line reference budget; its
+    // pin the real build's score under the 16-line reference budget; its
     // equipped damage is independent of the reference allocation.
     expect(report.evaluation.percent * 100).toBeCloseTo(100.73, 2)
     expect(report.evaluation.userDamage).toBeCloseTo(2128773.54, 0)
@@ -155,8 +155,8 @@ describe('evaluation scoring invariants', () => {
   }, 30_000)
 
   it('charges non-damage filler, reserves total ER, and retains the no-Echo baseline', () => {
-    // Include ER mains so the target still requires substats after the search
-    // trades damage mains for ER. The reference must fund legal ER tiers.
+    // include er mains so the target still requires substats after the search
+    // trades damage mains for er. the reference must fund legal er tiers.
     const spec: Array<[number, string]> = [
       [4, 'critRate'], [3, 'energyRegen'], [3, 'energyRegen'], [1, 'atkPercent'], [1, 'atkPercent'],
     ]
@@ -260,7 +260,7 @@ describe('evaluation scoring invariants', () => {
       for (let index = 0; index < 4; index += 1) {
         contexts.set(direct.pckdCtx, index * CTX_FLOATS)
         contexts[index * CTX_FLOATS + MV] *= index + 1
-        // Distinct skill/runtime masks must not share conditional set effects.
+        // distinct skill/runtime masks must not share conditional set effects.
         if (index > 0) {
           packed[index * CTX_FLOATS + SKILL_ID] = (packed[index * CTX_FLOATS + SKILL_ID] & ~0x7fff) | (1 << (index === 1 ? 6 : 1))
           packed[index * CTX_FLOATS + SET_MASK] = index === 3 ? 1 : 0
@@ -297,7 +297,7 @@ describe('evaluation scoring invariants', () => {
             for (let index = 0; index < ECHO_STAT_STRIDE; index += 1) scratch[index] *= factor
             expect(firstLaneScore(scratch)).toBe(frame.score(scratch))
           }
-          // Alternate set buffers are live inputs, not part of the fixed frame.
+          // alternate set buffers are live inputs, not part of the fixed frame.
           const alternateSets = frame.sets.slice()
           alternateSets.fill(1)
           expect(frame.score(scratch, alternateSets)).toBe(expected(scratch, alternateSets))
@@ -472,7 +472,7 @@ describe('evaluation scoring invariants', () => {
     expect(makeEvaluationKey({ id: 'fixture-a', level: 90 })).not.toBe(makeEvaluationKey({ id: 'fixture-a', level: 80 }))
   })
 
-  it('hashes typed-array views by their visible window rather than the shared backing buffer', () => {
+  it('hashes typed-array views by their visible window', () => {
     const shared = new Uint8Array([1, 2, 3, 4]).buffer
 
     expect(
@@ -523,7 +523,7 @@ describe('evaluation scoring invariants', () => {
       const cached = assembleEvaluation(ctxB, buildB, anchorsA)
       const plainArrayAnchors = structuredClone(anchorsA)
       for (const anchor of Object.values(plainArrayAnchors.builds)) {
-        // Older compact cache entries used regular arrays for this vector.
+        // older compact cache entries used regular arrays for this vector.
         anchor.stats = Array.from(anchor.stats) as unknown as Float32Array
       }
       const cachedFromArrays = assembleEvaluation(ctxB, buildB, plainArrayAnchors)
@@ -631,8 +631,8 @@ describe('evaluation scoring invariants', () => {
       runtime.id,
     )
 
-    // The 100-to-200 damage interval scales Float32 error in the percentage.
-    // The damage-space ceiling below remains the primary engine invariant.
+    // the 100-to-200 damage interval scales float32 error in the percentage.
+    // the damage-space ceiling below remains the primary engine invariant.
     expect(evaluation.percent * 100).toBeLessThanOrEqual(200.0001)
     expect(simulation.finalStats.attribute.all.dmgBonus).toBeGreaterThanOrEqual(30)
     expect(Math.abs(rotationDamage - evaluation.userDamage))
@@ -674,7 +674,7 @@ describe('evaluation scoring invariants', () => {
     })
 
     expect(report?.evaluation.builds.referenceBuild.echoes.find((echo) => echo.mainEcho)?.echoId).toBe('6000104')
-    // Corrected legal-substat ranking makes Capitaneus the independent maximum
+    // corrected legal-substat ranking makes capitaneus the independent maximum
     // winner too; `preservedMainEchoFor` remaining null is the no-lock contract.
     expect(report?.evaluation.builds.maximumBuild.echoes.find((echo) => echo.mainEcho)?.echoId).toBe('6000104')
   }, 120000)

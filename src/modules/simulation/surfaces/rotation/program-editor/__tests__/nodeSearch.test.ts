@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: What the editor's search has to find, and in what order.
+  description: what the editor's search has to find, and in what order.
 */
 
 import { describe, expect, it } from 'vitest'
@@ -97,7 +97,7 @@ describe('editor node search', () => {
     expect(hits[0].via).toContain('Forte Circuit')
   })
 
-  it('finds states and blocks, not only steps', () => {
+  it('finds states, blocks, and steps', () => {
     const index = buildNodeIndex(sections(), names)
     expect(searchNodes(index, 'tune')[0]).toMatchObject({ id: 'c', kind: 'state' })
     expect(searchNodes(index, 'loop')[0]).toMatchObject({ id: 'loop-1', kind: 'block' })
@@ -141,14 +141,14 @@ describe('editor node search', () => {
     expect(hits[0].crumb).toBe('Main / Basic Attack Stage 1 DMG')
   })
 
-  it('names a handoff by who takes the field, since it carries no label', () => {
+  it('names an unlabelled handoff by the incoming member', () => {
     const index = buildNodeIndex(sections(), names)
     // the whole index has to survive a query, not just the labelled half
     expect(() => searchNodes(index, 'x')).not.toThrow()
     expect(searchNodes(index, 'denia')[0]).toMatchObject({ id: 's', kind: 'swap' })
   })
 
-  it('answers an empty query with nothing rather than everything', () => {
+  it('returns no matches for an empty query', () => {
     expect(searchNodes(buildNodeIndex(sections(), names), '   ')).toEqual([])
   })
 })

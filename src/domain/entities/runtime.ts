@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Defines shared runtime entities and helper utilities for
+  description: defines shared runtime entities and helper utilities for
                resonators, weapons, echoes, teams, and rotations.
 */
 
@@ -113,14 +113,14 @@ export interface ResSttStt {
   controls: Record<string, boolean | number | string>
   manualBuffs: ManualBuffs
   combat: CombatState
-  /** Read-only projection of scenario-owned effects during calculation. */
+  /** read-only projection of scenario effects during calculation. */
   teamEffects?: { unisonBoon: number; unisonBoonMax: number; unisonBoonPerStack: number }
 }
 
 export interface RotationState {
   sequence: RotationNode[]
   program: RotationNode[]
-  /** When the advanced editor last committed this program through Run. */
+  /** when the advanced editor last committed this program through run. */
   lastRanAt: number | null
 }
 
@@ -136,7 +136,7 @@ export interface TeamMemRt {
 
 export interface ResRuntime {
   /**
-   * Materialized adapter for legacy engine and UI consumers. Scenario state is
+   * materialized adapter for legacy engine and ui consumers. scenario state is
    * authoritative; team, shared combat state, routing, manual buffs, and the
    * program are projected into this shape and must not become separate owners.
    */

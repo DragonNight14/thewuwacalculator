@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Extracts resonator dependencies from persisted workspace records
+  description: extracts resonator dependencies from persisted workspace records
                before state schemas or the application store are loaded.
 */
 
@@ -25,7 +25,7 @@ export function collectResonatorIds(value: unknown): string[] {
       }
       return
     }
-    // Do not hydrate lazy scenario records while collecting a dependency list.
+    // do not hydrate lazy scenario records while collecting a dependency list.
     for (const [name, descriptor] of Object.entries(Object.getOwnPropertyDescriptors(node))) {
       if ('value' in descriptor) visit(descriptor.value, name)
     }
@@ -59,13 +59,13 @@ export function readBootstrapResonatorIds(): string[] {
         return [...ids]
       }
     }
-    // Older snapshots migrate once through the existing validated loader.
+    // older snapshots migrate once through the existing validated loader.
     for (const key of [APPSTORECMBT, APP_STORAGE_KEY, ...[26, 25, 24, 23, 22].map((v) => `wwcalc.app.v${v}`)]) {
       const raw = localStorage.getItem(key)
       if (raw) for (const id of collectResonatorIds(JSON.parse(raw))) ids.add(id)
     }
   } catch {
-    // Persistence owns corruption recovery; this preflight only discovers kits.
+    // persistence handles corruption recovery; this preflight only discovers kits.
   }
   return [...ids]
 }

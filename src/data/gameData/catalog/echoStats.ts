@@ -1,7 +1,7 @@
 /*
   Author: Runor Ewhro
-  Description: Cached echo stat tables loaded from JSON before runtime
-               consumers import Simulation modules.
+  description: cached echo stat tables loaded from json before runtime
+               consumers import simulation modules.
 */
 
 export interface EchoSideStat {
@@ -45,7 +45,7 @@ export function initEchoStts(data: EchoSttsCatD): void {
 }
 
 // expose the most recent raw snapshot so worker hydration paths can rehydrate
-// the same globals without re-fetching the JSON.
+// the same globals without re-fetching the json.
 export function getEchoSttsSrc(): EchoSttsCatD | null {
   return echoSttsSrc
 }

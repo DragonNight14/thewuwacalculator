@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Archives advanced content found in old compact-sequence storage
+  description: archives advanced content found in old compact-sequence storage
                before discarding that retired editable field.
 */
 
@@ -64,7 +64,7 @@ function makeMigrationName(
   return `${base} ${suffix}`
 }
 
-/** Migrate every working scenario independently without creating another live slot. */
+/** migrate every working scenario independently without creating another live slot. */
 export function migrateAdvancedScenarioRotations(
   library: SavedArtifactLibrary,
   combat: ScenarioWorkspace,

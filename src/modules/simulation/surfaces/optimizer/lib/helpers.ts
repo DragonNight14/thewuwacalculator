@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Resolves optimizer slot runtimes, loadout summaries, target
+  description: resolves optimizer slot runtimes, loadout summaries, target
                eligibility, stat-filter keys, and weapon-state replacements.
 */
 
@@ -21,7 +21,7 @@ export type PrvwTgt =
 type OpSlot = 'active' | 0 | 1
 export type OpEchoTarget = 'filter' | 0 | 1
 
-// keep the idle progress object in one place so the stage can reset consistently.
+// the shared idle progress object gives the stage a stable reset value.
 export function mkMptyPrgr(): import('@/engine/optimizer/types').OptPrgr {
   return {
     progress: 0,
@@ -53,7 +53,7 @@ export function smmrEchoLdt(
   echoes: Array<EchoInstance | null>,
 ): Pick<OptDisplayRow, 'costs' | 'sets' | 'mainEchoIcon'> {
   const setCounts = new Map<number, number>()
-  // Preserve individual costs rather than collapsing the loadout to its total.
+  // preserve each echo's cost in the loadout.
   const costs: number[] = []
 
   for (const echo of echoes) {
@@ -112,7 +112,7 @@ export function mkMptyEchoPl(): [EchoPlan | null, EchoPlan | null] {
   return [null, null]
 }
 
-// Normalize loadouts to the fixed five-slot shape used by runtime consumers.
+// normalize loadouts to the fixed five-slot shape used by runtime consumers.
 export function normEchoLdt(
   echoes: ReadonlyArray<EchoInstance | null | undefined>,
 ): Array<EchoInstance | null> {
@@ -123,7 +123,7 @@ export function normEchoLdt(
   return out
 }
 
-// Resolve an optimizer slot from canonical participants, with legacy compact
+// resolve an optimizer slot from canonical participants, with legacy compact
 // teammate materialization retained only for detached callers.
 export function makeOpSlot(
     runtime: ResRuntime,

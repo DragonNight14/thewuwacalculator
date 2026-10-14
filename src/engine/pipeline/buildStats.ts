@@ -1,9 +1,9 @@
 /*
   Author: Runor Ewhro
-  Description: derives a resonator's "build" stats: base stats, equipped gear,
+  description: derives a resonator's "build" stats: base stats, equipped gear,
                and every effect whose activation is fixed by that concrete
-               build. Toggleable combat state, stacks, active targeting, manual
-               inputs, and enemy state remain excluded. Not evaluation-specific.
+               build. toggleable combat state, stacks, active targeting, manual
+               inputs, and enemy state remain excluded. not evaluation-specific.
 */
 
 import type { ResRuntime } from '@/domain/entities/runtime'
@@ -18,7 +18,7 @@ import { mkRtBaseBuff } from '@/engine/pipeline/buildCombatContext'
 import { makeCombatState, makeCustomBuff, makeEnemy } from '@/engine/runtime/defaults'
 import { wpnAtkAt } from '@/engine/runtime/weaponState.ts'
 
-// Clear toggleable inputs as a second line of defense. The effect classifier
+// clear toggleable inputs as a second line of defense. the effect classifier
 // keeps control-driven effects out entirely; neutral state also prevents an
 // accidentally admitted condition from inheriting the live combat setup.
 function neutralizeRuntime(runtime: ResRuntime): ResRuntime {

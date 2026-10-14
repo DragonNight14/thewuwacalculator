@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Protects the generated contracts for the first Unison Resonators.
+  description: protects the generated contracts for the first unison resonators.
 */
 
 import { describe, expect, it } from 'vitest'

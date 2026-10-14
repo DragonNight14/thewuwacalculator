@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Provides helpers for reading, selecting, and mutating enemy
+  description: provides helpers for reading, selecting, and mutating enemy
                profiles, including tower mode, presets, and resistances.
 */
 
@@ -51,8 +51,7 @@ export function getEnemyReys(
   }))
 }
 
-// Custom profiles store their own resistance table, so tower mode transforms
-// those values instead of replacing them from a catalog enemy.
+// tower mode transforms the resistance table stored on a custom profile.
 export function rmpCustEnemy(profile: EnemyProfile, nextToa: boolean): EnemyProfile['res'] {
   if (profile.toa === nextToa) {
     return profile.res
@@ -75,8 +74,7 @@ export function selCatEnemyP(
   })
 }
 
-// Presets replace the enemy template but keep Tune Strain as encounter state
-// rather than preset-authored data.
+// presets replace the enemy template. tune strain remains encounter state.
 export function selEnemyPrst(profile: EnemyProfile, preset: EnemyPrstDef): EnemyProfile {
   return {
     ...preset.profile,
@@ -139,7 +137,7 @@ function normStack(value: number): number {
   return Number.isFinite(value) ? Math.max(0, Math.floor(value)) : 0
 }
 
-// Enemy status contains heterogeneous condition fields; Tune Strain is the only
+// enemy status contains heterogeneous condition fields; tune strain is the only
 // numeric stack here and must not wipe neighboring toggles/selects.
 export function setEnemyTune(profile: EnemyProfile, value: number): EnemyProfile {
   return {
@@ -158,7 +156,7 @@ export function getEnemyState(
   return profile.status?.[field]
 }
 
-// Condition writers share the status bag with Tune Strain, so initialize the
+// condition writers share the status bag with tune strain, so initialize the
 // base field once and preserve any previously authored state values.
 export function setEnemyState(
   profile: EnemyProfile,

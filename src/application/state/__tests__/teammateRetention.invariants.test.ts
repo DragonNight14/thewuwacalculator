@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Keeps teammate configuration through roster changes and storage
+  description: keeps teammate configuration through roster changes and storage
                without allowing off-team members to enter combat projections.
 */
 

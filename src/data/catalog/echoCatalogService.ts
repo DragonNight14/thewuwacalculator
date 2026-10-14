@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Provides echo catalog lookup helpers for listing echoes,
+  description: provides echo catalog lookup helpers for listing echoes,
                resolving echoes by id, and grouping them by cost or set.
 */
 

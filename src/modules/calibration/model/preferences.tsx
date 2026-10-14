@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: defines grouped settings preference models and small ui helpers
+  description: defines grouped settings preference models and small ui helpers
                for rendering the settings page preference cards.
 */
 
@@ -157,7 +157,7 @@ export function mkPrefGrps({
         {
           kind: 'toggle',
           label: 'In-App Context Menus',
-          description: 'Show app action menus instead of the browser menu where supported',
+          description: 'Show app action menus on supported surfaces',
           checked: ui.preferences.ctxMenu,
           onChange: setCtxMenu,
         },
@@ -178,7 +178,7 @@ export function mkPrefGrps({
         {
           kind: 'toggle',
           label: 'Compressed Exports',
-          description: 'Export files in the compact .wwcalc format instead of plain JSON.',
+          description: 'Export files in the compact .wwcalc format.',
           checked: ui.compressedExports,
           onChange: setCmprXprts,
         },

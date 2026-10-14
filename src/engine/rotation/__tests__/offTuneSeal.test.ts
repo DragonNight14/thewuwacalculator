@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Verifies authored and default Off-Tune cooldown landings in
+  description: verifies authored and default off-tune cooldown landings in
                execution order, including loop-boundary behavior.
 */
 
@@ -31,7 +31,7 @@ function afterBreak(items: RotationNode[], breakId = 'break'): OffTuneSealState 
 }
 
 describe('Off-Tune seal execution', () => {
-  it('holds three executed features after an unmarked break, so the fourth counts', () => {
+  it('counts the fourth executed feature after an unmarked break', () => {
     const items = [
       feature('break', { featureId: 'f:break' }),
       feature('b'),
@@ -104,7 +104,7 @@ describe('Off-Tune seal execution', () => {
     expect([...result.waitsForMarkedResume]).toEqual(['break2'])
   })
 
-  it('carries the default cooldown across loop-pass document boundaries', () => {
+  it('preserves the default cooldown across loop-pass document boundaries', () => {
     const items = [
       feature('a'),
       feature('b'),
@@ -112,7 +112,7 @@ describe('Off-Tune seal execution', () => {
     ]
     let state = afterBreak(items)
 
-    // The next pass returns to nodes which sit before the break in the document.
+    // the next pass returns to nodes which sit before the break in the document.
     for (const id of ['a', 'b', 'a']) {
       const step = stepOffTuneSeal(state, feature(id))
       expect(step.sealed).toBe(true)

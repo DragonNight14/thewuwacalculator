@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Exposes console hosts through the Simulation module boundary.
+  description: exposes console hosts through the simulation module boundary.
 */
 
 export { TeamConsoleHost } from '../features/teams/ConsoleHost'

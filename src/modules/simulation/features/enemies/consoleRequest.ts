@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Keeps the target-console request available to app chrome
+  description: keeps the target-console request available to app chrome
                without loading the console or calculation engine.
 */
 

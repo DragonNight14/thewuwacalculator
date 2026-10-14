@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: shared display helpers for default-rotation build evaluation scores.
+  description: shared display helpers for default-rotation build evaluation scores.
 */
 
 import { GRADE_LADDER } from '@/engine/evaluation/evaluation/grades.ts'

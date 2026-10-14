@@ -1,7 +1,7 @@
 /*
   Author: Runor Ewhro
-  Description: Seeds new teammates from the fullest owned gear setup while
-               keeping ordinary initialization for their controls and effects.
+  description: initializes new teammates with the fullest available gear setup,
+               controls, and effects.
 */
 
 import { getResSeedBy } from '@/data/catalog/resonatorSeedService'
@@ -20,7 +20,7 @@ function filledEchoSlots(build: SavedBuildSnap): number {
   return filled
 }
 
-// Call at the assignment boundary, before entering a store or draft reducer:
+// call at the assignment boundary, before entering a store or draft reducer:
 // inventory hydration can itself update the store.
 export function makeInitialTeammate(resonatorId: string, destination: CombatScenario): ScenarioTeamMember | null {
   resonatorId = roverIdForGender(resonatorId, useAppStore.getState().ui.preferences.roverGender)
@@ -40,7 +40,7 @@ export function makeInitialTeammate(resonatorId: string, destination: CombatScen
   let gear = source?.loadout
   const contextSlots = gear ? filledEchoSlots(gear) : -1
 
-  // A full context setup already wins every tie, so the lazy inventory can stay unloaded.
+  // a full context setup already wins every tie, so the lazy inventory can stay unloaded.
   if (contextSlots < 5) {
     state.ensInvHydr()
     let best: SavedBuild | undefined
@@ -62,8 +62,8 @@ export function makeInitialTeammate(resonatorId: string, destination: CombatScen
   }
 
   if (gear) member.loadout = structuredClone(gear)
-  // Inventory builds contain gear only. Sequence belongs to the context member,
-  // even when a more complete inventory build supplies the weapon and Echoes.
+  // inventory builds contain gear only. sequence belongs to the context member,
+  // even when a more complete inventory build supplies the weapon and echoes.
   if (source) member.progression.sequence = source.progression.sequence
   return member
 }

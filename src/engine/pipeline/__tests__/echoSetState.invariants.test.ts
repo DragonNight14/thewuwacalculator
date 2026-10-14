@@ -1,7 +1,7 @@
 /*
   Author: Runor Ewhro
-  Description: Keeps Sonata source controls and Max initialization gated by
-               the wearer's distinct equipped Echo count.
+  description: keeps sonata source controls and max initialization gated by
+               the wearer's distinct equipped echo count.
 */
 
 import { describe, expect, it } from 'vitest'
@@ -45,7 +45,7 @@ describe('Sonata source state availability', () => {
       if (states.length === 0) continue
 
       const wearer = runtime()
-      // Isolate the control threshold, including unreleased sets whose Echo
+      // isolate the control threshold, including unreleased sets whose echo
       // catalogs do not yet contain enough distinct bodies for a full set.
       const [template] = echoesFor(def.id, 1)
       wearer.build.echoes = Array.from({ length: def.setMax }, (_, index) => ({

@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Serializes and parses evaluation resonator profile clipboard
+  description: serializes and parses evaluation resonator profile clipboard
                payloads so the evaluation rail can copy, cut, and paste full
                scenario profiles with overwrite semantics by resonator id.
 */

@@ -1,7 +1,7 @@
 /*
   Author: Runor Ewhro
-  Description: Resolves display derivatives while preserving canonical URLs for
-               persistence and capture. External and custom art pass through.
+  description: resolves display derivatives while preserving canonical urls for
+               persistence and capture. external and custom art pass through.
 */
 import generated from './displayAssets.generated.json'
 
@@ -18,8 +18,8 @@ export function resolveDisplayImage(source: string, displayWidth = 128, pixelRat
   }))
   if (!variants.length) return { src: source }
   const target = displayWidth * pixelRatio
-  // The closest width can be slightly smaller than the target. Prefer the
-  // smaller download on a tie instead of always rounding up a whole tier.
+  // the closest width can be slightly smaller than the target. prefer the
+  // breakpoint ties select the smaller download tier.
   const selected = variants.reduce((closest, variant) =>
     Math.abs(variant.width - target) < Math.abs(closest.width - target) ? variant : closest)
   return {

@@ -1,7 +1,7 @@
 /*
   Author: Runor Ewhro
-  Description: Finds a low-overflow Energy Regen allocation across generated
-               Echoes and replaces the least valuable substats when necessary.
+  description: finds a low-overflow energy regen allocation across generated
+               echoes and replaces the least valuable substats when necessary.
 */
 
 import { getSbstStepP } from '@/data/gameData/catalog/echoStats'
@@ -16,7 +16,7 @@ function findBestErSp(target: number, maxEchoes: number, rollQuality: number): n
     return Array(maxEchoes).fill(0)
   }
 
-  // Search only the legal rolls surrounding the requested quality.
+  // search only the legal rolls surrounding the requested quality.
   const targetIndex = Math.round(rollQuality * (ER_OPTIONS.length - 1))
   const narrowed = ER_OPTIONS.slice(
       Math.max(0, targetIndex - 1),
@@ -34,7 +34,7 @@ function findBestErSp(target: number, maxEchoes: number, rollQuality: number): n
     const entry = stack.pop()!
     const { combo, sum } = entry
 
-    // The winning branch is the smallest legal total that reaches the target.
+    // the winning branch is the smallest legal total that reaches the target.
     if (sum >= target) {
       if (sum < bestSum) {
         bestSum = sum
@@ -49,7 +49,7 @@ function findBestErSp(target: number, maxEchoes: number, rollQuality: number): n
 
     const rmnnSlts = maxEchoes - combo.length
 
-    // Prune branches that cannot reach the target or already exceed the best sum.
+    // prune branches that cannot reach the target or already exceed the best sum.
     if (sum + rmnnSlts * maxValue < target) {
       continue
     }
@@ -90,7 +90,7 @@ function njctErIntoEc(
     return { ...echo, substats }
   }
 
-  // A full Echo gives up the substat with the lowest objective weight.
+  // a full echo gives up the substat with the lowest objective weight.
   let worstKey: string | null = null
   let worstScore = Infinity
 

@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Stages an ordered pair of support resonators, maps click and drag
+  description: stages an ordered pair of support resonators, maps click and drag
                operations into that tuple, preloads new members, and commits the
                complete team in one scenario update.
 */
@@ -41,9 +41,9 @@ const SETTLE_EASE = 'cubic-bezier(.2, .8, .2, 1)'
 
 const calm = () => document.documentElement.classList.contains('reduce-animation')
 
-// Keep ordinary clicks distinct from pointer drags.
+// keep ordinary clicks distinct from pointer drags.
 const DRAG_START_PX = 6
-// Begin automatic scrolling before a drag leaves the scroll container.
+// begin automatic scrolling before a drag leaves the scroll container.
 const EDGE_SCROLL_PX = 48
 
 type DropTarget = { kind: 'seat'; seat: number } | { kind: 'card'; id: string } | { kind: 'out' } | null
@@ -92,7 +92,7 @@ function MissingSeat({ id, seat, onRemove }: { id: string; seat: number; onRemov
 
 export function TeamPicker(props: TeamPickerProps) {
   const teamKey = `${props.leadId}|${props.team[1] ?? ''}|${props.team[2] ?? ''}`
-  // Committing a team changes the key as the picker closes. Hold the old key
+  // committing a team changes the key as the picker closes. hold the old key
   // until it reopens so the exit plays on the mounted picker, not a fresh one.
   const [shownKey, setShownKey] = useState(teamKey)
   if (!props.closing && shownKey !== teamKey) setShownKey(teamKey)
@@ -120,14 +120,14 @@ function TeamPickerContent({
 
   const bodyRef = useRef<HTMLDivElement>(null)
   const rowRef = useRef<HTMLDivElement>(null)
-  // Identifies the one positional move consumed by the transfer animation.
+  // identifies the one positional move consumed by the transfer animation.
   const lifted = useRef<string | null>(null)
 
   const changed = seats[0] !== applied[0] || seats[1] !== applied[1]
   const full = Boolean(seats[0] && seats[1])
   const nextSeat = seats[0] ? (seats[1] ? null : 1) : 0
 
-  // Consume only the explicitly lifted card; the shared motion hook handles all
+  // consume only the explicitly lifted card; the shared motion hook handles all
   // other position deltas.
   const arc = useCallback(({ el, id, dx, dy }: PickerMove) => {
     if (id !== lifted.current) return false
@@ -153,13 +153,13 @@ function TeamPickerContent({
     return true
   }, [])
   const capture = usePickerMotion(bodyRef, arc)
-  // Non-selection layout changes must not reuse a stale transfer marker.
+  // non-selection layout changes must not reuse a stale transfer marker.
   const reflow = useCallback(() => {
     lifted.current = null
     capture()
   }, [capture])
 
-  // When the real destination card is not mounted, animate a detached clone and
+  // when the real destination card is not mounted, animate a detached clone and
   // remove it after the transfer completes.
   const flyToStrip = useCallback((id: string, seat: number) => {
     const body = bodyRef.current
@@ -210,7 +210,7 @@ function TeamPickerContent({
       nudge()
       return
     }
-    // Start loading on selection, while commit still verifies every new member.
+    // start loading on selection, while commit still verifies every new member.
     void ensureResonatorData([id]).catch(() => {})
     if (docked) flyToStrip(id, nextSeat)
     capture()
@@ -220,7 +220,7 @@ function TeamPickerContent({
     setSeats(next)
   }, [capture, docked, flyToStrip, leadId, nextSeat, nudge, seats])
 
-  // Suppress the synthetic click emitted after a completed pointer drag.
+  // suppress the synthetic click emitted after a completed pointer drag.
   const dragged = useRef(false)
   const frameRef = useRef<HTMLDivElement>(null)
 
@@ -245,7 +245,7 @@ function TeamPickerContent({
       if (seatEl && frame.contains(seatEl)) return { drop: { kind: 'seat', seat: Number(seatEl.dataset.tpkDrop) }, el: seatEl }
       const other = under?.closest<HTMLElement>('.pkm__grid [data-pick-id]')
       if (other && from >= 0 && other.dataset.pickId !== id) return { drop: { kind: 'card', id: other.dataset.pickId! }, el: other }
-      // Dropping a seated member outside every team target removes that member.
+      // dropping a seated member outside every team target removes that member.
       const inRow = under?.closest('.tpk-row, .tpk-strip, .tpk-seat')
       if (from >= 0 && !inRow) return { drop: { kind: 'out' }, el: null }
       return { drop: null, el: null }
@@ -315,8 +315,7 @@ function TeamPickerContent({
         if (incoming && !seats.includes(incoming)) void ensureResonatorData([incoming]).catch(() => {})
       }
       lifted.current = null
-      // Seed the next position snapshot with pointer-up geometry rather than
-      // the card's original grid rectangle.
+      // seed the next position snapshot from pointer-up geometry.
       capture(new Map([[id, landing]]))
       setSeats(next)
     }
@@ -451,7 +450,7 @@ function TeamPickerContent({
                 return (
                   <div key={index} className="tpk-seat" data-tpk-drop={index}>
                     {item ? (
-                      // The deferred loader owns img.src, so a new member needs a new image node.
+                      // the deferred loader sets img.src, so a new member needs a new image node.
                       <PickerCard
                         key={id}
                         item={item}

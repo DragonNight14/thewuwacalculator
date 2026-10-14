@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Builds Echo context actions from the active loadout, inventory, and clipboard capabilities.
+  description: builds echo context actions from the active loadout, inventory, and clipboard capabilities.
 */
 
 import { useCallback, useMemo } from 'react'

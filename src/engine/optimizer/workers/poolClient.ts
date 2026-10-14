@@ -1,12 +1,12 @@
 /*
   Author: Runor Ewhro
-  Description: Lazily loads the optimizer worker pool while keeping cleanup
+  description: lazily loads the optimizer worker pool while keeping cleanup
                synchronous and invalidating jobs cancelled during initialization.
 */
 
 type Pool = typeof import('./pool.ts')
 
-/** Keeps lazy pool loading and run invalidation in one lifecycle owner. */
+/** keeps lazy pool loading and run invalidation in one lifecycle owner. */
 export class OptimizerRunController {
   private loadedPool: Pool | null = null
   private pendingPool: Promise<Pool> | null = null

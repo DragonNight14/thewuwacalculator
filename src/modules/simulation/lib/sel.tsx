@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Owns sel behavior and state transitions for the lib module.
+  description: implements selection state for simulation features.
 */
 
 import { useCallback, useMemo, useRef, useState } from 'react'
@@ -352,7 +352,7 @@ export function useSel<TId extends SelId, TVal>({
       shouldIgnore?: (event: RctMsVnt<HTMLElement>) => boolean
     } = {},
   ) => sel.buildClickCapture(id, {
-    // click capture focuses the owning surface before selection changes so keyboard follow-ups target the same pane.
+    // focus the surface before changing selection for subsequent keyboard input.
     active: opts.active ?? active,
     shouldIgnore: opts.shouldIgnore,
     onCapture: () => {

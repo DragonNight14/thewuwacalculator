@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Verifies rotation column choices survive temporary viewport
+  description: verifies rotation column choices survive temporary viewport
                ceilings and remain valid after explicit edits.
 */
 

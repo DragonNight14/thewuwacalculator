@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Verifies the toRotationNodes.test behavior and its compatibility invariants.
+  description: verifies the toRotationNodes.test behavior and its compatibility invariants.
 */
 
 import { describe, expect, it } from 'vitest'
@@ -37,7 +37,7 @@ import {
 } from '@/modules/simulation/surfaces/rotation/program-editor/model/treeEdit.ts'
 import { makeBlockNode } from '@/modules/simulation/surfaces/rotation/shared/nodeTools.ts'
 
-/** Resolve a loop's pass body from serialized items (template + lazy forks). */
+/** resolve a loop's pass body from serialized items (template + lazy forks). */
 function passBody(items: RotationNode[], run: number): RotationNode[] {
   const startIndex = items.findIndex(
     (node) => node.type === 'loop' && node.kind === 'start',
@@ -302,7 +302,7 @@ describe('editorSectionsToRotation', () => {
     expect(authoredCondition).not.toHaveProperty('when')
   })
 
-  it('preserves omitted ownership, optional toggle values, and exact numeric precision', () => {
+  it('preserves omitted source ids, optional toggle values, and exact numeric precision', () => {
     const toggle: Extract<RotationNode, { type: 'condition' }> = {
       type: 'condition',
       id: 'toggle',
@@ -554,7 +554,7 @@ describe('editorSectionsToRotation', () => {
     expect(feature).not.toHaveProperty('negativeEffectStacks')
   })
 
-  it('omits default series values of 1 so the authored payload stays sparse', () => {
+  it('omits default series values of 1 from the authored payload', () => {
     const step: EditorStep = {
       type: 'step',
       id: 'dot',
@@ -819,8 +819,8 @@ describe('editorSectionsToRotation', () => {
 })
 
 /*
-  The page and the pane are two ways of writing the same rotation, so a node
-  added on one has to come out the shape the other adds it in. Run-specific
+  the page and the pane are two ways of writing the same rotation, so a node
+  added on one has to come out the shape the other adds it in. run-specific
   edits live in the enclosing loop's exact pass fork.
 */
 describe('nodes the page adds match the ones the pane adds', () => {

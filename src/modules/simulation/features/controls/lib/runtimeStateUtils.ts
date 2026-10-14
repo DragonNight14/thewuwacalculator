@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Applies immutable runtime control, target-routing, and cascading state updates.
+  description: applies immutable runtime control, target-routing, and cascading state updates.
 */
 
 import type { SyntheticEvent as SyntVnt } from 'react'

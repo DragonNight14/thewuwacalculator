@@ -1,12 +1,13 @@
 /*
   Author: Runor Ewhro
-  Description: Builds profile clipboard and removal actions against canonical scenario ownership.
+  description: builds profile clipboard and removal actions for canonical scenarios.
 */
 
 import { useCallback, useMemo } from 'react'
 import { contextScenarioMember } from '@/domain/entities/combatScenario.ts'
 import { projectScenarioMemberProfile } from '@/engine/runtime/scenarioRuntime.ts'
 import { useAppStore } from '@/application/state'
+import { RUNTIME_APP_HISTORY_ENABLED } from '@/application/state/history'
 import { nextResonatorSelection } from '@/modules/simulation/model/resonatorProfileActions.ts'
 import {
   makeProfileClip,
@@ -16,7 +17,7 @@ import {
 } from '@/modules/simulation/workspace/profileClipboard.ts'
 import { useConfirm } from '@/shared/hooks/useConfirmation.ts'
 import { useTstStr } from '@/shared/util/toastStore.ts'
-import type { BuildRosterEntry } from './BuildRoster.tsx'
+import type { Entry as RosterEntry } from './roster/List.tsx'
 
 export interface ResonatorRemoveCopy {
   title?: string
@@ -26,17 +27,22 @@ export interface ResonatorRemoveCopy {
 }
 
 export interface ResonatorProfileOps {
-  roster: BuildRosterEntry[]
-  rosterById: Map<string, BuildRosterEntry>
+  roster: RosterEntry[]
+  rosterById: Map<string, RosterEntry>
   copy: (resonatorIds: string[]) => Promise<boolean>
   remove: (resonatorIds: string[], copy?: ResonatorRemoveCopy) => void
+  /** removes directly when undo is available and prompts otherwise. */
+  removeByDrag: (resonatorId: string) => void
+  canUndoRemoval: boolean
   cut: (resonatorIds: string[]) => Promise<void>
   paste: (clipboardPayload?: ProfileClipPay) => Promise<void>
 }
 
-export function useResonatorProfileOps(roster: BuildRosterEntry[]): ResonatorProfileOps {
+export function useResonatorProfileOps(
+  roster: RosterEntry[],
+  confirmation: ReturnType<typeof useConfirm>,
+): ResonatorProfileOps {
   const showToast = useTstStr((state) => state.show)
-  const confirmation = useConfirm()
   const scenariosById = useAppStore((state) => state.combat.scenariosById)
   const contextResId = useAppStore((state) => (
     state.combat.scenariosById[state.combat.selectedScenarioId]
@@ -46,6 +52,7 @@ export function useResonatorProfileOps(roster: BuildRosterEntry[]): ResonatorPro
   const swapResonator = useAppStore((state) => state.swRes)
   const deleteResonatorProfiles = useAppStore((state) => state.delResProfs)
   const upsertResonatorProfiles = useAppStore((state) => state.upsertRes)
+  const canUndoRemoval = useAppStore((state) => RUNTIME_APP_HISTORY_ENABLED && state.ui.haveHistory)
 
   const rosterById = useMemo(
     () => new Map(roster.map((entry) => [entry.id, entry])),
@@ -90,7 +97,7 @@ export function useResonatorProfileOps(roster: BuildRosterEntry[]): ResonatorPro
 
     const removed = ids
       .map((id) => rosterById.get(id))
-      .filter((entry): entry is BuildRosterEntry => Boolean(entry))
+      .filter((entry): entry is RosterEntry => Boolean(entry))
     const nextId = nextResonatorSelection(roster, contextResId, ids)
     confirmation.confirm({
       title: copyText.title ?? (ids.length === 1 ? 'Remove this context resonator?' : `Remove ${ids.length} context resonators?`),
@@ -117,7 +124,42 @@ export function useResonatorProfileOps(roster: BuildRosterEntry[]): ResonatorPro
     })
   }, [confirmation, contextResId, deleteResonatorProfiles, roster, rosterById, showToast])
 
-  // One gesture, so the copy has to land before anything is taken away.
+  // the pull is its own confirmation, but only while the history can give the
+  // resonator back.
+  const removeByDrag = useCallback((resonatorId: string) => {
+    const entry = rosterById.get(resonatorId)
+    if (!entry) return
+    if (!canUndoRemoval) {
+      remove([resonatorId])
+      return
+    }
+
+    deleteResonatorProfiles([resonatorId], nextResonatorSelection(roster, contextResId, [resonatorId]))
+    // undo only reaches for the removal while it is still the latest thing done.
+    const mark = useAppStore.getState().history.past
+    showToast({
+      content: `${entry.name} removed from the context roster.`,
+      variant: 'success',
+      duration: 6000,
+      action: {
+        label: 'Undo',
+        onClick: () => {
+          const state = useAppStore.getState()
+          if (state.history.past.length !== mark.length || state.history.past.at(-1)?.label !== mark.at(-1)?.label) {
+            showToast({
+              content: 'Other changes came after it. Use the undo history to bring it back.',
+              variant: 'default',
+              duration: 3200,
+            })
+            return
+          }
+          state.undo()
+        },
+      },
+    })
+  }, [canUndoRemoval, contextResId, deleteResonatorProfiles, remove, roster, rosterById, showToast])
+
+  // one gesture, so the copy has to land before anything is taken away.
   const cut = useCallback(async (resonatorIds: string[]) => {
     const wrote = await copy(resonatorIds)
     if (!wrote) return
@@ -181,5 +223,5 @@ export function useResonatorProfileOps(roster: BuildRosterEntry[]): ResonatorPro
     })
   }, [confirmation, rosterById, showToast, swapResonator, upsertResonatorProfiles])
 
-  return { roster, rosterById, copy, remove, cut, paste }
+  return { roster, rosterById, copy, remove, removeByDrag, canUndoRemoval, cut, paste }
 }

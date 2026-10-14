@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: materializes raw optimizer rows back into user-facing result
+  description: materializes raw optimizer rows back into user-facing result
                entries and optional recomputed stat snapshots for display.
 */
 
@@ -63,7 +63,7 @@ function mkThryRotXct(payload: PrepTheoryRot): PckdRotXctnP {
 }
 
 // theory result rows are often resolved lazily from the ui, so keep the packed
-// execution wrapper cached by payload instead of rebuilding it per visible row.
+// cache the execution wrapper by payload for reuse across visible rows.
 function getThryXct(payload: ThryPay): ThryXct {
   const cached = thryXctCch.get(payload)
   if (cached) {
@@ -294,8 +294,8 @@ export function evalThryRsltS(
     return evalRotRsltS(execution, result, rotWeaponDisplay(execution, result))
   }
 
-  // weapon search: recompute stats against the weapon the search chose for this
-  // build, not the equipped one, so the stat columns match the result's damage.
+  // recompute displayed stats with the winning weapon from search. the stat
+  // columns must match the result's damage.
   const weaponIdx = 'weapon' in result ? (result.weapon ?? -1) : -1
   const overlays = execution.weaponOverlays
   const weaponCtx = weaponIdx >= 0 && overlays && (execution.weaponCount ?? 0) > weaponIdx

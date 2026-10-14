@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Flattens authored and executed rotation structures into stable editor row projections.
+  description: flattens authored and executed rotation structures into stable editor row projections.
 */
 
 import type {
@@ -32,7 +32,7 @@ export interface FlatScope {
   transient: boolean
 }
 
-/** a single state write, named by the source that owns it rather than a path */
+/** one state write labelled by its source */
 export interface FlatWrite {
   id: string
   label: string
@@ -49,9 +49,8 @@ export interface FlatWrite {
   /** what it held before, when the engine could read it */
   from?: string
   /**
-   * What it was set to. A handoff leaves this empty and carries `memberId`
-   * instead: the value there is a resonator, and only the display knows their
-   * name. An id is never something the reader is shown.
+   * the written value. handoffs carry `memberId`, which the display resolves
+   * to a resonator name. raw ids stay out of the readout.
    */
   value: string
 }
@@ -92,9 +91,9 @@ export function flatTargetMatchesRuns(
 }
 
 /**
- * Keep a tree selection when it exists in the executed trace. If it does not,
+ * keep a tree selection when it exists in the executed trace. if it does not,
  * walk forward through authored order (wrapping once) to the next node that
- * did execute. Repeated rows prefer the occurrence at the currently viewed
+ * did execute. repeated rows prefer the occurrence at the currently viewed
  * loop tuple.
  */
 export function resolveFlatRowTarget(
@@ -143,7 +142,7 @@ export function countFlatSelectedEntries(
   return { entries: hits + states, hits, states }
 }
 
-/** Authored nodes represented by selected entries, in execution order. */
+/** authored nodes represented by selected entries, in execution order. */
 export function flatClipboardNodes(
   rows: readonly FlatRow[],
   selectedIds: ReadonlySet<string>,
@@ -159,19 +158,19 @@ export function flatClipboardNodes(
 
 export interface DrawnFlatRow {
   row: FlatRow
-  /** Scope chain entered by this execution entry. */
+  /** scope chain entered by this execution entry. */
   band: FlatScope[] | null
 
   face: boolean
   /**
-   * Numeric factors reading exactly what they read on the hit before. The
+   * numeric factors reading exactly what they read on the hit before. the
    * authoring list fades its repeats for the same reason: down a register
    * this long the change points are what the eye should land on, and a column
    * of the same figure repeated forty times says nothing by shouting it.
    */
   ghost: ReadonlySet<StatKey>
   /**
-   * Where this hit falls in the run, counted from one. An execution order is a
+   * where this hit falls in the run, counted from one. an execution order is a
    * numbered thing, and the count is the one piece of navigation the authored
    * tree can never offer: it says both what this is and how far in it happened.
    */
@@ -228,7 +227,7 @@ export function decorateFlatRows(rows: readonly FlatRow[]): DrawnFlatRow[] {
 }
 
 /**
- * Computes each resonator's contiguous tenure and its accumulated damage in a
+ * computes each resonator's contiguous tenure and its accumulated damage in a
  * single execution-order pass.
  */
 export function flatTenureTotals(drawn: readonly DrawnFlatRow[]): {

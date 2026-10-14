@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: translates raw optimizer result rows into display-friendly
+  description: translates raw optimizer result rows into display-friendly
                structures for cards, stat summaries, and equip previews.
 */
 
@@ -418,7 +418,7 @@ export interface ResultFacet {
 }
 
 const FACET_STATS = ['atk', 'hp', 'def', 'er', 'cr', 'cd', 'bonus', 'amp'] as const
-/** Dense numeric columns and shared plans; no retained per-result facet objects. */
+/** dense numeric columns and shared plans; no retained per-result facet objects. */
 export class ResultFacetTable implements Iterable<ResultFacet> {
   private readonly values: Float64Array
   private readonly hasStats: Uint8Array
@@ -599,8 +599,8 @@ export function buildFacetSlice(args: {
 // ── comprehensive column / predicate model ────────────────────────────────
 // every result column is addressable: numeric columns (damage, cost, and the
 // eight stats) take a comparison operator + number; categorical columns (main
-// echo, set, set plan) take an equality/contains value. predicates AND together
-// and back both the filter (WHERE, subsets) and find (jump-to) flows.
+// echo, set, set plan) take an equality/contains value. predicates and together
+// and back both the filter (where, subsets) and find (jump-to) flows.
 
 export type CmpOp = 'gte' | 'gt' | 'eq' | 'lte' | 'lt'
 export type NumCol =
@@ -679,7 +679,7 @@ function cmpNum(a: number, op: CmpOp, b: number): boolean {
   }
 }
 
-// does a facet satisfy every predicate (AND semantics)?
+// does a facet satisfy every predicate (and semantics)?
 export function facetMatches(facet: ResultFacet, predicates: Predicate[]): boolean {
   for (const pred of predicates) {
     if (pred.kind === 'num') {
@@ -711,7 +711,7 @@ function facetSortValue(facet: ResultFacet, key: ViewSortKey): number {
   return facetNum(facet, key) ?? 0
 }
 
-// apply WHERE (filters) then ORDER BY (sort) to produce the ordered list of
+// apply where (filters) then order by (sort) to produce the ordered list of
 // original result indices the view should render. ties break by original index
 // so the order stays stable.
 export function buildResultView(

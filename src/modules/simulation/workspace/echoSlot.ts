@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Projects equipped Echoes into the shared workspace slot contract.
+  description: projects equipped echoes into the shared workspace slot contract.
 */
 
 import type { EchoInstance } from '@/domain/entities/runtime'

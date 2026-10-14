@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: compiles the optimizer payload for single target-skill mode
+  description: compiles the optimizer payload for single target-skill mode
                by building the target context, encoding inventory echoes,
                and attaching the shared optimizer data needed for execution.
 */
@@ -17,7 +17,7 @@ import { mkShrdPay, stripEchoes } from '@/engine/optimizer/compiler/shared.ts'
 // this is the main bridge from editable runtime state into the packed payload
 // that later cpu and gpu execution paths consume
 export function compTgtRun(input: OptStartPay, baseline = false): PrepTargetSkill {
-  // remove currently equipped echoes so the optimizer evaluates only inventory echoes
+  // optimizer candidates use inventory echoes with equipped echoes removed.
   const runtime = stripEchoes(input.runtime)
 
   // rebuild participant runtimes from the stripped runtime so target context

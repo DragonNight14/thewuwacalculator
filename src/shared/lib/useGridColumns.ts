@@ -1,9 +1,8 @@
 /*
   Author: Runor Ewhro
-  Description: Reads the live column count of a CSS grid so entrance
-               animations can stagger by row instead of by flat index, since
-               auto-fill/auto-fit column counts change continuously with
-               viewport width and can't be known from CSS alone.
+  description: reads the live column count of a css grid for row-based entrance
+               staggering. Auto-fill/auto-fit column counts change with viewport
+               width and cannot be determined from css alone.
 */
 
 import { useCallback, useRef, useState } from 'react'
@@ -26,7 +25,7 @@ export function useGridColumns(): [RefCallback<HTMLElement>, number] {
       setColumns(trackCount > 0 ? trackCount : 1)
     }
 
-    // The observer delivers a first reading of its own, so the count never costs
+    // the observer delivers a first reading of its own, so the count never costs
     // a computed-style read inside the commit that mounted the grid.
     const observer = new ResizeObserver(measure)
     observer.observe(el)

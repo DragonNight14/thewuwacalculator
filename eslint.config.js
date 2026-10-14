@@ -1,8 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: wires eslint to the project parser and react rules while keeping
-               generated output, build artifacts, and local-only archives
-               outside the lint surface.
+  description: configures eslint for project source and excludes generated files, build output, and local archives.
 */
 
 import js from '@eslint/js'

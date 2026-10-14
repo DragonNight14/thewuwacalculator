@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: shared team slot assignment used by the team pane, the toolbar
+  description: shared team slot assignment used by the team pane, the toolbar
                summary and the bench rail so every surface fills, swaps, and
                clears the selected scenario's canonical member slots.
 */
@@ -93,8 +93,8 @@ export function useTeamSlots(configuration?: {
     replaceScenarioMember,
   ])
 
-  // Apply both support slots through one scenario update so undo history never
-  // observes a partially changed team.
+  // apply both support slots in one scenario update. undo history records the
+  // complete team change.
   const setTeam = useCallback((supportIds: readonly (string | null)[]) => {
     const { combat } = useAppStore.getState()
     const scenario = configuration?.scenario ?? (configuration?.scenarioId
@@ -127,7 +127,7 @@ export function useTeamSlots(configuration?: {
   return useMemo(() => ({ setMember, setTeam }), [setMember, setTeam])
 }
 
-// Preserve existing member objects for retained resonators, then reconcile the
+// preserve existing member objects for retained resonators, then reconcile the
 // ordered support set without replacing the lead.
 export function withSupports(
   scenario: CombatScenario,
@@ -139,7 +139,7 @@ export function withSupports(
   const current = scenario.team.members.slice(1).map((member) => member.resonatorId)
   if (wanted.length === current.length && wanted.every((id, index) => id === current[index])) return scenario
 
-  // Resolve every new member before changing the scenario. A missing seed must
+  // resolve every new member before changing the scenario. a missing seed must
   // not leave a partially cleared team behind.
   const existing = new Set(current)
   const created = new Map<string, CombatScenario['team']['members'][number]>()

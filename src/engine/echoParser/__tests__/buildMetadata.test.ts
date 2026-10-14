@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Verifies that OCR readings resolve to catalog identities,
+  description: verifies that ocr readings resolve to catalog identities,
                levels, skill levels, and contiguous sequence activation.
 */
 

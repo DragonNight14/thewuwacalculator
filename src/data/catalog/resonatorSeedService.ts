@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Provides resonator seed catalog helpers and resolves base
+  description: provides resonator seed catalog helpers and resolves base
                stats by level using exact values or interpolation.
 */
 

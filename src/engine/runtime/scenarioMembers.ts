@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Applies immutable scenario-member replacement, insertion, and
+  description: applies immutable scenario-member replacement, insertion, and
                removal, maintaining environment routing and member references.
 */
 
@@ -25,7 +25,7 @@ function retainMember(scenario: CombatScenario, member: ScenarioTeamMember): Dor
 
 function restoreMember(scenario: CombatScenario, member: ScenarioTeamMember): ScenarioTeamMember {
   const saved = scenario.dormantMembersByResonatorId?.[member.resonatorId]?.member
-  // Seat identities belong to the current team; saved settings belong to the resonator.
+  // seat identities belong to the current team; saved settings belong to the resonator.
   return structuredClone(saved ? { ...saved, id: member.id } : member)
 }
 
@@ -50,7 +50,7 @@ export function replaceScenarioTeamMember(
     dormantMembersByResonatorId[previous.resonatorId] = retainMember(scenario, previous)
     delete dormantMembersByResonatorId[member.resonatorId]
   }
-  // Replacement changes member data, not the seat identity referenced by routing.
+  // replacement changes member data, not the seat identity referenced by routing.
   members[index] = {
     ...(changedResonator ? restoreMember(scenario, member) : structuredClone(member)),
     id: memberId,
@@ -70,7 +70,7 @@ export function replaceScenarioTeamMember(
       } : {}),
     })
   } catch {
-    // Reject invalid team revisions without partially updating the scenario.
+    // reject invalid team revisions without partially updating the scenario.
     return scenario
   }
 }
@@ -89,7 +89,7 @@ export function insertScenarioTeamMember(
     return reviseCombatScenario(scenario, {
       team: makeScenarioTeam(members),
       dormantMembersByResonatorId,
-      // Restore only the member's own manual effect, never shared encounter buffs.
+      // restore only the member's own manual effect, never shared encounter buffs.
       environment: {
         ...scenario.environment,
         manualEffects: [
@@ -116,13 +116,13 @@ export function removeScenarioTeamMember(
   const removed = scenario.team.members.find((member) => member.id === memberId)!
   const team = makeScenarioTeam(members)
   const ids = new Set(team.members.map((member) => member.id))
-  // Remove the departed source and incoming routes to it; null targets remain valid.
+  // remove the departed source and incoming routes to it; null targets remain valid.
   const bySourceMemberId = Object.fromEntries(team.members.map((member) => [
     member.id,
     Object.fromEntries(Object.entries(scenario.environment.routing.bySourceMemberId[member.id] ?? {})
       .filter(([, target]) => target === null || ids.has(target))),
   ]))
-  // Subject and initial on-field references must resolve to a surviving member.
+  // subject and initial on-field references must resolve to a surviving member.
   return reviseCombatScenario(scenario, {
     team,
     dormantMembersByResonatorId: {

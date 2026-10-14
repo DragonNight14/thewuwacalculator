@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Sends page-view analytics whenever the current route changes.
+  description: sends page-view analytics whenever the current route changes.
 */
 
 import { useEffect, useRef } from 'react'

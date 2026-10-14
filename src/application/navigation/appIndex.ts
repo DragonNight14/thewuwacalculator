@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Defines the visible top-level Home, Simulation, and Read navigation hierarchy.
+  description: defines the visible top-level home, simulation, and read navigation hierarchy.
 */
 
 import { APP_NAVIGATION } from '@/shared/lib/appRoutes'
@@ -83,7 +83,7 @@ export const REST_ART = '/assets/home/overview.webp'
 export interface ArtCredit {
   subject: string
   artist: string
-  // Canonical source used for artwork attribution.
+  // canonical source used for artwork attribution.
   source?: string
 }
 

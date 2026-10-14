@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Keeps unsheeted modifier values separate from their scoped additions.
+  description: keeps unsheeted modifier values separate from their scoped additions.
 */
 
 import { describe, expect, it } from 'vitest'

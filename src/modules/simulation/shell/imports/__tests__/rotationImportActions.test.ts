@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Verifies each post-parse rotation import choice changes only its promised state.
+  description: verifies each post-parse rotation import choice changes only its promised state.
 */
 
 import { beforeEach, describe, expect, it } from 'vitest'

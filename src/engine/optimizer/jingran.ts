@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: shared Jingran-specific packed optimizer helpers.
+  description: shared jingran-specific packed optimizer helpers.
 */
 
 export const JINGRAN_FORTUNE_SHIFT = 3

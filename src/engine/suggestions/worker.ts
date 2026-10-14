@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Runs suggestions jobs inside a dedicated web worker and
+  description: runs suggestions jobs inside a dedicated web worker and
                posts either successful results or structured errors back
                to the main thread.
 */

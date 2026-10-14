@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Implements rotation notes data-flow and calculation invariants.
+  description: implements rotation notes data-flow and calculation invariants.
 */
 
 import type { RotationNode, RotationNoteNode } from '@/domain/gameData/contracts.ts'
@@ -18,7 +18,7 @@ export function isRotationNoteHost(node: RotationNode): node is RotationNoteHost
   return node.type !== 'note' && (node.type !== 'loop' || node.kind === 'start')
 }
 
-/** Attach once; callers must explicitly detach before assigning another note. */
+/** attach once; callers must explicitly detach before assigning another note. */
 export function attachRotationNote<T extends RotationNoteHost>(
   node: T,
   note: RotationNoteNode,
@@ -35,7 +35,7 @@ export function detachRotationNote<T extends RotationNoteHost>(node: T): T {
   return rest as T
 }
 
-/** Remove standalone and attached notes while preserving executable structure. */
+/** remove standalone and attached notes while preserving executable structure. */
 export function stripRotationNotes(items: readonly RotationNode[]): RotationNode[] {
   return items.flatMap((node): RotationNode[] => {
     if (isRotationNote(node)) {

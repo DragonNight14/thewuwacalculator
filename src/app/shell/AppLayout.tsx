@@ -1,13 +1,12 @@
 /*
   Author: Runor Ewhro
-  Description: Owns the persistent application layout, route-level behavior,
-               global hosts, and the routed content aperture.
+  description: renders the application layout, global hosts, header, and routed content and handles route-level effects.
 */
 
 import { lazy, Suspense, useCallback, useEffect, useLayoutEffect as useLytFfct, useMemo, useRef, useState } from 'react'
 import { Outlet, useLocation } from 'react-router-dom'
 import { useSimulationSurface } from '@/modules/simulation/api/route'
-import { RosterHeld } from '@/modules/simulation/api/rosterHeld'
+import { RosterLoadingPlaceholder } from '@/modules/simulation/api/rosterPlaceholder'
 import { ChromeHeader } from '@/app/shell/ChromeHeader'
 import { AppTools } from '@/app/shell/AppTools'
 import { ChromeToolsProv } from '@/application/ui/toolsPort'
@@ -35,7 +34,7 @@ const CHNGTSTSTORE = 'seen-changelog-version'
 const RosterColumn = lazy(async () => ({ default: (await import('@/modules/simulation/api/roster')).RosterColumn }))
 let chngTstShwn = false
 
-// Preserve the canonical simulation-route ordering used by chrome navigation.
+// preserve the canonical simulation-route ordering used by chrome navigation.
 const SIMULATION_ROUTE_IDS: SimulationPageId[] = SIMULATION_PAGES.map((page) => page.id)
 
 export function AppLayout() {
@@ -56,14 +55,14 @@ function AppLayoutContent() {
 
   const { updateToast, shellClassName } = useShellTheme()
 
-  // Scroll restoration belongs to the routed aperture rather than the persistent shell.
-  const aperture = useRef<HTMLElement | null>(null)
-  useMainScroll(aperture)
+  // the routed content area handles scroll restoration.
+  const scrollContainer = useRef<HTMLElement | null>(null)
+  useMainScroll(scrollContainer)
 
-  /* Pages mount below the header but can replace its stamp action. Wrap the
-     callback so React never interprets registration as a functional update. */
+  /* pages mount below the header but can replace its stamp action. wrap the
+     callback so react never interprets registration as a functional update. */
   const [stamp, holdStamp] = useState<{ run: () => void } | null>(null)
-  // Toast clicks can happen after navigation, so resolve the route action at click time.
+  // toast clicks can happen after navigation, so resolve the route action at click time.
   const stampAction = useRef<(() => void) | null>(null)
   const [toolsPort, setToolsPort] = useState<HTMLElement | null>(null)
   const setStamp = useCallback(
@@ -117,7 +116,7 @@ function AppLayoutContent() {
     SIMULATION_ROUTE_IDS.find((page) => isSimulationSurfaceRoute(location.pathname, page)) ?? null
   ), [location.pathname])
 
-  // Temporary legacy tools still belong to the Simulation route family.
+  // temporary legacy tools still belong to the simulation route family.
   const simulating = isSimulation
 
   const rtCtxMenuTms = useMemo(
@@ -178,7 +177,7 @@ function AppLayoutContent() {
     return (
       <ContextTrigger asChild ariaLabel="App actions" location="app.background" touchLongPress={false}>
       <div className={`${shellClassName} mshell`}>
-        <main className="mshell-main" ref={aperture}>
+        <main className="mshell-main" ref={scrollContainer}>
           <Outlet context={{ setStamp } satisfies ChromeIndexCtx} />
         </main>
         <GlobalHosts simulating={false} />
@@ -207,10 +206,10 @@ function AppLayoutContent() {
                 onPort={setToolsPort}
               />
 
-              {/* Keep the roster outside Outlet so route changes do not remount it. */}
-              {rosterUp ? <Suspense fallback={<RosterHeld />}><RosterColumn /></Suspense> : null}
+              {/* the roster stays mounted outside outlet across route changes. */}
+              {rosterUp ? <Suspense fallback={<RosterLoadingPlaceholder />}><RosterColumn /></Suspense> : null}
 
-              <main className="main-content" ref={aperture}>
+              <main className="main-content" ref={scrollContainer}>
                 <Outlet context={{ setStamp } satisfies ChromeIndexCtx} />
               </main>
             </div>

@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Projects rotation contribution and upgrade-path evaluation details from a completed report.
+  description: projects rotation contribution and upgrade-path evaluation details from a completed report.
 */
 
 import { useEffect, useMemo, useRef, useState } from 'react'
@@ -50,9 +50,8 @@ function gradeAt(score: number): { at: number; label: string; color: string } {
 }
 
 /*
-  The window is the run of whole grades the paths and the build touch, so the
-  band is cut at grade boundaries rather than at arbitrary numbers and every
-  section of it is a grade the reader already knows from the score band.
+  the window spans whole grades touched by the paths and build. divide the
+  band at grade boundaries that match the score band.
 */
 function ladderWindow(points: number[]): [number, number] {
   const low = Math.min(...points)
@@ -78,11 +77,10 @@ function windowScale(lo: number, hi: number): string {
 }
 
 /*
-  A pointer crossing the list on its way somewhere else is not a reading. Every
-  aim, arriving or leaving, waits out the same dwell, so scrolling the column
-  under the cursor never sets the wheel or the band running, and sliding from
-  one row to its neighbour reads as one move rather than a flicker through
-  nothing.
+  a pointer crossing the list on its way somewhere else is not a reading. every
+  aim, arriving or leaving, waits out the same dwell. scrolling under the
+  cursor leaves the wheel and band still; adjacent row changes animate as one
+  continuous move.
 */
 const DWELL_MS = 150
 
@@ -108,7 +106,7 @@ function useDwell<T>(): [T | null, (next: T | null) => void] {
 /* ---------- the wheel's segments ---------- */
 
 /*
-  Two rings on one dial. Each arc is a dashed circle: one visible run the
+  two rings on one dial. each arc is a dashed circle: one visible run the
   length of its share, then a gap the length of everything else, wound back to
   where the arcs before it left off.
 */
@@ -183,8 +181,8 @@ export function EvaluationAside({
   const build = report.evaluation.builds[buildKey] ?? report.evaluation.builds.active
 
   /*
-    The features are grouped by node so the inner ring's arcs are contiguous,
-    which is what lets one drawing carry both cuts. Within a node they keep the
+    the features are grouped by node so the inner ring's arcs are contiguous,
+    which is what lets one drawing carry both cuts. within a node they keep the
     report's own order, which is damage first.
   */
   const wheel = useMemo(() => {
@@ -262,9 +260,9 @@ export function EvaluationAside({
     const at = (value: number) => ((value - lo) / (hi - lo)) * 100
 
     /*
-      Two paths can land a point apart, and their marks would then print over
-      each other. Each mark takes the first lane that has room for it, so a
-      crowded stretch steps down instead of overlapping.
+      two paths can land a point apart, and their marks would then print over
+      each other. each mark takes the first lane that has room for it, so a
+      crowded stretch steps down into the next available lane.
     */
     const taken: number[] = []
     const lanes = paths.map((group) => {

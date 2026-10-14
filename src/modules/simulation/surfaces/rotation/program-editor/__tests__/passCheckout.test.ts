@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Verifies pass checkout logic and compatibility invariants.
+  description: verifies pass checkout logic and compatibility invariants.
 */
 
 import { describe, expect, it } from 'vitest'
@@ -77,7 +77,7 @@ describe('pass checkout', () => {
     expect(block.children.map((node) => node.id)).toEqual(['a', 'b'])
 
     block = checkoutLoopBlock(block, 3)
-    // pass 3 has no body of its own, so it starts from the last run
+    // pass 3 begins with the last run's body.
     expect(block.children.map((node) => node.id)).toEqual(['a'])
     block = checkinLoopBlock(block)
     expect(block.passForks?.[3]).toBeUndefined()
@@ -142,7 +142,7 @@ describe('pass checkout', () => {
       .toEqual(['a'])
   })
 
-  it('carries a first-run edit into later unforked passes', () => {
+  it('applies a first-run edit to later unforked passes', () => {
     // passTemplate must be captured before the delete, even if the user never
     // left run 1 — otherwise the only body is wiped for every pass.
     const tree = sections(loop([step('a'), step('b'), step('c')]))
@@ -160,7 +160,7 @@ describe('pass checkout', () => {
       .toEqual(['a', 'c'])
   })
 
-  it('forks a pass when only an owned note differs', () => {
+  it('forks a pass when only an attached note differs', () => {
     let block = checkoutLoopBlock(loop([step('a')]), 2)
     const child = block.children[0]
     if (!child || child.type !== 'step') {

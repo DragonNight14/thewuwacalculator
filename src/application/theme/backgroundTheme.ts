@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Resolves persisted wallpaper references and applies their derived document theme variables.
+  description: resolves persisted wallpaper references and applies their derived document theme variables.
 */
 
 import { loadMgBlob, saveMgBlob } from '@/application/media/blobImageStore'
@@ -174,13 +174,13 @@ export function isUploadedBgKey(key: string): boolean {
   return key.startsWith('upload:')
 }
 
-// Hosted/inline image keys: the key IS the image url (an imgbb link, or a data
-// url on localhost). These persist as a short string and need no blob store.
+// hosted/inline image keys: the key is the image url (an imgbb link, or a data
+// url on localhost). these persist as a short string and need no blob store.
 export function isUrlBgKey(key: string): boolean {
   return key.startsWith('http') || key.startsWith('data:')
 }
 
-// Either an IndexedDB-backed upload or a hosted-url upload (vs a bundled preset).
+// either an IndexedDB-backed upload or a hosted-url upload (vs a bundled preset).
 export function isCustomBgKey(key: string): boolean {
   return isUploadedBgKey(key) || isUrlBgKey(key)
 }
@@ -231,9 +231,8 @@ export function applyBgToDocument(url: string) {
   }
 
   const root = document.documentElement
-  // The wallpaper is painted by the .app-wallpaper layer in the shell (which
-  // reads this variable) so it can be blurred independently. We deliberately do not set
-  // background-image on the root itself, or a sharp copy would show through.
+  // the shell's .app-wallpaper layer reads this variable and applies the blur.
+  // a background image on the root would show through as a sharp copy.
   root.style.setProperty('--background-wallpaper-image', `url("${url}")`)
 }
 

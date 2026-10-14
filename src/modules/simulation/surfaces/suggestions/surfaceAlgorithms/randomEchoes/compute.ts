@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Samples random Echo loadouts, evaluates their objective damage,
+  description: samples random echo loadouts, evaluates their objective damage,
                and retains the strongest unique results.
 */
 

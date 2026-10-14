@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Verifies the readNode.test behavior and its compatibility invariants.
+  description: verifies the readNode.test behavior and its compatibility invariants.
 */
 
 import { describe, expect, it } from 'vitest'

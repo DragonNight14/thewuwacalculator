@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Defines inventory storage entities and helper utilities for
+  description: defines inventory storage entities and helper utilities for
                cloning, comparing, and creating saved echoes, builds, and rotations.
 */
 
@@ -37,7 +37,7 @@ export interface SavedRotation {
   name: string
   duration: number
   note: string
-  /** Exact, immutable authored combat state represented by this saved run. */
+  /** exact, immutable authored combat state represented by this saved run. */
   scenario: CombatScenario
   migration?: {
     source: 'advanced-sequence'
@@ -51,7 +51,7 @@ export interface SavedScenario {
   id: string
   name: string
   note: string
-  /** Exact immutable combat-state snapshot; its live identity is remapped on load. */
+  /** exact immutable combat-state snapshot; its live identity is remapped on load. */
   scenario: CombatScenario
   createdAt: number
   updatedAt: number
@@ -236,7 +236,7 @@ export interface SaveEchoResult {
   nextEchoes: Array<EchoInstance | null> | null
 }
 
-/** Save selected slots and replace local entries when inventory assigns new identity. */
+/** save selected slots and replace local entries when inventory assigns new identity. */
 export function saveEchoSlots(
   echoes: Array<EchoInstance | null>,
   slotIndexes: readonly number[],

@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: encodes optimizer echo rows and builds per-echo main-echo
+  description: encodes optimizer echo rows and builds per-echo main-echo
                bonus rows by evaluating echo runtime effects against either
                a selected target skill or a generic skill-type/element map.
 */
@@ -44,9 +44,9 @@ type MainStatVctr = Float32Array
 // these are not full stat vectors. they only represent the subset of bonuses
 // that can come specifically from choosing an echo as the active main echo.
 //
-// IMPORTANT: the row width is the shared MAIN_BUFF_LEN, but this offset layout
+// important: the row width is the shared MAIN_BUFF_LEN, but this offset layout
 // is mirrored in target/cpu.ts, target/evaluate.ts, compiler/theory.ts, and the
-// WGSL shaders' BUFFS_PER_ECHO. any new slot here has to be added in all of them
+// wgsl shaders' BUFFS_PER_ECHO. any new slot here has to be added in all of them
 // in lock-step.
 const MAIN_ATK_PCT = 0
 const MAINATKFLAT = 1
@@ -64,8 +64,8 @@ const MAIN_ER = 12
 const MAIN_ECHO_SKILL = 13
 const MAIN_COORD = 14
 // slots 15-17 carry top_stat contributions: cr/cd from echoes like 6000201
-// (Adam Smasher's Lucy/Rebecca passive) and a generic dmgBonus pool from echoes
-// like 390080005 (Bell-Borne Geochelone Shielded).
+// (adam smasher's Lucy/Rebecca passive) and a generic dmgBonus pool from echoes
+// like 390080005 (bell-borne geochelone shielded).
 const MAIN_CR = 15
 const MAIN_CD = 16
 const MAIN_DMG_BNS = 17
@@ -196,7 +196,7 @@ export function addEchoStat(vector: Float32Array, statKey: string, value: number
       vector[STAT_ELECTRO] += value
       return
     default:
-      // ignore unsupported stats instead of throwing
+      // unsupported stats are skipped during encoding.
       return
   }
 }
@@ -277,9 +277,8 @@ function addMainOp(
     return
   }
 
-  // every top-stat contribution that has a slot in the main-buff vector lands
-  // here, including cr/cd (e.g. 6000201's +15% crit rate) and the generic
-  // dmgBonus pool (e.g. 390080005's conditional dmg bonus), not just energyRegen.
+  // apply every supported top stat to the main buff vector, including cr/cd,
+  // dmgBonus, and energyRegen.
   if (operation.type === 'add_top_stat') {
     if (operation.stat === 'energyRegen') {
       vector[MAIN_ER] += value

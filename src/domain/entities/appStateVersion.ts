@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Defines the persisted application-state version shared by
+  description: defines the persisted application-state version shared by
                defaults, storage keys, validation, and migrations.
 */
 

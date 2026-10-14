@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: checks generated game-data catalogs for cross-file references
+  description: checks generated game-data catalogs for cross-file references
                that would otherwise fail only at runtime after ingestion changes.
 */
 
@@ -50,9 +50,9 @@ describe('game-data catalog invariants', () => {
     }
   })
 
-  it('keeps canonical Echo ids instead of same-name combat aliases', () => {
-    // The upstream Encore index exposes PhantomType 2 combat records before
-    // these real Echoes. Keeping the aliases drops the authored multiplier and
+  it('keeps canonical Echo ids for same-name combat records', () => {
+    // the upstream encore index exposes PhantomType 2 combat records before
+    // these real echoes. keeping the aliases drops the authored multiplier and
     // behavior packages keyed by the canonical ids.
     const catalogIds = new Set(listEchoes().map((echo) => echo.id))
     const sourceIds = new Set(listSources('echo').map((source) => source.id))

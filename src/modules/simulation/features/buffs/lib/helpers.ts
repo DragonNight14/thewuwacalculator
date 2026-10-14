@@ -1,7 +1,7 @@
 /*
   Author: Runor Ewhro
-  Description: builds manual-buff editor labels, defaults, and normalization
-               helpers used by Simulation buff controls.
+  description: builds manual-buff editor labels, defaults, and normalization
+               helpers used by simulation buff controls.
 */
 
 import type { ManualBuffs, MnlMod } from '@/domain/entities/manualBuffs.ts'

@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Shared drag payload contracts and drag-image construction for
+  description: shared drag payload contracts and drag-image construction for
                the rotation editor palette and node list.
 */
 
@@ -9,8 +9,8 @@ import type { PaletteSpec } from '@/modules/simulation/surfaces/rotation/program
 export const PALETTE_MIME = 'application/x-rte-palette'
 
 /*
-  DataTransfer payloads are unreadable until drop, but `types` can be read
-  during dragover. The kind is duplicated as a bare type so restricted targets
+  drag payloads are unreadable until drop, but `types` can be read
+  during dragover. the kind is duplicated as a bare type so restricted targets
   can reject incompatible palette entries before drop.
 */
 export const KIND_MIME: Record<PaletteSpec['kind'], string> = {
@@ -18,7 +18,7 @@ export const KIND_MIME: Record<PaletteSpec['kind'], string> = {
   condition: 'application/x-rte-kind-condition',
 }
 
-/** An extent drag moves where a block ends; nothing is picked up. */
+/** an extent drag moves where a block ends; nothing is picked up. */
 export const EXTENT_MIME = 'application/x-rte-extent'
 
 export function buildGhostPill(

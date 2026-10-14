@@ -1,7 +1,7 @@
 /*
   Author: Runor Ewhro
-  Description: Builds an echo loadout from explicit quick setup controls:
-               echo count, slot costs/main stats, Sonata plan, main echo,
+  description: builds an echo loadout from explicit quick setup controls:
+               echo count, slot costs/main stats, sonata plan, main echo,
                and repeated substat templates.
 */
 

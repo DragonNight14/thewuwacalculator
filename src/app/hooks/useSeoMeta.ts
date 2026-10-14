@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Synchronizes route-specific SEO metadata for the client-routed
+  description: synchronizes route-specific seo metadata for the client-routed
                app shell.
 */
 

@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Applies immutable insert, move, remove, attach, and resize operations to rotation trees.
+  description: applies immutable insert, move, remove, attach, and resize operations to rotation trees.
 */
 
 import type { RotationNode } from '@/domain/gameData/contracts.ts'
@@ -164,7 +164,7 @@ function makeContainer(
   return block
 }
 
-/** Build an empty authored container with the same defaults as wrapping rows. */
+/** build an empty authored container with the same defaults as wrapping rows. */
 export function makeEmptyContainer(
   sections: EditorSection[],
   type: AuthoredBlockType,
@@ -181,7 +181,7 @@ export function makeEmptyContainer(
   )
 }
 
-/** Add the optional full-strength setup branch to a canonical block. */
+/** add the optional full-strength setup branch to a canonical block. */
 export function addBlockSetup(sections: EditorSection[], id: string): EditorSection[] {
   return mapNode(sections, id, (node) => {
     if (!isBlock(node) || (node.type !== 'repeat' && node.type !== 'uptime')) return node
@@ -192,11 +192,10 @@ export function addBlockSetup(sections: EditorSection[], id: string): EditorSect
 }
 
 /**
- * Take the setup branch off a block again.
+ * take the setup branch off a block again.
  *
- * Whatever was authored into the window is kept: those entries move to the top
- * of the body rather than leaving with the branch, so taking the window away is
- * never a way to lose work by accident.
+ * preserve authored window entries at the top of the body when removing the
+ * window.
  */
 export function removeBlockSetup(sections: EditorSection[], id: string): EditorSection[] {
   return mapNode(sections, id, (node) => {
@@ -213,7 +212,7 @@ export function removeBlockSetup(sections: EditorSection[], id: string): EditorS
 }
 
 /**
- * Rebuild every children list in the tree through `fn`. Lists that come back
+ * rebuild every children list in the tree through `fn`. lists that come back
  * unchanged keep their original array, so an edit deep in one loop does not
  * invalidate the sections around it.
  */
@@ -267,7 +266,7 @@ function markNoteFieldEdits(previous: EditorNote, next: EditorNote): EditorNote 
   }
 }
 
-/** rebuild a single node in place, wherever it sits */
+/** update a node without changing its position */
 export function mapNode(
   sections: EditorSection[],
   id: string,
@@ -330,7 +329,7 @@ export function mapLoopBlocks(
   })
 }
 
-/** Remove a loop's markers while leaving its checked-out body in document order. */
+/** remove a loop's markers while leaving its checked-out body in document order. */
 export function unwrapLoop(
   sections: EditorSection[],
   loopId: string,
@@ -460,7 +459,7 @@ export function isNodeEffectivelyDisabled(
   return false
 }
 
-/* Checked-out loop bodies are the authored pass, so edits always write the node. */
+/* edits to checked-out loop bodies write the authored pass node. */
 export function setStepMultiplier(
   sections: EditorSection[],
   id: string,
@@ -490,9 +489,9 @@ function stepsInOrder(nodes: readonly EditorNode[], out: EditorStep[] = []): Edi
 }
 
 /**
- * Whether this step can carry the resume mark, and whether it does.
+ * whether this step can carry the resume mark, and whether it does.
  *
- * Only the features standing after a Tune Break can: before the first break
+ * only the features standing after a tune break can: before the first break
  * of a run there is nothing to start counting again from.
  */
 export function offTuneResumeScope(
@@ -509,10 +508,10 @@ export function offTuneResumeScope(
 }
 
 /*
-  Where Off-Tune starts counting again after a Tune Break.
+  where off-tune starts counting again after a tune break.
 
-  Only one feature can hold that in a break's aftermath, so marking one clears
-  the mark from every other step standing between the same two breaks. A break
+  only one feature can hold that in a break's aftermath, so marking one clears
+  the mark from every other step standing between the same two breaks. a break
   left without a mark falls back to holding its default count.
 */
 export function setOffTuneResume(
@@ -576,7 +575,7 @@ export function setHandoffTo(
   })
 }
 
-/* A checked-out pass owns the node being edited; no run overlay is authored. */
+/* a checked-out pass contains the node being edited; no run overlay is authored. */
 export function setCondValue(
   sections: EditorSection[],
   id: string,
@@ -688,7 +687,7 @@ export function setBlockUptime(
   ))
 }
 
-/** Switch repeat/uptime implementations while retaining only frame metadata and body. */
+/** switch repeat/uptime implementations while retaining only frame metadata and body. */
 export function reinitializeBlock(
   sections: EditorSection[],
   id: string,
@@ -753,8 +752,8 @@ export function removeNode(sections: EditorSection[], id: string): EditorSection
 }
 
 /**
- * Remove several editor nodes with the same semantics as deleting them one at
- * a time. A loop is represented by markers, so deleting it unwraps its body;
+ * remove several editor nodes with the same semantics as deleting them one at
+ * a time. a loop is represented by markers, so deleting it unwraps its body;
  * repeat and uptime blocks own their children and are removed with them.
  */
 export function removeNodes(
@@ -778,9 +777,9 @@ export function removeNodes(
 }
 
 /**
- * Whether a node can be lifted out of the tree whole. A loop drawn in segments
- * holds part of its body in each, and the segments are not in body order, so
- * lifting one out would reorder the loop rather than copy it.
+ * whether a node can be lifted out of the tree whole. a loop drawn in segments
+ * stores part of its body in each. segments are not in body order; lifting one
+ * would reorder the loop.
  */
 export function canLiftNode(node: EditorNode): boolean {
   return !(
@@ -793,8 +792,8 @@ export function canLiftNode(node: EditorNode): boolean {
 }
 
 /**
- * The nodes an operation on a set of ids acts on, in tree order. A node inside
- * an already-collected block is skipped: the block carries its own children, so
+ * the nodes an operation on a set of ids acts on, in tree order. a node inside
+ * an already-collected block is skipped: the block already includes its children, so
  * collecting both would act on the same node twice.
  */
 export function collectSubtrees(
@@ -824,8 +823,8 @@ export function collectSubtrees(
 }
 
 /**
- * Remove nodes with their children, which is what taking them away leaves
- * behind. This is not `removeNodes`: deleting a loop unwraps it and keeps the
+ * remove nodes with their children, which is what taking them away leaves
+ * behind. this is not `removeNodes`: deleting a loop unwraps it and keeps the
  * body, while cutting one takes the body with it.
  */
 export function removeSubtrees(
@@ -859,15 +858,14 @@ export function replaceNodeWith(
 }
 
 /**
- * Copy a node, and everything under it, as something new.
+ * copy a node, and everything under it, as something new.
  *
- * A loop is more than its rows: it is an identity that its own markers, the
- * rules that name it, and the interpreter's own bookkeeping all point at. A
- * copy that kept that identity would be the same loop written twice, which
- * reads as one loop closing before it opens, so the copy takes a new one and
- * everything inside it that named the original is pointed at the copy.
+ * a loop is more than its rows: it is an identity that its own markers, the
+ * rules that name it, and the interpreter's own bookkeeping all point at. a
+ * copy needs a fresh identity and remapped internal references. reusing the
+ * original id would make two loops read as one crossing sequence.
  *
- * The markers it was projected from are dropped with it. They belong to the
+ * the markers it was projected from are dropped with it. they belong to the
  * loop that was copied, and the copy states itself from its own fields.
  */
 export function cloneNode<T extends EditorNode>(node: T): T {
@@ -930,9 +928,8 @@ export function cloneNode<T extends EditorNode>(node: T): T {
     delete next.sourceNode
     delete next.sourceEndNode
     /*
-      a copy is one whole loop wherever it came from, so it never arrives as a
-      piece of one: the piece it was copied from was a drawing of a loop whose
-      markers stood apart, and these markers stand together.
+      a copied loop is whole. segment drawings can separate its source markers;
+      copied markers are placed together.
     */
     delete next.wrap
     delete next.wrapOf
@@ -956,7 +953,7 @@ export function makeNote(
   }
 }
 
-/** Build a newly authored note with the next available label and colour. */
+/** build a newly authored note with the next available label and colour. */
 export function makeEmptyNote(sections: readonly EditorSection[]): EditorNote {
   const notes = authoredNotes(sections)
   return makeNote('', {
@@ -965,7 +962,7 @@ export function makeEmptyNote(sections: readonly EditorSection[]): EditorNote {
   })
 }
 
-/** Attach one note to a logical node. An occupied host is left unchanged. */
+/** attach one note to a logical node. an occupied host is left unchanged. */
 export function attachNote(
   sections: EditorSection[],
   hostId: string,
@@ -978,7 +975,7 @@ export function attachNote(
   ))
 }
 
-/** Remove an owned note without removing its host from the rotation. */
+/** remove a node's note without removing the node. */
 export function detachNote(
   sections: EditorSection[],
   hostId: string,
@@ -994,11 +991,11 @@ export function detachNote(
 }
 
 /**
- * Duplicate every named node, each copy standing directly after the node it
- * was copied from. It takes as many as you name, so one row and a whole
+ * duplicate every named node, each copy standing directly after the node it
+ * was copied from. it takes as many as you name, so one row and a whole
  * selection are the same call.
  *
- * A node that stands for a loop drawn in pieces is left alone: a piece is not
+ * a node that stands for a loop drawn in pieces is left alone: a piece is not
  * a loop, and copying one would make a marker with nothing to pair with.
  */
 export function duplicateNodes(
@@ -1020,9 +1017,8 @@ export function duplicateNodes(
 }
 
 /**
- * Drop a new node in after `afterId`. With nothing selected, or a selection
- * that is no longer in the tree, it lands at the end of `fallbackSectionId` so
- * the palette always has somewhere to add to.
+ * insert a node after `afterId`, or at the end of `fallbackSectionId` when
+ * the selection is absent or invalid.
  */
 export function insertNode(
   sections: EditorSection[],
@@ -1047,9 +1043,8 @@ export function updateStep(
 }
 
 /*
-  hang a feature off another. the child is an ordinary step and keeps its own
-  id, so it resolves its own rows on the next run; the parent only records that
-  its attachments were authored here rather than read off the source node.
+  attach a feature as a child step with its own id and future result rows.
+  the parent records the locally authored attachment.
 */
 export function attachFeature(
   sections: EditorSection[],
@@ -1103,8 +1098,8 @@ export function detachFeature(
 }
 
 /**
- * Swap a step for a neighbouring skill. Its damage no longer describes what it
- * is, so it goes back to unrun until the next run fills it in.
+ * swap a step for a neighbouring skill and clear its stale damage until the
+ * next run.
  */
 export function replaceFeature(
   sections: EditorSection[],
@@ -1150,7 +1145,7 @@ function makeWrappedBlock(
 }
 
 /**
- * Wrap each contiguous sibling group in the selection. A selected parent
+ * wrap each contiguous sibling group in the selection. a selected parent
  * represents its descendants, so traversal does not also transform selected
  * children inside that parent.
  */
@@ -1163,7 +1158,7 @@ export function wrapNodes(
     return sections
   }
 
-  // Same rule as the pane: setup-branch nodes cannot be wrapped.
+  // same rule as the pane: setup-branch nodes cannot be wrapped.
   const setupWrappableIds = wrappableNodeIds(
     ids,
     (nodeId) => isInsideSetup(sections, nodeId),
@@ -1287,8 +1282,8 @@ function appendToSection(
 }
 
 /**
- * Put a node at the end of whatever holds it: a section, or a block that is
- * currently empty. A block with nothing in it has no row to drop beside, so
+ * put a node at the end of its parent container: a section, or a block that is
+ * currently empty. a block with nothing in it has no row to drop beside, so
  * this is the only way into one.
  */
 export function appendInto(
@@ -1304,7 +1299,7 @@ export function appendInto(
     if (!isBlock(target)) {
       return target
     }
-    // Setup executes conditions only; notes may sit there because they do not execute.
+    // setup executes conditions only; notes may sit there because they do not execute.
     if (target.type === 'setup' && node.type !== 'condition' && node.type !== 'note') {
       return target
     }
@@ -1323,7 +1318,7 @@ export function moveInto(
     return moveToSection(sections, id, containerId)
   }
 
-  // a block cannot be put inside itself, nor inside anything it holds
+  // a block cannot be put inside itself, nor inside any descendant
   if (id === containerId || isWithin(sections, id, containerId)) {
     return sections
   }
@@ -1396,7 +1391,7 @@ function moveToSection(
 
 export type DropEdge = 'before' | 'after'
 
-/** true when `id` is `ancestorId` or sits somewhere inside it */
+/** true when `id` equals `ancestorId` or is a descendant */
 function isWithin(sections: EditorSection[], ancestorId: string, id: string): boolean {
   if (ancestorId === id) {
     return true
@@ -1605,9 +1600,8 @@ function insertLoopEndAfterStart(
 }
 
 /*
-  where the end of a loop that has none sits: on the start. the body runs from
-  the marker to the foot of the list, round to the top, and back to the marker,
-  so the row it stops at is the one standing just above it.
+  a loop without an end marker wraps from the start marker through the list
+  and stops at the preceding row.
 */
 function insertLoopEndBeforeStart(
   entries: LoopExtentEntry[],
@@ -1834,11 +1828,9 @@ function setLoopExtent(
 
   const loopId = block.loopId ?? block.id
   /*
-    the loop's other segments are drawn on the page but they are not in the
-    list the markers are placed in: the extent is one start and one end over
-    the rows themselves. released on a segment of this same loop, the end goes
-    where that segment stops, which is the last row it holds. a segment holding
-    no rows is only the marker showing, so there is nothing there to close on.
+    loop segments may be outside the marker list. dropping on another segment
+    of the same loop places the end after that segment's last row; an empty
+    segment has no valid row for the end marker.
   */
   const target = findNode(sections, targetId)
   const targetSegment = target
@@ -1895,18 +1887,18 @@ function materializeLoopExtent(
     children: materializeLoopExtentList(entryLists[index], template, state),
   }))
 
-  // A wrap loop remains active after its start because its end was already
-  // encountered at the top of the authored order. That state is local to this
+  // a wrap loop remains active after its start because its end was already
+  // encountered at the top of the authored order. that state is local to this
   // materialization pass, not a scope that leaks into another edit.
   state.active = false
   return next
 }
 
 /**
- * Take a loop's end away, so it runs on round to its own start again.
+ * remove a loop's end marker and wrap execution to its start.
  *
- * The end does not simply vanish: a loop that has none still stops somewhere,
- * and where it stops is the row above its own start. So the end is moved
+ * the end does not simply vanish: a loop that has none still stops somewhere,
+ * and where it stops is the row above its own start. so the end is moved
  * there, which is where the page already draws it, and the loop is marked as
  * written without one so nothing writes the marker back out.
  */
@@ -1963,14 +1955,14 @@ function findLoopStartSegment(
 }
 
 /**
- * Move a block's closing edge to end at `targetId`, which is what dragging the
- * bracket's bottom does. Dragged down over a following sibling the block takes
+ * move a block's closing edge to end at `targetId`, which is what dragging the
+ * bracket's bottom does. dragged down over a following sibling the block takes
  * everything down to it; dragged up over one of its own rows the rest spill out
- * below it; dragged onto the head the block gives everything up. Repeat and
- * uptime blocks cannot end before their heads. Loop edges are independent
- * markers, so their branch above handles wrap and cross-container targets.
+ * below it; dragged onto the head the block gives everything up. repeat and
+ * uptime blocks cannot end before their heads. the independent loop-edge
+ * branch above handles wrap and cross-container targets.
  *
- * A loop with no end marker is drawn as two segments of one loop. Giving it an
+ * a loop with no end marker is drawn as two segments of one loop. giving it an
  * end is exactly what this gesture does, so the segments collapse back into one
  * ordinary block and the rows that were only in it by wrapping are let go.
  */
@@ -2030,9 +2022,8 @@ export function setBlockExtent(
     ]
 
     /*
-      an uptime's setup branch is part of the block rather than something it
-      holds: it opens the window the rest of the block runs in. it never leaves
-      and it is never where the block ends, so the edge passes over it.
+      an uptime setup branch opens the block's window. it stays with the block,
+      and the block edge passes over it.
     */
     const isSetupBranch = (node: EditorNode) => isBlock(node) && node.type === 'setup'
     const pinned = block.children.filter(isSetupBranch)
@@ -2070,7 +2061,7 @@ export function setBlockExtent(
   })
 }
 
-/** set a node down on one side of another, wherever that other one lives */
+/** set a node down on one side of another, regardless of its parent */
 export function insertBeside(
   sections: EditorSection[],
   node: EditorNode,
@@ -2097,8 +2088,8 @@ export function insertBeside(
 }
 
 /**
- * Pick a node up and set it down beside another one. Dropping beside a node
- * that lives inside a loop moves it into that loop, which is how a node
+ * pick a node up and set it down beside another one. dropping beside a node
+ * inside a loop moves it into that loop, which is how a node
  * changes parent without a separate reparent gesture.
  */
 export function relocateNode(
@@ -2122,8 +2113,8 @@ export function relocateNode(
 }
 
 /**
- * Every node a selection would carry, including the rows sitting inside a
- * picked block. None of them can be the place the set is set down.
+ * every node a selection would carry, including the rows sitting inside a
+ * picked block. none of them can be the place the set is set down.
  */
 export function collectHeldIds(
   sections: EditorSection[],
@@ -2143,10 +2134,9 @@ export function collectHeldIds(
 }
 
 /**
- * Move a whole selection to one place, in the order the list reads rather than
- * the order the rows were picked.
+ * move a whole selection to one place in list order.
  *
- * Rows that were never neighbours become neighbours, which is a real edit to
+ * rows that were never neighbours become neighbours, which is a real edit to
  * the program and not a tidy-up: the caller is expected to have said so before
  * this runs.
  */
@@ -2183,8 +2173,7 @@ export function relocateNodes(
     return sections
   }
 
-  // the first lands beside the target, and each one after it follows the last,
-  // so the set arrives reading the way it read before
+  // insert each node after the previous one to preserve their order.
   let anchor = targetId
   let anchorEdge = edge
   for (const node of moving) {
@@ -2229,7 +2218,7 @@ export function isUnrun(node: EditorNode): boolean {
   return node.type === 'step' && Object.keys(node.damageByRun).length === 0
 }
 
-/** a step built from a palette entry, owned by whoever holds the field */
+/** step from a palette entry for the selected participant */
 export function makeStep(label: string, memberId: MemberId): EditorStep {
   return {
     type: 'step',

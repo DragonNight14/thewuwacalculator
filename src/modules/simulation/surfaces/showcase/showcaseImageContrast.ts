@@ -1,10 +1,8 @@
 /*
   Author: Runor Ewhro
-  Description: Resolves readable light or dark ink for showcase text that sits
-               directly on the card artwork. The backdrop is rendered at a small
-               analysis resolution using its live CSS framing, then sampled only
-               beneath the exposed labels so unrelated parts of the image cannot
-               skew their contrast.
+  description: chooses light or dark text for showcase labels over card artwork.
+               samples a small rendering of the current css backdrop beneath
+               exposed labels.
 */
 
 import { useEffect, useRef, useState, type RefObject } from 'react'
@@ -367,7 +365,7 @@ export function useShowcaseImageContrast(cardRef: RefObject<HTMLElement | null>,
       for (const old of observed) if (!next.has(old)) { resize.unobserve(old); observed.delete(old) }
       for (const node of next) if (!observed.has(node)) { resize.observe(node); observed.add(node) }
     }
-    // Only target insertion/removal needs a subtree observer. Geometry/signature
+    // only target insertion/removal needs a subtree observer. Geometry/signature
     // checks prevent unrelated score changes from decoding or sampling artwork.
     targets.observe(card, { childList: true, subtree: true })
     card.addEventListener('showcase:typography', schedule)

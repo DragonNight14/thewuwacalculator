@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Manages the optimizer worker pool, dispatches GPU/CPU jobs,
+  description: manages the optimizer worker pool, dispatches GPU/CPU jobs,
                tracks progress, handles cancellation, and merges partial
                search results into final optimizer output.
 */
@@ -75,7 +75,7 @@ function isBagRslt(result: OptRawResult): result is OptBagResult {
 }
 
 // drive the theory orchestrator without a producer worker. used only in
-// environments where Worker is unavailable (e.g. vitest in plain Node).
+// environments where worker is unavailable (e.g. vitest in plain node).
 async function runThryBtcInP(
     payload: PrepTheoryTarget | PrepTheoryRot,
     execution: PckdOptXctnP,
@@ -219,13 +219,13 @@ async function runThryBtcWr(
       }
 
   // detaches this run's listeners from the warm producer workers; set once the
-  // producer path wires them up. invoked in finally so the shared workers are
+  // producer path configures them. invoked in finally so the shared workers are
   // left clean regardless of how the run exits.
   let detachProducer: (() => void) | null = null
   let wakeRun: (() => void) | null = null
   const pendingBatches = new Set<Promise<void>>()
 
-  // Each producer holds one batch credit; all producers fit the byte budget.
+  // each producer has one batch credit; all producers fit the byte budget.
   const { producers: producerCount } = theoryBufferPlan(effBatch,
     useGpu && !lowMmryMode && totalCombos >= MIN_PAR_COMBOS ? Math.min(WORKER_COUNT.cpu, stmtJobs) : 1,
     lowMmryMode,
@@ -471,7 +471,7 @@ async function runThryBtcWr(
   return finalResults
 }
 
-// run a target-skill search on GPU workers using contiguous combo jobs
+// run a target-skill search on gpu workers using contiguous combo jobs
 async function runTgtSkllGp(
     payload: PrepTargetSkill,
     hooks: PoolRunHooks = {},
@@ -498,8 +498,8 @@ async function runTgtSkllGp(
   const collector = new OptResultSet(cllcLmt, payload.lowMmryMode)
   const jobResultLimit = resTgtGpuJob(effectResultMax, payload.lowMmryMode)
 
-  // gpu workers bootstrap lazily inside their first real task instead of
-  // blocking the whole run on a separate ready handshake.
+  // gpu workers bootstrap lazily inside their first real task. the run has
+  // no separate ready handshake.
   poolState.actRunCtx = {
     kind: 'gpu',
     mode: 'target',
@@ -535,7 +535,7 @@ async function runTgtSkllGp(
   return collector.sorted()
 }
 
-// run a rotation search on GPU workers using the same job model as target mode
+// run a rotation search on gpu workers using the same job model as target mode
 async function runRotGpuWit(
     payload: PrepRotRun,
     hooks: PoolRunHooks = {},
@@ -598,7 +598,7 @@ async function runRotGpuWit(
   return collector.sorted()
 }
 
-// run a target-skill search on CPU workers using explicit combo batches
+// run a target-skill search on cpu workers using explicit combo batches
 async function runTgtSkllCp(
     payload: PrepTargetSkill,
     hooks: PoolRunHooks = {},
@@ -691,7 +691,7 @@ async function runTgtSkllCp(
 
         inFlight.add(jobPromise)
 
-        // throttle in-flight work to avoid over-buffering huge runs
+        // limit in-flight work and the buffered jobs in large runs.
         if (inFlight.size >= maxInFlghJob) {
           await Promise.race(inFlight)
         }
@@ -713,7 +713,7 @@ async function runTgtSkllCp(
   return collector.sorted()
 }
 
-// run a rotation search on CPU workers using the same batch system as target mode
+// run a rotation search on cpu workers using the same batch system as target mode
 async function runRotCpuWit(
     payload: PrepRotRun,
     hooks: PoolRunHooks = {},

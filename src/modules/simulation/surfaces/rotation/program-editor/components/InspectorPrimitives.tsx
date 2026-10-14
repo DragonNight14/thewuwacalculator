@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Provides shared inspector controls, value rows, section framing, and node identity helpers.
+  description: provides shared inspector controls, value rows, section framing, and node identity helpers.
 */
 
 import { DisplayImage } from '@/shared/ui/DisplayImage'

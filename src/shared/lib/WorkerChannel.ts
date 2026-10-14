@@ -1,7 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Correlates requests with replies for one lazy worker and owns
-               idle teardown, failure propagation, and pending promises.
+  description: matches lazy worker requests with replies and manages pending work, errors, and idle teardown.
 */
 
 export class WorkerChannel<Request extends { id: number }, Response extends { id: number }> {
@@ -49,12 +48,12 @@ export class WorkerChannel<Request extends { id: number }, Response extends { id
     })
   }
 
-  /** Release an idle worker immediately without interrupting active requests. */
+  /** release an idle worker immediately without interrupting active requests. */
   disposeIfIdle(): void {
     if (!this.hasPending) this.dispose(new Error('Worker channel disposed'))
   }
 
-  /** Termination rejects every request because no further reply can arrive. */
+  /** termination rejects every request because no further reply can arrive. */
   dispose(reason: Error): void {
     this.clearIdleTimer()
     this.worker?.terminate()

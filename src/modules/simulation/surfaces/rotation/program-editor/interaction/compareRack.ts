@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Retains removed comparison ids for a bounded exit interval and
+  description: retains removed comparison ids for a bounded exit interval and
                returns a stable ordered projection of active and leaving ids.
 */
 
@@ -15,10 +15,10 @@ interface CompareMount {
 }
 
 /**
- * Active comparison ids plus recently removed ids retained for the exit delay.
+ * active comparison ids plus recently removed ids retained for the exit delay.
  */
 export function useCompareMount(ids: readonly string[]): CompareMount[] {
-  // Content identity prevents equal array instances from restarting retention.
+  // content identity prevents equal array instances from restarting retention.
   const key = ids.join('\u0000')
   const [held, setHeld] = useState({ key, ids: [...ids] })
   const [leaving, setLeaving] = useState<CompareMount[]>([])
@@ -36,7 +36,7 @@ export function useCompareMount(ids: readonly string[]): CompareMount[] {
     }
   }
 
-  // Removed ids expire together after the bounded retention interval.
+  // removed ids expire together after the bounded retention interval.
   useEffect(() => {
     if (leaving.length === 0) {
       return
@@ -46,7 +46,7 @@ export function useCompareMount(ids: readonly string[]): CompareMount[] {
     return () => window.clearTimeout(timer)
   }, [leaving])
 
-  // Memoize by content key so equal inputs preserve the projected array.
+  // memoize by content key so equal inputs preserve the projected array.
   return useMemo(() => [
     ...ids.map((id, index) => ({ id, index, leaving: false })),
     ...leaving.filter((entry) => !ids.includes(entry.id)),

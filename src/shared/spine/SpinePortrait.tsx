@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Manages Spine manifest fallback, resolution selection, playback,
+  description: manages spine manifest fallback, resolution selection, playback,
                and worker-backed rendering for reusable resonator portraits.
 */
 
@@ -14,10 +14,10 @@ import type { SpineVariant } from './spineManifest.ts'
 import { chooseSpineResolution } from './spineQuality.ts'
 
 export interface SpinePlacement {
-  /** Focal point in the intrinsic square canvas coordinate space. */
+  /** focal point in the intrinsic square canvas coordinate space. */
   x: number
   y: number
-  /** Canvas scale relative to the containing block. */
+  /** canvas scale relative to the containing block. */
   scale: number
 }
 
@@ -201,8 +201,8 @@ function SpineCanvas({
       if (cssSize <= 0) return
       const nextSize = chooseSpineResolution(cssSize)
       const currentSize = renderSizeRef.current
-      // Shrinking a live canvas requires a new OffscreenCanvas, worker, WebGL
-      // context, atlas decode, and texture upload. Keep the high-water bucket
+      // shrinking a live canvas requires a new OffscreenCanvas, worker, WebGL
+      // context, atlas decode, and texture upload. keep the high-water bucket
       // for this mounted portrait so routine layout changes never churn those
       // native allocations.
       if (nextSize === currentSize || (currentSize != null && nextSize < currentSize)) {
@@ -237,8 +237,8 @@ function SpineCanvas({
     let disposed = false
     const abortController = new AbortController()
 
-    // StrictMode probes effects with setup -> cleanup -> setup on the same DOM
-    // node. Defer the one-shot canvas transfer so the probe cleanup can cancel
+    // strict mode probes effects with setup -> cleanup -> setup on the same dom
+    // node. defer the one-shot canvas transfer so the probe cleanup can cancel
     // the first attempt before transferControlToOffscreen() runs.
     const startFrame = requestAnimationFrame(() => {
       createSpineInstance(
@@ -359,7 +359,7 @@ export function SpinePortrait({
     )
   }
 
-  // Pending and missing are distinct: defer fallback selection until the manifest resolves.
+  // pending and missing are distinct: defer fallback selection until the manifest resolves.
   if (variantAvailable == null) return null
   if (!variantAvailable || !resId) return fallback
 
@@ -442,13 +442,13 @@ function SpineLayers({
     if (setupFrameRef.current != null) cancelAnimationFrame(setupFrameRef.current)
   }, [])
 
-  // The setup image remains visible while animation is off. Unmount the canvas
+  // the setup image remains visible while animation is off. unmount the canvas
   // so its worker, WebGL context, and decoded atlas can be released.
   const [wasAnimated, setWasAnimated] = useState(animated)
   if (wasAnimated !== animated) {
     setWasAnimated(animated)
     if (animated) {
-      // Re-enabling after a failed attempt is the user asking to retry, and
+      // re-enabling after a failed attempt is the user asking to retry, and
       // that retry does mount a fresh canvas owing its own ready signal.
       if (animationUnsupported) {
         setAnimationUnsupported(false)

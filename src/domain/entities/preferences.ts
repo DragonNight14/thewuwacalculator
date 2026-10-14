@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Defines persisted UI preferences for showcase customization,
+  description: defines persisted ui preferences for showcase customization,
                editor behavior, motion, exports, and local image storage.
 */
 
@@ -8,7 +8,7 @@ import type { RoverGender } from './roverGender'
 
 export type StatsColumnHighlight = 'build' | 'combat' | 'both'
 
-/** Showcase-only layout selection; Build Lab always uses the classic layout. */
+/** showcase-only layout selection; build lab always uses the classic layout. */
 export type ShowcaseLayout = 'classic' | 'seal'
 
 export type RotationImportLoad = 'rotation' | 'build' | 'none'
@@ -18,7 +18,7 @@ export interface RotationImportPick {
   save: boolean
 }
 
-/** Semantic text roles shared across showcase regions. */
+/** semantic text roles shared across showcase regions. */
 export type TextSlot = 'numbers' | 'names' | 'labels' | 'muted' | 'display'
 
 export interface TextSlotStyle {
@@ -32,7 +32,7 @@ export interface TextSlotStyle {
 
 export const TEXT_SLOTS: TextSlot[] = ['numbers', 'names', 'labels', 'muted', 'display']
 
-/** Per-resonator showcase overrides; null fields inherit resonator defaults. */
+/** per-resonator showcase overrides; null fields inherit resonator defaults. */
 export interface ShowcaseCardStyle {
   accent: string | null
   surface: string | null
@@ -61,9 +61,9 @@ export interface ShowcaseCardStyle {
   portraitCredit: string | null
   backdropCredit: string | null
   statsColumn: StatsColumnHighlight | null
-  /** Absent text roles retain their defaults. */
+  /** absent text roles retain their defaults. */
   textSlots: Partial<Record<TextSlot, TextSlotStyle>>
-  /** Raw CSS scoped to this card. */
+  /** raw css scoped to this card. */
   customCss: string | null
 }
 

@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: runs full resonator or combat-graph simulations by constructing
+  description: runs full resonator or combat-graph simulations by constructing
                the needed transient combat graph and combat context, then
                delegating the actual skill/rotation evaluation to simulateRotation.
 */
@@ -54,7 +54,7 @@ export interface PreparedResSimulation {
   runtimesById: Record<string, ResRuntime>
 }
 
-// Construct the shared graph/context boundary used by live simulation,
+// construct the shared graph/context boundary used by live simulation,
 // inspection, optimizer compilation, and suggestion evaluation.
 export function prepareResSimulation(
     runtime: ResRuntime,
@@ -121,7 +121,7 @@ export function materializeResRotation(options: {
 }
 
 // run a simulation starting from one active resonator runtime
-// this path is used when the caller has a runtime + seed and wants the helper
+// this path is used when the caller has a runtime + seed and requires the helper
 // to create the transient graph around that active character
 export function runResSmlt(
     runtime: ResRuntime,

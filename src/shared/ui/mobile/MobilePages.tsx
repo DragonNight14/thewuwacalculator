@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Controls one active mobile page while keeping every child
+  description: controls one active mobile page while keeping every child
                mounted so page-local state survives navigation.
 */
 
@@ -17,7 +17,7 @@ export interface MobilePage {
 
 interface MobilePagesP {
   pages: MobilePage[]
-  /** When omitted, the component owns selection and initializes to the first page. */
+  /** when omitted, the component tracks selection and initializes to the first page. */
   page?: string
   onPage?: (id: string) => void
   head?: ReactNode

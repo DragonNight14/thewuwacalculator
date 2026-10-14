@@ -1,7 +1,7 @@
 /*
   Author: Runor Ewhro
-  Description: Projects a progression member's analysis from the prepared
-               workspace and simulation already owned by the shared surface.
+  description: derives member progression analysis from the shared workspace
+               and simulation.
 */
 
 import { useCallback } from 'react'

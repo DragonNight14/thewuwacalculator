@@ -1,10 +1,7 @@
 /*
   Author: Runor Ewhro
-  Description: Reads what the app currently holds, so the index can report your
-               own state rather than describe itself. Everything here is a
-               direct read off the store or the catalog: no simulation is run
-               and no figure is invented, so the entry screen costs nothing to
-               show and is never out of date.
+  description: reads current app state for the home index. values come directly
+               from the store or catalog without running a simulation.
 */
 
 import { useMemo } from 'react'

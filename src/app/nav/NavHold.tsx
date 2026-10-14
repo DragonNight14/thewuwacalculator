@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Keeps navigation progress active until the destination route
+  description: keeps navigation progress active until the destination route
                has painted, with a fallback for background tabs.
 */
 
@@ -12,15 +12,15 @@ import { useNavPrgrs } from '@/shared/navigation/navProgress'
 const FADE_MS = 300
 
 /*
-  A route commit can precede its first visible frame when rendering blocks the
-  main thread. Two animation frames defer completion until after that commit is
+  a route commit can precede its first visible frame when rendering blocks the
+  main thread. two animation frames defer completion until after that commit is
   eligible to paint.
 */
 function useSettleOnPaint() {
   const { pathname } = useLocation()
 
   useEffect(() => {
-    // Background tabs may suspend animation frames indefinitely.
+    // background tabs may suspend animation frames indefinitely.
     if (document.visibilityState === 'hidden') {
       const idle = window.setTimeout(() => { useNavPrgrs.getState().end() }, 0)
       return () => { window.clearTimeout(idle) }

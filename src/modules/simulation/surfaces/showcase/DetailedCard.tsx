@@ -1,7 +1,7 @@
 /*
   Author: Runor Ewhro
-  Description: Projects normalized showcase report and customization data into
-               the Seal card layout, including responsive text and ribbon
+  description: projects normalized showcase report and customization data into
+               the detailed card layout, including responsive text and ribbon
                geometry derived from rendered measurements.
 */
 
@@ -48,7 +48,7 @@ export function rarityVars(rarity: number | null | undefined): CssVars | undefin
   return { '--kit-rar': color, '--kit-rar-ink': getRarityInk(rarity) } as CssVars
 }
 
-// Reduce marked text only until it fits its container or reaches its declared floor.
+// reduce marked text only until it fits its container or reaches its declared floor.
 function fitSignature(node: HTMLElement): string {
   const style = getComputedStyle(node)
   return [node.textContent, node.clientWidth, style.fontFamily, style.fontSize, style.fontWeight, style.letterSpacing].join('|')
@@ -58,7 +58,7 @@ function fitLines(root: HTMLElement, cache: WeakMap<HTMLElement, string>): void 
   const nodes = [...root.querySelectorAll<HTMLElement>('[data-fit]')].filter((node) => cache.get(node) !== fitSignature(node))
   for (const node of nodes) node.style.removeProperty('font-size')
   const pending = nodes.map((node) => ({ node, floor: Number(node.dataset.fit) || 10, size: parseFloat(getComputedStyle(node).fontSize) }))
-  // Read every overflow before writing this step, avoiding a layout per label.
+  // read every overflow before writing this step, avoiding a layout per label.
   for (;;) {
     const shrinking = pending.filter(({ node, floor, size }) => size > floor && node.scrollWidth > node.clientWidth + 0.5)
     if (!shrinking.length) break
@@ -70,15 +70,15 @@ function fitLines(root: HTMLElement, cache: WeakMap<HTMLElement, string>): void 
   for (const node of nodes) cache.set(node, fitSignature(node))
 }
 
-// Derive the ribbon opening from the measured seal bounds.
-function openRibbon(ribbon: HTMLElement, seal: HTMLElement): void {
-  const start = seal.offsetLeft - ribbon.offsetLeft
-  const end = start + seal.offsetWidth
-  if (ribbon.style.getPropertyValue('--seal-open-start') !== `${start}px`) ribbon.style.setProperty('--seal-open-start', `${start}px`)
-  if (ribbon.style.getPropertyValue('--seal-open-end') !== `${end}px`) ribbon.style.setProperty('--seal-open-end', `${end}px`)
+// derive the ribbon opening from the measured card bounds.
+function openRibbon(ribbon: HTMLElement, card: HTMLElement): void {
+  const start = card.offsetLeft - ribbon.offsetLeft
+  const end = start + card.offsetWidth
+  if (ribbon.style.getPropertyValue('--showcase-detail-open-start') !== `${start}px`) ribbon.style.setProperty('--showcase-detail-open-start', `${start}px`)
+  if (ribbon.style.getPropertyValue('--showcase-detail-open-end') !== `${end}px`) ribbon.style.setProperty('--showcase-detail-open-end', `${end}px`)
 }
 
-export const SealShowcase = memo(function SealShowcase({
+export const DetailedCard = memo(function DetailedCard({
   model,
   build,
   score,
@@ -118,7 +118,7 @@ export const SealShowcase = memo(function SealShowcase({
   blank?: boolean
 }) {
   const rootRef = useRef<HTMLDivElement>(null)
-  const sealRef = useRef<HTMLDivElement>(null)
+  const scoreRef = useRef<HTMLDivElement>(null)
   const ribbonRef = useRef<HTMLSpanElement>(null)
   const playerId = useAppStore((state) => state.ui.preferences.playerId)
   const playerUid = useAppStore((state) => state.ui.preferences.playerUid)
@@ -143,22 +143,22 @@ export const SealShowcase = memo(function SealShowcase({
   useLayoutEffect(() => {
     const root = rootRef.current
     const ribbon = ribbonRef.current
-    const sealNode = sealRef.current
-    if (!root || !ribbon || !sealNode) return
+    const scoreNode = scoreRef.current
+    if (!root || !ribbon || !scoreNode) return
     let frame = 0
     let lastWidth = -1
     let fitted = new WeakMap<HTMLElement, string>()
     const schedule = () => {
       cancelAnimationFrame(frame)
-      frame = requestAnimationFrame(() => { fitLines(root, fitted); openRibbon(ribbon, sealNode) })
+      frame = requestAnimationFrame(() => { fitLines(root, fitted); openRibbon(ribbon, scoreNode) })
     }
     const resize = new ResizeObserver(() => {
       const width = root.clientWidth
       if (width !== lastWidth) { lastWidth = width; schedule() }
-      else openRibbon(ribbon, sealNode)
+      else openRibbon(ribbon, scoreNode)
     })
     resize.observe(root)
-    resize.observe(sealNode)
+    resize.observe(scoreNode)
     const text = new MutationObserver(schedule)
     text.observe(root, { childList: true, characterData: true, subtree: true })
     const card = root.closest('.wk-rail')
@@ -177,43 +177,43 @@ export const SealShowcase = memo(function SealShowcase({
   const weaponTypeKey = getWpnVisKey(model.weapon?.weaponType ?? model.seed?.weaponType ?? null)
   const bloomBody = (
     <>
-      <span className="seal-bloom-halftone" aria-hidden="true" />
-      <span className="seal-bloom-glow" aria-hidden="true" />
+      <span className="showcase-detail-weapon-halftone" aria-hidden="true" />
+      <span className="showcase-detail-weapon-glow" aria-hidden="true" />
       {model.weaponIcon ? (
-        <DisplayImage className="seal-bloom-gun" src={model.weaponIcon} alt="" decoding="async" onError={withDefIconM} />
+        <DisplayImage className="showcase-detail-weapon-gun" src={model.weaponIcon} alt="" decoding="async" onError={withDefIconM} />
       ) : (
-        <span className="seal-bloom-gun seal-bloom-gun--empty" aria-hidden="true" />
+        <span className="showcase-detail-weapon-gun showcase-detail-weapon-gun--empty" aria-hidden="true" />
       )}
       {weaponTypeKey ? (
         <span
-          className="seal-bloom-type"
+          className="showcase-detail-weapon-type"
           aria-hidden="true"
           style={{ maskImage: `url('/assets/game/weapons/types/${weaponTypeKey}.webp')` } as CssVars}
         />
       ) : null}
       {weaponRarity ? (
-        <span className="seal-stars-col" role="img" aria-label={`${weaponRarity}-star weapon`}>
+        <span className="showcase-detail-stars-col" role="img" aria-label={`${weaponRarity}-star weapon`}>
           {Array.from({ length: weaponRarity }, (_, star) => (
-            <i key={star} className="seal-spark" aria-hidden="true" />
+            <i key={star} className="showcase-detail-star" aria-hidden="true" />
           ))}
         </span>
       ) : null}
       {model.weapon?.passive.name ? (
-        <span className="seal-bloom-passive">{model.weapon.passive.name}</span>
+        <span className="showcase-detail-weapon-passive">{model.weapon.passive.name}</span>
       ) : null}
-      <span className="seal-bloom-foot">
-        <strong className="seal-bloom-name" data-fit="11">{model.weaponName}</strong>
-        <span className="seal-bloom-pair">
+      <span className="showcase-detail-weapon-foot">
+        <strong className="showcase-detail-weapon-name" data-fit="11">{model.weaponName}</strong>
+        <span className="showcase-detail-weapon-pair">
           <b>R{model.weaponState?.rank ?? 1}</b>
           <span>LV {weaponLevel}</span>
         </span>
         {model.weapon ? (
-          <span className="seal-bloom-figs">
-            <span className="seal-bloom-fig" data-stat-family={statFamily('atk')}>
+          <span className="showcase-detail-weapon-figs">
+            <span className="showcase-detail-weapon-fig" data-stat-family={statFamily('atk')}>
               <em>{formatStatKeyLabel('atk')}</em>
               <b>{Math.round(weaponStats?.atk ?? model.weapon.baseAtk)}</b>
             </span>
-            <span className="seal-bloom-fig" data-stat-family={statFamily(model.weapon.statKey)}>
+            <span className="showcase-detail-weapon-fig" data-stat-family={statFamily(model.weapon.statKey)}>
               <em>{formatStatKeyLabel(model.weapon.statKey)}</em>
               <b>{formatStatKeyValue(model.weapon.statKey, weaponStats?.statVal ?? model.weapon.statValue)}</b>
             </span>
@@ -224,12 +224,12 @@ export const SealShowcase = memo(function SealShowcase({
   )
 
   return (
-    <div className="seal" ref={rootRef}>
-      <span className="seal-veil" aria-hidden="true" />
+    <div className="showcase-detail" ref={rootRef}>
+      <span className="showcase-detail-background" aria-hidden="true" />
 
-      <div className="seal-echoes">
+      <div className="showcase-detail-echoes">
         {slots.map((echo, slot) => (
-          <SealEcho
+          <Echo
             key={echo?.uid ?? `empty:${slot}`}
             echo={echo}
             index={slot + 1}
@@ -244,60 +244,60 @@ export const SealShowcase = memo(function SealShowcase({
         ))}
       </div>
 
-      <span className="seal-panel" aria-hidden="true" />
-      <span className="seal-ribbon" ref={ribbonRef} aria-hidden="true" />
+      <span className="showcase-detail-panel" aria-hidden="true" />
+      <span className="showcase-detail-ribbon" ref={ribbonRef} aria-hidden="true" />
       <span
-        className="seal-kit-scale"
+        className="showcase-detail-kit-scale"
         aria-hidden="true"
         style={{ '--kit-rar': getRarityColor(weaponRarity) ?? 'var(--resonator-accent)' } as CssVars}
       />
-      <span className="seal-kit-trace" aria-hidden="true" />
+      <span className="showcase-detail-kit-trace" aria-hidden="true" />
 
       {resId ? (
-        <div className="seal-chain">
+        <div className="showcase-detail-chain">
           <EvaluationSeqRail resId={resId} sequence={sequence} hidden={false} onActivate={onSequence} />
         </div>
       ) : null}
 
       {!hidden.brand || credits.length ? (
-        <div className="seal-credits" aria-hidden="true">
+        <div className="showcase-detail-credits" aria-hidden="true">
           {credits.map((credit) => (
-            <span key={credit.tag} className="seal-credit">
+            <span key={credit.tag} className="showcase-detail-credit">
               <i>{credit.tag}</i>
               {credit.who}
             </span>
           ))}
           {!hidden.brand ? (
-            <span className="seal-brand">
-              <Thewuwacalculator className="seal-brand-mark" />
+            <span className="showcase-detail-brand">
+              <Thewuwacalculator className="showcase-detail-brand-mark" />
               <span><b>thewuwacalculator</b>.com</span>
             </span>
           ) : null}
         </div>
       ) : null}
 
-      <div className="seal-id">
-        <span className="seal-id-head">
+      <div className="showcase-detail-id">
+        <span className="showcase-detail-id-head">
           {model.attrIcon ? (
-            <DisplayImage className="seal-id-attr" src={model.attrIcon} alt="" decoding="async" onError={withDefIconM} />
+            <DisplayImage className="showcase-detail-id-attr" src={model.attrIcon} alt="" decoding="async" onError={withDefIconM} />
           ) : null}
-          <strong className="seal-id-name" data-fit="28">
+          <strong className="showcase-detail-id-name" data-fit="28">
             <ResonatorName name={model.seed?.name ?? 'Resonator'} onOpen={onOpenMember} />
           </strong>
         </span>
-        <span className="seal-id-meta">
-          <span className="seal-stars" role="img" aria-label={`${model.rarity}-star resonator`}>
+        <span className="showcase-detail-id-meta">
+          <span className="showcase-detail-stars" role="img" aria-label={`${model.rarity}-star resonator`}>
             {Array.from({ length: model.rarity }, (_, star) => (
-              <i key={star} className="seal-star" aria-hidden="true" />
+              <i key={star} className="showcase-detail-star" aria-hidden="true" />
             ))}
           </span>
-          <span className="seal-id-lv">Lv.<b>{level}</b></span>
+          <span className="showcase-detail-id-lv">Lv.<b>{level}</b></span>
         </span>
       </div>
 
-      <div className="seal-verdict" ref={sealRef} style={{ '--grade': tone } as CssVars}>
-        <span className="seal-grade"><b>{grade || '-'}</b></span>
-        <span className="seal-score">
+      <div className="showcase-detail-score" ref={scoreRef} style={{ '--grade': tone } as CssVars}>
+        <span className="showcase-detail-grade"><b>{grade || '-'}</b></span>
+        <span className="showcase-detail-score">
           {scoreLabel.endsWith('%') ? (
             <>
               {scoreLabel.slice(0, -1)}
@@ -307,35 +307,35 @@ export const SealShowcase = memo(function SealShowcase({
         </span>
       </div>
 
-      <div className="seal-figures">
-        <span className="seal-avg-line">
-          <b className="seal-avg" data-fit="22">
+      <div className="showcase-detail-metrics">
+        <span className="showcase-detail-avg-line">
+          <b className="showcase-detail-avg" data-fit="22">
             {avgDamage != null ? Math.round(avgDamage).toLocaleString('en-US') : '-'}
           </b>
-          <span className="seal-label">avg dmg</span>
+          <span className="showcase-detail-label">avg dmg</span>
         </span>
-        <span className="seal-figures-foot">
+        <span className="showcase-detail-metrics-foot">
           {playerId || playerUid ? (
-            <span className="seal-holder">
+            <span className="showcase-detail-holder">
               {playerId ? <b>{playerId}</b> : null}
               {playerUid ? <span>{groupUid(playerUid)}</span> : null}
             </span>
           ) : null}
-          <span className="seal-cv" style={cv.tone ? ({ '--cv-tone': cv.tone } as CssVars) : undefined}>
-            <span className="seal-label">cv</span>
+          <span className="showcase-detail-cv" style={cv.tone ? ({ '--cv-tone': cv.tone } as CssVars) : undefined}>
+            <span className="showcase-detail-label">cv</span>
             <b>{blank ? '-' : formatTruncCompact(cv.total, 1)}</b>
           </span>
         </span>
       </div>
 
       {rows.length ? (
-        <div className="seal-ledger sc-ladder" data-highlight={statsColumn}>
+        <div className="showcase-detail-stats sc-ladder" data-highlight={statsColumn}>
           <div className="sc-ladder-head" aria-hidden="true">
             <span className="sc-ladder-head-lead" />
             <span className="sc-ladder-col sc-ladder-col--build">build</span>
             <span className="sc-ladder-col sc-ladder-col--combat">combat</span>
           </div>
-          <div className="seal-ledger-rows">
+          <div className="showcase-detail-stats-rows">
             {rows.map((row) => {
               const buildTotal = buildByKey.get(row.key) ?? null
               return (
@@ -352,14 +352,14 @@ export const SealShowcase = memo(function SealShowcase({
           </div>
         </div>
       ) : (
-        <div className="seal-ledger sc-ladder sc-ladder--empty">No stats</div>
+        <div className="showcase-detail-stats sc-ladder sc-ladder--empty">No stats</div>
       )}
 
       {team}
 
       {onEditWeapon ? (
         <button
-          type="button" className="seal-bloom"
+          type="button" className="showcase-detail-weapon"
           aria-label={`Edit ${model.weaponName}`}
           style={rarityVars(weaponRarity)}
           onClick={onEditWeapon}
@@ -367,13 +367,13 @@ export const SealShowcase = memo(function SealShowcase({
           {bloomBody}
         </button>
       ) : (
-        <div className="seal-bloom" style={rarityVars(weaponRarity)}>{bloomBody}</div>
+        <div className="showcase-detail-weapon" style={rarityVars(weaponRarity)}>{bloomBody}</div>
       )}
     </div>
   )
 })
 
-function SealEcho({
+function Echo({
   echo,
   index,
   score,
@@ -412,15 +412,15 @@ function SealEcho({
   if (!echo) {
     return (
       <article
-        className="seal-echo seal-echo--empty"
+        className="showcase-detail-echo showcase-detail-echo--empty"
         style={{ '--i': index } as CssVars}
         aria-label={onOpen ? `Slot ${index}, empty. Choose an Echo` : undefined}
         {...openProps}
       >
-        <span className="seal-echo-plate" aria-hidden="true" />
-        <span className="seal-echo-halo" aria-hidden="true" />
-        <span className="seal-echo-medal" aria-hidden="true" />
-        <span className="seal-echo-vacant">Empty slot</span>
+        <span className="showcase-detail-echo-plate" aria-hidden="true" />
+        <span className="showcase-detail-echo-halo" aria-hidden="true" />
+        <span className="showcase-detail-echo-medal" aria-hidden="true" />
+        <span className="showcase-detail-echo-vacant">Empty slot</span>
       </article>
     )
   }
@@ -435,45 +435,45 @@ function SealEcho({
   const card = (
     <article
       className={[
-        'seal-echo',
+        'showcase-detail-echo',
         selection?.selectionMode ? 'selection-mode' : '',
         selected ? 'focus-selected' : '',
       ].filter(Boolean).join(' ')}
       data-tone={tone ?? undefined}
       data-selection-focus-item="true"
       data-selected={selected ? 'true' : undefined}
-      style={{ '--i': index, '--seal-tone': tone ? SCORE_TONE_COLORS[tone] : undefined } as CssVars}
+      style={{ '--i': index, '--showcase-detail-tone': tone ? SCORE_TONE_COLORS[tone] : undefined } as CssVars}
       aria-label={onOpen ? `Slot ${index}. Edit ${echoDef?.name ?? 'Echo'}` : undefined}
       {...openProps}
       onClickCapture={itemId ? selection?.buildClickCapture(itemId) : undefined}
     >
-      <span className="seal-echo-plate" aria-hidden="true" />
-      <span className="seal-echo-halo" aria-hidden="true" />
-      <span className="seal-echo-medal">
+      <span className="showcase-detail-echo-plate" aria-hidden="true" />
+      <span className="showcase-detail-echo-halo" aria-hidden="true" />
+      <span className="showcase-detail-echo-medal">
         {echoDef?.icon ? (
-          <DisplayImage src={echoDef.icon} alt="" className="seal-echo-icon" decoding="async" onError={withDefIconM} />
+          <DisplayImage src={echoDef.icon} alt="" className="showcase-detail-echo-icon" decoding="async" onError={withDefIconM} />
         ) : (
-          <span className="seal-echo-icon seal-echo-icon--fallback" />
+          <span className="showcase-detail-echo-icon showcase-detail-echo-icon--fallback" />
         )}
       </span>
       {setIcon ? (
-        <span className="seal-echo-coin seal-echo-coin--set">
+        <span className="showcase-detail-echo-coin showcase-detail-echo-coin--set">
           <DisplayImage src={setIcon} alt="" onError={withDefIconM} />
         </span>
       ) : null}
-      <span className="seal-echo-coin seal-echo-coin--cost" aria-label={`${echoDef?.cost ?? 0} cost`}>
+      <span className="showcase-detail-echo-coin showcase-detail-echo-coin--cost" aria-label={`${echoDef?.cost ?? 0} cost`}>
         {echoDef?.cost ?? 0}
       </span>
       {score != null ? (
-        <span className="seal-echo-score">
+        <span className="showcase-detail-echo-score">
           <b>{formatTruncCompact(score, 0)}</b>
           <i>%</i>
         </span>
       ) : null}
-      <span className="seal-echo-cv" style={{ '--cv-tone': getCvToneColor(cv) } as CssVars}>
+      <span className="showcase-detail-echo-cv" style={{ '--cv-tone': getCvToneColor(cv) } as CssVars}>
         CV {formatTruncCompact(cv, 1)}
       </span>
-      <strong className="seal-echo-name" data-fit="10">{echoDef?.name ?? 'Echo'}</strong>
+      <strong className="showcase-detail-echo-name" data-fit="10">{echoDef?.name ?? 'Echo'}</strong>
       <ShowcaseEchoMains echo={echo} relevant={showRel && relStats.keys.has(echo.mainStats.primary.key)} />
       <ShowcaseEchoSubs
         echo={echo}

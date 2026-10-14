@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Orders resonator picker entries and resolves recommendation
+  description: orders resonator picker entries and resolves recommendation
                badges from recent and frequent usage history.
 */
 

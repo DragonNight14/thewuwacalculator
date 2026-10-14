@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: centralizes which skills and rotation rows count as optimizer
+  description: centralizes which skills and rotation rows count as optimizer
                damage targets and how their average damage is summed.
 */
 

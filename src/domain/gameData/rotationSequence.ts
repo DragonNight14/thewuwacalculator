@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Defines the feature-and-repeat rotation sequence supported by
+  description: defines the feature-and-repeat rotation sequence supported by
                the compact rotation workflow.
 */
 

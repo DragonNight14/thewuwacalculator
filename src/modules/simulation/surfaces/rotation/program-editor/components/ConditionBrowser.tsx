@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Searches and groups authored condition choices and returns a selected condition.
+  description: searches and groups authored condition choices and returns a selected condition.
 */
 
 import { Hash, Layers, List, ToggleRight, type LucideIcon } from 'lucide-react'
@@ -32,7 +32,7 @@ export function getCondTarget(choice: CondChoice): CondTarget {
   return 'resonator'
 }
 
-// Group conditions by effect source beneath their owner identity.
+// group conditions by effect source beneath their owner identity.
 export function getCondGroupKey(choice: CondChoice): string {
   if (choice.changeTarget === 'rotation') {
     return `rotation:${choice.sourceName || 'Rotation'}`

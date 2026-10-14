@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Resolves the browser's active system theme in a way that stays
+  description: resolves the browser's active system theme in a way that stays
                safe during server-side or non-browser execution.
 */
 

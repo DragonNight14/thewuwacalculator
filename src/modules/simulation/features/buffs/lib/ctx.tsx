@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Builds context-menu entries for the buff preset modal.
+  description: builds context-menu entries for the buff preset modal.
 */
 
 import {

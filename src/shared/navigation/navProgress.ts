@@ -1,18 +1,18 @@
 /*
   Author: Runor Ewhro
-  Description: Tracks pending navigation and enforces its delay, minimum
+  description: tracks pending navigation and enforces its delay, minimum
                visible duration, and failure ceiling.
 */
 
 import { create } from 'zustand'
 
-// Keep this synchronized with --hold-after. CSS owns the delay because module
-// evaluation can block the main thread and prevent a JavaScript timer firing.
+// keep this synchronized with --hold-after. css sets the delay because module
+// evaluation can block the main thread and prevent a javascript timer firing.
 const SAY_AFTER = 120
-// Once visible, progress remains mounted for at least this interval.
+// once visible, progress remains mounted for at least this interval.
 const SAY_FOR = 340
 
-// Releases progress if preloading or rendering never reaches the paint signal.
+// releases progress if preloading or rendering never reaches the paint signal.
 const HOLD_CEILING = 12000
 
 interface NavProgress {
@@ -35,7 +35,7 @@ export const useNavPrgrs = create<NavProgress>((set, get) => ({
   end: () => {
     window.clearTimeout(ceilingTimer)
 
-    // Clear the pending destination at paint time, but retain the running state
+    // clear the pending destination at paint time, but retain the running state
     // until the minimum visible interval has elapsed.
     if (get().to !== null) set({ to: null })
     if (!get().running) return
@@ -43,7 +43,7 @@ export const useNavPrgrs = create<NavProgress>((set, get) => ({
     const stood = performance.now() - beganAt
     window.clearTimeout(hideTimer)
 
-    // CSS has not exposed progress yet, so no minimum visible interval is due.
+    // css has not exposed progress yet, so no minimum visible interval is due.
     if (stood < SAY_AFTER) {
       set({ running: false })
       return

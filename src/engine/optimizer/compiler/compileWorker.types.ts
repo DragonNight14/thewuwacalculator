@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Message contracts used by the optimizer compile worker for
+  description: message contracts used by the optimizer compile worker for
                starting compilation, materializing compact result refs, and
                returning either prepared payloads, final result entries, or errors.
 */

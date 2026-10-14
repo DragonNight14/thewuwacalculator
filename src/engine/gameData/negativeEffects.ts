@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Resolves negative-effect archetypes, team contributions, stack
+  description: resolves negative-effect archetypes, team contributions, stack
                bounds, and canonical combat-state paths from runtime sources.
 */
 
@@ -40,7 +40,7 @@ export interface RslvNegFfctE extends NegEffectCat {
   sliderVisible: boolean
 }
 
-// Canonical elemental attributes used to resolve each archetype's resistance.
+// canonical elemental attributes used to resolve each archetype's resistance.
 export const NEG_EFFECT_ELEM: Record<NegEffectKey, AttributeKey> = {
   spectroFrazzle: 'spectro',
   aeroErosion: 'aero',
@@ -240,11 +240,8 @@ function resTeamSrcRt(
 }
 
 /*
-  Resolving a team's negative effects walks every member's source entries and
-  evaluates a condition per entry. It reads nothing but the runtime it is given,
-  and a runtime is immutable, so the answer is cached against that identity.
-  Rotation execution asks this question once per skill resolution, which is
-  hundreds of times per run over a handful of distinct runtimes.
+  cache team negative effects by immutable runtime identity. rotation execution
+  resolves them for each skill but uses only a few distinct runtimes per run.
 */
 const negEffectsByRt = new WeakMap<ResRuntime, RslvNegFfctE[]>()
 const negEffectsByTeam = new WeakMap<

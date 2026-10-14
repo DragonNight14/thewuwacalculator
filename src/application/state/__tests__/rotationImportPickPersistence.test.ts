@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Keeps rotation import choices across sessions and older saved UI layouts.
+  description: keeps rotation import choices across sessions and older saved ui layouts.
 */
 
 import { beforeEach, describe, expect, it, vi } from 'vitest'

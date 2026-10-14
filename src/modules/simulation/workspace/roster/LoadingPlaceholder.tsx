@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Preserves roster slot and scroll geometry while the lazy roster
+  description: preserves roster slot and scroll geometry while the lazy roster
                chunk loads, then transfers the retained offset to its owner.
 */
 
@@ -11,7 +11,7 @@ import { getAttributeIconSrc } from '@/domain/gameData/attributeDisplay.ts'
 import { DisplayImage } from '@/shared/ui/DisplayImage'
 import { withDefIconM } from '@/shared/lib/imageFallback.ts'
 import type { CssVars } from '@/modules/simulation/workspace/ui.tsx'
-import { makeAttrGroups, makeRosterEntries } from './rosterModel.ts'
+import { groupByAttribute, makeEntries } from './model.ts'
 
 const SHOWN_AFTER_MS = 120
 
@@ -24,14 +24,14 @@ function stillMotion(): boolean {
   return root.contains('reduce-animation') || root.contains('no-entrance-anim')
 }
 
-function sweepLens(thread: HTMLElement, lens: HTMLElement): Animation[] {
-  const height = thread.offsetHeight
+function sweepLens(list: HTMLElement, lens: HTMLElement): Animation[] {
+  const height = list.offsetHeight
   const size = lens.offsetHeight
   const travel = height + size
   const pass = (travel / LENS_PX_PER_S) * 1000
   const duration = pass + LENS_REST_MS
   const moving = pass / duration
-  const top = thread.getBoundingClientRect().top
+  const top = list.getBoundingClientRect().top
   const timing: KeyframeAnimationOptions = { duration, iterations: Infinity }
   const at = (y: number) => ((y + size / 2) / travel) * moving
 
@@ -58,12 +58,12 @@ function sweepLens(thread: HTMLElement, lens: HTMLElement): Animation[] {
     ], { ...timing, easing: 'linear' }))
   }
 
-  thread.querySelectorAll('.blm-held-bubble').forEach((bubble) => {
+  list.querySelectorAll('.build-roster-loading-bubble').forEach((bubble) => {
     swell(bubble, { scale: BUBBLE_REST }, { scale: 1 })
     const tint = bubble.firstElementChild
     if (tint) swell(tint, { opacity: 0 }, { opacity: 1 })
   })
-  thread.querySelectorAll('.blm-knot-mark').forEach((mark) => {
+  list.querySelectorAll('.build-roster-group-toggle-mark').forEach((mark) => {
     swell(mark, { scale: 1 }, { scale: 1.22 })
     const icon = mark.querySelector('img')
     if (icon) swell(icon, { opacity: 0.4 }, { opacity: 1 })
@@ -73,30 +73,30 @@ function sweepLens(thread: HTMLElement, lens: HTMLElement): Animation[] {
 
 let handoff: { at: number; scrollTop: number; scrollLeft: number } | null = null
 
-/** Returns the last observed placeholder offset only after it became visible. */
-export function readRosterHeld(): { scrollTop: number; scrollLeft: number } | null {
+/** returns the last observed placeholder offset only after it became visible. */
+export function readRosterScrollHandoff(): { scrollTop: number; scrollLeft: number } | null {
   return handoff && performance.now() - handoff.at >= SHOWN_AFTER_MS ? handoff : null
 }
 
-export function clearRosterHeld(): void {
+export function clearRosterScrollHandoff(): void {
   handoff = null
 }
 
-export function RosterHeld() {
+export function LoadingPlaceholder() {
   const scenarioLibrary = useAppStore((state) => state.combat)
   const contextResId = useAppStore(selContextResonatorId)
-  const roster = useMemo(() => makeRosterEntries(scenarioLibrary), [scenarioLibrary])
-  const groups = useMemo(() => makeAttrGroups(roster), [roster])
+  const roster = useMemo(() => makeEntries(scenarioLibrary), [scenarioLibrary])
+  const groups = useMemo(() => groupByAttribute(roster), [roster])
   const lead = roster.find((entry) => entry.id === contextResId) ?? roster[0] ?? null
   const scrollRef = useRef<HTMLDivElement | null>(null)
-  const threadRef = useRef<HTMLDivElement | null>(null)
+  const listRef = useRef<HTMLDivElement | null>(null)
   const lensRef = useRef<HTMLSpanElement | null>(null)
   const at = useRef(0)
 
   useLayoutEffect(() => {
     at.current = performance.now()
     const box = scrollRef.current
-    box?.querySelector<HTMLElement>('.blm-bead[data-active]')
+    box?.querySelector<HTMLElement>('.build-roster-item[data-active]')
       ?.scrollIntoView({ block: 'nearest', inline: 'nearest', behavior: 'auto' })
     return () => {
       handoff = {
@@ -108,45 +108,45 @@ export function RosterHeld() {
   }, [])
 
   useLayoutEffect(() => {
-    const thread = threadRef.current
+    const list = listRef.current
     const lens = lensRef.current
-    if (!thread || !lens || stillMotion()) return
-    const runs = sweepLens(thread, lens)
+    if (!list || !lens || stillMotion()) return
+    const runs = sweepLens(list, lens)
     return () => runs.forEach((run) => run.cancel())
   }, [groups])
 
   let bi = 0
   return (
-    <div className="blm blm--held" aria-busy="true">
-      <div className="blm-scroll" ref={scrollRef}>
-        <div className="blm-thread" ref={threadRef}>
-          <span className="blm-held-lens" ref={lensRef} aria-hidden="true" />
+    <div className="build-roster build-roster--held" aria-busy="true">
+      <div className="build-roster-scroll" ref={scrollRef}>
+        <div className="build-roster-list" ref={listRef}>
+          <span className="build-roster-loading-lens" ref={lensRef} aria-hidden="true" />
           {groups.map((group) => {
             const attrIcon = getAttributeIconSrc(group.attribute)
             return (
               <Fragment key={group.attribute}>
                 {groups.length > 1 ? (
-                  <span className="blm-knot" style={{ '--knot-ink': group.accent } as CssVars}>
-                    <span className="blm-knot-mark" aria-hidden="true">
+                  <span className="build-roster-group-toggle" style={{ '--group-ink': group.accent } as CssVars}>
+                    <span className="build-roster-group-toggle-mark" aria-hidden="true">
                       {attrIcon ? <DisplayImage src={attrIcon} alt="" decoding="async" onError={withDefIconM} /> : null}
                     </span>
-                    <span className="blm-knot-n" aria-hidden="true">{group.items.length}</span>
+                    <span className="build-roster-group-toggle-n" aria-hidden="true">{group.items.length}</span>
                   </span>
                 ) : null}
-                <div className="blm-group">
-                  <div className="blm-group-body">
+                <div className="build-roster-group">
+                  <div className="build-roster-group-body">
                     {group.items.map((entry) => {
                       const isLead = entry.id === lead?.id
                       return (
                         <span key={entry.id}
-                          className="blm-bead"
+                          className="build-roster-item"
                           style={{ '--row-ink': entry.accent, '--bi': bi++ } as CssVars}
                           data-active={isLead ? 'true' : undefined}
                         >
-                          <span className="blm-bead-pic">
+                          <span className="build-roster-item-image">
                             {isLead
                               ? <DisplayImage src={entry.profile} alt="" decoding="async" onError={withDefIconM} />
-                              : <span className="blm-held-bubble"><i /></span>}
+                              : <span className="build-roster-loading-bubble"><i /></span>}
                           </span>
                         </span>
                       )
@@ -159,15 +159,15 @@ export function RosterHeld() {
         </div>
       </div>
 
-      <div className="blm-foot" aria-hidden="true">
-        <span className="blm-socket"><UsersRound size="1em" /></span>
-        <div className="blm-cap">
+      <div className="build-roster-footer" aria-hidden="true">
+        <span className="build-roster-add"><UsersRound size="1em" /></span>
+        <div className="build-roster-status">
           {lead ? (
             <>
-              <strong className="blm-cap-name">{lead.name}</strong>
-              <span className="blm-cap-sub" style={{ '--row-ink': lead.accent } as CssVars}>
-                <span className="blm-cap-lv">Lv {lead.level}</span>
-                <span className="blm-cap-seq">
+              <strong className="build-roster-status-name">{lead.name}</strong>
+              <span className="build-roster-status-sub" style={{ '--row-ink': lead.accent } as CssVars}>
+                <span className="build-roster-status-lv">Lv {lead.level}</span>
+                <span className="build-roster-status-seq">
                   {Array.from({ length: 6 }, (_, pip) => (
                     <i key={pip} data-on={pip < lead.sequence ? 'true' : undefined} />
                   ))}
@@ -177,7 +177,7 @@ export function RosterHeld() {
           ) : null}
         </div>
       </div>
-      <span className="blm-held-say">Loading roster</span>
+      <span className="build-roster-loading-say">Loading roster</span>
     </div>
   )
 }

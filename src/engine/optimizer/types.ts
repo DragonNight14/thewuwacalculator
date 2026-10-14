@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Defines optimizer payloads, execution shapes, result
+  description: defines optimizer payloads, execution shapes, result
                records, and packed context structures shared across
                CPU/GPU optimizer flows.
 */
@@ -27,7 +27,7 @@ export type OptStts = 'idle' | 'running' | 'done' | 'error' | 'cancelled'
 export type OptBckn = 'cpu' | 'gpu'
 
 // optimizer phase the progress snapshot is currently describing. theory mode
-// runs a discovery phase (the producer walks the row space) before workers
+// runs a discovery phase (the producer iterates through the row space) before workers
 // begin evaluating; non-theory modes go straight to evaluation.
 export type OptPrgrPh = 'discovering' | 'evaluating'
 
@@ -73,7 +73,7 @@ export interface TheoryResult {
   weaponId?: string | null
 }
 
-/** A run shares candidates; only the selected loadout is copied for editing. */
+/** a run shares candidates; only the selected loadout is copied for editing. */
 export interface CompactTheoryResult {
   theory: { candidates: EchoInstance[] }
   indices: number[]
@@ -83,7 +83,7 @@ export interface CompactTheoryResult {
   weaponId?: string | null
 }
 
-// bag-style result reference that stores indices instead of full echo payloads
+// bag-style result reference that stores echo indices.
 export interface OptBagResult {
   damage: number
   i0: number
@@ -150,25 +150,24 @@ export interface PrepOptShrdP {
   weaponCount?: number
   weaponIds?: string[]
 
-  // rotation weapon search uses full per-weapon context sets instead of the
-  // compact overlays target mode uses: a rotation context's weapon-affected
-  // slots (e.g. the per-node move multiplier) vary per context, so a single
+  // rotation weapon search uses full per-weapon context sets. weapon-affected
+  // slots (e.g. the per-node move multiplier) vary by context, so a single
   // overlay cannot represent a weapon across the whole rotation. layout:
   //   weaponContexts: weaponCount × contextCount × contextStride floats
   //   weaponDisplayContexts: weaponCount × contextStride floats (constraints/UI)
-  // both absent in target mode (it uses weaponOverlays instead).
+  // both fields are absent in target mode, which uses weaponOverlays.
   weaponContexts?: Float32Array
   weaponDisplayContexts?: Float32Array
 }
 
-// High-level compilation request before numeric packing. Catalog snapshots
-// remain transient; the supplied scenario/runtime owns saved configuration.
+// high-level compilation request before numeric packing. catalog snapshots
+// remain transient; the supplied scenario/runtime stores saved configuration.
 export interface OptStartPay {
   scenarioId: import('@/domain/entities/combatScenario').CombatScenarioId
   memberId: import('@/domain/entities/combatScenario').TeamMemberId
   resonatorId: string
   gameDataMode?: GameDataMode
-  /** Candidate catalog scope resolved before crossing the worker boundary. */
+  /** candidate catalog scope resolved before crossing the worker boundary. */
   weaponDataIds?: string[]
   resSeed?: ResSeed
   staticData?: {
@@ -181,7 +180,7 @@ export interface OptStartPay {
     echoStats?: EchoSttsCatD
   }
   runtime: ResRuntime
-  /** Canonical participant runtimes; detached legacy callers may omit this. */
+  /** canonical participant runtimes; detached legacy callers may omit this. */
   runtimesById?: Record<string, ResRuntime>
   settings: OptSets
   invChs: EchoInstance[]
@@ -196,8 +195,8 @@ export interface OptStartPay {
 }
 
 // fully compiled scalar context for a single target skill evaluation
-// this is the dense numeric form used to avoid repeated high-level reads
-// during the optimizer inner loop.
+// this dense numeric form replaces repeated high-level reads in the
+// optimizer inner loop.
 // fields are grouped by final stats, scaling, skill bonuses, and combat
 // counters in the same order used by the packed float context.
 export interface CompTargetSkill {
@@ -314,7 +313,7 @@ export interface ThryEchoCt {
   id: string
   cost: number
   sets: number[]
-  // true when the catalog echo carries at least one effect with
+  // true when the catalog echo includes at least one effect with
   // `targetScope: 'self'` (or implicit default). only self-buff cats are
   // eligible to serve as the main echo in theory search.
   hasSelfBff: boolean

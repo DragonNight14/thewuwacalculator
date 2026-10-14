@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Materializes one equal-member runtime projection from the
+  description: materializes one equal-member runtime projection from the
                canonical combat scenario for legacy calculation consumers.
 */
 
@@ -53,8 +53,8 @@ export function scenarioTeamSlots(scenario: CombatScenario): TeamSlots {
   ]
 }
 
-// Projections are read-only views. Editing boundaries replace the changed path;
-// export/import and draft factories still clone when they require ownership.
+// projections are read-only views. editing boundaries replace the changed path;
+// export/import and draft factories still clone when they need independent data.
 const manualByEffects = new WeakMap<CombatScenario['environment']['manualEffects'], Map<string, ReturnType<typeof resolveEnvironmentManualBuffs>>>()
 function projectedManualBuffs(scenario: CombatScenario, member: ScenarioTeamMember) {
   const effects = scenario.environment.manualEffects
@@ -183,10 +183,8 @@ export interface ScenarioRuntimeProjection {
   selectedTargets: Record<string, string | null>
 }
 
-// One canonical scenario object can be read by the live surface, evaluation
-// rail, and engine adapter during the same edit. Share its projection until
-// the immutable scenario is replaced instead of cloning every Echo loadout and
-// rotation once per reader.
+// the live surface, evaluation rail, and engine adapter share a projection of
+// the canonical scenario. replace it when the immutable scenario changes.
 const projectionByScenario = new WeakMap<CombatScenario, ScenarioRuntimeProjection>()
 
 export function projectScenarioRuntimes(
@@ -222,7 +220,7 @@ export function projectScenarioRuntimes(
 
 const engineByProjection = new WeakMap<ScenarioRuntimeProjection, ScenarioRuntimeProjection>()
 const engineByRuntime = new WeakMap<ResRuntime, ResRuntime>()
-/** Engine projection; environment sources are applied by the combat graph. */
+/** engine projection; environment sources are applied by the combat graph. */
 export function projectScenarioEngineRuntimes(
   scenario: CombatScenario,
 ): ScenarioRuntimeProjection {
@@ -258,7 +256,7 @@ export function projectScenarioEngineRuntimes(
   return engine
 }
 
-/** Temporary adapter for active-based UI: its visible subject is member zero. */
+/** temporary adapter for active-based ui: its visible subject is member zero. */
 export function projectScenarioUiRuntimes(
   scenario: CombatScenario,
 ): ScenarioRuntimeProjection {
@@ -273,7 +271,7 @@ export function projectScenarioUiRuntimes(
 }
 
 /**
- * Compatibility-only profile projection for UI/import code. Scenario members
+ * compatibility-only profile projection for UI/import code. scenario members
  * remain the owners of this data; callers must never persist this result.
  */
 export function projectScenarioProfiles(
@@ -293,8 +291,8 @@ export function projectScenarioMemberProfile(
   const runtime = projectScenarioMemberRuntime(scenario, member)
   const controls = { ...normResRtCnt(runtime) }
 
-  // ResProf is a retired interchange shape whose teammate controls were stored
-  // on the context profile. Encode that envelope only here so profile clipboard
+  // the retired ResProf interchange shape stored teammate controls
+  // on the context profile. encode that envelope only here so profile clipboard
   // round-trips cannot erase canonical scenario-member state.
   for (const teammate of scenario.team.members) {
     if (teammate.id === member.id) continue
@@ -331,8 +329,8 @@ export function projectScenarioMemberProfile(
 }
 
 /**
- * Compatibility profile view: each context-owned scenario contributes member
- * zero exactly once for UI and import consumers that remain resonator-keyed.
+ * compatibility profile view with member zero from each context scenario,
+ * used by ui and import consumers indexed by resonator.
  */
 export function projectScenarioWorkspaceProfiles(
   workspace: Pick<ScenarioWorkspace, 'selectedScenarioId' | 'order' | 'scenariosById'>,

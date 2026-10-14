@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Defines shared game data contracts for sources, states,
+  description: defines shared game data contracts for sources, states,
                effects, features, rotations, and runtime evaluation context.
 */
 
@@ -82,7 +82,7 @@ export interface SrcSttCondPt {
 
 export interface SourceState {
   id: string
-  /** Label shown beside the state/enabler control. */
+  /** label shown beside the state/enabler control. */
   label: string
   source: DataSrcRef
   ownerKey: string
@@ -336,7 +336,7 @@ export type EffectOp =
 
 export interface EffectDef {
   id: string
-  /** Human-facing name of the effect, distinct from any state control label. */
+  /** human-facing name of the effect, distinct from any state control label. */
   label: string
   description?: string
   source: DataSrcRef
@@ -406,7 +406,7 @@ interface RotNodeBase {
   enabled?: boolean
   /** display-only section used by the rotation editor; execution stays flat */
   editorSection?: RotationEditorSection
-  /** At most one display-only annotation owned by this logical node. */
+  /** at most one display-only annotation for this node. */
   note?: RotationNoteNode
 }
 
@@ -417,19 +417,19 @@ export interface FeatDef {
   skillId: string
   variant?: 'subHit'
   hitIndex?: number
-  /** Concrete DamageList packet selected by this sub-hit feature. */
+  /** concrete DamageList packet selected by this sub-hit feature. */
   damageEntryId?: string
-  /** Base packet ids aggregated by the parent feature. */
+  /** base packet ids aggregated by the parent feature. */
   damageEntryIds?: string[]
 }
 
 export type RotVl = number | FormExpr
 
 /**
- * Nodes a feature can carry with it. Conditions run first and their writes
+ * nodes a feature can carry with it. conditions run first and their writes
  * apply to the parent feature and to sibling attached features (local scope).
- * Attached features are full feature hits; parent multiplier scales them.
- * Nested attach on attached features is not allowed.
+ * attached features are full feature hits; parent multiplier scales them.
+ * nested attach on attached features is not allowed.
  */
 export interface FeatureAttachments {
   conditions: Array<Extract<RotationNode, { type: 'condition' }>>
@@ -443,23 +443,23 @@ export type RotationNode =
   featureId: string
   multiplier?: number
   /**
-   * Off-Tune starts counting again on this feature.
+   * off-tune starts counting again on this feature.
    *
-   * A Tune Break empties the gauge and the target then refuses Off-Tune for a
-   * few seconds. The program has no clock, so the authored mark stands in for
+   * a tune break empties the gauge and the target then refuses off-tune for a
+   * few seconds. the program has no clock, so the authored mark stands in for
    * the duration: everything between the break and the marked feature is held.
-   * Unmarked breaks hold the three features after them, so the fourth counts.
+   * unmarked breaks hold the three features after them, so the fourth counts.
    */
   offTuneResume?: boolean
   negativeEffectStacks?: number
   negativeEffectInstances?: number
   negativeEffectStableWidth?: number
   /**
-   * @deprecated Prefer `attached.conditions`. Still accepted on load and
+   * @deprecated prefer `attached.conditions`. still accepted on load and
    * normalized into condition nodes before execution.
    */
   changes?: RtChng[]
-  /** Child conditions and features authored against this skill hit. */
+  /** child conditions and features authored against this skill hit. */
   attached?: FeatureAttachments
 })
     | (RotNodeBase & {
@@ -472,9 +472,9 @@ export type RotationNode =
   label?: string
   color?: string
   times: RotVl
-  /** Optional uptime share for the same body; omitted means fully active. */
+  /** optional uptime share for the same body; omitted means fully active. */
   ratio?: RotVl
-  /** Optional full-strength setup which opens the block before its scaled body. */
+  /** optional full-strength setup which opens the block before its scaled body. */
   setup?: RotationNode[]
   items: RotationNode[]
 })
@@ -494,7 +494,7 @@ export type RotationNode =
   color?: string
   runs?: number
   /**
-   * Lazy divergent run bodies (1-based keys as strings). Each stored body is
+   * lazy divergent run bodies (1-based keys as strings). each stored body is
    * a transition inherited by later runs until another fork replaces it; the
    * in-document template between markers is the initial body.
    */
@@ -509,7 +509,7 @@ export type RotationNode =
   editorSection?: RotationEditorSection
 })
 
-/** Per-run bodies on a loop start; keys are 1-based run numbers as strings. */
+/** per-run bodies on a loop start; keys are 1-based run numbers as strings. */
 export type LoopPassForks = NonNullable<
   Extract<RotationNode, { type: 'loop'; kind: 'start' }>['passForks']
 >
@@ -559,7 +559,7 @@ export interface GameDataReg {
   rotationsBySourceKey: Record<string, RotDef[]>
   skillsBySourceKey: Record<string, SkillDef[]>
   damageEntriesBySourceKey: Record<string, SkillDamageEntry[]>
-  /** DamageList ids are only unique within a resonator. */
+  /** damage list ids are unique within each resonator. */
   damageEntriesByKey: Record<string, SkillDamageEntry>
   resonatorSkillsById: Record<string, SkillDef[]>
   resonatorDamageEntriesById: Record<string, SkillDamageEntry[]>
@@ -619,7 +619,7 @@ export interface FeatureResult {
   avg: number
   subHits: SkillSubHit[]
   /**
-   * Register values captured at the exact feature evaluation. Basic and
+   * register values captured at the exact feature evaluation. basic and
    * global values are the owner's resolved snapshot; skill-scoped factors are
    * already aggregated for this skill.
    */
@@ -637,8 +637,7 @@ export interface FeatureResult {
       the rest of what the row was worked out against. the enemy-facing four
       are layered the way crit and bonus are: the sheet's figure is only the
       first of six, with the rest arriving from the attribute, skill type and
-      skill buffs in force, so they are resolved per skill rather than read off
-      the final stats.
+      skill buffs in force. resolve them per skill from the active buffs.
     */
     energyRegen: number | null
     defIgnore: number | null
@@ -646,9 +645,9 @@ export interface FeatureResult {
     dmgVuln: number | null
     /** the enemy's resistance to this element after every shred */
     resistance: number | null
-    /** Accumulated enemy Off-Tune after this entry, formatted as current/max. */
+    /** accumulated enemy off-tune after this entry, formatted as current/max. */
     offTune: string | null
-    /** The working behind that figure: every hit, every addition, and the rate. */
+    /** the working behind that figure: every hit, every addition, and the rate. */
     offTuneTrace?: OffTuneTrace | null
     tuneBreakBoost: number | null
     finalDmg: number | null

@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Turns a read build card into one runtime patch, band by band, so
+  description: turns a read build card into one runtime patch, band by band, so
                the receipt writes exactly what its switches say it will.
 */
 
@@ -33,7 +33,7 @@ const CARD_SKILLS: CardSkill[] = [
   'introSkill',
 ]
 
-// values the card carries but the build does not have yet
+// card values absent from the current build.
 export function cntImprtVls(read: ParsedBuildScreenshot, bands: ImportBands): number {
   let count = 0
   if (bands.resonator) {

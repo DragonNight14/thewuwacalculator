@@ -1,8 +1,8 @@
 /*
   Author: Runor Ewhro
-  Description: Orchestrates the shared roster, rail, evaluation, and profile
-               behavior for Modulation, Optimizer, Showcase, and the temporary
-               legacy Evaluation view.
+  description: orchestrates the shared roster, rail, evaluation, and profile
+               behavior for modulation, optimizer, showcase, and the temporary
+               legacy evaluation view.
 */
 
 import { EvaluationSummaryContext } from '@/modules/simulation/model/evaluationSummaryContext'
@@ -85,11 +85,11 @@ import {
 } from '@/modules/simulation/workspace/ui.tsx'
 
 import {
-  type BuildRosterEntry,
-} from '@/modules/simulation/workspace/BuildRoster.tsx'
+  type Entry as RosterEntry,
+} from '@/modules/simulation/workspace/roster/List.tsx'
 import { type BuildRailModel } from '@/modules/simulation/workspace/BuildRail.tsx'
 import { makeRailModel as buildRailModel } from '@/modules/simulation/workspace/railModel.ts'
-import { makeRosterEntries } from '@/modules/simulation/workspace/rosterModel.ts'
+import { makeEntries } from '@/modules/simulation/workspace/roster/model.ts'
 import { useResonatorProfileOps } from '@/modules/simulation/workspace/useResonatorProfileOps.ts'
 import { parseProfClip, readProfClip } from '@/modules/simulation/workspace/profileClipboard.ts'
 import { ModulationReport } from '@/modules/simulation/surfaces/modulation/ModulationReport.tsx'
@@ -117,8 +117,8 @@ function reportSourceIdentity(
     runtime, runtimesById, targetSelections,
   }) : null
 }
-// Defer report construction beyond the 460ms drawer transition so its worker
-// and lazy module work do not contend with the transition.
+// start report construction after the 460ms drawer transition. its worker and
+// lazy module work then run after the animation.
 const REPORT_ASIDE_WORK_DELAY_MS = 500
 
 const EmbeddedOptimizer = optimizerPane.Mount
@@ -221,16 +221,16 @@ export function BuildWorkspaceSurface({ page }: { page: WorkspaceSurface }) {
   const railScenarioIdRef = useRef(selectedScenarioId)
   const boardRef = useRef<HTMLDivElement | null>(null)
 
-  // Derive route context actions from the same canonical roster model used by chrome.
-  const roster = useMemo<BuildRosterEntry[]>(
-    () => makeRosterEntries(scenarioLibrary),
+  // derive route context actions from the same canonical roster model used by chrome.
+  const roster = useMemo<RosterEntry[]>(
+    () => makeEntries(scenarioLibrary),
     [scenarioLibrary],
   )
-  const rosterOps = useResonatorProfileOps(roster)
+  const rosterOps = useResonatorProfileOps(roster, confirmation)
 
   const railSeed = railResId ? seedRsntById[railResId] ?? null : null
 
-  // Modulation member inspection is local and does not mutate shared profile selection.
+  // modulation member inspection is local and does not mutate shared profile selection.
   const [progResId, setModulationMemberId] = useState<string | null>(null)
   const modulationRoster = useMemo<ResView[]>(() => {
     if (!railRuntime) return []
@@ -267,7 +267,7 @@ export function BuildWorkspaceSurface({ page }: { page: WorkspaceSurface }) {
   useLayoutEffect(() => {
     if (reportTargetScenarioId === railScenarioId) return undefined
     if (cachedRailReport !== undefined) {
-      // An exact recent result satisfies the target change without restarting the worker.
+      // an exact recent result satisfies the target change without restarting the worker.
       setReportTargetScenarioId(railScenarioId)
       return undefined
     }
@@ -281,8 +281,8 @@ export function BuildWorkspaceSurface({ page }: { page: WorkspaceSurface }) {
     setModulationMemberId(null)
   }, [railScenarioId])
 
-  // Resolve a pending member only after the requested scenario context becomes
-  // active. The same resonator may belong to multiple scenario teams.
+  // resolve a pending member only after the requested scenario context becomes
+  // active. the same resonator may belong to multiple scenario teams.
   const seatAsk = useImportLanding((state) => state.seatAsk)
   useEffect(() => {
     if (!isModulation || !seatAsk || railResId !== seatAsk.contextId) return
@@ -318,7 +318,7 @@ export function BuildWorkspaceSurface({ page }: { page: WorkspaceSurface }) {
     }
     return projectScenarioUiRuntimes(reportScenario)
   }, [partRtsById, reportScenario, reportTargetScenarioId, runtime, selectedScenarioId])
-  // Showcase owns its displayed member immediately; deferred report selection
+  // showcase selects its displayed member immediately; deferred report selection
   // must not hold back the stat sheet or its independent damage request.
   const reportRuntime = isShowcase ? railRuntime : reportProjection?.subjectRuntime ?? null
   const reportParticipants = isShowcase ? railPartRtsById : reportProjection?.runtimesById ?? EMPTY_RUNTIME_MAP
@@ -339,8 +339,8 @@ export function BuildWorkspaceSurface({ page }: { page: WorkspaceSurface }) {
     reportTargetScenarioId,
     selectedScenarioId,
   ])
-  // Live enemy and progression writes replace the scenario projection even
-  // though evaluation policy ignores the enemy and maxes progression. Preserve
+  // live enemy and progression writes replace the scenario projection even
+  // though evaluation policy ignores the enemy and maxes progression. preserve
   // the normalized identity so those writes do not restart report rendering.
   const evaluationInputs = useStableEvaluationInputs(nextEvaluationInputs)
   const evaluationRuntime = evaluationInputs.runtime
@@ -355,8 +355,8 @@ export function BuildWorkspaceSurface({ page }: { page: WorkspaceSurface }) {
     [evaluationTuneStrain],
   )
   const reportTargets = evaluationInputs.targetSelections
-  // Hash the source state, before deferred simulation, to retrieve a report
-  // from an unchanged prior visit. The worker's full payload key still guards
+  // hash the source state, before deferred simulation, to retrieve a report
+  // from an unchanged prior visit. the worker's full payload key still guards
   // every cold run and refresh.
   const reportMemberId = scenarioLibrary.scenariosById[selectedScenarioId]?.team.members
     .find((member) => member.resonatorId === reportRuntime?.id)?.id ?? null
@@ -390,7 +390,7 @@ export function BuildWorkspaceSurface({ page }: { page: WorkspaceSurface }) {
     targetRuntime: reportCalculationEnabled ? evaluationRuntime : null,
     targetSeed: reportCalculationEnabled ? reportSeed : null,
     targetSelections: isSuggestions ? EMPTY_TARGETS : reportTargets,
-    // Evaluation scoring uses normalized runtime and enemy assumptions.
+    // evaluation scoring uses normalized runtime and enemy assumptions.
     baseRuntimesById: isSuggestions ? EMPTY_RUNTIME_MAP : evaluationReportRuntimesById,
     enemy: evaluationEnemy,
     deferHeavyWork: reportCalculationEnabled,
@@ -489,8 +489,7 @@ export function BuildWorkspaceSurface({ page }: { page: WorkspaceSurface }) {
       },
     }))
   }, [echoRuntime?.id, updateRailRuntime])
-  // the head writes the loadout whole (forge, save all, unequip all) through the
-  // same runtime the slots do, so progression lands on the member being tuned
+  // loadout actions use the same member runtime as individual echo slots.
   const setEchoLoadout = useCallback((echoes: Array<EchoInstance | null>) => {
     const resonatorId = echoRuntime?.id
     if (!resonatorId) return
@@ -529,13 +528,13 @@ export function BuildWorkspaceSurface({ page }: { page: WorkspaceSurface }) {
     })
   }, [echoLoadout, echoRuntime, setEchoLoadout, showToast])
   const pasteWorkspaceItem = useCallback(async (slotIndex?: number, pastedText?: string) => {
-    // A stage paste can receive either workspace clipboard type. Read the text
+    // a stage paste can receive either workspace clipboard type. read the text
     // once so both parsers inspect the same system clipboard value.
     let raw: string | null = pastedText ?? null
     if (raw == null) {
       try {
         raw = await navigator.clipboard?.readText() ?? null
-      } catch { /* Fall back to the same-session clipboard caches below. */ }
+      } catch { /* fall back to the same-session clipboard caches below. */ }
     }
     raw ??= lastWorkspaceClipboardText()
 
@@ -781,8 +780,8 @@ export function BuildWorkspaceSurface({ page }: { page: WorkspaceSurface }) {
     : null
   const dockAccent = dockMember ? ATTR_COLORS[dockMember.attribute] ?? accent : accent
   const reportMatchesRail = reportTargetScenarioId === railScenarioId
-  // Keep completed readings visible while this scenario is being reevaluated.
-  // A cache hit retains the same report; a fresh result replaces it together.
+  // keep completed readings visible while this scenario is being reevaluated.
+  // a cache hit retains the same report; a fresh result replaces it together.
   const visibleReport = reportMatchesRail ? report : null
   const score = isShowcase ? (showcaseAnalysis?.percent != null ? showcaseAnalysis.percent * 100 : null)
     : isOptimizer ? (optimizerSummary?.percent != null && reportMatchesRail ? optimizerSummary.percent * 100 : null)
@@ -839,8 +838,8 @@ export function BuildWorkspaceSurface({ page }: { page: WorkspaceSurface }) {
   const incomingRailAssetUrls = useMemo(() => {
     return [
       { src: incomingRailModel.portraitSrc, selector: '.wk-portrait-img' },
-      { src: incomingRailModel.attrIcon, selector: '.wk-portrait-elem, .seal-id-attr' },
-      { src: incomingRailModel.weaponIcon, selector: '.wk-weapon-icon, .seal-bloom-gun' },
+      { src: incomingRailModel.attrIcon, selector: '.wk-portrait-elem, .showcase-detail-id-attr' },
+      { src: incomingRailModel.weaponIcon, selector: '.wk-weapon-icon, .showcase-detail-bloom-gun' },
     ].filter((asset): asset is { src: string; selector: string } => Boolean(asset.src))
   }, [incomingRailModel])
 

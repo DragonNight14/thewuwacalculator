@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Lazy copy-on-write loop pass bodies and the one-time migration
+  description: lazy copy-on-write loop pass bodies and the one-time migration
                from legacy run rules into canonical per-pass forks.
 */
 
@@ -19,7 +19,7 @@ export type LoopPassForks = Record<string, RotationNode[]>
 
 export type RotLoopStart = Extract<RotationNode, { type: 'loop'; kind: 'start' }>
 
-/** 1-based run keys as strings for stable JSON. */
+/** 1-based run keys as strings for stable json. */
 export function passKey(run: number): string {
   return String(Math.max(1, Math.floor(run)))
 }
@@ -31,7 +31,7 @@ export function readPassForks(
 }
 
 /**
- * Resolve a pass from its nearest authored predecessor. Fork bodies are full
+ * resolve a pass from its nearest authored predecessor. fork bodies are full
  * snapshots at transition points: an exact fork wins, otherwise the greatest
  * lower run wins, with the document template acting as run zero.
  */
@@ -71,7 +71,7 @@ export function resolveLoopPassBody(
   return resolveInheritedPassBody(template, passForks, run) as RotationNode[]
 }
 
-/** Whether this run already has its own stored body. */
+/** whether this run already has its own stored body. */
 export function isLoopPassForked(
   passForks: LoopPassForks | undefined,
   run: number,
@@ -249,7 +249,7 @@ function nodePresentAt(
   if (!when?.loops?.length) {
     return true
   }
-  // Only enforce rules for loops already fixed in coords. Inner-loop rules
+  // only enforce rules for loops already fixed in coords. inner-loop rules
   // stay on the node until that loop is expanded.
   const applicable = when.loops.filter((rule) => rule.loopId in coords)
   if (applicable.length === 0) {
@@ -269,7 +269,7 @@ function overrideMatches(
   if (entries.length === 0) {
     return false
   }
-  // Multi-loop overrides apply only when the full stack is known.
+  // multi-loop overrides apply only when the full stack is known.
   if (entries.some(([loopId]) => coords[loopId] == null)) {
     return false
   }
@@ -395,7 +395,7 @@ function materializeBodyAt(
   })
 }
 
-/** Structural compare for COW compression; ids may differ after materialize. */
+/** structural compare for cow compression; ids may differ after materialize. */
 export function rotationBodiesEqual(
   left: readonly RotationNode[],
   right: readonly RotationNode[],
@@ -564,7 +564,7 @@ function deepCloneNodes(items: readonly RotationNode[]): RotationNode[] {
 }
 
 /**
- * Expand nested loop starts inside a list without materializing this list's
+ * expand nested loop starts inside a list without materializing this list's
  * own when.loops yet — those rules must survive until the enclosing loop
  * materializes each pass.
  */
@@ -584,7 +584,7 @@ function expandNestedLoopStructures(
     }
 
     if (node.type === 'loop' && node.kind === 'start') {
-      // Expand only this nested loop span, not following siblings.
+      // expand only this nested loop span, not following siblings.
       const srcEnd = findMatchingEndIndex(items, index, node.loopId)
       if (srcEnd == null) {
         out.push(node)
@@ -649,9 +649,9 @@ function expandNestedLoopStructures(
 }
 
 /**
- * Expand bounded legacy when.loops / when.overrides into lazy pass forks.
- * Circular no-end and wrap loops retain their run rules for the frame-stack
- * interpreter. Idempotent on already-normalized trees.
+ * expand bounded legacy when.loops / when.overrides into lazy pass forks.
+ * circular no-end and wrap loops retain their run rules for the frame-stack
+ * interpreter. idempotent on already-normalized trees.
  */
 function normalizeLoopPassBodies(
   items: RotationNode[],
@@ -688,7 +688,7 @@ function normalizeLoopPassBodies(
       const endNode = items[endIndex]
       const runs = Math.max(1, Math.floor(start.runs ?? 1))
 
-      // Expand nested loops first; keep this loop's when.rules on body nodes.
+      // expand nested loops first; keep this loop's when.rules on body nodes.
       const nestedReady = expandNestedLoopStructures(rawBody, parentCoords, freeLoopIds)
 
       const existingForks = readPassForks(start)
@@ -707,7 +707,7 @@ function normalizeLoopPassBodies(
         }
         passForks = Object.keys(nextForks).length > 0 ? nextForks : undefined
       } else if (!hasLegacyWhen) {
-        // Uniform loop, no forks and no when run config.
+        // uniform loop, no forks and no when run config.
         template = nestedReady.map(stripNodeWhenRunConfig)
         passForks = undefined
       } else {
@@ -716,7 +716,7 @@ function normalizeLoopPassBodies(
           const coords = { ...parentCoords, [start.loopId]: run }
           const source = resolveLoopPassBody(nestedReady, existingForks, run)
           const materialized = materializeBodyAt(deepCloneNodes(source), coords)
-          // Nested loops inside the materialized body may still carry rules.
+          // nested loops inside the materialized body may still carry rules.
           bodies.push(
             normalizeLoopPassBodies(materialized, coords, freeLoopIds),
           )
@@ -784,7 +784,7 @@ function normalizeLoopPassBodies(
       continue
     }
 
-    // Outside any loop being expanded: strip residual run config only.
+    // outside any loop being expanded: strip residual run config only.
     out.push(
       Object.keys(parentCoords).length === 0
         ? stripNodeWhenRunConfigExcept(node, freeLoopIds)
@@ -840,8 +840,8 @@ function bodyHasRunWhenConfig(items: readonly RotationNode[]): boolean {
 }
 
 /**
- * Extract the template body of a loop from a flat list (nodes strictly between
- * start and its matching end). No-end loops take everything after the start.
+ * extract the template body of a loop from a flat list (nodes strictly between
+ * start and its matching end). no-end loops take everything after the start.
  */
 export function extractLoopTemplateBody(
   items: readonly RotationNode[],
@@ -877,7 +877,7 @@ function findAnyMatchingEndIndex(
   return index >= 0 ? index : null
 }
 
-/** Logical body of a wrap/no-end loop in the order the circular walker runs it. */
+/** logical body of a wrap/no-end loop in the order the circular walker runs it. */
 function extractCircularLoopBody(
   items: readonly RotationNode[],
   startIndex: number,
@@ -888,7 +888,7 @@ function extractCircularLoopBody(
   return [...tail, ...head] as RotationNode[]
 }
 
-/** Body order used by execution for bounded, wrap-around, and no-end loops. */
+/** body order used by execution for bounded, wrap-around, and no-end loops. */
 export function extractLoopExecutionBody(
   items: readonly RotationNode[],
   startIndex: number,
@@ -912,7 +912,7 @@ export function extractLoopExecutionBody(
   }
 }
 
-/** Remove every legacy `when` field. Only its run rules ever carried meaning. */
+/** remove every legacy `when` field. only its run rules ever carried meaning. */
 function stripLegacyWhenNode(node: RotationNode): RotationNode {
   if (node.type === 'note') {
     return node
@@ -971,7 +971,7 @@ function stripLegacyWhenItems(items: readonly RotationNode[]): RotationNode[] {
 }
 
 /**
- * Materialize legacy rules on wrap-around and no-end loops. Their document
+ * materialize legacy rules on wrap-around and no-end loops. their document
  * template is distributed around the marker list, so divergent runs are kept
  * as exact forks while the distributed template remains the shared fallback.
  */
@@ -1071,7 +1071,7 @@ function normalizeCircularLoopPasses(
 }
 
 /**
- * One-time compatibility migration for persisted/imported rotations. Current
+ * one-time compatibility migration for persisted/imported rotations. current
  * editor and execution paths must receive only the returned canonical shape.
  */
 export function migrateLegacyRotationItems(items: RotationNode[]): RotationNode[] {

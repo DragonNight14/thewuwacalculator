@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Resolves per-resonator Spine placement overrides with a stable
+  description: resolves per-resonator spine placement overrides with a stable
                evaluation fallback.
 */
 

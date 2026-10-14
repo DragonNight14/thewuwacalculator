@@ -1,7 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Finds a node by what it is called, so a long rotation can be
-               reached by name rather than by scrolling it.
+  description: finds named nodes in a long rotation.
 */
 
 import type {
@@ -22,7 +21,7 @@ interface IndexEntry {
   title: string
 
   aside: string
-  /** where it sits, so two steps of the same name can be told apart */
+  /** path that distinguishes steps with the same name */
   crumb: string
   order: number
   loop?: {
@@ -40,7 +39,7 @@ export interface SearchHit {
   from: number
   to: number
   crumb: string
-  /** shown when the query was found in the aside rather than the title */
+  /** match context shown for a query found in the aside. */
   via: string | null
   /** variant navigation shown when the result itself is a loop */
   loop?: {
@@ -78,11 +77,10 @@ export interface SearchNames {
 }
 
 /**
- * Every node in the rotation, in the order it runs.
+ * every node in the rotation, in the order it runs.
  *
- * The crumb is built on the way down rather than looked up after, because the
- * same feature appears at several depths and where it sits is most of what
- * tells two of them apart.
+ * build each crumb during tree traversal. the same feature can appear at
+ * several depths, and its location distinguishes those occurrences.
  */
 export function buildNodeIndex(
   sections: readonly EditorSection[],
@@ -166,7 +164,7 @@ export function buildNodeIndex(
         order,
       })
 
-      // a note lives on its host rather than beside it, so it is reached here
+      // reach attached notes through their host node.
       if (node.attachedNote) {
         order += 1
         out.push({
@@ -188,9 +186,9 @@ export function buildNodeIndex(
 }
 
 /**
- * The best few matches for a query.
+ * the best few matches for a query.
  *
- * A match in the title outranks one in the aside, and an earlier match outranks
+ * a match in the title outranks one in the aside, and an earlier match outranks
  * a later one: someone typing `heavy` means a step that starts with it before
  * one that mentions it halfway through.
  */
@@ -228,8 +226,8 @@ export function searchNodes(
       && requestedRun >= 1
       && requestedRun <= entry.loop.runs
       && loopNeedle.length > 0
-      // Preserve ordinary searches such as a loop literally named "Loop 1".
-      // The run grammar is only needed when the complete query is not a name.
+      // preserve ordinary searches such as a loop literally named "Loop 1".
+      // the run grammar is only needed when the complete query is not a name.
       && fullTitleAt < 0
       && fullAsideAt < 0
       ? requestedRun
@@ -247,7 +245,7 @@ export function searchNodes(
       })
       continue
     }
-    // found by what it is rather than by what it is called
+    // this match uses node kind, independent of its label.
     const aside = exactLoopRun === undefined ? fullAsideAt : asideText.indexOf(entryNeedle)
     if (aside >= 0) {
       scored.push({

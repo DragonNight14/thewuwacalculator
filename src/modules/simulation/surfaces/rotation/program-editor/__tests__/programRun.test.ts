@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Verifies program run logic and compatibility invariants.
+  description: verifies program run logic and compatibility invariants.
 */
 
 import { describe, expect, it } from 'vitest'
@@ -295,7 +295,7 @@ describe('rotation editor engine round trips', () => {
     )
   })
 
-  it('retains standalone and owned notes without adding simulation entries', () => {
+  it('retains standalone and attached notes without adding simulation entries', () => {
     const rotation: RotationNode[] = [
       { id: 'standalone-note', type: 'note', label: 'Plan', text: 'Display only' },
       {
@@ -441,7 +441,7 @@ describe('rotation editor engine round trips', () => {
       : null).not.toBe('Unrun edit')
   })
 
-  it('uses engine loop context for wrapped rows instead of their visual nesting', () => {
+  it('uses engine loop context for wrapped rows', () => {
     const rotation: RotationNode[] = [
       { id: 'before', type: 'feature', featureId: 'damage:test-skill' },
       { id: 'wrap-end', type: 'loop', kind: 'end', loopId: 'wrapped' },
@@ -906,7 +906,7 @@ describe('rotation editor engine round trips', () => {
       members,
     })
 
-    // Crossing loops split the outer projection without reparenting inner rows.
+    // crossing loops split the outer projection without reparenting inner rows.
     const main = projected.sections.find((section) => section.id === 'main')
     const [aStart, bLoop] = main?.children ?? []
     expect(aStart).toMatchObject({ type: 'loop', loopId: 'loop-a', wrap: 'tail' })
@@ -932,7 +932,7 @@ describe('rotation editor engine round trips', () => {
   })
 
 
-  // Moving a no-end loop boundary materializes the canonical paired end marker.
+  // moving a no-end loop boundary materializes the canonical paired end marker.
   it('gives a no-end loop a whole loop when its end is dragged', () => {
     const rotation: RotationNode[] = [
       { id: 'above', type: 'feature', featureId: 'damage:test-skill' },
@@ -961,7 +961,7 @@ describe('rotation editor engine round trips', () => {
       members,
     })
 
-    // The no-end projection initially emits coincident head and tail segments.
+    // the no-end projection initially emits coincident head and tail segments.
     const main = projected.sections.find((section) => section.id === 'main')
     expect(main?.children.map((node) => (node.type === 'loop' ? node.wrap : node.type)))
       .toEqual(['head', 'tail'])
@@ -1071,7 +1071,7 @@ describe('rotation editor engine round trips', () => {
     const damage = findNode(result.sections, 'damage')
     expect(damage?.type === 'step' ? Object.keys(damage.damageByRun).map(Number) : [])
       .toEqual([1, 2, 3])
-    // The authored exact fork adds gated-damage only to inner pass 2.
+    // the authored exact fork adds gated-damage only to inner pass 2.
     expect(findNode(result.sections, 'gated-damage')).toBeNull()
     const serialized = editorSectionsToRotation(result.sections, rotation)
       .flatMap((section) => section.items)
@@ -1303,7 +1303,7 @@ describe('rotation editor engine round trips', () => {
         nodeId: 'second-damage',
         nodeType: 'feature',
         executed: true,
-        // The active resonator is not necessarily the feature owner. This is
+        // the active resonator is not necessarily the feature owner. this is
         // how saved feature nodes without an explicit resonator are emitted.
         activeResonatorId: seed.id,
         value: {
@@ -1381,7 +1381,7 @@ describe('rotation editor engine round trips', () => {
       damageEntries: [
         damageEntry('first-damage', members[0]!, 100, 200, 130),
         damageEntry('second-damage', members[1]!, 300, 600, 390),
-        // Catalog follow-ups execute without being authored rotation nodes.
+        // catalog follow-ups execute without being authored rotation nodes.
         damageEntry('generated-follow-up', members[1]!, 50, 100, 65),
       ],
       items: rotation,
@@ -1711,7 +1711,7 @@ describe('rotation editor engine round trips', () => {
     })
 
     // 2 outer passes x 2 inner passes; the inner body belongs to the inner
-    // loop on every one of them, so no write lands under the outer loop alone
+    // loop on every pass, so no write appears under only the outer loop.
     const history = result.history.get(path)
     expect(history?.map((entry) => entry.loopRuns)).toEqual([
       { outer: 1, inner: 1 },
@@ -1732,7 +1732,7 @@ describe('rotation editor engine round trips', () => {
 })
 
 /*
-  What the sweep in the toolbar acts on. Every reading here comes from the
+  what the sweep in the toolbar acts on. every reading here comes from the
   run's own trace, so these pin the three answers it can give a row: it did
   something, it did nothing, or the run never got anything out of it.
 */
@@ -1861,7 +1861,7 @@ describe('what the last run leaves a row carrying', () => {
   it('keeps a write that changed the state on any one pass of a loop', () => {
     const program: RotationNode[] = [
       { id: 'loop-start', type: 'loop', kind: 'start', loopId: 'loop-a', runs: 2 },
-      /* raises the state on pass one, and writes what it already holds on pass two */
+      /* raises the state on pass one, and writes its current value on pass two */
       { id: 'once', type: 'condition', changes: [{ type: 'set', path: BUFF_PATH, value: 10 }] },
       { id: 'loop-end', type: 'loop', kind: 'end', loopId: 'loop-a' },
     ]

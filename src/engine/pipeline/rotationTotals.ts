@@ -1,13 +1,13 @@
 /*
   Author: Runor Ewhro
-  Description: Implements rotation totals data-flow and calculation invariants.
+  description: implements rotation totals data-flow and calculation invariants.
 */
 
 import type { FeatureResult } from '@/domain/gameData/contracts'
 import type { SkillAggType } from '@/domain/entities/stats'
 import type { DamageTotals } from '@/engine/pipeline/types'
 
-/** A rotation total is always a damage total; support outputs stay row-local. */
+/** a rotation total is always a damage total; support outputs stay row-local. */
 export function isDamageRotationEntry(
   entry: Pick<FeatureResult, 'aggregationType'>,
 ): boolean {
@@ -26,7 +26,7 @@ export function getLoopAverageDivisor(loopRunCounts: Record<string, number> | un
 }
 
 /**
- * The same divisor with one loop left out, for totals stated per run of that
+ * the same divisor with one loop left out, for totals stated per run of that
  * loop: the surrounding passes still divide, the loop's own passes do not.
  */
 export function getOtherLoopAverageDivisor(
@@ -45,11 +45,8 @@ export function getOtherLoopAverageDivisor(
 }
 
 /*
-  a row inside a loop is simulated once per pass, so left as it is the totals
-  would read the whole rotation rather than one pass of it. dividing by the
-  passes states every row as what one pass is worth, which is what the app
-  means by a rotation total. `normalizeLoops: false` asks for the other
-  reading: every pass counted, the rotation as it actually ran.
+  divide loop row damage by the pass count for per-pass rotation totals.
+  `normalizeLoops: false` includes damage from every executed pass.
 */
 function addNrmlEntTt(total: DamageTotals, entry: FeatureResult, normalizeLoops: boolean): void {
   const divisor = normalizeLoops ? getLoopAverageDivisor(entry.loopRunCounts) : 1
@@ -79,7 +76,7 @@ export function sumRotTtls(
   )
 }
 
-/** Both readings of the same rows in one pass, for surfaces that show each. */
+/** both readings of the same rows in one pass, for surfaces that show each. */
 export function sumRotTtlsPair(entries: readonly FeatureResult[]): {
   totals: DamageTotals
   fullTotals: DamageTotals
@@ -94,7 +91,7 @@ export function sumRotTtlsPair(entries: readonly FeatureResult[]): {
   return { totals, fullTotals }
 }
 
-/** Average damage attributed to each run of each loop, keyed by loop id. */
+/** average damage attributed to each run of each loop, keyed by loop id. */
 export function indexLoopDamageByRun(
   entries: readonly FeatureResult[],
 ): Map<string, Record<number, number>> {
@@ -124,7 +121,7 @@ function mkAggTtls(): Record<SkillAggType, DamageTotals> {
   }
 }
 
-/** Separate support output totals for displays; never use these for damage score. */
+/** separate support output totals for displays; never use these for damage score. */
 export function sumRotTtlsByAgg(
   entries: readonly FeatureResult[],
   options: { normalizeLoops?: boolean } = {},
@@ -136,7 +133,7 @@ export function sumRotTtlsByAgg(
   }, mkAggTtls())
 }
 
-/** Both loop-normalized and full-run support totals from one entry list. */
+/** both loop-normalized and full-run support totals from one entry list. */
 export function sumRotTtlsByAggPair(entries: readonly FeatureResult[]): {
   totalsByGroup: Record<SkillAggType, DamageTotals>
   fullTotalsByGroup: Record<SkillAggType, DamageTotals>

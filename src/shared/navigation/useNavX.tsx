@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Coordinates navigation intent, route preloading, progress state,
+  description: coordinates navigation intent, route preloading, progress state,
                and optional view-transition commits.
 */
 
@@ -16,7 +16,7 @@ import {
 } from '@/shared/navigation/navigationPreload'
 import { isPersistentWorkspaceRoute } from '@/shared/lib/appRoutes'
 
-// Commit even when preloading stalls; the route boundary owns subsequent loading.
+// commit even when preloading stalls; the route boundary handles subsequent loading.
 const ARRIVAL_CEILING = 8000
 
 interface NavigationIntentTracker {
@@ -35,7 +35,7 @@ export function createNavigationIntentTracker(): NavigationIntentTracker {
   }
 }
 
-// Module ownership lets a newer click supersede work started by another AxLink.
+// module-level state lets a newer click supersede work started by another AxLink.
 const navigationIntent = createNavigationIntentTracker()
 
 function pathOf(to: string): string {
@@ -67,7 +67,7 @@ export function useNavX(): NavX {
       && isPersistentWorkspaceRoute(target)
     const animated = target !== pathname && !staysOnBuildWorkspace && motionAllowed()
 
-    // NavHold ends progress after the destination paints, not when its chunk loads.
+    // finish navigation progress after the destination paints.
     const commit = () => {
       if (!navigationIntent.isCurrent(intent)) return
 
@@ -76,7 +76,7 @@ export function useNavX(): NavX {
         return
       }
 
-      // Capture direction before the outgoing page is replaced.
+      // capture direction before the outgoing page is replaced.
       armMove(pathname, target)
       navigate(to, { ...options, viewTransition: isNavigationPathWarm(target) })
     }
@@ -87,11 +87,11 @@ export function useNavX(): NavX {
       return
     }
 
-    // Record the target before preloading so navigation chrome can follow it.
+    // record the target before preloading so navigation chrome can follow it.
     progress.begin(target)
 
-    // A failed prefetch must not strand the current page or the progress line.
-    // Commit without a transition and let the route boundary retry/render the
+    // a failed prefetch must not strand the current page or the progress line.
+    // commit without a transition and let the route boundary retry/render the
     // failure; createRouteChunk has already released the rejected request.
     void Promise.race([warmNavigationPath(target), waited(ARRIVAL_CEILING)]).then(
       commit,
@@ -106,7 +106,7 @@ export interface AxLinkProps extends Omit<AnchorHTMLAttributes<HTMLAnchorElement
   state?: unknown
 }
 
-// Modified presses remain native so links can still open in another tab/window.
+// modified presses remain native so links can still open in another tab/window.
 export const AxLink = forwardRef<HTMLAnchorElement, AxLinkProps>(function AxLink(
   { to, replace, state, onClick, onPointerEnter, onFocus, children, ...rest },
   ref,
@@ -114,7 +114,7 @@ export const AxLink = forwardRef<HTMLAnchorElement, AxLinkProps>(function AxLink
   const navX = useNavX()
 
   const warm = () => {
-    // Intent warming is best effort. A click retries through useNavX, while a
+    // intent warming is best effort. a click retries through useNavX, while a
     // hover/focus rejection must not become an unhandled promise rejection.
     void warmNavigationPath(pathOf(to)).catch(() => undefined)
   }

@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Stores browser-side google oauth tokens and refreshes access
+  description: stores browser-side google oauth tokens and refreshes access
                tokens through the worker-backed refresh endpoint when needed.
 */
 

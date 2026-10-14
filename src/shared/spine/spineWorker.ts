@@ -80,10 +80,10 @@ async function loadWorkerAssets(
       })
       const texture = new GLTexture(context, bitmap)
 
-      // GLTexture retains its upload source for context restoration. This app
-      // recreates the whole Spine instance after context loss, so retaining a
-      // second decoded 8K atlas wastes roughly 128 MB. Preserve only the
-      // original dimensions needed by Spine's attachment geometry.
+      // gltexture retains its upload source for context restoration. this app
+      // recreates the whole spine instance after context loss, so retaining a
+      // second decoded 8k atlas wastes roughly 128 mb. preserve only the
+      // original dimensions needed by spine's attachment geometry.
       context.removeRestorable(texture)
       ;(texture as unknown as { _image: { width: number; height: number } })._image = {
         width: page.width,
@@ -114,7 +114,7 @@ async function createRenderer({ canvas, baseUrl, skelFile, atlasFile, zoom }: In
   })) as WebGLRenderingContext | null
   if (!gl) throw new Error('Worker WebGL not available')
 
-  // Luckdraw screen/additive layers are authored for premultiplied-alpha.
+  // luckdraw screen/additive layers are authored for premultiplied-alpha.
   gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, true)
   patchBlendModes(gl)
   const context = new ManagedWebGLRenderingContext(gl)
@@ -199,7 +199,7 @@ async function createRenderer({ canvas, baseUrl, skelFile, atlasFile, zoom }: In
     timer = setTimeout(loop, FRAME_INTERVAL)
   }
 
-  // Do not report ready until pixels have reached the transferred canvas.
+  // do not report ready until pixels have reached the transferred canvas.
   renderFrame(performance.now())
   timer = setTimeout(loop, FRAME_INTERVAL)
   return {

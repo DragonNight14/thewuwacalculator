@@ -1,7 +1,7 @@
 /*
   Author: Runor Ewhro
-  Description: Provides quick echo-build generation controls, validating cost,
-               Sonata, and main-stat constraints before applying generated echoes.
+  description: provides quick echo-build generation controls, validating cost,
+               sonata, and main-stat constraints before applying generated echoes.
 */
 
 import { DisplayImage } from '@/shared/ui/DisplayImage'
@@ -325,7 +325,7 @@ export function QuickSetup({
               ) : null}
             </span>
             <span className="eqs-plate">
-              <span className="amdl__over">Echo Forge</span>
+              <span className="amdl__over">Generate Echo Loadout</span>
               <strong className="eqs-name">{selMainEcho?.name ?? 'Any lead echo'}</strong>
             </span>
           </button>
@@ -589,7 +589,7 @@ export function QuickSetup({
           </div>
         ) : (
           <div className="eqs-empty">
-            <span>No substat template. Forged echoes keep empty substats.</span>
+            <span>No substat template. Generated echoes keep empty substats.</span>
             <button type="button" className="amdl__act" onClick={addSubGroup} disabled={config.echoCount === 0}>
               <Plus size="0.8rem" aria-hidden />
               Add a template
@@ -622,7 +622,7 @@ export function QuickSetup({
           </button>
           <button type="button" className="amdl__act is-go" onClick={generate}>
             <Hammer size="0.8rem" aria-hidden="true" />
-            Forge build
+            Generate loadout
           </button>
         </footer>
   )
@@ -632,7 +632,7 @@ export function QuickSetup({
     <AppModal
       state={{ visible, open, closing }}
       variant="echo-quick-setup"
-      ariaLabel="Echo forge"
+      ariaLabel="Generate Echo Loadout"
       onClose={onClose}
     >
       {mobile ? (

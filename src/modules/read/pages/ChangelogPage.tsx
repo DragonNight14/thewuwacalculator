@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Renders versioned changelog entries with route metadata and anchored release navigation.
+  description: renders versioned changelog entries with route metadata and anchored release navigation.
 */
 
 import React from 'react'

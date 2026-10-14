@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Protects evaluation input normalization from progression-driven
+  description: protects evaluation input normalization from progression-driven
                report invalidation.
 */
 

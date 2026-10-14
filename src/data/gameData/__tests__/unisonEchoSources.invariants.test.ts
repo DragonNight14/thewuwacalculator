@@ -1,7 +1,7 @@
 /*
   Author: Runor Ewhro
-  Description: Protects the generated skills and localized calculator effects
-               for the beta Unison Echoes.
+  description: protects the generated skills and localized calculator effects
+               for the beta unison echoes.
 */
 
 import { describe, expect, it } from 'vitest'

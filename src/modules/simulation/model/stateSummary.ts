@@ -1,8 +1,8 @@
 /*
   Author: Runor Ewhro
-  Description: builds grouped summaries of active states and effects across
+  description: builds grouped summaries of active states and effects across
                the active resonator, teammates, weapon, main echo, and echo
-               sets for Simulation report surfaces.
+               sets for simulation report surfaces.
 */
 
 import type { CombatGraph, CombatPart } from '@/domain/entities/combatGraph'
@@ -46,9 +46,8 @@ export interface StateNode {
   ownerScope: string
   ownScpLbl: string
   /**
-   * where the node actually came from. `ownerScope` folds echo and echo set
-   * together for grouping, so a surface that wants to show the true source,
-   * such as a set's own sonata icon, has to read this instead.
+   * where the node came from. `ownerScope` groups echo and echo set together;
+   * surfaces use this field for the exact source and its sonata icon.
    */
   source: DataSrcRef
   stateLabels: string[]
@@ -552,7 +551,7 @@ function isSttAct(state: SourceState, context: EffectContext): boolean {
   return Number.isFinite(numericValue) && numericValue !== defaultValue && numericValue !== 0
 }
 
-// resolve skill labels used by skill-scoped operations so summary text can be human-readable
+// resolve skill labels for readable skill-scoped summaries.
 function resMtchSkllL(
     effect: EffectDef,
     operation: EffectDef['operations'][number],
@@ -592,13 +591,13 @@ function resMtchSkllL(
   return []
 }
 
-// runtime and skill operations do not store a reverse "affected skills" index, so the rotation When modal derives it
-// from the same operation metadata that the evaluator uses when applying effects.
+// the rotation when modal derives affected skills from the operation metadata
+// used by the evaluator; runtime and skill operations have no reverse index.
 function opTargetsSkill(
     operation: EffectOperation,
     target: SkillStateSummaryTarget,
 ): boolean {
-  // The When modal should mirror the selected skill's damage formula, not every state that happens to be active. Each
+  // the when modal should mirror the selected skill's damage formula, not every state that happens to be active. each
   // operation is therefore checked against the formula bucket that can actually consume it.
   if (operation.type === 'add_base_stat') {
     return targetUsesBaseStat(target, operation.stat)
@@ -651,9 +650,9 @@ function effectTargetsSkill(effect: EffectDef, target: SkillStateSummaryTarget):
   return effect.operations.some((operation) => opTargetsSkill(operation, target))
 }
 
-/* Overview stats are broader than one skill: an element row consumes its own
+/* overview stats are broader than one skill: an element row consumes its own
    attribute bucket plus `all`, while a damage-type row consumes its own bucket
-   plus `all`. Keep this translation beside the skill translation so every
+   plus `all`. keep this translation beside the skill translation so every
    source surface filters the same effect definitions. */
 function opTargetsStat(
     operation: EffectOperation,
@@ -999,8 +998,8 @@ function sttIsVsbl(state: SourceState, context: EffectContext): boolean {
   return evalCond(state.enabledWhen, stateScope)
 }
 
-// Build an effect runtime context for a source runtime relative to the target
-// runtime being inspected. Source and target contexts are resolved separately:
+// build an effect runtime context for a source runtime relative to the target
+// runtime being inspected. source and target contexts are resolved separately:
 // sourceFinalStats must describe the owner of the effect, while base/final/pool
 // must describe the target receiving or previewing that effect.
 function buildContext(
@@ -1025,8 +1024,8 @@ function buildContext(
   const tgtPart =
       graph ? Object.values(graph.participants).find((participant) => participant.resonatorId === targetRt.id) : null
 
-  // Build one transient graph that can answer both source and target lookups
-  // when a summary is rendered outside the live Simulation graph path.
+  // build one transient graph that can answer both source and target lookups
+  // when a summary is rendered outside the live simulation graph path.
   const trnsGrph = (!srcPart || !tgtPart)
       ? makeCombatGraph({
         actRt: activeRt,
@@ -1042,7 +1041,7 @@ function buildContext(
       prepCtx: CombatContext | null,
       graphPart: CombatPart | null,
   ): CombatContext | null => {
-    // Prepared contexts come from callers that already paid the pipeline cost;
+    // prepared contexts come from callers that already paid the pipeline cost;
     // graph contexts preserve live targeting; transient contexts are the final
     // fallback for detached teammate summaries.
     if (prepCtx) {

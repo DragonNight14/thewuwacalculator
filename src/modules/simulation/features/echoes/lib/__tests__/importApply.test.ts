@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Locks what a build-card import writes: the bands it is handed and
+  description: locks what a build-card import writes: the bands it is handed and
                nothing else, with the values the card cannot see left alone.
 */
 
@@ -55,7 +55,7 @@ describe('applyImprtRd', () => {
     expect(next).toBe(base)
   })
 
-  it('moves level, sequence and the five forte levels the card carries', () => {
+  it('moves level, sequence, and five forte levels from the card', () => {
     const next = applyImprtRd(base, makeRead(null), [], {
       resonator: true,
       weapon: false,
@@ -67,7 +67,7 @@ describe('applyImprtRd', () => {
     expect(next.base.skillLevels.normalAttack).toBe(10)
     expect(next.base.skillLevels.resonanceSkill).toBe(1)
     expect(next.base.skillLevels.introSkill).toBe(1)
-    // tune break is not drawn on the card, so it keeps whatever the build had
+    // tune break is absent from the card and retains the build's stored level.
     expect(next.base.skillLevels.tuneBreak).toBe(base.base.skillLevels.tuneBreak)
   })
 

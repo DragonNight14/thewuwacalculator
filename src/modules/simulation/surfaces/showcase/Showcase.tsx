@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Renders the evaluation showcase build card, including stat
+  description: renders the evaluation showcase build card, including stat
                ladders, echo scoring, sonata badges, and relevant-stat emphasis.
 */
 
@@ -40,7 +40,7 @@ function clampPct(value: number): number {
   return Math.max(0, Math.min(100, value))
 }
 
-/** Shared holder identity for both showcase layouts. */
+/** shared holder identity for both showcase layouts. */
 export function ShowcaseHolder({ fallback }: { fallback: string }) {
   const playerId = useAppStore((state) => state.ui.preferences.playerId)
   const playerUid = useAppStore((state) => state.ui.preferences.playerUid)
@@ -70,7 +70,7 @@ export function makeRelStats(charId: string): RelStats {
   return rel
 }
 
-// Separate legal roll-step position from normalized quality tone.
+// separate legal roll-step position from normalized quality tone.
 function substatGauge(key: string, value: number): { steps: number; filled: number; tone: string } | null {
   const options = getSbstStepP(key)
   if (options.length < 2) return null
@@ -100,7 +100,7 @@ export function ShowcaseStatRow({
   buildTotal: number | null
   blank?: boolean
   relevant: boolean
-  /** Whether combat state raised this value above its build value. */
+  /** whether combat state raised this value above its build value. */
   raised?: boolean
 }) {
   const statKey = row.key
@@ -261,7 +261,7 @@ function ShowcaseEcho({
     </ContextTrigger>
   )
 }
-/** Shared Echo main-stat projection used by both showcase layouts. */
+/** shared echo main-stat projection used by both showcase layouts. */
 export function ShowcaseEchoMains({ echo, relevant }: { echo: EchoInstance; relevant: boolean }) {
   const primary = echo.mainStats.primary
   const secondary = echo.mainStats.secondary
@@ -283,7 +283,7 @@ export function ShowcaseEchoMains({ echo, relevant }: { echo: EchoInstance; rele
   )
 }
 
-/** Shared Echo substat projection keeps both showcase layouts aligned. */
+/** shared echo substat projection keeps both showcase layouts aligned. */
 export function ShowcaseEchoSubs({
   echo,
   relStats,
@@ -335,7 +335,7 @@ export function ShowcaseEchoSubs({
   )
 }
 
-// Grade aggregate crit value against the canonical two-main-stat ceiling.
+// grade aggregate crit value against the canonical two-main-stat ceiling.
 export function loadoutCv(slots: Array<EchoInstance | null>, blank?: boolean): { total: number; tone: string | undefined } {
   const total = slots.reduce((sum, echo) => sum + (echo ? cmptEchoCritAll(echo) : 0), 0)
   const fourCost = Math.min(slots.filter((echo) => getEchoById(echo?.id ?? '')?.cost === 4).length, 2)

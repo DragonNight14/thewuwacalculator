@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Generates main-stat suggestions by exploring valid
+  description: generates main-stat suggestions by exploring valid
                main-stat recipe combinations, evaluating their damage,
                and keeping the top-performing results.
 */
@@ -61,7 +61,7 @@ export function sggsMainStts({
   // evaluate the current recipe set and insert it into the ranked results
   function mybNsrtRslt(costUsed: number) {
     const avgDamage = scoreRecipes(curRcps)
-    // Stable insertion retains the DFS tie order used by Array.sort, while
+    // stable insertion retains the dfs tie order used by array.sort, while
     // avoiding recipe clones and a full sort for candidates below the cutoff.
     let insertAt = results.findIndex((entry) => avgDamage > entry.damage)
     if (insertAt < 0) insertAt = results.length
@@ -125,7 +125,7 @@ export function runMainStats(
 ): MainStatSugg[] {
   const rotationMode = input.rotationMode
 
-  // simulate the current build first so we can derive context and stat weights
+  // the current-build simulation supplies context and stat weights.
   const simulation = runSuggSmlt(input)
   const prepared = mkPrepMainSt(input, simulation)
   if (!prepared) {
@@ -147,9 +147,9 @@ export function runMainStats(
   }), topK, options)
 }
 
-/* Packed enumeration remains cheap. Actual simulation owns every returned
-   total and the final order, including changes to Echo bodies, sets, passives,
-   rotation setup, and attacks. Always retain the worn recipe as a contender. */
+/* packed enumeration remains cheap. actual simulation determines every returned
+   total and the final order, including changes to echo bodies, sets, passives,
+   rotation setup, and attacks. always retain the worn recipe as a contender. */
 function scoreMainStatFinalists(
     input: MainStatPrep,
     finalists: MainStatSugg[],

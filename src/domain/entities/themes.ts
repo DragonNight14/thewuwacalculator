@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Defines theme variant constants, grouped theme mappings,
+  description: defines theme variant constants, grouped theme mappings,
                preview swatches, and shared theme-related types.
 */
 
@@ -81,10 +81,8 @@ export const THEME_LABELS: Record<ThemeVariant, string> = {
   'frosted-aurora': 'Frosted Aurora',
 }
 
-/** The four tokens a theme card needs to paint itself as a small portrait of
- *  the app wearing that theme. Kept here beside THEME_PREVIEW rather than read
- *  off a live element, because the variant classes carry decoration that has no
- *  business inside a card. */
+/** four tokens for a theme card preview. they live beside THEME_PREVIEW;
+ *  live elements can carry variant decorations outside the card's scope. */
 export interface ThemeInk {
   bg: string
   surface: string

@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: shared docs-page helpers for resolving method topics from route
+  description: shared docs-page helpers for resolving method topics from route
                params and search hits against a stable, slugged key space.
 */
 

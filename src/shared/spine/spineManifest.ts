@@ -33,7 +33,7 @@ export function loadSpineManifest(): Promise<SpineManifest> {
   return manifestPromise
 }
 
-// Synchronous accessor for the already-resolved manifest, so portraits mounting
+// synchronous accessor for the already-resolved manifest, so portraits mounting
 // after the first fetch know spine availability on their first render and never
 // paint the sprite fallback during an unknown window.
 export function getLoadedSpineManifest(): SpineManifest | null {

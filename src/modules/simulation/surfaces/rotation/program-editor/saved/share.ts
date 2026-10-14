@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Builds and parses saved-rotation share documents with compatibility metadata.
+  description: builds and parses saved-rotation share documents with compatibility metadata.
 */
 
 import type { SavedRotation } from '@/domain/entities/inventoryStorage.ts'

@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Exposes Simulation surface chunks to the application-level route preloader.
+  description: exposes simulation surface chunks to the application-level route preloader.
 */
 
 export {

@@ -1,7 +1,7 @@
 /*
   Author: Runor Ewhro
-  Description: protects authored Echo mechanics that depend on generated
-               runtime state rather than only the Echo skill multiplier.
+  description: protects authored echo mechanics that depend on generated
+               runtime state as well as the echo skill multiplier.
 */
 
 import { describe, expect, it } from 'vitest'

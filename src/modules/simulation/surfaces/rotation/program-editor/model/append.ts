@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: What a rotation program can be appended from, and what
+  description: what a rotation program can be appended from, and what
                appending does, so rotation surfaces offer the same
                sources and land the same nodes.
 */
@@ -51,7 +51,7 @@ export function makeAppendSource({
 }): AppendSource[] {
   const options: AppendSource[] = []
   const teamIds = currentTeamIds(runtime)
-  // Unsaved teammates contribute authored presets directly alongside saved rotations.
+  // unsaved teammates contribute authored presets directly alongside saved rotations.
   for (const resonatorId of teamIds) {
     const memberSeed = seedRsntById[resonatorId]
     if (!memberSeed) {
@@ -85,9 +85,8 @@ export function makeAppendSource({
 }
 
 /*
-  the appended rotation is taken as a copy: the source keeps its own node
-  identities, so appending the same rotation twice gives two of it rather than
-  one rotation named twice.
+  appending copies the rotation with fresh node identities. repeated appends
+  produce independent instances.
 */
 export function appendRotationCopies(items: readonly RotationNode[]): RotationNode[] {
   return cloneRotationNodes([...items], { freshIds: true })

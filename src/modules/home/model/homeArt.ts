@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Defines the shared Home artwork assigned to report, arrival,
+  description: defines the shared home artwork assigned to report, arrival,
                work, and maintenance content.
 */
 

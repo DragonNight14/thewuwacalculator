@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Selects the persisted subset of the app store for storage
+  description: selects the persisted subset of the app store for storage
                and serialization.
 */
 

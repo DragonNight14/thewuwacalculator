@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Defines Home, Read, Simulation, and the redirects for retired routes.
+  description: defines home, read, simulation, and the redirects for retired routes.
 */
 
 import { Suspense } from 'react'
@@ -69,22 +69,22 @@ function HomeEntry() {
   return useMobileUi() ? <MobileHomePage /> : <HomePage />
 }
 
-// Preserve legacy What's New hashes when redirecting to the home release section.
+// preserve legacy what's new hashes when redirecting to the home release section.
 function WhatsNewRedirect() {
   const location = useLocation()
   const entryId = decodeURIComponent(location.hash.replace(/^#/, ''))
   return <Navigate to={whatsNewHref(entryId || null)} replace />
 }
 
-// One pathless layout holds every simulation surface. Moving between its
+// one pathless layout renders every simulation surface. moving between its
 // children keeps SimulationPage (and everything it initializes) mounted; the
 // page picks its pane from the matched child's handle.
 const simulationRoute: RouteObject = {
   element: lazyRoute(<SimulationPage />),
   children: SIMULATION_SURFACE_IDS.map((surface) => ({
     path: SIMULATION_SURFACES[surface].path,
-    // The surface is rendered by the persistent parent from this route's
-    // handle. An explicit inert element keeps the leaf route well-formed.
+    // the surface is rendered by the persistent parent from this route's
+    // handle. an explicit inert element keeps the leaf route well-formed.
     element: <></>,
     handle: { surface } satisfies SimulationSurfaceHandle,
   })),
@@ -94,12 +94,12 @@ export const rootRoutes: RouteObject[] = [
   {
     path: '/',
     element: <AppLayout />,
-    // AppLayout failures bypass the nested route boundary and require a root-level fallback.
+    // layout failures require a root-level fallback.
     errorElement: <RouteErrorPage bare />,
     children: [
       {
-        // Keep page failures below AppLayout so a later navigation remounts only
-        // the failed route branch.
+        // page failures stay below AppLayout; later navigation remounts the
+        // failed route branch.
         errorElement: <RouteErrorPage />,
         children: [
           { index: true, element: lazyRoute(<HomeEntry />) },

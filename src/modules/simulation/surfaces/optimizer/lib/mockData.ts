@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Provides optimizer stat labels and result-table headers shared
+  description: provides optimizer stat labels and result-table headers shared
                by the optimizer controls and result grid.
 */
 

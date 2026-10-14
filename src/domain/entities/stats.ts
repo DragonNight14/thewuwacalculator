@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Defines shared stat, buff, and skill calculation types used
+  description: defines shared stat, buff, and skill calculation types used
                across resonator data, final stats, and damage computation.
 */
 
@@ -112,7 +112,7 @@ export interface UnifiedBuffPool {
   defIgnore: number
   defShred: number
   dmgVuln: number
-  /** Additive bonus applied on top of the native 1.0 (100%) baseline. */
+  /** additive bonus applied on top of the native 1.0 (100%) baseline. */
   offTuneBuildupRate: number
   tuneBreakBoost: number
   finalDmg: number
@@ -148,7 +148,7 @@ export interface FinalStats {
   defIgnore: number
   defShred: number
   dmgVuln: number
-  /** Resolved factor; 1 is the native 100% buildup rate. */
+  /** resolved factor; 1 is the native 100% buildup rate. */
   offTuneBuildupRate: number
   tbb: number
   finalDmg: number
@@ -177,9 +177,7 @@ export interface SkillHitTable {
 }
 
 /**
- * One concrete DamageList packet. Unlike SkillDef, this owns the packet's
- * coefficient and combat metadata instead of inheriting them from the
- * displayed parent action.
+ * one concrete DamageList packet with its own coefficient and combat metadata.
  */
 export interface SkillDamageEntry {
   id: string
@@ -214,28 +212,27 @@ export interface SkillDamageEntry {
   provenance: 'matched' | 'authored' | 'unlinked'
 }
 
-/** One hit's share of a skill's Off-Tune, before any buildup rate. */
+/** one hit's share of a skill's off-tune, before any buildup rate. */
 export interface OffTuneHit {
   label: string
   count: number
-  /** the hit's Off-Tune for a single landing */
+  /** the hit's off-tune for a single landing */
   weakness: number
   /** weakness x count */
   total: number
 }
 
-/** A named addition to a skill's Off-Tune, on one side of the buildup rate. */
+/** a named addition to a skill's off-tune, on one side of the buildup rate. */
 export interface OffTuneSource {
   label: string
   value: number
 }
 
 /**
- * How one execution arrived at its Off-Tune.
+ * how one execution arrived at its off-tune.
  *
- * The register cell can only show where the gauge ended up. This is the work
- * behind that figure, kept unrounded, so the readout can name every hit and
- * every buff rather than asking the reader to trust a total.
+ * unrounded contributions behind the register cell's final gauge value.
+ * the readout can name each hit and buff.
  */
 export interface OffTuneTrace {
   /** the gauge before this entry */
@@ -244,11 +241,11 @@ export interface OffTuneTrace {
   after: number
   /** the ceiling the gauge is read against */
   max: number
-  /** this entry emptied the gauge, which only a Tune Break does */
+  /** this entry emptied the gauge, which only a tune break does */
   reset: boolean
-  /** the gain was dropped: the target still refuses Off-Tune after a break */
+  /** the gain was dropped: the target still refuses off-tune after a break */
   sealed: boolean
-  /** this entry stands in a Tune Break's aftermath, so it can carry the mark */
+  /** whether this entry occurs after a tune break. */
   afterBreak: boolean
   /** this entry is where counting starts again, by mark or by default */
   resume: 'mark' | 'default' | null
@@ -301,9 +298,9 @@ export interface SkillDef {
   flatValues?: number[]
   fixedDmg?: number
   fixedDmgValues?: number[]
-  /** Additional Off-Tune that is multiplied by Off-Tune Buildup Rate. */
+  /** additional off-tune that is multiplied by off-tune buildup rate. */
   offTune?: number
-  /** Fixed Off-Tune applied after Off-Tune Buildup Rate. */
+  /** fixed off-tune applied after off-tune buildup rate. */
   directOffTune?: number
   scaling: ScalingStats
   skillBuffs?: Partial<ModBuff>
@@ -320,7 +317,7 @@ export interface SkillDef {
   levelSource?: SkillLevelSrc | null
   visible?: boolean
   visibleWhen?: CondExpr
-  /** Team event that adds this response as an attached rotation feature. */
+  /** team event that adds this response as an attached rotation feature. */
   triggeredBy?: 'teamTuneBreak'
   skillTypeWhen?: Array<{
     when: CondExpr

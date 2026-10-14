@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Owns the single team Unison Boon effect and its team-derived rules.
+  description: defines the team unison boon effect and its team-derived rules.
 */
 
 import type { SourceState, SrcPkg } from '@/domain/gameData/contracts'
@@ -29,7 +29,7 @@ export function canTriggerUnisonResponse(member: Member): boolean {
   return member.resonatorId === '1312' || hsinInUnison(member)
 }
 
-/** Each rule can be roster-passive or gated by its owner's active state. */
+/** each rule can be roster-passive or gated by its owner's active state. */
 const maxSources = [
   { resonatorId: '1311', value: 1, enabled: (member: Member) => hsinInUnison(member) && member.progression.level >= 70 },
   { resonatorId: '1311', value: 1, enabled: (member: Member) => hsinInUnison(member) && member.progression.sequence >= 6 },
@@ -80,7 +80,7 @@ export const unisonBoonState: SourceState = {
   defaultValue: 0,
 }
 
-/** The shared state displayed on each eligible member's runtime. */
+/** the shared state displayed on each eligible member's runtime. */
 export function unisonBoonStateForRuntime(runtime: ResRuntime): SourceState | null {
   if (!canTriggerUnisonResponse({
     resonatorId: runtime.id,
@@ -90,7 +90,7 @@ export function unisonBoonStateForRuntime(runtime: ResRuntime): SourceState | nu
   return { ...unisonBoonState, max: runtime.state.teamEffects?.unisonBoonMax ?? 2 }
 }
 
-/** This source is registered once; each eligible recipient gets one projection. */
+/** this source is registered once; each eligible recipient gets one projection. */
 export const unisonBoonSource: SrcPkg = {
   source: UNISON_BOON_SOURCE,
   states: [unisonBoonState],

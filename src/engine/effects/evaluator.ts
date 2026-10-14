@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Evaluates formula and condition expressions against scoped
+  description: evaluates formula and condition expressions against scoped
                runtime, stat, pool, and context data, with cached compiled
                path access for the hot runtime evaluation path.
 */
@@ -27,8 +27,7 @@ interface CompPathRef {
   from: EvalScpRoot
   parts: string[]
   runtimePath: string
-  // tracks whether the path points at a runtime root so callers can preserve
-  // runtime-path dependency metadata without reparsing the expression.
+  // tracks runtime-root paths for dependency metadata without reparsing.
   usesRtPath: boolean
 }
 
@@ -64,7 +63,7 @@ interface CompiledFormProgram {
   readonly y: Float64Array
   readonly paths: readonly CompPathRef[]
   readonly tables: readonly number[][]
-  /** Re-entrant scratch lanes; ordinary execution uses only lane zero. */
+  /** re-entrant scratch lanes; ordinary execution uses only lane zero. */
   readonly stacks: Float64Array[]
   activeDepth: number
 }
@@ -244,8 +243,7 @@ function readBjctPath(root: unknown, parts: readonly string[]): unknown {
 }
 
 // read a value from a compiled scoped path
-// runtime-backed roots use the dedicated runtime-path helper so evaluator reads
-// Stay aligned with the rest of the Simulation runtime semantics.
+// runtime-backed roots use the dedicated path helper shared by simulation.
 function readCompPath(scope: EffectScope, compiled: CompPathRef): unknown {
   const root = resolveRoot(scope, compiled.from)
 
@@ -504,7 +502,7 @@ function compileConditionProgram(condition: CondExpr): CompiledConditionProgram 
 
     if (entry.type === 'and' || entry.type === 'or') {
       const indexes = entry.values.map(visit)
-      // Compile children before recording this range: nested child lists must
+      // compile children before recording this range: nested child lists must
       // not become interleaved with this parent's contiguous references.
       childStarts[nodeIndex] = children.length
       children.push(...indexes)

@@ -1,7 +1,7 @@
 /*
   Author: Runor Ewhro
-  Description: Fetches the latest Nanoka release manifest once per session and
-               resolves its character, weapon, Echo, and enemy ids against the
+  description: fetches the latest nanoka release manifest once per session and
+               resolves its character, weapon, echo, and enemy ids against the
                local catalogs.
 */
 
@@ -13,7 +13,7 @@ import { WPNTYPELBLS } from '@/modules/simulation/api/display'
 import type { AttributeKey } from '@/domain/entities/stats'
 
 const MANIFEST_URL = 'https://static.nanoka.cc/manifest.json'
-// Bound the third-party request so catalog coverage never waits indefinitely.
+// bound the third-party request so catalog coverage never waits indefinitely.
 const GIVE_UP_AFTER = 6000
 
 interface RawManifest {
@@ -34,7 +34,7 @@ export interface ArrivedThing {
   id: string
   name: string
   icon: string | null
-  /** Whether the id resolves in the local catalog. */
+  /** whether the id resolves in the local catalog. */
   held: boolean
 }
 
@@ -44,7 +44,7 @@ export interface ArrivedResonator extends ArrivedThing {
   weaponName: string
   colour: string
   tags: string[]
-  /** Preferred setup artwork and its catalog fallback. */
+  /** preferred setup artwork and its catalog fallback. */
   art: string
   artFallback: string | null
   signature: ArrivedThing | null
@@ -108,7 +108,7 @@ function shape(raw: RawManifest): Arrivals | null {
   if (!ww || !arrived) return null
 
   const resonators = (arrived.character ?? []).map((id) => readResonator(String(id)))
-  // Remove signatures already paired with their arriving resonator.
+  // remove signatures already paired with their arriving resonator.
   const signed = new Set(resonators.map((one) => one.signature?.id).filter(Boolean))
 
   return {
@@ -125,7 +125,7 @@ function shape(raw: RawManifest): Arrivals | null {
 
 let pending: Promise<Arrivals | null> | null = null
 
-/* Cache one request per session. Network, timeout, and parse failures resolve
+/* cache one request per session. network, timeout, and parse failures resolve
    to null so unavailable remote data cannot fail the route. */
 export function loadArrivals(): Promise<Arrivals | null> {
   if (pending) return pending

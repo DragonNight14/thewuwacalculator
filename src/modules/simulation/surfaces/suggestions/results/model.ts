@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Normalizes main-stat, set-plan, and weapon suggestions against
+  description: normalizes main-stat, set-plan, and weapon suggestions against
                their own baselines and materializes candidates for application.
 */
 
@@ -33,21 +33,21 @@ import type { SuggKind } from '@/modules/simulation/surfaces/suggestions/lib/use
 
 export { materializeWeaponSuggestion } from '../lib/results.ts'
 
-export type ClimbKind = 'mainStats' | 'setPlans' | 'weapons'
+export type Kind = 'mainStats' | 'setPlans' | 'weapons'
 
-export const CLIMB_KINDS: ClimbKind[] = ['mainStats', 'setPlans', 'weapons']
+export const KINDS: Kind[] = ['mainStats', 'setPlans', 'weapons']
 
-export const CLIMB_KIND_NAME: Record<ClimbKind, string> = {
+export const KIND_NAME: Record<Kind, string> = {
   mainStats: 'Main Stats',
   setPlans: 'Sonata Sets',
   weapons: 'Weapons',
 }
 
-export function isClimbKind(mode: SuggKind): mode is ClimbKind {
+export function isKind(mode: SuggKind): mode is Kind {
   return mode === 'mainStats' || mode === 'setPlans' || mode === 'weapons'
 }
 
-export interface ClimbMark {
+export interface Change {
   key: string
   icon: string | null
   text: string
@@ -56,14 +56,14 @@ export interface ClimbMark {
   color: string | null
 }
 
-export interface ClimbTray {
+export interface EchoSlot {
   key: string
   color: string | null
   title: string
   lead: string
   leadUnit: string
   coins: Array<string | null>
-  /** One name per coin for set trays, the stat name for main-stat trays. */
+  /** one name per coin for set trays, the stat name for main-stat trays. */
   names: string[]
   name: string | null
   primary: { icon: string | null; value: string } | null
@@ -71,28 +71,28 @@ export interface ClimbTray {
   held: boolean
 }
 
-/* A weapon is scored per passive state; the lead variant ranks the row. */
-export interface ClimbVariant {
+/* a weapon is scored per passive state; the lead variant ranks the row. */
+export interface WeaponVariant {
   mode: WeaponEntry['mode']
   damage: number
   delta: number
 }
 
-export interface ClimbRow {
+export interface Row {
   key: string
   rank: number
   now: boolean
-  /** Already on the build: the worn recipe or set plan, or the weapon in hand. */
+  /** already on the build: the worn recipe or set plan, or the weapon in hand. */
   equipped: boolean
   color: string | null
   damage: number
   delta: number
-  marks: ClimbMark[]
-  trays: ClimbTray[]
+  marks: Change[]
+  trays: EchoSlot[]
   recipe: MainStatRecipe[] | null
   setPlan: SetPlanEntry[] | null
   weapon: WeaponEntry | null
-  variants: ClimbVariant[]
+  variants: WeaponVariant[]
 }
 
 export interface WornMainStat {
@@ -102,7 +102,7 @@ export interface WornMainStat {
   secondary: { key: string, value: number }
 }
 
-/* Recipes have no slot identity, so compare equipped main stats as a multiset. */
+/* recipes have no slot identity, so compare equipped main stats as a multiset. */
 export function wornMainStats(echoes: Array<EchoInstance | null>): WornMainStat[] {
   const out: WornMainStat[] = []
   for (const echo of echoes) {
@@ -114,7 +114,7 @@ export function wornMainStats(echoes: Array<EchoInstance | null>): WornMainStat[
   return out
 }
 
-function statMark(key: string, cost: number): ClimbMark {
+function statMark(key: string, cost: number): Change {
   const value = ECHO_MAIN_STATS[cost]?.[key] ?? 0
   return {
     key: `${cost}:${key}`,
@@ -126,7 +126,7 @@ function statMark(key: string, cost: number): ClimbMark {
   }
 }
 
-function statTray(key: string, cost: number, held: boolean): ClimbTray {
+function statTray(key: string, cost: number, held: boolean): EchoSlot {
   const value = ECHO_MAIN_STATS[cost]?.[key] ?? 0
   const side = ECHO_SIDE_STATS[cost]
   return {
@@ -146,13 +146,13 @@ function statTray(key: string, cost: number, held: boolean): ClimbTray {
   }
 }
 
-/* Consume matching multiset entries so repeated cost/stat pairs remain distinct. */
+/* consume matching multiset entries so repeated cost/stat pairs remain distinct. */
 function mainStatRows(
   results: MainStatSugg[],
   base: number,
   echoes: Array<EchoInstance | null>,
   worn: WornMainStat[],
-): ClimbRow[] {
+): Row[] {
   return results.map((result, index) => {
     const have = new Map<string, number>()
     for (const entry of worn) {
@@ -164,8 +164,8 @@ function mainStatRows(
     }
 
     const recipes = sortRecipes(result.recipes)
-    const marks: ClimbMark[] = []
-    const trays: ClimbTray[] = []
+    const marks: Change[] = []
+    const trays: EchoSlot[] = []
 
     for (const recipe of recipes) {
       const key = `${recipe.cost}:${recipe.primaryKey}`
@@ -195,9 +195,9 @@ function mainStatRows(
   })
 }
 
-/* A row's slots list effect-equivalent sets that the engine scored alike.
-   Prefer the ones already worn so materializing the plan changes as few echoes
-   as possible. Ties keep the engine's pick. Concrete entries outside these
+/* a row's slots list effect-equivalent sets that the engine scored alike.
+   prefer the ones already worn so materializing the plan changes as few echoes
+   as possible. ties keep the engine's pick. concrete entries outside these
    slots change no scored effect, so their echoes remain worn. */
 export function preferWornSets(
   display: SetPlanDisplayEntry[],
@@ -207,7 +207,7 @@ export function preferWornSets(
   const have = new Map<number, number>()
   for (const entry of worn) have.set(entry.setId, (have.get(entry.setId) ?? 0) + entry.pieces)
 
-  // Pair each display slot with the concrete entry it was drawn from.
+  // pair each display slot with the concrete entry it was drawn from.
   const taken = new Set<number>()
   const slots = display.map((entry) => {
     const at = concrete.findIndex((plan, index) => (
@@ -231,7 +231,7 @@ export function preferWornSets(
       return
     }
     for (const setId of display[slot].setIds) {
-      // Each slot is its own bonus: two slots never share one set.
+      // each slot is its own bonus: two slots never share one set.
       if (pick.includes(setId)) continue
       pick.push(setId)
       walk(slot + 1)
@@ -240,10 +240,10 @@ export function preferWornSets(
   }
   walk(0)
   const chosen: number[] | null = best
-  // Unpaired slots mean the display is not drawn from this plan; keep it whole.
+  // unpaired slots mean the display is not drawn from this plan; keep it whole.
   if (!chosen || slots.includes(-1)) return { setPlan: concrete, display }
 
-  // Worn echoes left in free slots add to whatever set they carry. Never let
+  // worn echoes left in free slots add to whatever set they carry. never let
   // them lift a set over a tier the scored plan did not reach.
   const crossesTier = (plan: SetPlanEntry[]) => {
     const free = Math.max(0, 5 - plan.reduce((total, entry) => total + entry.pieces, 0))
@@ -259,7 +259,7 @@ export function preferWornSets(
     : !crossesTier([...swapped, ...fillers]) ? [...swapped, ...fillers]
       : null
   if (!setPlan) return { setPlan: concrete, display }
-  // Put the materialized set first while retaining its effect-equivalent alternatives.
+  // put the materialized set first while retaining its effect-equivalent alternatives.
   const led = display.map((entry, index) => ({
     ...entry,
     setIds: [chosen[index], ...entry.setIds.filter((id) => id !== chosen[index])],
@@ -271,7 +271,7 @@ function setPlanRows(
   results: CompactSetPlanSuggest[],
   base: number,
   worn: SetPlanSmmrE[],
-): ClimbRow[] {
+): Row[] {
   return results.map((result, index) => {
     const have = new Map<number, number>()
     for (const entry of worn) {
@@ -280,8 +280,8 @@ function setPlanRows(
 
     const { setPlan, display: displayPlan } = preferWornSets(getSetPlanDisplay(result), result.setPlan, worn)
 
-    const marks: ClimbMark[] = []
-    const trays: ClimbTray[] = []
+    const marks: Change[] = []
+    const trays: EchoSlot[] = []
 
     for (const entry of displayPlan) {
       const lead = entry.setIds[0]
@@ -332,12 +332,12 @@ function setPlanRows(
   })
 }
 
-/* Fold passive variants by weapon while keeping the configured ranking variant first. */
+/* fold passive variants by weapon while keeping the configured ranking variant first. */
 function weaponRows(
   results: WeaponEntry[],
   base: number,
   runtime: ResRuntime,
-): ClimbRow[] {
+): Row[] {
   return groupWeaponSuggestions(results).map(({ plans }, index) => {
     const lead = plans[0]
     const now = lead.weaponId === runtime.build.weapon.id
@@ -383,7 +383,7 @@ function weaponRows(
   })
 }
 
-export function climbRows({
+export function buildRows({
   kind,
   mainStatRslt,
   setPlanRslt,
@@ -394,7 +394,7 @@ export function climbRows({
   wornSetPlan,
   runtime,
 }: {
-  kind: ClimbKind
+  kind: Kind
   mainStatRslt: MainStatSugg[]
   setPlanRslt: CompactSetPlanSuggest[]
   wpnRslt: WeaponEntry[]
@@ -403,13 +403,13 @@ export function climbRows({
   worn: WornMainStat[]
   wornSetPlan: SetPlanSmmrE[]
   runtime: ResRuntime
-}): ClimbRow[] {
+}): Row[] {
   if (kind === 'mainStats') return mainStatRows(mainStatRslt, base, echoes, worn)
   if (kind === 'setPlans') return setPlanRows(setPlanRslt, base, wornSetPlan)
   return weaponRows(wpnRslt, base, runtime)
 }
 
-export function materializeRowEchoes(row: ClimbRow, echoes: Array<EchoInstance | null>): Array<EchoInstance | null> | null {
+export function materializeRowEchoes(row: Row, echoes: Array<EchoInstance | null>): Array<EchoInstance | null> | null {
   if (row.recipe) return applyMainSta(row.recipe, echoes)
   if (row.setPlan) return applySetPlan(row.setPlan, echoes)
   return null

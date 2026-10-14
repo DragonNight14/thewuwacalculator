@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Schedules CPU and GPU optimizer jobs across reusable workers,
+  description: schedules cpu and gpu optimizer jobs across reusable workers,
                with run generations, timeouts, cancellation, and result merging.
 */
 
@@ -77,7 +77,7 @@ type OptPoolRunCt =
     | OptPoolCpuRu
     | OptPoolGpuRu
 
-// Per-worker flags prevent retransmitting an unchanged CPU payload or GPU bootstrap.
+// per-worker flags prevent retransmitting an unchanged cpu payload or gpu bootstrap.
 export interface OptPoolWrkr {
   worker: Worker
   currentJob: OptPoolJob | null
@@ -85,7 +85,7 @@ export interface OptPoolWrkr {
   gpuBackend: OptPoolGpuMode | null
 }
 
-/** Mutable resources shared by one optimizer worker pool across runs. */
+/** mutable resources shared by one optimizer worker pool across runs. */
 export class OptimizerWorkerPool {
   workers: OptPoolWrkr[] = []
   queue: OptPoolJob[] = []
@@ -230,7 +230,7 @@ function resWrkrJobMs(
       jobResultLimit: job.jobResultLimit,
     }
 
-    // The first CPU task seeds the worker; later tasks reuse that payload.
+    // the first cpu task seeds the worker; later tasks reuse that payload.
     handle.cpuPayLdd = true
 
     return {
@@ -273,7 +273,7 @@ function resWrkrJobMs(
         : pool.actRunCtx.payload as TargetGpuState,
     }
 
-    // The first target task initializes the worker's GPU backend.
+    // the first target task initializes the worker's gpu backend.
     handle.gpuBackend = 'target'
     return { message, trns: [] }
   }
@@ -307,12 +307,12 @@ function resWrkrJobMs(
       : pool.actRunCtx.payload as PckdRotXctnP,
   }
 
-  // The first rotation task initializes the worker's GPU backend.
+  // the first rotation task initializes the worker's gpu backend.
   handle.gpuBackend = 'rotation'
   return { message, trns: [] }
 }
 
-/** Uses request-scoped listeners so stale replies cannot complete a later job. */
+/** request-scoped listeners isolate replies to their originating job. */
 function dispWrkrJob(pool: OptimizerWorkerPool, handle: OptPoolWrkr, job: OptPoolJob): void {
   handle.currentJob = job
 
@@ -356,7 +356,7 @@ function dispWrkrJob(pool: OptimizerWorkerPool, handle: OptPoolWrkr, job: OptPoo
     if (timeoutId != null) {
       clearTimeout(timeoutId)
     }
-    // Progress rearms the deadline; complete silence terminates the request.
+    // progress rearms the deadline; complete silence terminates the request.
     timeoutId = setTimeout(() => {
       fnshWithRrr(new Error(`Optimizer worker task timed out: ${timeoutLabel}`))
     }, WORKER_TASK_MS)

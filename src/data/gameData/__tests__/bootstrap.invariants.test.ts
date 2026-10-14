@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Verifies game-data initialization ordering, shared concurrent loads, retry cleanup, and prehydration.
+  description: verifies game-data initialization ordering, shared concurrent loads, retry cleanup, and prehydration.
 */
 
 import { describe, expect, it, vi } from 'vitest'
@@ -186,8 +186,8 @@ describe('game data bootstrap invariants', () => {
     clearGameDataState()
     const previousFetch = globalThis.fetch
 
-    // the exact request list matters because a second in-flight initializer
-    // should await the first one instead of duplicating every data fetch
+    // the exact request list verifies that concurrent initializers share one
+    // in-flight data fetch sequence.
     const fetchMock = vi.fn(async (input: RequestInfo | URL) => {
       const url = resolveRequestUrl(input)
 
@@ -241,13 +241,13 @@ describe('game data bootstrap invariants', () => {
     }
   })
 
-  it('clears the in-flight promise after a failed attempt so the next call can retry', async () => {
+  it('clears the in-flight promise after failure and permits retry', async () => {
     vi.resetModules()
     clearGameDataState()
     const previousFetch = globalThis.fetch
 
-    // fail only the first echo-stats request so the retry proves the rejected
-    // promise was cleared rather than cached as the permanent bootstrap result
+    // fail the first echo stats request. a successful retry proves rejection
+    // cleared the cached bootstrap promise.
     let failEchoStats = true
     const fetchMock = vi.fn(async (input: RequestInfo | URL) => {
       const url = resolveRequestUrl(input)

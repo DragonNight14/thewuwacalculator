@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Maps parsed import capabilities to independent load, save, and
+  description: maps parsed import capabilities to independent load, save, and
                confirmation actions.
 */
 

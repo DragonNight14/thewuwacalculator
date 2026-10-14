@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Owns forte tree behavior and state transitions for the lib module.
+  description: provides forte tree data and state helpers.
 */
 
 import type { ResSeed } from '@/domain/entities/runtime.ts'
@@ -16,7 +16,7 @@ export interface ForteTrace {
   id: string
   name: string
   value: string
-  /* the sentence the catalog already authors for the node, "Crit. DMG
+  /* the sentence the catalog already authors for the node, "crit. dmg
      increased by 5.60%.". the tree has only ever drawn the bare figure. */
   desc: string
   statIcon: string | null
@@ -40,14 +40,14 @@ export interface ForteBranch {
     which is why the outer pair compresses horizontally and drops much further.
   */
   side: 'l2' | 'l1' | 'c' | 'r1' | 'r2'
-  /* inner node first, then the outer one it gates */
+/* inner node followed by the outer node that requires it */
   traces: ForteTrace[]
   inherents: ForteInherent[]
 }
 
 /*
-  four of the five columns carry a pair of stat nodes and the middle one carries
-  the inherents instead, which is why forteCircuit is absent from this list.
+  four columns contain stat node pairs; the center column contains inherents.
+  forteCircuit is handled separately.
 */
 const TRACE_BRANCHES: ResSldrSkllT[] = [
   'normalAttack',
@@ -56,10 +56,10 @@ const TRACE_BRANCHES: ResSldrSkllT[] = [
   'introSkill',
 ]
 
-/* the middle column, which carries the inherents and docks the loose skills */
+/* center column for inherents and the two additional skills */
 export const FORTE_SPINE: ResSldrSkllT = 'forteCircuit'
 
-/* left to right, the way the game hangs the tree */
+/* display order from left to right */
 export const BRANCH_ORDER: ResSldrSkllT[] = [
   'normalAttack',
   'resonanceSkill',
@@ -121,9 +121,8 @@ function toTrace(node: TraceNode, dark: boolean): ForteTrace {
 }
 
 /*
-  the catalog lists every inner node before every outer one, so a column's pair
-  is the node at i and the node half a list later. anything that does not divide
-  cleanly is laid out as inner nodes only rather than mispaired.
+  the catalog lists inner nodes before outer nodes. pair each node at i with
+  the node half a list later. an uneven list renders inner nodes alone.
 */
 function traceColumns(nodes: TraceNode[], dark: boolean): ForteTrace[][] {
   const half = Math.floor(nodes.length / 2)
@@ -149,8 +148,8 @@ export function mkForteTree(member: ResView, dark: boolean): ForteBranch[] {
   }))
 
   const shown = BRANCH_ORDER.filter((key) => tabs.has(key))
-  // the tree arches away from the spine, so every column carries how far out it
-  // sits and the surface reads its own height from that instead of its position
+  // each column stores its distance from the spine. the surface derives its
+  // height from that distance.
   const spineAt = shown.indexOf(FORTE_SPINE)
 
   return shown.map((key, index) => {
@@ -170,9 +169,8 @@ export function mkForteTree(member: ResView, dark: boolean): ForteBranch[] {
 }
 
 /*
-  the two skills the game hangs off the spine rather than in a column of their
-  own. the outro skill has no level, so a docked skill states whether it is
-  levelled instead of the surface guessing from the key.
+  two skills dock on the spine. the outro skill has no level; each docked
+  skill declares whether it is levelled.
 */
 export interface ForteDock {
   key: ResSldrSkllT | 'outroSkill'
@@ -182,10 +180,8 @@ export interface ForteDock {
 }
 
 /*
-  both dock nodes are drawn whatever the resonator: the outro skill carries no
-  level and so never reaches the slider tabs, and tune break only survives them
-  when its panel happens to hold more than one value. neither absence means the
-  game stops drawing the node.
+  always render the two additional nodes. outro has no level, and tune break
+  may have only one value, so neither necessarily appears in the slider tabs.
 */
 export function mkForteDock(member: ResView): ForteDock[] {
   const levelled = new Set(visibleTabs(member))

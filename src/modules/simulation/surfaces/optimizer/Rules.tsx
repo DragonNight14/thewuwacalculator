@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Edits optimizer Echo-set, main-stat, inventory, and target constraints.
+  description: edits optimizer echo-set, main-stat, inventory, and target constraints.
 */
 
 import { ModalHeader } from '@/shared/ui/AppModalShell'

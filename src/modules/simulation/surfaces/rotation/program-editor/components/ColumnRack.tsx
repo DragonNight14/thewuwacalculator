@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Edits register columns and group ordering under the available column budget.
+  description: edits register columns and group ordering under the available column budget.
 */
 
 import { useMemo, useState } from 'react'
@@ -21,9 +21,8 @@ import {
 const WIDEST_BAND = 20
 
 /*
-  the band being dragged rides on the drag itself rather than in state. a
-  dragover fires before react has re-rendered from the dragstart, so a handler
-  reading state would be reading what was true a gesture ago.
+  the active band rides on the drag event. dragover can fire before react
+  renders the latest dragstart state.
 */
 const BAND_MIME = 'application/x-rte-band'
 
@@ -128,7 +127,7 @@ export function ColumnRack({
                 setOver(null)
               }}
               onDragOver={(event) => {
-                // the payload is unreadable until drop, but its type is not
+                // the payload type is readable during dragover; content waits for drop.
                 if (!event.dataTransfer.types.includes(BAND_MIME)) {
                   return
                 }

@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Keeps Showcase's two optional stat slots aligned across Build and Combat.
+  description: keeps showcase's two optional stat slots aligned across build and combat.
 */
 
 import { describe, expect, it } from 'vitest'

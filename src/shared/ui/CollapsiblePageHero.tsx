@@ -1,8 +1,8 @@
 /*
   Author: Runor Ewhro
-  Description: inline page hero plus a small floating pill that drops in
+  description: inline page hero plus a small floating pill that drops in
                from above the viewport once the user has scrolled past
-               the hero. Eyebrow + title characters stagger in. Clicking
+               the hero. eyebrow + title characters stagger in. clicking
                the pill smoothly scrolls the scroll container back to top.
 */
 

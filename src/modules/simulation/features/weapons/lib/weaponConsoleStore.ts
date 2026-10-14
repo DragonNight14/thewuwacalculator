@@ -1,7 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: holds the open weapon console request, so the bench rail and any
-               other surface carrying a weapon open the same modal.
+  description: stores the open weapon-console request for shared modal access.
 */
 
 import { create } from 'zustand'

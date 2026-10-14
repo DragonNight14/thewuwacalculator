@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Exposes the mobile Home implementation through the module's
+  description: exposes the mobile home implementation through the module's
                public pages boundary.
 */
 

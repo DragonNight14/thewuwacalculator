@@ -1,7 +1,7 @@
 /*
   Author: Runor Ewhro
-  Description: Guards cost-relative primary-stat normalization while keeping
-               identical substat rolls directly comparable across Echo costs.
+  description: guards cost-relative primary-stat normalization while keeping
+               identical substat rolls directly comparable across echo costs.
 */
 
 import { afterEach, describe, expect, it, vi } from 'vitest'
@@ -434,7 +434,7 @@ describe('Echo scoring invariants', () => {
       expect(bestScore).toBeCloseTo(44, 8)
     }
 
-    // Every main selected by the optimal 4-3-3-1-1 layout receives full
+    // every main selected by the optimal 4-3-3-1-1 layout receives full
     // item-quality credit, even when its isolated marginal value is lower.
     expect(getEchoScrs(AUGUSTA_ID, makeEcho(3, 'electro')).mainScore).toBeCloseTo(44, 8)
   })
@@ -470,8 +470,8 @@ describe('Echo scoring invariants', () => {
                 setName: String(echo.set),
                 primary: { ...echo.mainStats.primary },
                 secondary: { ...echo.mainStats.secondary },
-                // Generated evaluation slots preserve the base Echo instance;
-                // the generated 25-roll plan lives in statRows instead.
+                // generated evaluation slots preserve the base echo instance;
+                // the generated 25-roll plan is stored in statRows.
                 equippedSubstats: [],
               }
             }),
@@ -510,12 +510,12 @@ describe('Echo scoring invariants', () => {
     fractional.evaluation.builds.referenceBuild.statRows.forEach((row) => {
       row.substatCount -= 0.49
     })
-    // These still round to 25 slots, but belong to the fractional build
-    // benchmark and must not replace the Echo-quality reference.
+    // these still round to 25 slots, but belong to the fractional build
+    // benchmark and must not replace the echo-quality reference.
     expect(cacheEchoMainStatScoringFromEvaluation(input, fractional)).toBeNull()
     const tierBudget = structuredClone(report)
     tierBudget.evaluation.builds.referenceBuild.statRows[0].substatTotal *= 0.8
-    // Integer occupancy alone must not turn the 100% build into the ideal.
+    // integer occupancy alone must not turn the 100% build into the ideal.
     expect(cacheEchoMainStatScoringFromEvaluation(input, tierBudget)).toBeNull()
     expect(cacheEchoMainStatScoringFromEvaluation(input, report)).not.toBeNull()
 
@@ -615,7 +615,7 @@ describe('Echo scoring invariants', () => {
     }
     expect(getMkScrPrcn(JINGRAN_ID, referenceRuntime.build.echoes)).toBeCloseTo(100, 8)
 
-    // Once the family's useful target is covered, adding more HP can only
+    // once the family's useful target is covered, adding more hp can only
     // redistribute credit among pieces, never increase total earned points.
     const capLoadout = hpLoadout.map((echo) => ({
       ...echo,

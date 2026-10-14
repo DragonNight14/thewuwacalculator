@@ -1,7 +1,7 @@
 /*
   Author: Runor Ewhro
-  Description: Names, colours, and totals for the loops the rotation editor
-               draws. The markers themselves live in
+  description: names, colours, and totals for the loops the rotation editor
+               draws. the markers themselves live in
                `@/domain/gameData/rotationLoops.ts`.
 */
 
@@ -51,17 +51,17 @@ function isLoopNode(node: RotationNode): node is RotLoopNode {
   return node.type === 'loop'
 }
 
-/** what the nth loop is called, counting from one. the first is just Loop */
+/** what the nth loop is called, counting from one. the first is just loop */
 function rotLoopLblAt(index: number): string {
   return scopeLabelAt('loop', index)
 }
 
 /**
- * The colour a new loop is given, the way its label is given: the next one
+ * the colour a new loop is given, the way its label is given: the next one
  * nothing else is using, so a loop reads apart from the loops around it.
  *
- * Colours are handed out in palette order, which is the cycle a rotation built
- * loop by loop ends up with. A colour freed by a deleted loop is offered again
+ * colours are handed out in palette order, which is the cycle a rotation built
+ * loop by loop ends up with. a colour freed by a deleted loop is offered again
  * before the palette starts over, so a new loop never takes the colour of one
  * standing beside it while a spare is going unused.
  */
@@ -76,7 +76,7 @@ function collectLoopNodes(
 ): LoopNodeRecord[] {
   const records: LoopNodeRecord[] = []
 
-  // Sibling positions retain local wrap direction, while traversal order lets
+  // sibling positions retain local wrap direction, while traversal order lets
   // a start and end remain paired when either marker crosses a block boundary.
   items.forEach((node, index) => {
     if (isLoopNode(node)) {
@@ -144,7 +144,7 @@ export function makeLoopInfo(
   const usedEndIds = new Set<string>()
   const loops = starts.map((startRecord, index): RotLoopInfo => {
     const start = startRecord.node
-    // Pair by loop identity across the authored tree. Duplicate ends are
+    // pair by loop identity across the authored tree. duplicate ends are
     // ignored so one malformed marker cannot make later loops ambiguous.
     const endRecord = loopRecords.find((record): record is LoopNodeRecord & { node: RotLoopEnd } =>
       !usedEndIds.has(record.node.id) &&
@@ -170,7 +170,7 @@ export function makeLoopInfo(
       startNode: start,
       endNode: end,
       // an unnamed loop is called what the pane would have called it, so the
-      // name holds if it is ever written down
+      // name persists once written
       label: start.label ?? rotLoopLblAt(index + 1),
       color,
       runs,

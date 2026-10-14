@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: builds cached combat contexts and pre/post-stats final stats for
+  description: builds cached combat contexts and pre/post-stats final stats for
                optimizer and simulation systems by combining runtime buffs,
                echo stats, weapon stats, manual buffs, and runtime data effects.
 */
@@ -42,8 +42,8 @@ const SKLLTYPEECHO = new Set<string>([
 // this avoids rebuilding the same slot context multiple times in one graph state
 const cmbtCtxCch = new WeakMap<CombatGraph, WeakMap<EnemyProfile, Partial<Record<SlotId, CombatContext>>>>()
 
-// One compiled Simulation program owns all three participant lanes. Contexts
-// are merely cold projections of these arrays for existing UI consumers.
+// one compiled simulation program includes all three participant lanes. contexts
+// are merely cold projections of these arrays for existing ui consumers.
 const numericTeamCache = new WeakMap<CombatGraph, WeakMap<EnemyProfile, NumericTeamState>>()
 
 // read a value from a graph/enemy nested weakmap cache
@@ -106,7 +106,7 @@ export function applyEchoStt(pool: UnifiedBuffPool, echoes: Array<EchoInstance |
 
 // counts equipped pieces per sonata. within one sonata a repeated echo id counts
 // once; the same echo id assigned to two sonatas counts toward each. e.g.
-// hyvatia+glamoth on set A plus hyvatia+glamoth on set B yields 2pc + 2pc.
+// hyvatia+glamoth on set a plus hyvatia+glamoth on set b yields 2pc + 2pc.
 export function countEchoSets(echoes: Array<EchoInstance | null>): Record<string, number> {
   const counts: Record<string, number> = {}
   const seenIdsBySet: Record<string, Set<string>> = {}
@@ -184,7 +184,7 @@ export function mkRtSttcBuff(runtime: ResRuntime): UnifiedBuffPool {
     }
   }
 
-  // apply user-entered manual buffs last so they are included in the static pool baseline
+  // apply user-entered manual buffs last in the static pool baseline.
   applyMnlBffs(pool, manualBuffs)
 
   return pool

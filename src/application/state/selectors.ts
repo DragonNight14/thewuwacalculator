@@ -1,7 +1,7 @@
 /*
   Author: Runor Ewhro
-  Description: Defines memoized store selectors for active runtime, combat,
-               Optimizer, team lookup, and Simulation-derived state.
+  description: defines memoized store selectors for active runtime, combat,
+               optimizer, team lookup, and simulation-derived state.
 */
 
 import {type AppStore} from '@/application/state/store'
@@ -141,7 +141,7 @@ export function selContextResonatorId(state: AppStore): string | null {
 }
 
 // select the active resonator id
-/** @deprecated Use the scenario subject selectors; this aliases member zero during migration. */
+/** @deprecated use the scenario subject selectors; this aliases member zero during migration. */
 export function selActResId(state: AppStore): string | null {
   return selSubjectResonatorId(state)
 }
@@ -225,7 +225,7 @@ export function selActRt(state: AppStore): ResRuntime | null {
   return selWorkDrvd(state).actRt
 }
 
-// select app-level inventory ownership indexes
+// select app-level inventory assignment indexes
 export function selInvSg(state: AppStore): InvSgDrvd {
   const cached = invSgCch
   const profiles = selScenarioProfiles(state)

@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Classifies inert or unreachable rotation nodes from execution
+  description: classifies inert or unreachable rotation nodes from execution
                evidence and applies cleanup through canonical tree operations.
 */
 
@@ -32,12 +32,12 @@ export type CleanupReason =
 export interface CleanupTarget {
   readonly id: string
   readonly reason: CleanupReason
-  /** One logical pass body, when only that execution was inert/dead. */
+  /** one logical pass body, when only that execution was inert/dead. */
   readonly loopId?: string
   readonly run?: number
-  /** The following persistent setters are moved before this feature. */
+  /** the following persistent setters are moved before this feature. */
   readonly followingConditionIds?: readonly string[]
-  /** These persistent setters already precede the feature. */
+  /** these persistent setters already precede the feature. */
   readonly precedingConditionIds?: readonly string[]
 }
 
@@ -47,7 +47,7 @@ export interface CleanupPlan {
 }
 
 export interface CleanupSourceContext {
-  /** Sources currently represented by the live team/build and enemy. */
+  /** sources currently represented by the live team/build and enemy. */
   readonly availableSources: ReadonlySet<string>
 }
 
@@ -82,7 +82,7 @@ function sameSetter(left: RtChng, right: RtChng): boolean {
 }
 
 /**
- * Only hoist a complete, consecutive set of plain persistent setters. The
+ * only hoist a complete, consecutive set of plain persistent setters. the
  * attached copies already apply before the feature, so hoisting the matching
  * persistent writes gives the feature the same state and keeps it afterward.
  */
@@ -124,7 +124,7 @@ function adjacentDuplicateSetters(
 }
 
 /**
- * Containers are never cleanup candidates. Empty containers are valid authored
+ * containers are never cleanup candidates. empty containers are valid authored
  * placeholders even when the last execution produced no evidence for them.
  */
 function targetFor(node: EditorNode): CleanupReason | null {
@@ -400,8 +400,8 @@ function hoistFollowingSetters(
   return changed ? next : nodes
 }
 
-/** A cleanup must not merge pass bodies merely because their display fields
- * match. Their node ids identify distinct authored actions and trace rows. */
+/** a cleanup must not merge pass bodies merely because their display fields
+ * match. their node ids identify distinct authored actions and trace rows. */
 function mapCleanupPassBodies(
   block: EditorBlock,
   mapper: (body: readonly EditorNode[], run: number) => readonly EditorNode[],
@@ -560,7 +560,7 @@ function removeFromNodes(
   return changed ? next : nodes
 }
 
-/** Removing a swept row is the same edit as deleting it by hand, including
+/** removing a swept row is the same edit as deleting it by hand, including
  * copies held by loop pass storage and attached feature rows. */
 export function applyRotationCleanup(
   sections: EditorSection[],
@@ -591,7 +591,7 @@ export function applyRotationCleanup(
   return changed ? next : sections
 }
 
-/** One phrasing of a plan, so the prompt and the toast never disagree. */
+/** one phrasing of a plan, so the prompt and the toast never disagree. */
 export function describeRotationCleanup(plan: CleanupPlan): string {
   const { inert, dead, redundant } = cleanupCounts(plan)
   const rows = (count: number) => `${count} ${count === 1 ? 'node' : 'nodes'}`

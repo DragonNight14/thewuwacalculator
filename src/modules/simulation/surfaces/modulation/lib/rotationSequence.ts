@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Builds the evaluation report's authored rotation sequence.
+  description: builds the evaluation report's authored rotation sequence.
 */
 
 import type { RotationNode, RotVl, RtChng } from '@/domain/gameData/contracts'
@@ -137,7 +137,7 @@ function normStckVl(value: string | number | boolean | undefined): number {
 }
 
 function mkCmbtStt(initialCombat: Partial<CombatState> | null | undefined): CombatState {
-  // create a complete combat-state object so later condition changes can mutate known keys without defensive checks.
+  // create complete combat state with every key used by later condition changes.
   return {
     spectroFrazzle: normStckVl(initialCombat?.spectroFrazzle),
     aeroErosion: normStckVl(initialCombat?.aeroErosion),
@@ -273,8 +273,8 @@ function getCondRls(node: Extract<RotationNode, { type: 'condition' }>): RotSqnc
 function cllcStpRls(nodes: RotationNode[]): RotSqncRule[] {
   const rules: RotSqncRule[] = []
 
-  // uptime setup conditions behave as preconditions for the block body, so they are lifted into the span rules instead
-  // of appearing as standalone body actions.
+  // uptime setup conditions become preconditions in the span rules and do not
+  // appear as standalone body actions.
   for (const node of nodes) {
     if (node.type === 'condition') {
       rules.push(...getCondRls(node))
@@ -313,8 +313,8 @@ export function mkSqnc(input: RotSqncNpt): RotSqncRslt {
     for (const node of nodes) {
       if (node.type === 'feature') {
         const attachedChanges = attachedConditionChanges(node, { enabledOnly: true })
-        // Attachment writes are an overlay for this one parent/child group.
-        // Keep their combat snapshot local so a later root action cannot read it.
+        // attachment writes are an overlay for this one parent/child group.
+        // attachment combat snapshots stay local to their parent/child group.
         const scopedCombat = attachedChanges.length > 0 ? { ...combatState } : combatState
         if (node.enabled ?? true) {
           applyCombat(scopedCombat, attachedChanges)

@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Locks the off-thread import resolver to the same current and
+  description: locks the off-thread import resolver to the same current and
                legacy persistence contracts used by the settings page.
 */
 

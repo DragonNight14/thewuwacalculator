@@ -1,9 +1,9 @@
 /*
   Author: Runor Ewhro
-  Description: Implements the damageSpec logic for the optimizer module.
+  description: implements the damageSpec logic for the optimizer module.
 */
 
-/* Canonical scalar damage primitives mirrored into generated WGSL source. */
+/* canonical scalar damage primitives mirrored into generated wgsl source. */
 
 export function optimizerAverageDamage(normal: number, critRate: number, critDamage: number): number {
   const rate = Math.max(0, Math.min(1, critRate))

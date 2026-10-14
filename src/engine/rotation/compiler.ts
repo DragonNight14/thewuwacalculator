@@ -1,12 +1,12 @@
 /*
   Author: Runor Ewhro
-  Description: Implements the compiler logic for the rotation module.
+  description: implements the compiler logic for the rotation module.
 */
 
 /*
-  Rotation programs are authored as a rich object tree, but execution should
+  rotation programs are authored as a rich object tree, but execution should
   not repeatedly rediscover node kinds, loop boundaries, pass bodies, or
-  string-table identities. This module lowers that tree into compact numeric
+  string-table identities. this module lowers that tree into compact numeric
   blocks while retaining node references only as cold semantic payloads.
 */
 
@@ -49,18 +49,18 @@ export type RotationOpcode =
 
 export interface CompiledRotationBlock {
   readonly items: readonly RotationNode[]
-  /** One byte per authored node. */
+  /** one byte per authored node. */
   readonly opcodes: Uint8Array
-  /** Pre-resolved gates/scope traits, aligned with `opcodes`. */
+  /** pre-resolved gates/scope traits, aligned with `opcodes`. */
   readonly flagsByIndex: Uint8Array
-  /** Matching end index for loop starts, or -1. */
+  /** matching end index for loop starts, or -1. */
   readonly loopEndByIndex: Int32Array
   readonly loopsByIndex: Array<CompiledRotationLoop | null>
-  /** Intern-table operands aligned one-to-one with authored nodes. */
+  /** intern-table operands aligned one-to-one with authored nodes. */
   readonly featureIndexByIndex: Int32Array
-  /** Numeric repeat/uptime/loop literal, or NaN for a dynamic expression. */
+  /** numeric repeat/uptime/loop literal, or NaN for a dynamic expression. */
   readonly numericOperandByIndex: Float64Array
-  /** CSR ranges into the flattened authored state-write program. */
+  /** csr ranges into the flattened authored state-write program. */
   readonly writeStartByIndex: Int32Array
   readonly writeCountByIndex: Int32Array
   readonly writeOpcodes: Uint8Array
@@ -75,14 +75,14 @@ export interface CompiledRotationLoop {
   readonly endIndex: number | null
   readonly circular: boolean
   readonly template: readonly RotationNode[]
-  /** Resolved and compiled body for every one-based pass. */
+  /** resolved and compiled body for every one-based pass. */
   readonly passBlocks: readonly CompiledRotationBlock[]
 }
 
 export interface CompiledRotationPlan {
   readonly root: CompiledRotationBlock
   readonly blockByItems: WeakMap<readonly RotationNode[], CompiledRotationBlock>
-  /** Interned cold tables used by future numeric backends. */
+  /** interned cold tables used by future numeric backends. */
   readonly featureIds: readonly string[]
   readonly runtimePaths: readonly string[]
   readonly resonatorIds: readonly string[]
@@ -166,7 +166,7 @@ export function compileRotationPlan(items: RotationNode[]): CompiledRotationPlan
       numericOperandByIndex,
       writeStartByIndex,
       writeCountByIndex,
-      // Filled after the authored block is walked.
+      // filled after the authored block is walked.
       writeOpcodes: new Uint8Array(0),
       writePathIndexes: new Int32Array(0),
       writeResonatorIndexes: new Int32Array(0),
@@ -174,7 +174,7 @@ export function compileRotationPlan(items: RotationNode[]): CompiledRotationPlan
       writeNumericValues: new Float64Array(0),
       writeStringIndexes: new Int32Array(0),
     } satisfies CompiledRotationBlock
-    // Register before descending so circular/shared authored arrays are safe.
+    // register before descending so circular/shared authored arrays are safe.
     blockByItems.set(blockItems, block)
     const canLowerLoops = hasStructuredForwardLoops(blockItems)
 

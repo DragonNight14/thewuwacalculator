@@ -1,7 +1,7 @@
 /*
   Author: Runor Ewhro
-  Description: Exposes the app's minimum layout width so JavaScript layout
-               decisions match the document's CSS width floor.
+  description: exposes the app's minimum layout width so JavaScript layout
+               decisions match the document's css width floor.
 */
 
 import { RESPONSIVE_POLICY } from '@/shared/responsive/policy'

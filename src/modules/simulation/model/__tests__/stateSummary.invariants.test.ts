@@ -1,7 +1,7 @@
 /*
   Author: Runor Ewhro
-  Description: protects calculated-state summaries that feed rotation-row
-               Buffs Applied inspection.
+  description: protects calculated-state summaries that feed rotation-row
+               buffs applied inspection.
 */
 
 import { describe, expect, it } from 'vitest'

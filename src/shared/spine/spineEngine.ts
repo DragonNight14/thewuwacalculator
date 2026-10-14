@@ -3,9 +3,9 @@ import type {
   AnimationState as AnimationStateT,
   Skeleton as SkeletonT,
 } from '@esotericsoftware/spine-webgl'
-// The package's CJS build is mangled by esbuild's dep optimizer (its binary
-// skeleton reader breaks), so load the prebuilt IIFE as a classic script and
-// use the window global instead. Vite emits it as a hashed asset in prod.
+// esbuild's dependency optimizer breaks the cjs binary skeleton reader. load
+// the prebuilt iife as a classic script through its window global. vite emits
+// the script as a hashed asset in production.
 import spineRuntimeUrl from '@esotericsoftware/spine-webgl/dist/iife/spine-webgl.min.js?url'
 import { canRenderSpineInWorker, createSpineWorkerInstance } from './spineWorkerClient.ts'
 import { SPINE_TEXTURE_MAX_EDGE, spineDisplayTextureUrl } from './spineQuality.ts'
@@ -53,10 +53,10 @@ const GL_ONE = 1
 const GL_ONE_MINUS_SRC_COLOR = 0x0301
 const GL_ONE_MINUS_SRC_ALPHA = 0x0303
 
-// Override spine-webgl's blend modes so Multiply/Screen compositing works on a
-// transparent canvas. Mirrors PixiJS's blend table; the alpha channel always
-// uses Porter-Duff "over" so shading overlays never destroy framebuffer alpha.
-// Coupled to spine-webgl 4.1.x.
+// override spine-webgl's blend modes so multiply/screen compositing works on a
+// transparent canvas. mirrors PixiJS's blend table; the alpha channel always
+// uses porter-duff "over" and preserves framebuffer alpha under shading.
+// coupled to spine-webgl 4.1.x.
 function patchBlendModes(gl: WebGLRenderingContext): void {
   const orig = gl.blendFuncSeparate.bind(gl)
   gl.blendFuncSeparate = (srcRGB: number, dstRGB: number, srcAlpha: number) => {
@@ -139,7 +139,7 @@ export async function createSpineInstance(
   }
   canvas.dataset.spineRenderer = 'main'
 
-  // Lazy-load the runtime (classic script) only when a resonator actually has
+  // lazy-load the runtime (classic script) only when a resonator actually has
   // spine data to render.
   const spine = await loadSpineRuntime()
 
@@ -149,7 +149,7 @@ export async function createSpineInstance(
   if (!glContext) throw new Error('WebGL not available')
   const gl = glContext
 
-  // Straight-alpha uploads break effect-heavy screen/additive compositions.
+  // straight-alpha uploads break effect-heavy screen/additive compositions.
   gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, true)
   patchBlendModes(gl)
 
@@ -160,7 +160,7 @@ export async function createSpineInstance(
 
   const atlasLoader = new spine.AtlasAttachmentLoader(assets.atlas)
 
-  // First pass at scale 1 to measure bounds, then rebuild at the fitted scale.
+  // first pass at scale 1 to measure bounds, then rebuild at the fitted scale.
   const measureBinary = new spine.SkeletonBinary(atlasLoader)
   measureBinary.scale = 1
   const measureSkeleton = new spine.Skeleton(measureBinary.readSkeletonData(assets.skel))

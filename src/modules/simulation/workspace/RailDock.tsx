@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Portals build actions into persistent chrome and synchronizes them with the active member.
+  description: portals build actions into persistent chrome and synchronizes them with the active member.
 */
 
 import { DisplayImage } from '@/shared/ui/DisplayImage'
@@ -109,7 +109,7 @@ const ELEMENTS = Object.keys(ENEMY_ELEM_ATTR).map(Number) as EnemyElemId[]
 
 type Matchup = { word: string, ink: string }
 
-// Tower and open-world tables put an enemy's own element at 60 and 40.
+// tower and open-world tables put an enemy's own element at 60 and 40.
 function matchup(res: number, attribute: AttributeKey): Matchup {
   if (res >= 40) return { word: 'Resists you', ink: 'var(--rdk-resist)' }
   if (res <= 0) return { word: 'Weak to you', ink: 'var(--rdk-weak)' }
@@ -211,7 +211,7 @@ export function RailDock({
   const maxed = runtime && preparedMax ? isRuntimeMaxed(runtime, preparedMax) : false
   const ceiling = preparedMax?.base.level ?? 1
 
-  /* Portal outside the named route-transition root into the persistent
+  /* portal outside the named route-transition root into the persistent
      chrome, which spans the viewport, so the dock centres on the page. */
   const [host] = useState(chromePortal)
 
@@ -264,7 +264,7 @@ export function RailDock({
     if (event.animationName === 'rdk-log-out') setLog(null)
   }, [closeLog])
 
-  // A press sweeps the pressed button's edge once; the sequence restarts it.
+  // a press sweeps the pressed button's edge once; the sequence restarts it.
   const [cast, setCast] = useState<{ role: HudRole, seq: number } | null>(null)
 
   const activate = useCallback((role: HudRole) => {
@@ -280,8 +280,8 @@ export function RailDock({
   const dockRef = useRef<HTMLDivElement | null>(null)
   const mounted = Boolean(host && resId && runtime)
 
-  // Bare-letter hotkeys, only while the dock is on screen and nothing else
-  // (a field, a modal) owns the keyboard.
+  // bare-letter hotkeys, only while the dock is on screen and nothing else
+  // (a field, a modal) handles keyboard input.
   useEffect(() => {
     if (!mounted) return undefined
     const onKeyDown = (event: KeyboardEvent) => {

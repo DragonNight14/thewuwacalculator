@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Computes the compact Showcase readings without retaining report presentation graphs.
+  description: computes the compact showcase readings without retaining report presentation graphs.
 */
 import type { EnemyProfile } from '@/domain/entities/appState'
 import type { CombatScenarioId, TeamMemberId } from '@/domain/entities/combatScenario'
@@ -54,7 +54,7 @@ export async function computeShowcaseAnalysis(
   onProgress?: (progress: ShowcaseAnalysisProgress) => void,
 ): Promise<ShowcaseAnalysisResult> {
   checkCancel?.()
-  // Keep the normalized scoring policy separate from the user's live Echo context.
+  // keep the normalized scoring policy separate from the user's live echo context.
   const scoring = prepareRotationBuildScore({
     scenarioId: input.scenarioId, memberId: input.memberId,
     runtime: input.evaluation.runtime, enemy: input.evaluation.enemy,
@@ -62,7 +62,7 @@ export async function computeShowcaseAnalysis(
   })
   const userDamage = scoring?.userDamage ?? null
   onProgress?.({ stage: 'damage', userDamage })
-  // Damage does not depend on disk hydration, anchor search, or Echo grading.
+  // damage does not depend on disk hydration, anchor search, or echo grading.
   if (scoring) await ensureAnchorStoreHydrated()
   checkCancel?.()
   const percent = scoring?.calculatePercent(checkCancel) ?? null

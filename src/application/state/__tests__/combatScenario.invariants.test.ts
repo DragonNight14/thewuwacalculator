@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Verifies the team-first scenario projection and preparation
+  description: verifies the team-first scenario projection and preparation
                invariants while legacy active-profile persistence is migrated.
 */
 
@@ -232,7 +232,7 @@ describe('combat scenario invariants', () => {
     ]))
   })
 
-  it('projects legacy active ownership into one team and scopes routing by source member', () => {
+  it('projects legacy active state into one team and scopes routing by source member', () => {
     const [primarySeed, secondSeed, thirdSeed] = listResSds().slice(0, 3)
     expect(primarySeed && secondSeed && thirdSeed).toBeTruthy()
     if (!primarySeed || !secondSeed || !thirdSeed) return

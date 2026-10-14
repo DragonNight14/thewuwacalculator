@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Verifies a saved rotation's steps load into its own working context.
+  description: tests loading saved rotation steps into a working context.
 */
 
 import { beforeEach, describe, expect, it } from 'vitest'

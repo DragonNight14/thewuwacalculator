@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Builds execution graphs from projected scenario members and
+  description: builds execution graphs from projected scenario members and
                resolves fixed-width engine coordinates.
 */
 

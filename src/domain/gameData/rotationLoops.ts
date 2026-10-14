@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Implements rotation loops data-flow and calculation invariants.
+  description: implements rotation loops data-flow and calculation invariants.
 */
 
 import type { RotationNode } from './contracts.ts'

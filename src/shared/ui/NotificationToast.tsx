@@ -1,12 +1,10 @@
 /*
   Author: Runor Ewhro
-  Description: Portal-mounted toast renderer that animates store-driven status
+  description: portal-mounted toast renderer that animates store-driven status
                notifications in the configured screen position.
 
-               The slab says its tone once, with the glyph. The rule along its
-               top says time instead: it drains over the toast's own duration,
-               and a held notice (duration 0) has no drain to run, so the two
-               are told apart by geometry rather than by reading either.
+               the glyph conveys tone. the top rule drains over the toast's
+               duration. held notices have no drain and use duration 0.
 */
 
 import { useEffect, useMemo, useRef, useState } from 'react'
@@ -37,10 +35,10 @@ const VAR_CNS: Record<ToastVariant, typeof Info> = {
 }
 
 /*
-  Most of what the app reports is a count: rows copied, echoes cleaned, entries
-  pasted. The figures are lifted into the data face and made tabular so the
+  most of what the app reports is a count: rows copied, echoes cleaned, entries
+  pasted. the figures are lifted into the data face and made tabular so the
   number leads the line, while the sentence around it stays in the page's type.
-  Only a plain string can be walked; anything richer is left exactly as given.
+  only a plain string can be walked; anything richer is left exactly as given.
 */
 function withFigures(content: ReactNode): ReactNode {
   if (typeof content !== 'string') {
@@ -62,8 +60,8 @@ function ToastItem({ toast }: { toast: Toast }) {
   const rmTmrRef = useRef<ReturnType<typeof setTimeout>>(null)
 
   useEffect(() => {
-    // arm the entry transition on the next frame so css can animate from the
-    // pre-enter state instead of rendering already-open.
+    // arm the entry transition on the next frame. css starts from the
+    // pre-enter state.
     const frame = requestAnimationFrame(() => setEntered(true))
     return () => cancelAnimationFrame(frame)
   }, [])
@@ -89,7 +87,7 @@ function ToastItem({ toast }: { toast: Toast }) {
   const isTop = position.startsWith('top')
   const variant = toast.variant ?? 'default'
   const Icon = VAR_CNS[variant]
-  // duration 0 is a notice that waits to be dismissed rather than one that runs out
+  // duration 0 keeps a notice visible until dismissal.
   const life = toast.duration ?? DEF_LIFE
   const held = life <= 0
   const body = useMemo(() => withFigures(toast.content), [toast.content])

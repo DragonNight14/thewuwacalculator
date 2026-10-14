@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Verifies the relocateNodes.test behavior and its compatibility invariants.
+  description: verifies the relocateNodes.test behavior and its compatibility invariants.
 */
 
 import { describe, expect, it } from 'vitest'
@@ -83,7 +83,7 @@ describe('moving a selection as one', () => {
     expect(ids(next)).toEqual(['c', 'd', 'a', 'b'])
   })
 
-  it('carries a picked block whole, and never its children twice', () => {
+  it('moves a picked block with its children once', () => {
     const next = relocateNodes(
       sections([step('a'), block('loop', [step('x'), step('y')]), step('z')]),
       new Set(['loop', 'x', 'z']),

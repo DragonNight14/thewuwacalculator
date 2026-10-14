@@ -1,7 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Schedules compact Suggestions jobs by selected mode and owns
-               current result keys, scoped worker inputs, and route cleanup.
+  description: schedules suggestions jobs by mode and manages result keys, worker inputs, and route cleanup.
 */
 
 import { useSuggestionTarget } from '@/modules/simulation/surfaces/suggestions/lib/useSuggestionTarget.ts'
@@ -164,7 +163,7 @@ export function useSuggRuns({
     suggsStt.settings.targetFeatureId,
   ])
 
-  // Only these fields are read to build packed search contexts. Finalists are
+  // only these fields are read to build packed search contexts. finalists are
   // still measured by the canonical simulation inside the worker.
   const compactSimulation = useMemo<SuggestionSimulation | null>(() => simulation ? ({
     finalStats: simulation.finalStats,
@@ -194,7 +193,7 @@ export function useSuggRuns({
       ? { ...ctxBase, setStateMode: 'resolved' } : ctxBase)
   }, [ctxBase, hasFixedTarget, hasMutableTarget, mode, simulation])
 
-  // The common input signature is serialized once. Mode-specific options are
+  // the common input signature is serialized once. mode-specific options are
   // encoded in the versioned suffixes, preserving the old invalidation rules.
   const sharedSig = useMemo(() => inputSig({
     runtime, enemyProfile, prtcRntmById, selectedTargets: selTrgtByOwn,
@@ -211,8 +210,8 @@ export function useSuggRuns({
     [runtime.id, sharedSig, wpnSets],
   )
 
-  /* A baseline follows the live input immediately, while worker results arrive
-     later. Only expose rows produced for the same signature so an old result
+  /* a baseline follows the live input immediately, while worker results arrive
+     later. only expose rows produced for the same signature so an old result
      can never be measured against a new base during that gap. */
   const mainStatRslt = mainStatRun.key === mainSttsCchK ? mainStatRun.results : EMPTY_MAIN_RESULTS
   const setPlanRslt = setPlanRun.key === setPlnsCchKe ? setPlanRun.results : EMPTY_SET_RESULTS
@@ -224,10 +223,10 @@ export function useSuggRuns({
   }, [setCondsSig])
 
   useEffect(() => {
-    // A changed input or selected mode invalidates queued and synchronous work.
-    // Terminating the worker also works when SharedArrayBuffer is unavailable.
+    // a changed input or selected mode invalidates queued and synchronous work.
+    // terminating the worker also works when SharedArrayBuffer is unavailable.
     let valid = true
-    // Release stale result graphs before the next job allocates its finalists.
+    // release stale result graphs before the next job allocates its finalists.
     setMainStatRun((previous) => previous.key === mainSttsCchK || previous.results.length === 0 ? previous : { key: null, results: [] })
     setSetPlanRun((previous) => previous.key === setPlnsCchKe || previous.results.length === 0 ? previous : { key: null, results: [] })
     setWpnRun((previous) => previous.key === wpnCchKey || previous.results.length === 0 ? previous : { key: null, results: [] })

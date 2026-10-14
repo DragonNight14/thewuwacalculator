@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Verifies the nodeTools.test behavior and its compatibility invariants.
+  description: verifies the nodeTools.test behavior and its compatibility invariants.
 */
 
 import { describe, expect, it } from 'vitest'
@@ -24,7 +24,7 @@ function output(
 }
 
 describe('rotation node totals', () => {
-  it('keeps a support feature visible but excludes it from its block total', () => {
+  it('shows support features without adding them to block totals', () => {
     const support = { id: 'support', type: 'feature' } as RotationNode
     const damage = { id: 'damage', type: 'feature' } as RotationNode
     const block = {

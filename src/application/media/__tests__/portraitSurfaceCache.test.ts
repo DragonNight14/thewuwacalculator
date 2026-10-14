@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Verifies persistent and session portrait-color caching, request
+  description: verifies persistent and session portrait-color caching, request
                coalescing, reference isolation, and recovery after sampling failures.
 */
 

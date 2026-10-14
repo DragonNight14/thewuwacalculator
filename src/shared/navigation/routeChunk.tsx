@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Retryable lazy component primitive shared by route owners.
+  description: retryable lazy component primitive shared by route owners.
 */
 
 import { createElement } from 'react'

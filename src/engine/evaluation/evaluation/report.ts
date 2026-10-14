@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Builds evaluation alternatives, reports, and rotation-facing results.
+  description: builds evaluation alternatives, reports, and rotation-facing results.
 */
 import type { EchoInstance, ResRuntime } from '@/domain/entities/runtime';
 import type { EnemyProfile } from '@/domain/entities/appState';
@@ -33,14 +33,14 @@ export function cloneEchoes(equipped: Array<EchoInstance | null>): Array<EchoIns
   return equipped.map((echo) => echo ? cloneEchoSlot(echo) : null)
 }
 
-// The 0%/100%/200% anchors are the expensive part of a evaluation and depend on
-// the equipped build only through the ER target and the retained utility plan.
-// We cache the anchor bundle keyed on everything that actually moves it, so a
+// the 0%/100%/200% anchors are the expensive part of a evaluation and depend on
+// the equipped build only through the er target and the retained utility plan.
+// we cache the anchor bundle keyed on everything that actually moves it, so a
 // build edit that leaves those untouched (substats, main stats, non-utility
 // sets) skips the candidate search entirely and only re-scores the live build.
-// The cache is also mirrored to IndexedDB (see anchorStore) so the search
+// the cache is also mirrored to IndexedDB (see anchorStore) so the search
 // survives worker idle-teardown and page reloads.
-// Anchor snapshots include the generated 0/100/200% build details. A small LRU
+// anchor snapshots include the generated 0/100/200% build details. a small lru
 // avoids pinning dozens of large object graphs after browsing many scenarios.
 const MAX_ANCHOR_CACHE_ENTRIES = 2
 const anchorCache = new Map<string, EvaluationAnchors>()
@@ -80,7 +80,7 @@ function touchAnchors(key: string): EvaluationAnchors | undefined {
   return cached
 }
 
-// In-memory LRU insert only, used both for freshly computed anchors and for
+// in-memory lru insert only, used both for freshly computed anchors and for
 // entries rehydrated from disk (which must not be written straight back).
 function cacheAnchors(key: string, anchors: EvaluationAnchors): EvaluationAnchors {
   anchorCache.delete(key)
@@ -93,17 +93,17 @@ function cacheAnchors(key: string, anchors: EvaluationAnchors): EvaluationAnchor
   return anchors
 }
 
-// Cache a newly computed bundle and mirror it to disk for later sessions.
+// cache a newly computed bundle and mirror it to disk for later sessions.
 function rememberAnchors(key: string, anchors: EvaluationAnchors): EvaluationAnchors {
   cacheAnchors(key, anchors)
   persistAnchor(key, anchors)
   return anchors
 }
 
-// Load persisted anchors into the in-memory cache once, before the first search.
-// Runs at the worker boundary (the only async seam), so the synchronous compute
-// path below stays unchanged. Re-inserting oldest-first preserves LRU order, and
-// we never clobber an entry already computed this session.
+// load persisted anchors into the in-memory cache once before the first search.
+// the worker boundary performs this async step; compute remains synchronous.
+// re-inserting oldest-first preserves lru order. entries computed this session
+// take precedence over persisted anchors.
 let anchorHydration: Promise<void> | null = null
 export function ensureAnchorStoreHydrated(): Promise<void> {
   if (!anchorHydration) {
@@ -120,10 +120,10 @@ export function ensureAnchorStoreHydrated(): Promise<void> {
   return anchorHydration
 }
 
-// Echo payloads are the live build input to the evaluation score, but they are
+// echo payloads are the live build input to the evaluation score, but they are
 // not the input to the anchor search once the anchor-specific channels below
-// have been separated. Keep runtime state and team composition in the key,
-// while removing nested Echo instances that would otherwise make every stat
+// have been separated. keep runtime state and team composition in the key,
+// while removing nested echo instances that would otherwise make every stat
 // edit look like a new anchor problem.
 function stripEchoesForAnchorKey(runtime: ResRuntime): ResRuntime {
   return {
@@ -168,9 +168,9 @@ export function evaluationAnchorCacheKey(
     kind: 'evaluation-anchors',
     revision: EVALUATION_ANCHOR_CACHE_REVISION,
     gameDataMode: getGameDataMode(),
-    // The suggestion context already contains the compiled team effects used
-    // by the anchor search. Its raw runtime references are normalized above;
-    // retaining runtimesById here would reintroduce every teammate Echo stat as
+    // the suggestion context already contains the compiled team effects used
+    // by the anchor search. its raw runtime references are normalized above;
+    // retaining runtimesById here would reintroduce every teammate echo stat as
     // a false cache dependency.
     context: stripContextEchoesForAnchorKey(ctx),
     runtime: stripEchoesForAnchorKey(runtime),
@@ -222,7 +222,7 @@ function withUtilitySetRows(
   }
 }
 
-// Build a evaluation reusing cached anchors when the anchor inputs are unchanged.
+// build a evaluation reusing cached anchors when the anchor inputs are unchanged.
 // `runtime` here is the evaluation runtime (default rotation), so user rotation
 // edits don't fragment the cache.
 function cachedEvaluationAnchors(
@@ -308,9 +308,9 @@ export function buildEvaluationAlternatives(
   const ctx = inputCtx
   const resultLimit = typeof limit === 'number' ? Math.max(0, Math.floor(limit)) : 12
   if (resultLimit === 0) return []
-  // Alternatives are ranked after scoring. A small deterministic evaluation
+  // alternatives are ranked after scoring. a small deterministic evaluation
   // budget prevents a report from cloning and simulating every legal swap just
-  // to return a handful of rows. This is intentionally lossy for latency.
+  // to return a handful of rows. this is intentionally lossy for latency.
   const evaluationLimit = Math.max(24, Math.min(96, resultLimit * 6))
   let evaluations = 0
   const takeEvaluation = (): boolean => {
@@ -377,8 +377,8 @@ export function buildEvaluationAlternatives(
       .map((echo) => getEchoById(echo.id)?.cost ?? 0)
       .filter((cost) => cost > 0)
     const validPlans = makeEvaluationCostPlans(forcedMainCost)
-    // id|set uniqueness (the in-game piece rule): an id is only "taken" for the
-    // set it sits in, so the same id stays available for a different set.
+    // id|set uniqueness follows the in-game piece rule. the same id remains
+    // available in a different set.
     const usedKeys = new Set(equippedEchoes.map((echo) => `${echo.id}|${echo.set}`))
     const setCounts = new Map<number, number>()
     for (const echo of equippedEchoes) {
@@ -593,7 +593,7 @@ function prepareRotationEvaluation(input: Omit<DefRotEvaluationIn, 'simulation'>
   return { evaluationContext, evaluationRuntime, defaultRotation }
 }
 
-// Calculate the equipped build first. Only the returned grading operation needs
+// calculate the equipped build first. only the returned grading operation needs
 // reference anchors; callers can publish damage before loading/searching them.
 export function prepareRotationBuildScore(input: Omit<DefRotEvaluationIn, 'simulation'>) {
   const prepared = prepareRotationEvaluation(input)

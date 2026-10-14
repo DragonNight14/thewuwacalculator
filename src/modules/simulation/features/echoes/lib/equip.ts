@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Owns equip behavior and state transitions for the lib module.
+  description: applies echo equipment changes.
 */
 
 import type { EchoInstance } from '@/domain/entities/runtime.ts'

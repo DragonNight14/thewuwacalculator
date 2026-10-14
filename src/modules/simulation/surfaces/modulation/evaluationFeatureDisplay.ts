@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Shared labels, colors, and grouping for evaluation rotation features.
+  description: shared labels, colors, and grouping for evaluation rotation features.
 */
 
 import type { EvaluationFeature } from '@/engine/evaluation/buildEvaluation.ts'

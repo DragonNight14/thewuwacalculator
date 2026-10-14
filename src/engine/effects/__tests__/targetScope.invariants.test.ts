@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Locks active-target routing semantics for data-driven effects so
+  description: locks active-target routing semantics for data-driven effects so
                teammate sources with the same owner key do not share selection.
 */
 

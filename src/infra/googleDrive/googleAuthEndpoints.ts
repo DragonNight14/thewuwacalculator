@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Resolves the worker-backed oauth endpoint paths used by browser
+  description: resolves the worker-backed oauth endpoint paths used by browser
                google drive auth helpers.
 */
 

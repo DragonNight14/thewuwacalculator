@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Derives runtime weapon stats from catalog data so persisted
+  description: derives runtime weapon stats from catalog data so persisted
                weapon snapshots only need identity and editable fields.
 */
 

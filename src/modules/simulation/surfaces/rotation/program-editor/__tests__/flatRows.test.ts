@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Verifies flat rows logic and compatibility invariants.
+  description: verifies flat rows logic and compatibility invariants.
 */
 
 import { describe, expect, it } from 'vitest'

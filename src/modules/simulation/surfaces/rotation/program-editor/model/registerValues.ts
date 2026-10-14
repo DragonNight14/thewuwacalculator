@@ -1,13 +1,13 @@
 /*
   Author: Runor Ewhro
-  Description: Projects execution rows into formatted register values and grouped stat columns.
+  description: projects execution rows into formatted register values and grouped stat columns.
 */
 
 import type { RtChng, RuntimeValue, SourceState } from '@/domain/gameData/contracts.ts'
 
 /**
- * Form used by edit controls and authored write fields.
- * Booleans are `on`/`off`; numbers keep full string precision.
+ * form used by edit controls and authored write fields.
+ * booleans are `on`/`off`; numbers keep full string precision.
  */
 export function regTextValue(value: string | number | boolean | undefined): string {
   if (value === true) return 'on'
@@ -17,8 +17,8 @@ export function regTextValue(value: string | number | boolean | undefined): stri
 }
 
 /**
- * Form used when projecting simulation history onto rows.
- * Same as regTextValue, except non-integer numbers are fixed to two decimals.
+ * form used when projecting simulation history onto rows.
+ * same as regTextValue, except non-integer numbers are fixed to two decimals.
  */
 export function regDisplayValue(value: string | number | boolean | undefined): string {
   if (value === true) return 'on'
@@ -31,7 +31,7 @@ export function regDisplayValue(value: string | number | boolean | undefined): s
 }
 
 /**
- * Parse a display/edit string (or raw runtime value) back into a change value
+ * parse a display/edit string (or raw runtime value) back into a change value
  * using the target state's kind when known.
  */
 export function parseRegValue(

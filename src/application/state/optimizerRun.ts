@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Loads optimizer execution only after a run is requested, while
+  description: loads optimizer execution only after a run is requested, while
                the root store keeps its small synchronous status interface.
 */
 

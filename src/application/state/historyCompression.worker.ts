@@ -1,7 +1,7 @@
 /*
   Author: Runor Ewhro
-  Description: Compresses history changes off-thread when their value structure
-               can be represented losslessly as JSON.
+  description: compresses history changes off-thread when their value structure
+               can be represented losslessly as json.
 */
 
 import { compressToUTF16 } from 'lz-string'

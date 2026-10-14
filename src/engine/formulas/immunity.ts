@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Shared damage-immunity check used by the damage formulas and the
+  description: shared damage-immunity check used by the damage formulas and the
                optimizer's compiled context to zero out attacks an enemy is immune to.
 */
 

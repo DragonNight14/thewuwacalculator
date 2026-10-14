@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Hydrates cookie-related preferences from persisted browser state
+  description: hydrates cookie-related preferences from persisted browser state
                when the app first mounts.
 */
 

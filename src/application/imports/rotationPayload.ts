@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Encodes and decodes rotation share payloads across local and remote import boundaries.
+  description: encodes and decodes rotation share payloads across local and remote import boundaries.
 */
 
 import {

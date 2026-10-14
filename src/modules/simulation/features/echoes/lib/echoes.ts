@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Calculates Echo costs and provides canonical cost-based loadout ordering.
+  description: calculates echo costs and provides canonical cost-based loadout ordering.
 */
 
 import type { EchoInstance } from '@/domain/entities/runtime.ts'

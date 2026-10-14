@@ -1,7 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Retains saved scenario snapshots while a consumer owns a lease and
-               delays final eviction to avoid repeated storage parsing.
+  description: retains saved scenario snapshots during active leases and delays final eviction.
 */
 
 import { useEffect } from 'react'

@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Builds lookup maps for echo and sonata set names to their
+  description: builds lookup maps for echo and sonata set names to their
                corresponding image paths and set ids.
 */
 

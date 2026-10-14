@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Builds the slot-overwrite comparison payload for echo equip
+  description: builds the slot-overwrite comparison payload for echo equip
                submenus without mutating the current build.
 */
 

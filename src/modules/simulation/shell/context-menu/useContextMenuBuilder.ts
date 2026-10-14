@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Memoizes context-menu builders against their dynamic inputs so
+  description: memoizes context-menu builders against their dynamic inputs so
                callers can hand stable item factories to shared menu surfaces.
 */
 

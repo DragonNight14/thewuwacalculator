@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Central optimizer constants for cost limits, batch sizing,
+  description: central optimizer constants for cost limits, batch sizing,
                worker counts, vector packing, execution tuning, and packed
                context field offsets shared across CPU/GPU pipelines.
 */
@@ -13,15 +13,15 @@ export const ROT_GPU_JOB = 10_000_000
 
 // structural packing sizes used throughout the optimizer
 export const ECHOES_PER_SET = 5
-// Set ids index directly into CPU/GPU count arrays, so this is max id + 1.
-// Keep it synchronized with SETCNSTLUTSE and the shaders' SET_SLOTS.
+// cpu and gpu count arrays index directly by set id; capacity is max id + 1.
+// keep it synchronized with setcnstlutse and the shaders' SET_SLOTS.
 export const SET_SLOT_COUNT = 39
 export const CTX_FLOATS = 36
 // ECHO_STAT_STRIDE is the live search encoding (encode/echoes.ts and the
 // target/rotation cpu evaluators + gpu shaders read it): echo-rollable stats
 // plus the per-element and per-skill-type damage-bonus buckets.
 //
-// FULL_STAT_STRIDE is the wider damage-stat vector spanning the global STAT_*
+// FULL_STAT_STRIDE is the wider damage-stat vector spanning the global stat_*
 // index space (amplify, shreds, dmg vulnerability, etc.). it backs the combo
 // scratch vectors and the cpu reference evaluator (cpu/computeDamage).
 export const ECHO_STAT_STRIDE = 20
@@ -64,7 +64,7 @@ export const ARCH_ELECTRO = 7
 export const ARCH_GLACIO = 8
 export const ARCH_HACK = 9
 
-// detect available CPU cores in the browser and leave one free when possible
+// detect available cpu cores in the browser and leave one free when possible
 const detectedCores =
     typeof navigator !== 'undefined'
         ? (navigator.hardwareConcurrency ?? 4)
@@ -76,18 +76,18 @@ const cpuWorkerTarget = Math.max(1, detectedCores - 1)
 export const GPU_WORKERS = 1
 export const CPU_WORKERS = Math.min(6, cpuWorkerTarget)
 
-// derive a CPU-side per-job target that scales with worker count,
+// derive a cpu-side per-job target that scales with worker count,
 // then clamp it so work chunks stay within a practical range
 const cpuJobTarget = 25_000 + CPU_WORKERS * 5_000
 export const CPU_JOB_SIZE = Math.min(75_000, cpuJobTarget)
 export const CPU_THEORY_JOB = 100_000
 export const GPU_THEORY_JOB = 1_000_000
 
-// GPU target-skill execution tuning
+// gpu target-skill execution tuning
 export const OPT_WG_SIZE = 256
 export const CYCLES_PER_CALL = 32
 
-// GPU rotation execution tuning
+// gpu rotation execution tuning
 export const ROT_WG_SIZE = 512
 export const ROT_CYCLES = 16
 
@@ -100,7 +100,7 @@ export const OPT_RDC_K = GPU_REDUCE_K
 export const GPU_COMBO_MODE_BATCH = 3
 
 // upper bound on candidates read back to the cpu before the gpu reduce pass
-// runs. A smaller ceiling keeps transient GPU/CPU staging allocations bounded;
+// runs. a smaller ceiling keeps transient gpu/cpu staging allocations bounded;
 // the reduction is intentionally lossy once a batch exceeds this size.
 export const GPU_BATCH_MAX_READBACK = 1 << 18
 
@@ -173,7 +173,7 @@ export const WEAPON_OVERLAY_SLOTS = [
 ] as const
 export const WEAPON_OVERLAY_STRIDE = WEAPON_OVERLAY_SLOTS.length
 
-// packed candidate rank carries the chosen weapon in the high bits when weapon
+// packed candidate rank encodes the chosen weapon in the high bits when weapon
 // search is active (theory batch mode pins the main echo at slot 0, freeing the
 // main-position bits). 5 bits -> up to 31 weapon candidates.
 export const WEAPON_INDEX_SHIFT = 27

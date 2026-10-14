@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Minimal wrapper for trusted html snippets that need to render in
+  description: minimal wrapper for trusted html snippets that need to render in
                a configurable block or inline tag.
 */
 

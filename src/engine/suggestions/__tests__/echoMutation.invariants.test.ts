@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: verifies durable main-stat and set-plan Echo mutation helpers.
+  description: verifies durable main-stat and set-plan echo mutation helpers.
 */
 
 import { describe, expect, it } from 'vitest'
@@ -88,8 +88,8 @@ describe('echo mutation invariants', () => {
   })
 
   it('replaces an incompatible main echo for full mixed set plans', () => {
-    // Rustfire only exists on sets 34/35. A full 2pc + 3pc plan for other sets
-    // must replace it instead of rewriting its active set and keeping its buff.
+    // rustfire exists only on sets 34/35. a full 2pc + 3pc plan for other sets
+    // replaces this incompatible main echo.
     const rustfire = listChsByCos(4).find((definition) => definition.id === '6000217')
     expect(rustfire?.sets).toEqual([34, 35])
 

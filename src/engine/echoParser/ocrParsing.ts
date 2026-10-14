@@ -1,7 +1,7 @@
 /*
   Author: Runor Ewhro
-  Description: Parses fixed-layout build screenshots with OCR, pixel tests,
-               and catalog image matching while preserving the Echo-only API.
+  description: parses fixed-layout build screenshots with ocr, pixel tests,
+               and catalog image matching while preserving the echo-only api.
 */
 
 import Tesseract from 'tesseract.js'
@@ -96,7 +96,7 @@ function clrCnvsCch(cache: Record<string, CanvasRenderingContext2D>): void {
   }
 }
 
-// Otsu's threshold: the grey level that best splits a crop into ink and ground
+// otsu's threshold: the grey level that best splits a crop into ink and ground
 function otsuThreshold(gray: Uint8ClampedArray): number {
   const histogram = new Array<number>(256).fill(0)
   for (const value of gray) histogram[value] += 1
@@ -124,7 +124,7 @@ function otsuThreshold(gray: Uint8ClampedArray): number {
 
 type TextCleanup = 'contrast' | 'threshold'
 
-// extract OCR text from an image region after grayscale cleanup: a contrast
+// extract ocr text from an image region after grayscale cleanup: a contrast
 // stretch by default, or a hard ink/ground split framed in white for the few
 // dark-on-light marks (the level badge) that a stretch leaves soft
 async function extractText(
@@ -251,9 +251,9 @@ function detectAttribute(canvas: HTMLCanvasElement): AttributeKey | null {
   ).attribute
 }
 
-// the level badge is dark type on a gold plate, so it is found by the plate:
-// every chase window that straddled the name's bright glyphs read it wrong.
-// the box comes back in the band's own coordinates.
+// find the dark level text through its gold plate. search windows crossing the
+// name's bright glyphs produced false readings.
+// the returned box uses the band's own coordinates.
 export function fndLvlPlate(
     pixels: Uint8ClampedArray,
     width: number,
@@ -308,7 +308,7 @@ export function fndLvlPlate(
   return { x: left, y: top, width: span, height: bottom - top + 1 }
 }
 
-// the plate's box on the card, with the breathing room the reader wants
+// locate the badge plate with crop padding.
 function findLvlBdg(canvas: HTMLCanvasElement): ImageRegion | null {
   const context = canvas.getContext('2d', { willReadFrequently: true })!
   const { x, y, width, height } = LEVEL_BADGE_BAND
@@ -370,8 +370,8 @@ async function matchResonatorSprite(
       let difference = 0
       let samples = 0
 
-      // The bot places the catalog sprite at this fixed transform. Sparse opaque
-      // samples distinguish same-name Rover variants without scanning every pixel.
+      // the bot places the catalog sprite at this fixed transform. sparse opaque
+      // samples distinguish same-name rover variants without scanning every pixel.
       for (let y = 0; y < Math.min(image.naturalHeight, 850); y += 12) {
         for (let x = 0; x < image.naturalWidth; x += 12) {
           const index = (y * image.naturalWidth + x) * 4
@@ -428,7 +428,7 @@ async function extractBuildMetadata(
     tessedit_char_whitelist: "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789.'_-:/ ",
     tessedit_pageseg_mode: '7' as Tesseract.PSM,
   })
-  // the badge sits on the name's line, so finding it also says where the name ends
+  // use the badge position to set the name region width.
   const levelBadge = findLvlBdg(canvas)
   const nameRegion = levelBadge
     ? {
@@ -446,7 +446,7 @@ async function extractBuildMetadata(
   readHead(HEAD_AREA.weaponName)
   const weaponNameText = await safeExtractText(canvas, worker, BUILD_REGIONS.weaponName)
   thrwIfAbrtd(signal)
-  // the colon belongs to this pass, so the UID is read before the level whitelist
+  // the colon belongs to this pass, so the uid is read before the level whitelist
   readHead(HEAD_AREA.uid)
   const uidText = await safeExtractText(canvas, worker, BUILD_REGIONS.uid)
   thrwIfAbrtd(signal)
@@ -527,8 +527,7 @@ export interface CardDrift {
   dy: number
 }
 
-// every coordinate is fixed, so a card that sits a few pixels off (cropped,
-// padded, re-framed) is measured against the QR plate and moved back
+// measure image offset against the qr plate to align fixed card regions.
 export function findDrift(canvas: HTMLCanvasElement): CardDrift {
   const context = canvas.getContext('2d', { willReadFrequently: true })!
   const { data, width, height } = context.getImageData(0, 0, canvas.width, canvas.height)
@@ -583,8 +582,8 @@ function slotHasEcho(canvas: HTMLCanvasElement, region: ImageRegion): boolean {
   return ink >= FILLED_PANEL_MIN_INK
 }
 
-// a phantom echo is the rarer sight, and its art is pale enough to sit close to
-// other pale art, so it only takes the slot when it beats the plain art clearly
+// phantom echo art resembles other pale art. require a clear score margin over
+// plain art before assigning the phantom slot.
 const PHANTOM_MARGIN = 0.1
 
 function pickEchoKey(ranked: EchoMatch[]): string | null {
@@ -662,7 +661,7 @@ export async function prsBldFromMg(
     const echoCatalog = listEchoes()
     const coords = getEchoSlotRgns()
 
-    // the callbacks throw on abort, so a cancel lands mid-catalogue too
+    // progress callbacks check for cancellation during catalog loading.
     const setCount = Object.keys(setImages).length
     await prldSetMgs(setImages, setCache, (done) => {
       onProgress?.({ stage: 'catalog', done, total: setCount, note: 'Loading the sonata marks' })
@@ -849,7 +848,7 @@ export async function prsBldFromMg(
   }
 }
 
-// preserve the Echo-only API while still running the complete screenshot extraction
+// preserve the echo-only api while still running the complete screenshot extraction
 export async function prsChsFromMg(
     file: File,
     options: ReadOptions = {},

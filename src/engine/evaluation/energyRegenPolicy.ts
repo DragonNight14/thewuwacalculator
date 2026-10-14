@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: shared resonator policy for scoring surfaces where Energy Regen
+  description: shared resonator policy for scoring surfaces where energy regen
                is intentionally treated as a dead substat.
 */
 

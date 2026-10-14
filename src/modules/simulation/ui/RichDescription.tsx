@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Formats authored description text into highlighted rich content
+  description: formats authored description text into highlighted rich content
                using the shared description parser.
 */
 

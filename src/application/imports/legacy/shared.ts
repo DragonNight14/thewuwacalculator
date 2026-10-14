@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Shared legacy-import helpers for ids, names, and defensive
+  description: shared legacy-import helpers for ids, names, and defensive
                normalization of older persisted values.
 */
 

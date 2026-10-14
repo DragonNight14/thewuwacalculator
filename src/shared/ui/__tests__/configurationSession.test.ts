@@ -1,7 +1,7 @@
 /*
   Author: Runor Ewhro
-  Description: Verifies deferred configuration transactions independently of
-               React surface timing.
+  description: verifies deferred configuration transactions independently of
+               react surface timing.
 */
 
 import { describe, expect, it, vi } from 'vitest'

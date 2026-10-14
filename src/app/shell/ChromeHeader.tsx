@@ -1,7 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Renders the persistent application header. Route behavior and
-               the surrounding layout are owned by AppLayout.
+  description: renders the persistent application header within AppLayout.
 */
 
 import { useState } from 'react'
@@ -24,7 +23,7 @@ const SIMULATION_STOPS: GoStop[] = SIMULATION_PAGES.map((page) => ({
   to: page.to,
 }))
 
-// A single discriminator makes drawer and theme popups mutually exclusive.
+// a single discriminator makes drawer and theme popups mutually exclusive.
 type HeadPop = 'drawer' | 'theme' | null
 
 interface ChromeHeaderProps {

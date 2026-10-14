@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: runs the cpu target-search pipeline for optimizer batches or
+  description: runs the cpu target-search pipeline for optimizer batches or
                main-index subsets by evaluating valid echo combinations,
                collecting top results, and emitting optional progress updates.
 */

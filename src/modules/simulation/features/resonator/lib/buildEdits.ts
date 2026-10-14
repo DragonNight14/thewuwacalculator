@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Applies canonical resonator level, skill, trace-node, sequence,
+  description: applies canonical resonator level, skill, trace-node, sequence,
                and weapon-level mutations shared by build-editing surfaces.
 */
 
@@ -16,7 +16,7 @@ export const RES_LVL_MAX = 90
 export const SKILL_LVL_MIN = 1
 export const SKILL_LVL_MAX = 10
 
-/** Legal ascension level boundaries used by progression controls. */
+/** legal ascension level boundaries used by progression controls. */
 export const ASCENSION_STOPS = [20, 40, 50, 60, 70, 80, 90] as const
 
 export function setResLvl(prev: ResRuntime, level: number): ResRuntime {
@@ -52,7 +52,7 @@ export function setSkllLvl(prev: ResRuntime, key: ResSldrSkllT, value: number): 
   }
 }
 
-// Recompute trace buffs from the complete active set instead of applying deltas.
+// recompute trace buffs from the complete active set.
 export function tglTrcNd(
   prev: ResRuntime,
   nodeId: string,
@@ -72,7 +72,7 @@ export function tglTrcNd(
   }
 }
 
-// Weapon level and cached base ATK must advance together.
+// weapon level and cached base atk must advance together.
 export function setWpnLvl(prev: ResRuntime, level: number, weaponDef: GenWpn | null): ResRuntime {
   const nextLevel = clampNumber(Math.round(level), RES_LVL_MIN, RES_LVL_MAX)
   if (prev.build.weapon.level === nextLevel) {

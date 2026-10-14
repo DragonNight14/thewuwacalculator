@@ -1,7 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Owns the fixed build-card geometry so the parser and the import
-               surface read the same coordinates.
+  description: defines build-card coordinates shared by parsing and import UI.
 */
 
 import type { ImageRegion } from '@/engine/echoParser/imageMatching'
@@ -15,7 +14,7 @@ export const MAX_ASPECT_SKEW = 0.01
 export const MIN_CARD_WIDTH = 1120
 export const MIN_CARD_HEIGHT = Math.round((MIN_CARD_WIDTH * CARD_HEIGHT) / CARD_WIDTH)
 
-// the QR code's white plate: on every card, high contrast, and its edges are sharp
+// the qr code's white plate: on every card, high contrast, and its edges are sharp
 export const QR_PLATE = {
   left: 1459,
   top: 53,
@@ -32,7 +31,7 @@ export const MAX_DRIFT = 40
 export const SLOT_SPACING = 374
 
 export const BUILD_REGIONS = {
-  // the name and the level badge share one line, so the band holds both
+  // the name and the level badge share one line, so the band includes both
   resonatorName: { x: 68, y: 18, width: 700, height: 62 },
   // clear of the name's descenders, which the reader used to take for a letter
   playerId: { x: 18, y: 88, width: 200, height: 25 },
@@ -52,7 +51,7 @@ export const SEQUENCE_CENTERS = [189, 268, 347, 426, 505, 585] as const
 export const SEQUENCE_SAMPLE = { y: 570, size: 11 } as const
 export const ATTRIBUTE_REGION = { x: 15, y: 25, width: 50, height: 47 } as const
 
-// the level badge slides with the name, so it is found by its gold plate in here
+// find the level badge by its gold plate within the name band.
 export const LEVEL_BADGE_BAND = { x: 120, y: 24, width: 648, height: 52 } as const
 
 // the badge is the one wide gold plate on the name line
@@ -65,15 +64,14 @@ export const LEVEL_BADGE_PLATE = {
   minWidth: 24,
   /** rows this full of gold are the plate's own */
   rowFill: 0.35,
-  /** breathing room around the crop, which the reader wants */
+  /** crop padding */
   pad: { x: 2, y: 3 },
 } as const
 
-// the level's digits sit at a fixed offset from the plate's left edge, clear of
-// the "LV." before them and the hatching after
+// digit region starts after "LV." and ends before the plate hatching.
 export const LEVEL_BADGE_DIGITS = { from: 27, width: 26 } as const
 
-// where the name has to stop when the badge sits beside it
+// gap between the name and badge regions.
 export const NAME_BADGE_GAP = 6
 
 export interface EchoSlotRegions {
@@ -89,16 +87,14 @@ export interface EchoSlotRegions {
   set: ImageRegion
 }
 
-// a filled panel's secondary stat row lights 230+ pixels even through a 960px JPEG,
+// a filled panel's secondary stat row lights 230+ pixels even through a 960px jpeg,
 // an empty one none; brightness, not gold, because compression washes the colour out
 export const FILLED_PANEL_MIN_INK = 80
 
 // substat rows sit on a fixed pitch, measured from their bullets
 export const SUBSTAT_ROW_CENTERS = [892, 926, 960, 994, 1028] as const
 
-// measured over the bench cards: a row's own line runs from 6 above its centre to
-// 13 below, and its wrapped second line from 10 to 27 below. So the row above ends
-// 7 above this centre and the row below starts 28 under it, and the box sits between
+// measured row bounds include the first line and any wrapped second line.
 const SUBSTAT_ROW = { above: 6, height: 34 } as const
 
 // labels end by x 282 and values start at 319 on every card, so the two are read
@@ -112,7 +108,7 @@ export function getEchoSlotRgns(): EchoSlotRegions[] {
     return {
       sideStat: { x: 36 + o, y: 842, width: 88, height: 28 },
       cost: { x: 336 + o, y: 674, width: 18, height: 24 },
-      // the value line sits right under the label, so the box stops above it
+      // the value region begins below the label region.
       mainStatLabel: { x: 215 + o, y: 722, width: 173, height: 28 },
       substats: SUBSTAT_ROW_CENTERS.map((center) => ({
         x: SUBSTAT_LABEL.x + o,

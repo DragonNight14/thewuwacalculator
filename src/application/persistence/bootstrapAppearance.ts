@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Restores persisted appearance without depending on the main
+  description: restores persisted appearance without depending on the main
                application graph or its state initialization.
 */
 
@@ -26,7 +26,7 @@ function readAppearance(): StoredAppearance {
       const parsed = JSON.parse(raw) as { ui?: unknown }
       if (parsed?.ui && typeof parsed.ui === 'object') return parsed.ui as StoredAppearance
     } catch {
-      // Ignore malformed optional appearance state and continue with defaults.
+      // ignore malformed optional appearance state and continue with defaults.
     }
   }
   return {}

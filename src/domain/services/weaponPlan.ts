@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: shared weapon-plan resolution used by both the weapon suggestion
+  description: shared weapon-plan resolution used by both the weapon suggestion
                engine and the optimizer's weapon search: rarity visibility,
                refinement rank, and level-scaled stats for a candidate weapon
                under a weapon plan.
@@ -23,7 +23,7 @@ export function weaponRarityVisible(wpn: GenWpn, plan?: WeaponPlanSet): boolean 
 }
 
 // the refinement rank for a candidate: standard-weapon rank wins over rarity
-// rank, falling back to 5★→R1 / else R5. clamped to 1..5.
+// rank, falling back to 5★→r1 / else r5. clamped to 1..5.
 export function resolveWeaponRank(wpn: GenWpn, plan?: WeaponPlanSet): number {
   const fallback = wpn.rarity === 5 ? 1 : 5
   if (!plan) {

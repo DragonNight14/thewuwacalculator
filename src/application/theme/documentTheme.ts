@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Owns document theme classes for bootstrap, shell updates, and previews.
+  description: updates document theme classes during bootstrap, shell changes, and previews.
 */
 
 import { ALL_THEMES } from '@/domain/entities/themes'
@@ -17,7 +17,7 @@ export function applyDocumentTheme(
   entranceAnimations: boolean,
 ): void {
   const root = document.documentElement
-  // Earlier versions put variants on body; remove them so root tokens win.
+  // earlier versions put variants on body; remove them so root tokens win.
   document.body.classList.remove(...DOCUMENT_THEME_CLASSES)
   root.classList.remove(...DOCUMENT_THEME_CLASSES)
   root.classList.add(variant, `${textMode}-text`)

@@ -1,11 +1,11 @@
 /*
   Author: Runor Ewhro
-  Description: Implements the programOrder logic for the rotation module.
+  description: implements the programOrder logic for the rotation module.
 */
 
 import type { RotationNode } from '@/domain/gameData/contracts.ts'
 
-/** Persisted advanced rotations execute their setup Preamble before Main. */
+/** persisted advanced rotations execute their setup preamble before main. */
 export function orderStoredRotationProgram(items: RotationNode[]): RotationNode[] {
   let sawMain = false
   let needsOrdering = false

@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Provides helpers for building and parsing owner, control,
+  description: provides helpers for building and parsing owner, control,
                and control-path keys used by runtime state controls.
 */
 

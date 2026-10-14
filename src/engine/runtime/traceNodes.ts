@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Computes trace node buffs from active node selections and
+  description: computes trace node buffs from active node selections and
                provides helpers for generating fully maxed trace node buffs.
 */
 

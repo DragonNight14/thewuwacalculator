@@ -1,7 +1,7 @@
 /*
   Author: Runor Ewhro
-  Description: Resolves one skill against one stat snapshot into the terms the
-               damage formula multiplies together. Both the calculation and the
+  description: resolves one skill against one stat snapshot into the terms the
+               damage formula multiplies together. both the calculation and the
                breakdown the results pane prints read from here, so a figure the
                app shows is the figure it used.
 */
@@ -75,7 +75,7 @@ export function resolveHits(skill: SkillDef, fallbackMult = 0): SkillDef['hits']
 }
 
 /**
- * The buff buckets a skill is resolved against: generic, per attribute, per
+ * the buff buckets a skill is resolved against: generic, per attribute, per
  * skill type, and the skill's own.
  */
 export interface DamagePools {
@@ -97,7 +97,7 @@ export function gatherPools(finalStats: FinalStats, skill: SkillDef): DamagePool
 }
 
 /**
- * Every scope that contributes one modifier, summed. The sheet's figure is
+ * every scope that contributes one modifier, summed. the sheet's figure is
  * only the first of six; the rest arrive from the attribute, skill type and
  * skill buffs in force.
  */
@@ -137,7 +137,7 @@ export interface DamageFactors extends DamagePools {
 }
 
 /**
- * Resolve one skill against one stat snapshot. Percentages are kept beside the
+ * resolve one skill against one stat snapshot. percentages are kept beside the
  * multipliers they produce, because explaining a number needs both.
  */
 export function resolveDamageFactors(

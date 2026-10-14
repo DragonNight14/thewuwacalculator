@@ -1,7 +1,7 @@
 /*
   Author: Runor Ewhro
-  Description: Maxes all state owned by one resonator, with an effects-only
-               variant for imports that supply their own progression values.
+  description: maximizes one resonator's state, with an effects-only option for
+               imports that supply progression values.
 */
 
 import type { ResRuntime } from '@/domain/entities/runtime'

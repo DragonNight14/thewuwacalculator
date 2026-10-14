@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Verifies legacy migration and granular v28 scenario-library persistence.
+  description: verifies legacy migration and granular v28 scenario-library persistence.
 */
 
 import { SHOWCASE_INDEX } from '@/application/persistence/showcaseCards'
@@ -543,7 +543,7 @@ describe('persisted state compatibility', () => {
     expect(newManifest.environmentRecord).toBe(oldManifest.environmentRecord)
     expect(newManifest.programRecord).toBe(oldManifest.programRecord)
     expect(newManifest.memberRecords).toEqual(oldManifest.memberRecords)
-    // Known obsolete keys are reclaimed directly after the manifest commit.
+    // known obsolete keys are reclaimed directly after the manifest commit.
     expect(localStorage.getItem(before.recordsById[first.id])).toBeNull()
     const reloaded = loadPrssAppS()?.combat
     expect(Object.getOwnPropertyDescriptor(reloaded?.scenariosById, other.id)?.get).toBeTypeOf('function')

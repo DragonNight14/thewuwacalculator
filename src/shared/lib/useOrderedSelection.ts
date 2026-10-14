@@ -1,7 +1,7 @@
 /*
   Author: Runor Ewhro
-  Description: Manages ordered multi-selection with command-click, shift-range,
-               select-all, and keyboard action helpers for Simulation surfaces.
+  description: manages ordered multi-selection with command-click, shift-range,
+               select-all, and keyboard action helpers for simulation surfaces.
 */
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
@@ -27,9 +27,9 @@ interface RdrdSelClckP {
 interface RdrdSelKeyDo<TId extends RdrdSelId> {
   active?: boolean
   /**
-   * What the surface tracks outside selection mode, usually the one entry it
-   * has open. The clipboard shortcuts fall back to it so a row that is simply
-   * picked answers the same keys a selected one does. Ids the surface does not
+   * what the surface tracks outside selection mode, usually the one entry it
+   * has open. the clipboard shortcuts fall back to it so a row that is simply
+   * picked answers the same keys a selected one does. ids the surface does not
    * offer for selection are dropped, which is what keeps an uneditable entry
    * out of reach of them.
    */
@@ -48,9 +48,9 @@ interface UseRdrdSelAr<TId extends RdrdSelId> {
 }
 
 /**
- * The ids a clipboard shortcut acts on.
+ * the ids a clipboard shortcut acts on.
  *
- * Selection mode acts on what was picked. Outside it the surface's own tracked
+ * selection mode acts on what was picked. outside it the surface's own tracked
  * entry stands in, narrowed to ids the surface offers for selection: that is
  * what keeps a row it will not let you pick out of reach of the keys.
  */
@@ -249,8 +249,8 @@ export function useRdrdSel<TId extends RdrdSelId>({
       }
 
       if (selectMode) {
-        // once selection mode is active, plain clicks toggle items instead of
-        // triggering the surface's normal primary action.
+        // in selection mode, plain clicks toggle items and suppress the
+        // surface's primary action.
         event.preventDefault()
         event.stopPropagation()
         onCapture?.()

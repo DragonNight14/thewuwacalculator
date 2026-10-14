@@ -898,11 +898,11 @@
   color: inherit;
 }
 
-:is(.sc-echo, .seal-echo)[role='button'] {
+:is(.sc-echo, .showcase-detail-echo)[role='button'] {
   cursor: pointer;
 }
 
-:is(.sc-echo, .seal-echo)[role='button']:focus-visible {
+:is(.sc-echo, .showcase-detail-echo)[role='button']:focus-visible {
   outline: 2px solid var(--resonator-accent);
   outline-offset: 2px;
 }

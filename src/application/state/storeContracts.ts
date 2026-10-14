@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Declares the shared read, write, persistence, and deferred-data
+  description: declares the shared read, write, persistence, and deferred-data
                contracts used by application store slices.
 */
 

@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Manages browser-side google drive oauth state, including login,
+  description: manages browser-side google drive oauth state, including login,
                redirect handling, token refresh, and cached user/session state.
 */
 
@@ -174,8 +174,7 @@ export function useGglDrvAut(): UseGglDrvAut {
   }, [accessToken])
 
   useEffect(() => {
-    // refresh once immediately after mount, then periodically while the app is
-    // open so drive sync keeps working without manual reconnects.
+    // refresh immediately after mount and periodically while the app is open.
     const rfrsTmrId = window.setTimeout(() => {
       void refresh()
     }, 0)
@@ -224,8 +223,8 @@ export function useGglDrvAut(): UseGglDrvAut {
       return
     }
 
-    // redirect-mode sign-in comes back through normal page navigation, so this
-    // effect owns the one-time callback exchange and cleanup.
+    // this effect performs the one-time callback exchange and cleanup after
+    // redirect-mode sign-in returns through normal page navigation.
     const params = new URLSearchParams(window.location.search)
     const rdrcRrr = params.get('error')
     if (rdrcRrr) {

@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Lazy-loads the inventory layer and keeps the global loader active
+  description: lazy-loads the inventory layer and keeps the global loader active
                until the opened modal has committed.
 */
 
@@ -19,7 +19,7 @@ export function Inventory() {
 
   useEffect(() => {
     if (!invOpen) {
-      // Each opening must wait for a new modal commit before releasing the loader.
+      // each opening must wait for a new modal commit before releasing the loader.
       // eslint-disable-next-line react-hooks/set-state-in-effect
       setInvReady(false)
     }

@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Projects executed rotation rows into the shared register with structural ownership metadata.
+  description: projects executed rotation rows into the shared register with structural source metadata.
 */
 
 import { DisplayImage } from '@/shared/ui/DisplayImage'
@@ -56,9 +56,8 @@ import { getAttributeIconSrc } from '@/domain/gameData/attributeDisplay.ts'
 import { formatEffectConditionName } from '@/modules/simulation/model/sourceStateDisplay.ts'
 
 /*
-  the glyph says both what kind of skill this is and whose it is, so the two
-  word columns the register spends on saying that are dropped here rather than
-  repeated as text beside their own art.
+  the glyph identifies both skill kind and owner. omit those text columns from
+  this compact list.
 */
 const NODE_KEYS = new Set<string>(RES_NODE_KEYS)
 
@@ -83,7 +82,7 @@ interface FlatListProps {
   onRangeSelection: (id: string) => void
   onToggleSelection: (id: string) => void
   rowMenu: (row: FlatRow) => MenuEntry[]
-  /** move where Off-Tune starts counting again after a Tune Break */
+  /** move where off-tune starts counting again after a tune break */
   onOffTuneResume: (id: string, on: boolean) => void
   offTuneAuthoring: ReadonlyMap<string, OffTuneAuthoringState>
   revealRequest: RotationNodeRevealRequest | null
@@ -149,7 +148,7 @@ function ConditionLine({
       aria-selected={selectionMode ? focusSelected : undefined}
       onClick={onClick}
     >
-      {/* the same count gutter the hits hold, so every mark lands on one edge */}
+      {/* align marks with the hit count gutter. */}
       <i className="rtf-ord" aria-hidden="true" />
       <i className="rte-cond__tick" aria-hidden="true">
         {src ? <DisplayImage className="rte-cond__art" src={src} alt="" onError={art?.onError} loading="lazy" /> : null}
@@ -405,9 +404,8 @@ export function FlatList({
               >
                 <span className="rte-step">
                   {/*
-                    the count sits inside the name column rather than taking a
-                    track, so every register column stays exactly where the
-                    authoring list puts it.
+                    place the count inside the name column. register columns
+                    retain their authoring-list positions.
                   */}
                   <i className="rtf-ord">{ordinal}</i>
                   {/* the holder is named where the wash starts and nowhere else */}

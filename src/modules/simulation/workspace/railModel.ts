@@ -1,7 +1,7 @@
 /*
   Author: Runor Ewhro
-  Description: Builds the shared rail model from active or stored runtimes,
-               catalog metadata, equipment, team members, and Sonata sets.
+  description: builds the shared rail model from active or stored runtimes,
+               catalog metadata, equipment, team members, and sonata sets.
 */
 
 import { getResSeedBy } from '@/data/catalog/resonatorSeedService'
@@ -21,7 +21,7 @@ import type { BuildRailModel } from './BuildRail.tsx'
 const DEF_ACCENT = '#6b7cff'
 
 export interface RailModelCtx {
-  /** Resonator whose live runtime is supplied by this workspace context. */
+  /** resonator whose live runtime is supplied by this workspace context. */
   actResId: string | null
   runtime: ResRuntime | null
   partRtsById: Record<string, ResRuntime>
@@ -34,7 +34,7 @@ export function makeRailModel(resId: string | null, ctx: RailModelCtx): BuildRai
     ? runtime
     : resId ? initRtsById[resId] ?? null : null
   const railSeed = resId ? seedRsntById[resId] ?? null : null
-  // Active-subject teammates resolve live; other profiles use stored runtime projections.
+  // active-subject teammates resolve live; other profiles use stored runtime projections.
   const railDisplayRuntimesById = resId === actResId ? partRtsById : initRtsById
   const railWeaponState = railRuntime?.build.weapon ?? null
   const railWeapon = railWeaponState?.id && !isNoWeaponId(railWeaponState.id)

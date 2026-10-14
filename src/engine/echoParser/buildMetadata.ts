@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Resolves OCR readings from a build-card screenshot against the
+  description: resolves ocr readings from a build-card screenshot against the
                resonator and weapon catalogs without applying them to runtime.
 */
 
@@ -62,7 +62,7 @@ function parseLabeledValue(value: string, label: RegExp): string | null {
 
 const UID_LENGTH = 9
 
-// a UID is one nine-digit run; only a broken read falls back to every digit seen
+// a uid is one nine-digit run; only a broken read falls back to every digit seen
 function parseUid(value: string): string | null {
   const runs = value.match(/\d+/g) ?? []
   const whole = runs.find((run) => run.length === UID_LENGTH)
@@ -71,7 +71,7 @@ function parseUid(value: string): string | null {
   return joined.length > 0 ? joined : null
 }
 
-// the name's descenders read as a stray letter, which is never part of an ID
+// the name's descenders read as a stray letter, which is never part of an id
 function trimStray(value: string | null): string | null {
   if (value === null) return null
   const parts = value.split(/\s+/)

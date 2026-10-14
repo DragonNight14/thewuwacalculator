@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Defines app state data contracts and state invariants.
+  description: defines app state data contracts and state invariants.
 */
 
 import type { ResProf } from './profile'
@@ -162,7 +162,7 @@ export interface UiState {
 }
 
 export interface SimulationState {
-  /** Resonator whose derived build choices the current optimizer settings belong to. */
+  /** resonator whose derived build choices the current optimizer settings belong to. */
   optimizerSettingsResonatorId: ResonatorId | null
   optimizerSettings: OptSets
   weaponSuggests: WeaponPlanSet
@@ -174,9 +174,9 @@ export type LegacyProfileMap = Record<string, ResProf>
 export interface PersistedState {
   version: 28
   ui: UiState
-  /** Canonical live combat ownership, independent of Simulation tooling. */
+  /** canonical live combat state, independent of simulation tooling. */
   combat: ScenarioWorkspace
-  /** User-authored snapshots, independent from any Simulation surface. */
+  /** user-authored snapshots, independent from any simulation surface. */
   library: SavedArtifactLibrary
   simulation: SimulationState
 }

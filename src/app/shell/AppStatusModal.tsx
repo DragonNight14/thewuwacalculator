@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Displays the canonical application status report and its coverage, issue, and source records.
+  description: displays the canonical application status report and its coverage, issue, and source records.
 */
 
 import { useEffect, useState } from 'react'

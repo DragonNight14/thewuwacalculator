@@ -1,13 +1,30 @@
 /*
   Author: Runor Ewhro
-  Description: Derives a deterministic dark surface color from nontransparent
-               portrait pixels and loads remote sources through a CORS-safe decode.
+  description: derives a deterministic dark surface color from nontransparent
+               portrait pixels and loads remote sources through a cors-safe decode.
 */
 
 const SAMPLE_SIZE = 96
 const BASE = [12, 17, 26] as const
 const IMAGE_SHARE = 0.35
 export const DEFAULT_PORTRAIT_SURFACE = '#0c111a'
+const LIGHT_INK = '#eef2f7'
+const DARK_INK = '#101318'
+
+// card text colour follows the pinned card surface. unparseable colours use
+// light ink for the dark default surface.
+export function inkForSurface(surface: string): string {
+  const hex = /^#([0-9a-f]{3}|[0-9a-f]{6})$/i.exec(surface.trim())?.[1]
+  if (!hex) return LIGHT_INK
+  const full = hex.length === 3 ? hex.replace(/./g, '$&$&') : hex
+  const [r, g, b] = [0, 2, 4].map((at) => {
+    const srgb = parseInt(full.slice(at, at + 2), 16) / 255
+    return srgb <= 0.04045 ? srgb / 12.92 : ((srgb + 0.055) / 1.055) ** 2.4
+  })
+  const luminance = 0.2126 * r + 0.7152 * g + 0.0722 * b
+  // crossover where light and dark ink reach equal contrast against the surface.
+  return luminance > 0.19 ? DARK_INK : LIGHT_INK
+}
 
 export function surfaceFromPortraitPixels(pixels: Uint8ClampedArray): string | null {
   let red = 0
@@ -38,8 +55,8 @@ export function surfaceFromPortraitPixels(pixels: Uint8ClampedArray): string | n
 }
 
 export async function readPortraitSurface(source: string): Promise<string> {
-  // A fresh CORS-enabled decode also allows hosted uploads to be sampled when
-  // their image host permits it; the displayed img may have loaded without CORS.
+  // a fresh cors-enabled decode also allows hosted uploads to be sampled when
+  // their image host permits it; the displayed img may have loaded without cors.
   const sample = new Image()
   sample.crossOrigin = 'anonymous'
   sample.src = source

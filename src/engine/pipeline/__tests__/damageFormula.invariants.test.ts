@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: verifies shared damage math and formatted formula breakdowns for
+  description: verifies shared damage math and formatted formula breakdowns for
                ordinary damage, fixed damage, support outputs, tune rupture,
                and hack branches.
 */
@@ -226,8 +226,8 @@ function makeFeatureResult(
   skillDefinition: SkillDef,
   result = calcSkillDamage(makeFinalStats(), skillDefinition, enemy, 90),
 ): FeatureResult {
-  // formula rendering consumes feature rows rather than raw skill definitions,
-  // so the fixture mirrors the pipeline object shape with a supplied result
+  // formula rendering consumes feature rows. mirror the pipeline object shape
+  // with a supplied result in this fixture.
   return {
     id: skillDefinition.id,
     resonatorId: 'resonator',

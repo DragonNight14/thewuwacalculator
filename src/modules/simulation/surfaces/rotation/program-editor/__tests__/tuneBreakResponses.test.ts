@@ -1,7 +1,7 @@
 /*
   Author: Runor Ewhro
-  Description: Verifies team response authoring, persistence, and mode-sensitive
-               execution of automatically attached Tune Rupture responses.
+  description: verifies team response authoring, persistence, and mode-sensitive
+               execution of automatically attached tune rupture responses.
 */
 
 import { describe, expect, it } from 'vitest'

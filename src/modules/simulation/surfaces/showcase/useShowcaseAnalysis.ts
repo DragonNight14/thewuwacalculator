@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Publishes Showcase damage before grading and releases results when the surface leaves.
+  description: publishes showcase damage before grading and releases results when the surface leaves.
 */
 import { useEffect, useState } from 'react'
 import { cancelEvaluationReport, runShowcaseAnalysis } from '@/engine/evaluation/buildEvaluationClient'
@@ -18,7 +18,7 @@ export function useShowcaseAnalysis(input: ShowcaseAnalysisInput | null, enabled
     }
     if (!enabled) return
     const owner = `${input.scenarioId}:${input.memberId}`
-    // Let the commit finish, then request damage without an idle/debounce delay.
+    // let the commit finish, then request damage without an idle/debounce delay.
     const timer = window.setTimeout(() => {
       void runShowcaseAnalysis(input, (progress) => {
         if (!current) return

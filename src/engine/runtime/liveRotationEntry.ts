@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Projects the last-run live advanced rotation into the saved
+  description: projects the last-run live advanced rotation into the saved
                rotation contract without adding it to persisted inventory.
 */
 
@@ -11,15 +11,15 @@ import type { RotationNode } from '@/domain/gameData/contracts.ts'
 
 export const LIVE_ROTATION_ENTRY_PREFIX = 'live-rotation:'
 
-/** Whether an id names the live projection rather than a banked rotation. */
+/** whether an id names the live projection. */
 export function isLiveRotEntId(id: string | null | undefined): boolean {
   return typeof id === 'string' && id.startsWith(LIVE_ROTATION_ENTRY_PREFIX)
 }
 
 /**
- * Build an immutable, saved-rotation-compatible view of a live program.
- * A program that has never been committed through Run has no truthful saved
- * date, so it deliberately has no projection yet.
+ * build an immutable, saved-rotation-compatible view of a live program.
+ * a program that has never been committed through run has no truthful saved
+ * date; no projection exists yet.
  */
 export function makeLiveRotationEntry(
   scenario: CombatScenario | null | undefined,

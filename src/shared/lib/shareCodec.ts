@@ -1,7 +1,7 @@
 /*
   Author: Runor Ewhro
-  Description: Compact share-token codec for clipboard payloads and share
-               links. Tokens compress json behind a recognizable prefix so
+  description: compact share-token codec for clipboard payloads and share
+               links. tokens compress json behind a recognizable prefix so
                large clips survive chat message limits; decoding falls back to
                plain json so older copies keep working.
 */
@@ -74,7 +74,7 @@ export async function createRemoteShare(payload: unknown, path = '/modulation'):
 }
 
 
-// All import surfaces normalize to json text first; failed token decoding uses
+// all import surfaces normalize to json text first; failed token decoding uses
 // the empty string sentinel so callers can show one "not recognized" path.
 export function decShareText(raw: string): string {
   const trimmed = raw.trim()

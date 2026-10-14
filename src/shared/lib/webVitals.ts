@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Field performance telemetry. Observes the core web vitals with
+  description: field performance telemetry. observes the core web vitals with
                attribution and keeps the latest values on window.__vitals for
                tuning sessions; nothing leaves the browser.
 */

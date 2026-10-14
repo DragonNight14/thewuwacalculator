@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Materializes runtime state for active and teammate slots,
+  description: materializes runtime state for active and teammate slots,
                including local state cloning and compact teammate expansion.
 */
 
@@ -168,7 +168,7 @@ export function matRtFromPro({
   }
 }
 
-// Decode the retired active-profile representation at compatibility boundaries.
+// decode the retired active-profile representation at compatibility boundaries.
 function extractLegacyTeammateControls(
     actCntr: Record<string, boolean | number | string>,
     resonatorId: string,
@@ -185,7 +185,7 @@ function extractLegacyTeammateControls(
   return controls
 }
 
-// Materialize a teammate from a retired compact runtime payload.
+// materialize a teammate from a retired compact runtime payload.
 export function materializeLegacyTeamMember(
     seed: ResSeed,
     tmr: TeamMemRt,

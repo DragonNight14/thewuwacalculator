@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Maps normalized evaluation percentages to the shared grade
+  description: maps normalized evaluation percentages to the shared grade
                thresholds.
 */
 

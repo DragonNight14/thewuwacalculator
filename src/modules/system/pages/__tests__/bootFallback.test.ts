@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Ensures the HTML emergency notice appears when the entry module
+  description: ensures the html emergency notice appears when the entry module
                never executes, and stays hidden after the app starts.
 */
 

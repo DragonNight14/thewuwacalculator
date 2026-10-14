@@ -126,7 +126,7 @@
 .wk-board[data-view='showcase'] .wk-workspace {
   display: flex;
   flex: 1 1 auto;
-  padding: 1.5rem;
+  padding: 0;
   align-items: center;
   width: auto;
   min-width: 0;
@@ -173,7 +173,7 @@
 
 .wk-board[data-view='showcase'] .wk-rail-wrapper {
   flex: 1 1 auto;
-  gap: 1rem;
+  gap: 1.5rem;
   padding-right: 3.5rem;
 }
 

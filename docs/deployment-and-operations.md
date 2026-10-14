@@ -1,9 +1,5 @@
 # Deployment And Operations
 
-## Summary
-
-This document covers local development, Cloudflare deployment, OAuth, saved data, and the scripts used to maintain production game data.
-
 ## Local Development
 
 Primary files:
@@ -65,13 +61,13 @@ Important variables visible in the repo:
 - `GOOGLE_REDIRECT_URI`
 - `SHARES` KV namespace binding
 
-These matter in two different places:
+Configuration uses:
 
 - `VITE_*` values for browser side configuration
 - server side values for OAuth exchange and refresh handling
 - `SHARES` for production share payload persistence
 
-The `beta` Wrangler environment intentionally has no OAuth variables or `SHARES` binding, so it is a frontend-only preview. Production must keep the public client and redirect variables, the `GOOGLE_CLIENT_SECRET` secret, and the KV binding configured.
+The `beta` Wrangler environment is a frontend-only preview with no OAuth variables or `SHARES` binding. Production requires the public client and redirect variables, the `GOOGLE_CLIENT_SECRET` secret, and the KV binding.
 
 ## Google Drive Sync
 
@@ -97,7 +93,7 @@ Primary roots:
 - [src/infra/persistence](../src/infra/persistence)
 - [src/engine/runtime/schema.ts](../src/engine/runtime/schema.ts)
 
-`src/application/persistence` owns app-state domains, migration, scenario records, codecs, and coordinated writes. `src/infra/persistence` owns platform-specific browser storage such as IndexedDB-backed image blobs and beta-notice acknowledgement.
+`src/application/persistence` handles app-state domains, migration, scenario records, codecs, and coordinated writes; `src/infra/persistence` handles browser storage such as IndexedDB-backed image blobs and beta-notice acknowledgement.
 
 Operational persistence concerns include:
 
@@ -107,7 +103,7 @@ Operational persistence concerns include:
 - per domain slice reads and writes
 - hydration and repair behavior after bad local data
 
-If deployment or browser behavior changes persistence assumptions, this layer is high risk and should be checked carefully.
+Deployment or browser changes affecting persistence require validation of stored data and migration paths.
 
 ## Maintenance Tools And Local Scripts
 
@@ -115,33 +111,6 @@ Tracked build utilities:
 
 - [tools/data](../tools/data)
 - [tools/seo](../tools/seo)
-
-The root `scripts/` folder is ignored and contains local-only ingest, asset,
-and data-authoring workflows. `package.json` keeps commands for these local
-scripts, but a clean clone cannot run them unless the scripts are supplied
-locally. Dev and production builds use tracked `tools/` and checked-in runtime
-data; they do not require `/scripts`.
-
-Important local workflows:
-
-- fetch resonator data
-- build resonator runtime outputs
-- build resonator indexes
-- fetch and build weapon data
-- fetch and build echo data
-- apply resonator authored overrides
-- sync resonator images
-
-These workflows generate or update files that the production app loads, even
-though the workflows themselves are not shipped or tracked.
-
-## Operational Boundaries
-
-The repository does not expose every private upstream source file used during data authoring. That is acceptable as long as:
-
-- the checked in outputs remain documented
-- the build and ingest contracts remain documented
-- maintainers know which outputs are source of truth for the app at runtime
 
 ## Related Docs
 

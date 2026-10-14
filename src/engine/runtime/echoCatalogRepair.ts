@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Repairs persisted echo instances whose catalog definition is no
+  description: repairs persisted echo instances whose catalog definition is no
                longer available while preserving their rolls and build shape.
 */
 
@@ -22,8 +22,8 @@ function sameNumber(left: number, right: number): boolean {
   return Math.abs(left - right) < 0.0001
 }
 
-// Saved echoes do not store their cost directly, but their canonical main-stat
-// pair does. The secondary stat is the strongest signal because it separates
+// infer saved echo cost from the canonical main-stat pair. the secondary stat
+// is the strongest signal because it separates
 // cost 1 from 3/4 and its value separates cost 3 from 4.
 export function inferSavedEchoCost(echo: EchoInstance): number | null {
   const secondaryMatch = COST_ORDER.find((cost) => {
@@ -133,9 +133,9 @@ function repairMainStats(
 }
 
 /**
- * Repair one saved build at a time so generated replacements can avoid an
- * id/set pair already present in that build. Existing catalog echoes keep their
- * identity; only a stale set is moved onto one the definition currently owns.
+ * repair one saved build at a time so generated replacements can avoid an
+ * id/set pair already present in that build. existing catalog echoes keep their
+ * identity; only a stale set is moved onto one currently defined for that set.
  */
 export function repairEchoLoadoutForCatalog(
   echoes: ReadonlyArray<EchoInstance | null | undefined>,

@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Shared evaluation stat math, roll budgets, and encoded stat summaries.
+  description: shared evaluation stat math, roll budgets, and encoded stat summaries.
 */
 import type { EchoInstance } from '@/domain/entities/runtime';
 import type { AttributeKey, FinalStats, ModBuff, SkillTypeKey } from '@/domain/entities/stats';
@@ -122,7 +122,7 @@ export const MAXIMUM_SCORING_PARAMS: EvaluationScoringParams = {
 
 export { gradeForPercent } from './grades.ts'
 
-// Piecewise-linear normalization: baseline -> 0, reference -> 1, maximum -> 2.
+// piecewise-linear normalization: baseline -> 0, reference -> 1, maximum -> 2.
 export function scorePercent(score: number, baseline: number, reference: number, maximum: number): number {
   const ceiling = Math.max(maximum, reference)
   let percent = 0

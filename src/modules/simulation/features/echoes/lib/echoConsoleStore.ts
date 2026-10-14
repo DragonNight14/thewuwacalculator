@@ -1,8 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: holds the open echo slot request, so any surface that draws an
-               echo (an evaluation loadout, for one) opens the same editor and
-               the same picker the echoes pane does.
+  description: stores the open echo-slot request for shared editor and picker access.
 */
 
 import { create } from 'zustand'

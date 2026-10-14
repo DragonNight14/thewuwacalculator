@@ -124,7 +124,7 @@
   color: color-mix(in srgb, var(--resonator-accent) 78%, var(--text));
 }
 
-.lho-line .pgs-seat-stack {
+.lho-line .pgs-member-selector {
   flex: none;
   margin-left: 0;
 }

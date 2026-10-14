@@ -1,7 +1,7 @@
 /*
   Author: Runor Ewhro
-  Description: Shared optimizer stat-constraint encoding and evaluation
-               helpers used by compiler, CPU, and evaluators.
+  description: shared optimizer stat-constraint encoding and evaluation
+               helpers used by compiler, cpu, and evaluators.
 */
 
 import type { OptSets } from '@/domain/entities/optimizer.ts'

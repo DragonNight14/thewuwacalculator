@@ -1,7 +1,7 @@
 /*
   Author: Runor Ewhro
-  Description: Applies mobile slot selection and legal-roll changes to the
-               shared unsaved Echo draft.
+  description: applies mobile slot selection and legal-roll changes to the
+               shared unsaved echo draft.
 */
 
 import { useEffect, useRef, useState } from 'react'
@@ -40,7 +40,7 @@ function BigReel({ statKey, value, onChange }: { statKey: string, value: number,
   useEffect(() => {
     const node = scroller.current
     if (node) node.scrollTop = index * ROW_H
-    // Reel changes must not recenter themselves; only a stat identity change does.
+    // reel changes must not recenter themselves; only a stat identity change does.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [statKey])
 
@@ -164,7 +164,7 @@ export function MobileEchoEdit({ state, draft, mainEcho, onRecast, onSave, onClo
   const [slot, setSlot] = useState(0)
   const swipeFrom = useRef<number | null>(null)
 
-  // Clamp selection after a removal shortens the draft.
+  // clamp selection after a removal shortens the draft.
   const open = Math.min(slot, Math.max(0, Math.min(lclSbst.length, MAX_SUBSTATS - 1)))
   const entry = lclSbst[open]
 

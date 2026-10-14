@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: shared team-target selection helpers for Simulation combat
+  description: shared team-target selection helpers for simulation combat
                views and teammate configuration flows.
 */
 

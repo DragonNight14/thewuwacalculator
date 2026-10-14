@@ -18,7 +18,7 @@
 @import './ui/toast.css';
 @import './mobile/modals.css';
 @import './mobile/pages.css';
-@import './ui/queue-bubble.css';
+@import './ui/queued-resonator-picker.css';
 @import './ui/cookie.css';
 @import './base/themes.css';
 @import './features/resonator/resonator.css';
@@ -35,11 +35,11 @@
 @import './features/echoes/echoes.css';
 @import './features/echoes/edit.css';
 @import './features/echoes/import.css';
-@import './features/echoes/forge.css';
+@import './features/echoes/quick-setup.css';
 @import './mobile/echo-edit.css';
 @import './mobile/picker.css';
 @import './mobile/member-console.css';
-@import './mobile/forge.css';
+@import './mobile/quick-setup.css';
 @import './mobile/modal-reflow.css';
 @import './mobile/overlays.css';
 @import './ui/import-stamp.css';
@@ -64,7 +64,7 @@
 @import './surfaces/showcase/showcase.css';
 @import './surfaces/showcase/classic.css';
 @import './surfaces/showcase/customize.css';
-@import './surfaces/showcase/seal.css';
+@import './surfaces/showcase/detailed.css';
 @import './surfaces/bench/score-warning.css';
 @import './features/controls/set-conditions.css';
 @import './features/buffs/advanced.css';

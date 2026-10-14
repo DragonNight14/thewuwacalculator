@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Defines suggestion defaults, stable evaluation signatures,
+  description: defines suggestion defaults, stable evaluation signatures,
                recipe identity, set-plan normalization, and constraint helpers.
 */
 
@@ -61,7 +61,7 @@ export interface SetPlanSmmrE {
   pieces: number
 }
 
-// Format a damage total with the Simulation tools' compact number style.
+// format a damage total with the simulation tools' compact number style.
 export function formatDamage(value: number): string {
   return `${formatCompactNum(value)} dmg`
 }
@@ -211,7 +211,7 @@ export function recipeSig(recipes: MainStatRecipe[]): string {
     .join('||')
 }
 
-// Canonical recipe ordering places higher-cost entries first.
+// canonical recipe ordering places higher-cost entries first.
 export function sortRecipes(recipes: MainStatRecipe[]): MainStatRecipe[] {
   return [...recipes].sort((left, right) => right.cost - left.cost)
 }

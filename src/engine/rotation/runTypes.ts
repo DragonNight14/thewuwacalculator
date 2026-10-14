@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Defines the public execution, inspection, scoring, and damage
+  description: defines the public execution, inspection, scoring, and damage
                callback contracts shared by rotation callers.
 */
 
@@ -96,9 +96,9 @@ export interface ProgramOpts {
   includeSnapshots?: boolean
   fallbackResonatorId?: string
   captureEntries?: boolean
-  /** Execute every node, but retain inspection and feature rows only for these IDs. */
+  /** execute every node, but retain inspection and feature rows only for these ids. */
   captureNodeIds?: ReadonlySet<string>
-  /** Borrowed array and object views must be consumed synchronously. */
+  /** borrowed array and object views must be consumed synchronously. */
   onDamageInvocation?: (invocation: DamageInvocation) => void
 }
 

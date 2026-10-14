@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Selects the fixed Showcase stat rows from build and combat values.
+  description: selects the fixed showcase stat rows from build and combat values.
 */
 
 import type { StatViewRow, StatsView } from '@/modules/simulation/model/statsView.ts'

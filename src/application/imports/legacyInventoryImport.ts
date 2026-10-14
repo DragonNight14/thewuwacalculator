@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Backward-compatible wrapper around the shared legacy echo
+  description: backward-compatible wrapper around the shared legacy echo
                import helpers used by the full v1 app-state importer.
 */
 

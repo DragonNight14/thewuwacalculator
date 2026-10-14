@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Defines combat graph entities used to represent active
+  description: defines combat graph entities used to represent active
                participants, slot-local state, and stat snapshots in combat.
 */
 
@@ -11,7 +11,7 @@ import type { TeamMemberId } from './combatScenario'
 import type { EnvironmentTargetModifiers } from './combatScenario'
 import type { ManualBuffs } from './manualBuffs'
 
-/** Fixed-width execution coordinate materialized from ordered scenario members. */
+/** fixed-width execution coordinate materialized from ordered scenario members. */
 export type SlotId = 'active' | 'team1' | 'team2'
 
 export interface CombatPartSlot {

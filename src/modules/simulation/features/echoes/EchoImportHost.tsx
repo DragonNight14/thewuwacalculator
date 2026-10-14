@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Hosts the app-header Echo import. Standalone context builds and
+  description: hosts the app-header echo import. standalone context builds and
                active-team instances remain separate destinations even when
                both happen to use the same resonator id.
 */
@@ -258,8 +258,8 @@ export function EchoImportHost() {
       ? { kind: 'context', resonatorId: read.resonator.id } satisfies EchoImportDestination
       : null)
     if (!target) return
-    // Team runtimes are scenario-scoped, so retain the active context that owns
-    // the imported teammate instead of resolving the member globally.
+    // team runtimes are scenario-scoped. retain the active context containing
+    // the imported teammate.
     const contextId = target.kind === 'team'
       ? selWorkDrvd(useAppStore.getState()).actRt?.id ?? null
       : target.resonatorId
@@ -282,7 +282,7 @@ export function EchoImportHost() {
         resonatorId,
       ])),
     }))
-    // Detection changes only this modal's destination view; app context stays put.
+    // detection changes only this modal's destination view; app context stays put.
     selectContext(resonatorId)
   }, [requestId, selectContext])
 

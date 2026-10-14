@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Computes suggestion damage for main-stat recipe variants
+  description: computes suggestion damage for main-stat recipe variants
                by applying recipe changes to equipped echoes and evaluating
                the resulting loadout.
 */
@@ -31,9 +31,8 @@ export function cmptRotMainS(
   return cmptMainStat(ctx, recipes, qppdChs)
 }
 
-/* Only the selected main Echo's bonus row is read by the packed evaluator.
-   Its isolated effect scope is fixed for this search, so reuse rows for the
-   same Echo body and stats instead of rebuilding every Echo's effects at DFS. */
+/* the packed evaluator reads only the selected main echo's bonus row. its
+   effect scope stays fixed during search; cache rows by echo body and stats. */
 export function makeMainStatScorer(ctx: SuggestContext, equipped: Array<EchoInstance | null>) {
   const mainRows = new Map<string, Float32Array>()
   return (recipes: MainStatRecipe[]): number => {

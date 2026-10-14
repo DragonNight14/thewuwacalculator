@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Flattens changelog releases into navigable stops and coordinates
+  description: flattens changelog releases into navigable stops and coordinates
                keyboard, wheel, touch, hash, media selection, and zoom state.
 */
 
@@ -26,16 +26,16 @@ interface WnStop {
   media: WnShot[]
 }
 
-// Match the breakpoint where the home route uses section snapping.
+// match the breakpoint where the home route uses section snapping.
 const SNAPS = '(min-width: 52rem) and (min-height: 34rem)'
-// Treat nearby wheel events as one gesture so inertia cannot advance twice.
+// treat nearby wheel events as one gesture so inertia cannot advance twice.
 const GESTURE_GAP = 180
 const WHEEL_STEP = 18
 const SWIPE_STEP = 48
 
 const ENTRIES = getWhatsNewEntries()
 
-/* Flatten releases into stops. Headingless sections merge into the previous
+/* flatten releases into stops. headingless sections merge into the previous
    stop, and each release's first section inherits its hero media. */
 const STOPS: WnStop[] = (() => {
   const stops: WnStop[] = []
@@ -80,10 +80,10 @@ export function WhatsNewIndex({ still, openEntry }: { still: boolean; openEntry:
   const panelId = useId()
 
   const [at, setAt] = useState(() => firstStopOf(openEntry) ?? 0)
-  // Zero marks initial placement; later signs encode navigation direction.
+  // zero marks initial placement; later signs encode navigation direction.
   const [dir, setDir] = useState(0)
   const [zoomed, setZoomed] = useState<WnShot | null>(null)
-  // The wheel listener is registered once, so it reads the current index through a ref.
+  // the wheel listener is registered once and reads the current index through a ref.
   const atRef = useRef(at)
 
   useLayoutEffect(() => { atRef.current = at }, [at])
@@ -97,7 +97,7 @@ export function WhatsNewIndex({ still, openEntry }: { still: boolean; openEntry:
     setAt(target)
   }, [])
 
-  // Apply release deep-link changes without remounting the home route.
+  // apply release deep-link changes without remounting the home route.
   const [seenEntry, setSeenEntry] = useState(openEntry)
   if (openEntry !== seenEntry) {
     setSeenEntry(openEntry)
@@ -108,7 +108,7 @@ export function WhatsNewIndex({ still, openEntry }: { still: boolean; openEntry:
     }
   }
 
-  // Derive marker geometry from the active tab and keep it within the scrollable track.
+  // derive marker geometry from the active tab and keep it within the scrollable track.
   const place = useCallback((smooth: boolean) => {
     const tab = tabs.current[atRef.current]
     const line = track.current
@@ -130,7 +130,7 @@ export function WhatsNewIndex({ still, openEntry }: { still: boolean; openEntry:
     const line = track.current
     const names = rule.current
     if (!line || !names) return
-    // Reposition after font or container width changes.
+    // reposition after font or container width changes.
     const resize = new ResizeObserver(() => place(false))
     resize.observe(names)
     resize.observe(line)
@@ -144,19 +144,19 @@ export function WhatsNewIndex({ still, openEntry }: { still: boolean; openEntry:
     }
   }, [place])
 
-  /* Intercept vertical wheel gestures only while this snapped section owns the
-     aperture; horizontal gestures always navigate stops. */
+  /* intercept vertical wheel gestures while this section fills the scroll area;
+     horizontal gestures navigate between stops. */
   useEffect(() => {
     const node = root.current
     const act = node?.closest<HTMLElement>('.hm-act')
-    const aperture = node?.closest<HTMLElement>('.main-content')
-    if (!act || !aperture) return
+    const scrollContainer = node?.closest<HTMLElement>('.main-content')
+    if (!act || !scrollContainer) return
 
     const snaps = window.matchMedia(SNAPS)
     let last = 0
     let held = false
     let sum = 0
-    const resting = () => snaps.matches && Math.abs(act.offsetTop - aperture.scrollTop) < 6
+    const resting = () => snaps.matches && Math.abs(act.offsetTop - scrollContainer.scrollTop) < 6
 
     const onWheel = (event: WheelEvent) => {
       if (event.ctrlKey) return
@@ -175,7 +175,7 @@ export function WhatsNewIndex({ still, openEntry }: { still: boolean; openEntry:
       const step = delta > 0 ? 1 : -1
       const current = atRef.current
       if (step > 0 ? current >= STOPS.length - 1 : current <= 0) {
-        // Consume horizontal overscroll so the browser does not treat it as history navigation.
+        // consume horizontal overscroll so the browser does not treat it as history navigation.
         if (sideways) event.preventDefault()
         return
       }
@@ -208,7 +208,7 @@ export function WhatsNewIndex({ still, openEntry }: { still: boolean; openEntry:
   }
 
   const onTouchStart = (event: ReactTouchEvent<HTMLDivElement>) => {
-    // Let native scrolling own gestures that start inside the tab track.
+    // let native scrolling own gestures that start inside the tab track.
     if ((event.target as HTMLElement).closest('.hm-wn__track')) return
     const point = event.touches[0]
     touch.current = { x: point.clientX, y: point.clientY }
@@ -355,7 +355,7 @@ function Lead({ shot, still, animated, onZoom }: {
   if (shot.kind === 'card') return <RailCard resId={shot.resId ?? '1506'} animated={animated} />
 
   if (shot.kind === 'video') {
-    // Remote hosts that cannot be embedded open externally; local clips use video.
+    // remote hosts that cannot be embedded open externally; local clips use video.
     if (/^https?:\/\//.test(shot.src ?? '')) {
       return (
         <a className="hm-wn__watch" href={shot.src} target="_blank" rel="noopener noreferrer">
@@ -378,7 +378,7 @@ function Lead({ shot, still, animated, onZoom }: {
     )
   }
 
-  // Intrinsic dimensions reserve the known aspect ratio before image decode.
+  // intrinsic dimensions reserve the known aspect ratio before image decode.
   const ratio = shot.ar ?? 16 / 9
   return (
     <button
@@ -391,7 +391,7 @@ function Lead({ shot, still, animated, onZoom }: {
   )
 }
 
-// Scale the full-size rail from its measured height into the preview container.
+// scale the full-size rail from its measured height into the preview container.
 function RailCard({ resId, animated }: { resId: string; animated: boolean }) {
   const box = useRef<HTMLDivElement | null>(null)
 
@@ -416,7 +416,7 @@ function RailCard({ resId, animated }: { resId: string; animated: boolean }) {
   )
 }
 
-// Portal outside the route aperture so the modal can cover the application shell.
+// portal outside the route content area so the modal can cover the application shell.
 function Zoom({ shot, onClose }: { shot: WnShot; onClose: () => void }) {
   useEffect(() => {
     const onKey = (event: KeyboardEvent) => { if (event.key === 'Escape') onClose() }

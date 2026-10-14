@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Resolves the editable Off-Tune cooldown landing and advances it
+  description: resolves the editable off-tune cooldown landing and advances it
                from executed features, so loop passes share the real state.
 */
 
@@ -8,18 +8,18 @@ import type { RotationNode } from '@/domain/gameData/contracts.ts'
 
 type FeatureNode = Extract<RotationNode, { type: 'feature' }>
 
-/** How many executed features are held when the player leaves the landing unmarked. */
+/** how many executed features are held when the player leaves the landing unmarked. */
 export const OFF_TUNE_DEFAULT_SEAL = 3
 
 export type OffTuneResumeKind = 'mark' | 'default'
 
-/** Authored facts which do not change while a prepared program is running. */
+/** authored facts which do not change while a prepared program is running. */
 export interface OffTuneSealPlan {
-  /** Tune Break nodes whose following segment contains an authored landing. */
+  /** tune break nodes whose following segment contains an authored landing. */
   waitsForMarkedResume: ReadonlySet<string>
 }
 
-/** The cooldown as it stands at one point in execution. */
+/** the cooldown as it stands at one point in execution. */
 export interface OffTuneSealState {
   plan: OffTuneSealPlan
   active: boolean
@@ -30,9 +30,9 @@ export interface OffTuneSealState {
 export interface OffTuneSealStep {
   state: OffTuneSealState
   sealed: boolean
-  /** This feature is the landing that ended the cooldown. */
+  /** this feature is the landing that ended the cooldown. */
   resume: OffTuneResumeKind | null
-  /** This feature belongs to the currently active cooldown window. */
+  /** this feature belongs to the currently active cooldown window. */
   afterBreak: boolean
 }
 
@@ -46,7 +46,7 @@ export function makeOffTuneSealState(
   return { plan, active: false, held: 0, waitsForMark: false }
 }
 
-/** Begin a fresh cooldown after this executed Tune Break. */
+/** begin a fresh cooldown after this executed tune break. */
 export function startOffTuneSeal(
   state: OffTuneSealState,
   breakNodeId: string,
@@ -60,8 +60,8 @@ export function startOffTuneSeal(
 }
 
 /**
- * Advance the cooldown using execution order rather than document position.
- * This lets a break at the end of one loop pass hold entries at the beginning
+ * advance the cooldown in execution order.
+ * this lets a break at the end of one loop pass hold entries at the beginning
  * of the next pass.
  */
 export function stepOffTuneSeal(
@@ -98,7 +98,7 @@ export function stepOffTuneSeal(
   }
 }
 
-/** Every feature in document order, including nested repeat and uptime bodies. */
+/** every feature in document order, including nested repeat and uptime bodies. */
 function flattenFeatures(items: readonly RotationNode[], out: FeatureNode[]): void {
   for (const item of items) {
     if (item.type === 'feature') {
@@ -113,8 +113,8 @@ function flattenFeatures(items: readonly RotationNode[], out: FeatureNode[]): vo
 }
 
 /**
- * Associate explicit landing marks with the preceding Tune Break segment.
- * The landing itself is still consumed dynamically; the plan only decides
+ * associate explicit landing marks with the preceding tune break segment.
+ * the landing itself is still consumed dynamically; the plan only decides
  * whether that break should wait past the three-entry default.
  */
 export function planOffTuneSeal(
@@ -126,7 +126,7 @@ export function planOffTuneSeal(
   return planOffTuneSealOrder(features, isTuneBreak)
 }
 
-/** Build the authored facts from an already expanded structural execution order. */
+/** build the authored facts from an already expanded structural execution order. */
 export function planOffTuneSealOrder(
   features: readonly FeatureNode[],
   isTuneBreak: (node: FeatureNode) => boolean,

@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Defines canonical application status, coverage, source, and
+  description: defines canonical application status, coverage, source, and
                wallpaper metadata consumed by chrome and reporting surfaces.
 */
 
@@ -13,7 +13,7 @@ export interface CoverageDomain {
   key: CoverageKey
   title: string
   status: 'ok' | 'down'
-  /** Explanation shown only when this domain is unavailable. */
+  /** explanation shown only when this domain is unavailable. */
   note: string
 }
 
@@ -39,7 +39,7 @@ export const STATUS_DATA = {
     'IMPORTANT: As a lot has been changed, if you feel like there\'s something missing or something you don\'t quite like, please POLITELY let me know in the discord server. But if possible, please give the new interface a fair chance instead of immediately dooming it and me to oblivion!',
     'Take a look at the guides, THEY\'RE SUPER USEFUL NOW! (i promise), explore, do whatever.',
   ],
-  // Consumers join these status records with live catalog counts by key.
+  // consumers join these status records with live catalog counts by key.
   coverage: [
     { key: 'resonators', title: 'Resonators', status: 'ok', note: '' },
     { key: 'weapons',    title: 'Weapons',    status: 'ok', note: '' },
@@ -59,7 +59,7 @@ export const STATE_LABELS = {
   wip:      'IN PROGRESS',
 } as const
 
-// Derive the compact chrome status from the same canonical report state.
+// derive the compact chrome status from the same canonical report state.
 export const APP_CONDITION = {
   ok: STATUS_DATA.overallState === 'stable',
   label: STATE_LABELS[STATUS_DATA.overallState],

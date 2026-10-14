@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Builds Simulation-specific context-menu entries for panes,
+  description: builds simulation-specific context-menu entries for panes,
                selections, inventory actions, and rotation/editor workflows.
 */
 

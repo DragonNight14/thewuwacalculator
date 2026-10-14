@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Extracts the Sonata plan, cost, and main Echo provenance for generated evaluation builds.
+  description: extracts the sonata plan, cost, and main echo provenance for generated evaluation builds.
 */
 
 import { getSntSetIco, getSntSetNam } from '@/data/gameData/catalog/sonataSets.ts'
@@ -34,7 +34,7 @@ export interface BuiltOnFrame {
   cost: number
 }
 
-/* main Echo is the `mainEcho` flag, not a slot: slot 0 is only the default */
+/* main echo is the `mainEcho` flag, not a slot: slot 0 is only the default */
 function mainOf(echoes: EvaluationEchoSlot[]): EvaluationEchoSlot | null {
   return echoes.find((echo) => echo.mainEcho) ?? null
 }

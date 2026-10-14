@@ -18,7 +18,7 @@
   --rpt-in: 34%;
   --rpt-w: min(41rem, 92vw);
   position: fixed;
-  z-index: 60;
+  z-index: 901;
   top: 0;
   right: 0;
   bottom: 0;

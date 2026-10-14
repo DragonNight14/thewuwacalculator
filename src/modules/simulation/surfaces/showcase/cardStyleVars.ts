@@ -1,11 +1,7 @@
 /*
   Author: Runor Ewhro
-  Description: Single source of truth for turning a persisted showcase card style
-               into CSS custom properties. The card is themed entirely through
-               these variables, so new overrides become a matter of adding a field
-               here plus a control in the panel, and the same map feeds the live
-               card and the PNG capture. Per-slot text typography lives here today;
-               mask/backdrop/colour vars can migrate in over time.
+  description: converts persisted showcase styles to css custom properties for
+               the card and png capture, including text styles for each slot.
 */
 
 import { TEXT_SLOTS } from '@/domain/entities/preferences'
@@ -13,9 +9,7 @@ import type { TextSlot, TextSlotStyle } from '@/domain/entities/preferences'
 
 export type CardVarMap = Record<string, string | number>
 
-// Each text slot exposes the same six knobs as `--ss-<slot>-<prop>`. Only set
-// fields are emitted, so the CSS fallbacks (the slot's built-in styling) win when
-// a knob is untouched.
+// each text slot has six `--ss-<slot>-<prop>` properties; unset properties use css defaults.
 function emitSlotVars(slot: TextSlot, style: TextSlotStyle, out: CardVarMap): void {
   if (style.color) out[`--ss-${slot}-color`] = style.color
   if (style.font) out[`--ss-${slot}-font`] = style.font
@@ -34,15 +28,15 @@ export function buildTextSlotVars(slots: Partial<Record<TextSlot, TextSlotStyle>
   return out
 }
 
-// Pulls the family name out of a stored stack like `'Onest', sans-serif`.
+// pulls the family name out of a stored stack like `'Onest', sans-serif`.
 export function familyFromStack(stack: string | null | undefined): string | null {
   if (!stack) return null
   const match = stack.match(/^\s*['"]?([^'",]+)/)
   return match ? match[1].trim() : null
 }
 
-// Every user-chosen font family on a card (global display/mono + each text slot),
-// as plain family names, used to re-inject the Google Fonts links after a reload,
+// every user-chosen font family on a card (global display/mono + each text slot),
+// as plain family names, used to re-inject the google fonts links after a reload,
 // since only the resolved stacks are persisted, not the original links.
 export function collectCardFontFamilies(style: {
   displayFont: string | null
@@ -70,17 +64,17 @@ export const EMPTY_TEXT_SLOT: TextSlotStyle = {
   transform: null,
 }
 
-// Custom card CSS is injected inside an `@scope` block, but a handful of at-rules
-// (`@import`, `@font-face`, `@keyframes`, …) are invalid nested in @scope. Pull
+// custom card css is injected inside an `@scope` block, but a handful of at-rules
+// (`@import`, `@font-face`, `@keyframes`, …) are invalid nested in @scope. pull
 // those to the top level so users can import fonts / define faces and animations,
 // while everything else stays scoped to the card. `@import` is emitted first, as
 // the spec requires it precede all other rules.
 const HOIST_STATEMENT = new Set(['import', 'charset', 'namespace'])
 const HOIST_BLOCK = new Set(['font-face', 'keyframes', '-webkit-keyframes', 'property'])
 
-// Index just past the next top-level `;` (or `{` block), skipping any that sit
-// inside a string or url()/parentheses because `@import` URLs routinely contain `;`
-// (e.g. multi-axis Google Fonts), which a naive search would split on.
+// index just past the next top-level `;` (or `{` block), skipping any that sit
+// inside a string or url()/parentheses because `@import` urls routinely contain `;`
+// (e.g. multi-axis google fonts), which a naive search would split on.
 function scanTo(css: string, start: number, stopChar: ';' | '{'): number {
   let depth = 0
   let quote = ''

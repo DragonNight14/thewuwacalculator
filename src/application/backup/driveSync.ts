@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Re-exports the application-facing Google Drive snapshot backup operations.
+  description: re-exports the application-facing google drive snapshot backup operations.
 */
 
 export { pldSnapToDrv, rstrLtstSnap } from '@/infra/googleDrive/driveSync'

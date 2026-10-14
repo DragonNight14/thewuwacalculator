@@ -1,13 +1,13 @@
 /*
   Author: Runor Ewhro
-  Description: Derives the ordered execution scopes intersecting a viewport
+  description: derives the ordered execution scopes intersecting a viewport
                and the offset of the innermost scope from element bounds.
 */
 
 interface StickyScope {
   el: HTMLElement
   kind: 'section' | 'loop' | 'repeat' | 'uptime' | 'setup' | 'run'
-  /** identity for react, so a scope swapping in animates rather than morphs */
+  /** react identity that gives a replacement scope its own entrance animation. */
   key: string
   label: string
   icon: string
@@ -25,7 +25,7 @@ interface StickyScope {
 
 export interface StickyState {
   scopes: StickyScope[]
-  /** Clamped collision offset for the innermost active scope. */
+  /** clamped collision offset for the innermost active scope. */
   shift: number
 }
 
@@ -56,7 +56,7 @@ function readScope(el: HTMLElement): StickyScope | null {
   }
 
   // a run has no header of its own: its first step is the header, so the entry
-  // restates that step and the face that owns the stretch
+  // restates that step and the resonator for that interval
   if (el.classList.contains('rte-run')) {
     const head = el.querySelector<HTMLElement>(':scope > .rte-row')
     const label = head ? text(head, '.rte-step__name') : ''
@@ -72,8 +72,7 @@ function readScope(el: HTMLElement): StickyScope | null {
       runs: 0,
       key: `run:${label}:${note}`,
       label,
-      // the head step is coloured by the element it deals, and the stack sits
-      // outside the row, so the value is read rather than inherited
+      // use the head row color for the external stack.
       accent: getComputedStyle(head).getPropertyValue('--rte-res').trim(),
       icon: head.querySelector<HTMLImageElement>('.rte-step__art')?.src ?? '',
       note: note ? `${note} steps` : '',
@@ -103,8 +102,7 @@ function readScope(el: HTMLElement): StickyScope | null {
     key: `${kind}:${label}:${note}`,
     label,
     icon: '',
-    // a loop sets its colour inline, and the stack sits outside the block, so
-    // the value has to be read rather than inherited
+    // use the loop color for the external stack.
     accent: getComputedStyle(el).getPropertyValue('--rte-blk').trim(),
     loopId: el.dataset.loopId ?? '',
     runs: Number(el.dataset.runs ?? 0) || 0,
@@ -115,8 +113,8 @@ function readScope(el: HTMLElement): StickyScope | null {
 }
 
 /**
- * A scope is enclosing when its own header has gone behind the stack and its
- * extent still reaches past it. Scopes nest, so document order is already
+ * a scope is enclosing when its own header has gone behind the stack and its
+ * extent still reaches past it. scopes nest, so document order is already
  * outermost first and no sorting is needed.
  */
 export function readStickyScopes(scroller: HTMLElement, rowHeight: number): StickyState {
@@ -125,12 +123,9 @@ export function readStickyScopes(scroller: HTMLElement, rowHeight: number): Stic
 
   for (const node of scroller.querySelectorAll<HTMLElement>('.rte-sec, .rte-block, .rte-run')) {
     /*
-      the line each scope is judged against is the bottom of the stack built so
-      far, not the top of the scrollport. the stack is drawn over the rows, so
-      a header measured against the scrollport stays "visible" while it is in
-      fact hidden behind the entries above it, and its own entry appears a
-      stack-height of scrolling too late. that lateness lands hardest on runs,
-      which sit deepest and are short.
+      compare each header with the bottom of the current stack because the
+      stack covers rows below the scrollport top. using the scrollport top
+      delays entries, especially short nested runs.
     */
     const line = top + found.length * rowHeight
     const box = node.getBoundingClientRect()

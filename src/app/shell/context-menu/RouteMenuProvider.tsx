@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: provides route-chrome menu builders and route-level actions
+  description: provides route-chrome menu builders and route-level actions
                such as navigation, history, inventory access, and reset flows.
 */
 
@@ -162,8 +162,8 @@ export function RtMenuProv({ children }: { children: ReactNode }) {
 
   const builders = useMemo(() => ({
     routeChrome: {
-      // expose builders instead of concrete arrays so menus can request fresh
-      // entries at open time from the latest route and history state.
+      // builders produce menu entries at open time from current route and
+      // history state.
       undoRedo: () => routeCtxBuilder.routeChrome.undoRedo({
         canUndo,
         canRedo,

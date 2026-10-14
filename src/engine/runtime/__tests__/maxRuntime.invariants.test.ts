@@ -1,7 +1,7 @@
 /*
   Author: Runor Ewhro
-  Description: Keeps full Max and import effects-only Max aligned across
-               progression, weapon, Resonator, Echo, and Sonata state.
+  description: keeps full max and import effects-only max aligned across
+               progression, weapon, resonator, echo, and sonata state.
 */
 
 import { describe, expect, it } from 'vitest'

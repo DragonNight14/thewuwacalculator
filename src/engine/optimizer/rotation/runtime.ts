@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: applies a supplied rotation program onto a runtime
+  description: applies a supplied rotation program onto a runtime
                snapshot while preserving the rest of the runtime shape.
 */
 

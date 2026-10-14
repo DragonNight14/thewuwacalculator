@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Provides searchable, grouped modal selection with keyboard focus and active-item scrolling.
+  description: provides searchable, grouped modal selection with keyboard focus and active-item scrolling.
 */
 
 import { useEffect, useId, useRef } from 'react'
@@ -129,8 +129,8 @@ function DesktopPickerModal({
   )
 }
 
-// Measure mounted visible rows once and animate them directly. This avoids
-// registering CSS animation events for offscreen cards at the dialog root.
+// measure mounted visible rows once and animate them directly. this avoids
+// registering css animation events for offscreen cards at the dialog root.
 const ENTER_ROW_STEP = 55
 const ENTER_MS = 350
 const ENTER_EASE = 'ease'
@@ -147,7 +147,7 @@ export function usePickerEntrance(bodyRef: RefObject<HTMLElement | null>, visibl
 
     let frame: number | null = window.requestAnimationFrame(() => {
       frame = null
-      // Layout-delta motion takes ownership after the first picker mutation.
+      // layout-delta motion starts after the first picker mutation.
       if (body.closest('.pkm__frame')?.classList.contains('is-live')) return
 
       const view = body.getBoundingClientRect()
@@ -178,8 +178,8 @@ export function usePickerEntrance(bodyRef: RefObject<HTMLElement | null>, visibl
   }, [bodyRef, visible])
 }
 
-// Observe the modal scroll root rather than the viewport so deferred card images
-// are requested only when their card enters the active picker body.
+// observe the modal scroll root. request deferred card images as each card
+// enters the active picker body.
 export function useDeferredImages(bodyRef: RefObject<HTMLElement | null>, visible: boolean, refreshKey: unknown) {
   useEffect(() => {
     const body = bodyRef.current
@@ -203,7 +203,7 @@ export function useDeferredImages(bodyRef: RefObject<HTMLElement | null>, visibl
         load(entry.target as HTMLImageElement)
         observer.unobserve(entry.target)
       }
-    // Begin loading one row before intersection to hide decode latency.
+    // begin loading one row before intersection to hide decode latency.
     }, { root: body, rootMargin: '220px 0px' })
     images.forEach((image) => {
       if (!image.getAttribute('src')) observer.observe(image)

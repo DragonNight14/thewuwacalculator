@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Projects executed rotation spans, active-member handoffs, containers, and state tracks.
+  description: projects executed rotation spans, active-member handoffs, containers, and state tracks.
 */
 
 import { DisplayImage } from '@/shared/ui/DisplayImage'
@@ -58,7 +58,7 @@ interface Props {
   decimals: DamageDecimals
   /** the node the table has open, which is where the playhead rests */
   selectedId: string | null
-  /** absent on the saved list, where the console reads rather than picks */
+  /** omitted for saved-list consoles with no selection action. */
   onSelect?: (target: FlatRowTarget) => void
   /** what this console is drawing, printed beside the node count */
   caption: string
@@ -71,7 +71,7 @@ function markHeight(value: number, peak: number, room: number): number {
   return Math.max(1.5, Math.pow(value / peak, CURVE) * room)
 }
 
-/** One SVG path per colour keeps a long execution from mounting a bar group per step. */
+/** one svg path per colour keeps a long execution from mounting a bar group per step. */
 const OutputMarks = memo(function OutputMarks({
   steps,
   peak,
@@ -143,7 +143,7 @@ function glyphMark(glyph: RcnGlyph, cx: number, top: number, width: number, colo
   }
 }
 
-/* the gutter holds about sixteen characters of the label face */
+/* the gutter fits about sixteen characters of the label face */
 function gutterText(text: string): string {
   return text.length > 17 ? `${text.slice(0, 16)}\u2026` : text
 }
@@ -173,8 +173,7 @@ function statePath(track: RcnStateTrack, xOf: (i: number) => number, x0: number,
 
 export function RotationConsole({ model, members, decimals, selectedId, onSelect, caption, emptyNote }: Props) {
   const uid = useId().replace(/[^a-zA-Z0-9]/g, '')
-  /* the plot only mounts once there is something to draw, so the observer is
-     bound to the element rather than to the first render */
+  /* the plot mounts when it has content. bind the observer to that element. */
   const [plot, setPlot] = useState<HTMLDivElement | null>(null)
   const [box, setBox] = useState({ w: 0, h: 0 })
   const [probe, setProbe] = useState<number | null>(null)
@@ -257,7 +256,7 @@ export function RotationConsole({ model, members, decimals, selectedId, onSelect
       slot,
       x1: x0 + pw,
       xOf: (i: number) => x0 + (i + 0.5) * slot,
-      /* an edge sits between two columns, and the last one closes the ruler */
+      /* return column boundaries, including the ruler's right edge. */
       edgeOf: (i: number) => (i >= count ? x0 + pw : x0 + i * slot),
       rulerY,
       bandTop,
@@ -284,7 +283,7 @@ export function RotationConsole({ model, members, decimals, selectedId, onSelect
       if (!plot || !count) return null
       const rect = plot.getBoundingClientRect()
       const x = event.clientX - rect.left
-      /* the gutter carries the track names, so pointing at one is not a pick */
+      /* the gutter displays the track names, so pointing at one is not a pick */
       if (x < geo.x0) return null
       const index = Math.round((x - geo.x0) / geo.slot - 0.5)
       return Math.min(Math.max(index, 0), count - 1)
@@ -501,7 +500,7 @@ export function RotationConsole({ model, members, decimals, selectedId, onSelect
             })}
             {model.states.length ? label(geo.stateTop - 6, 'State') : null}
 
-            {/* the probe reads, the head holds what the table has open */}
+            {/* the probe reads, the header lists the open table columns */}
             {probe != null ? (
               <g className="rcon__probe">
                 <line x1={xOf(probe)} y1={geo.rulerY} x2={xOf(probe)} y2={geo.bottom} />
@@ -562,9 +561,9 @@ export function RotationConsole({ model, members, decimals, selectedId, onSelect
 }
 
 /**
- * One pass of one container. A stretch names itself on the pass it opens on
- * and counts itself on every pass after, so four cells reading `Loop A 2 3 4`
- * are one loop run four times rather than four things that share a name.
+ * one pass of one container. a stretch names itself on the pass it opens on
+ * and counts each later pass. four cells labelled `Loop A 2 3 4` represent
+ * four passes of one loop.
  */
 function BandCell({
   band,
@@ -596,8 +595,7 @@ function BandCell({
         data-tint={band.color ? 'on' : 'off'}
         style={band.color ? { fill: band.color } : undefined}
       />
-      {/* the cell is struck where it starts, so a turnover reads as a place
-          rather than as a gap the eye has to find */}
+      {/* mark the cell start to locate each turnover on the ruler. */}
       <rect
         x={a}
         y={y - 2}

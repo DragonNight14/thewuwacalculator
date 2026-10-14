@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Renders dialogs for the Optimizer tool.
+  description: renders dialogs for the optimizer tool.
 */
 
 import type { ReactNode } from 'react'
@@ -22,13 +22,13 @@ export const modalContent: Record<string, ReactNode> = {
           the parser).
         </li>
         <li>
-          Make sure your <strong>{"filters aren't hiding everything"}</strong> {"– try loosening "}
+          Check whether your <strong>{"filters hide every result"}</strong> {"– try loosening "}
           {"set filters or decreasing the \"Filter Strength\" if you've already added echoes."}
         </li>
       </ul>
       <p>
         Once your bag has some echoes, the optimizer will be able to generate valid 5-piece,
-        {'cost \u2264 12 combinations and show you the best-performing builds instead of an empty list.'}
+        {'cost \u2264 12 combinations and show you the best-performing builds.'}
       </p>
       <p className="omd-note">
         {'TL;DR: no echoes in, no optimizations out. Fill your bag first, then rerun the optimizer ദ്ദി(˵ •̀ ᴗ - ˵ ) ✧.'}
@@ -47,7 +47,7 @@ export const modalContent: Record<string, ReactNode> = {
       <p>Typical reasons this happens:</p>
       <ul>
         <li>
-          Your <strong>Echo Bag</strong> has echoes but not enough to form at least 1 combination of echoes
+          Your <strong>Echo Bag</strong> needs enough Echoes to form at least 1 combination
           {'where their summed up costs is valid (\u2264 12).'}
         </li>
         <li>
@@ -77,7 +77,7 @@ export const modalContent: Record<string, ReactNode> = {
         {'permutation count and you\'ll be able to run it normally.'}
       </p>
       <p className="omd-note">
-        {'TL;DR: Make sure you have usable echoes in your bag and soften the filters a bit, then try again (ง •̀_•́)ง.'}
+        {'TL;DR: Add usable Echoes to your bag, loosen the filters, and try again (ง •̀_•́)ง.'}
       </p>
     </div>
   ),
@@ -145,7 +145,7 @@ export const modalContent: Record<string, ReactNode> = {
           or Edge) with WebGPU enabled.
         </li>
         <li>
-          Make sure your browser is <strong>up to date</strong>, then reload the page.
+          Update your browser, then reload the page.
         </li>
         <li>
           Or just switch the optimizer to <strong>CPU mode</strong> {"– it's slower, but "}
@@ -191,7 +191,7 @@ export const modalContent: Record<string, ReactNode> = {
 
   comboModePending: (
     <div>
-      <h2>Combo Mode UI is in place, but the optimizer backend is not wired yet.</h2>
+      <h2>Combo Mode is awaiting its optimizer backend.</h2>
       <p>
         You can switch between <span className="highlight">Skill</span> and{' '}
         <span className="highlight">Combo</span> and browse the target combo choices,

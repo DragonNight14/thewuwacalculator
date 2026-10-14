@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Serializes rotation selections and restores canonical nodes with fresh identities.
+  description: serializes rotation selections and restores canonical nodes with fresh identities.
 */
 
 import { decShareText, encShareText } from '@/shared/lib/shareCodec.ts'

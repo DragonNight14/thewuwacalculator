@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Defines the team-first combat scenario. Every member has the
+  description: defines the team-first combat scenario. every member has the
                same state shape; team, target, shared combat state, routing,
                and program state live above individual members.
 */
@@ -28,7 +28,7 @@ export type CombatScenarioId = string & {
   readonly [combatScenarioIdBrand]: 'CombatScenarioId'
 }
 
-/** Stable identity of one member instance inside a scenario. */
+/** stable identity of one member instance inside a scenario. */
 export type TeamMemberId = string & {
   readonly [teamMemberIdBrand]: 'TeamMemberId'
 }
@@ -79,7 +79,7 @@ export type EnvironmentMemberSelector =
   | { kind: 'attribute'; attributes: readonly AttributeKey[] }
   | { kind: 'weaponType'; weaponTypes: readonly ResSeed['weaponType'][] }
 
-/** One authored manual source resolved through the same member subscription boundary as game effects. */
+/** one authored manual source resolved through the same member subscription boundary as game effects. */
 export interface EnvironmentManualEffect {
   id: string
   enabled: boolean
@@ -89,7 +89,7 @@ export interface EnvironmentManualEffect {
   buffs: ManualBuffs
 }
 
-/** Target-owned reductions are deliberately separate from attacker ignore stats. */
+/** target reductions are separate from attacker ignore stats. */
 export interface EnvironmentTargetModifiers {
   defenseReduction: number
   resistanceReduction: Partial<Record<AttributeKey, number>>
@@ -97,9 +97,9 @@ export interface EnvironmentTargetModifiers {
 }
 
 export interface CombatEnvironment {
-  /** Shared encounter state, including negative effects applied to the target. */
+  /** shared encounter state, including negative effects applied to the target. */
   combatState: CombatState
-  /** One team-owned stack register; its max and value per stack are derived. */
+  /** team stack count; maximum and value per stack are derived. */
   teamEffects: { unisonBoon: number }
   manualEffects: readonly EnvironmentManualEffect[]
   targetModifiers: EnvironmentTargetModifiers
@@ -115,16 +115,16 @@ export interface CombatScenario {
   id: CombatScenarioId
   revision: number
   team: ScenarioTeam
-  /** Off-team setups retained for rejoining resonators; never projected into combat. */
+  /** off-team setups retained for rejoining resonators; never projected into combat. */
   dormantMembersByResonatorId?: Record<ResonatorId, DormantScenarioMember>
-  /** Persisted Simulation/editor subject; never an implicit effect destination. */
+  /** persisted simulation/editor subject; never an implicit effect destination. */
   contextMemberId: TeamMemberId
-  /** The scenario target. EnemyProfile remains the current concrete target kind. */
+  /** the scenario target. EnemyProfile remains the current concrete target kind. */
   target: EnemyProfile
-  /** Shared effect, routing, and target-state boundary for every team member. */
+  /** shared effect, routing, and target-state boundary for every team member. */
   environment: CombatEnvironment
   program: RotationState
-  /** Initial on-field state for execution. UI focus is deliberately separate. */
+  /** initial on-field state for execution. ui focus is deliberately separate. */
   initialOnFieldMemberId: TeamMemberId
 }
 
@@ -153,7 +153,7 @@ export function makeScenarioTeam(
   }
 }
 
-/** Temporary UI subject rule: member zero is the member shown by active-based UI. */
+/** temporary ui subject rule: member zero is the member shown by active-based ui. */
 export function primaryScenarioMember(scenario: CombatScenario): ScenarioTeamMember {
   return scenario.team.members[0]
 }
@@ -215,7 +215,7 @@ export function reviseCombatEnvironment(
 }
 
 /**
- * Clone an authored scenario as a new independent document. Member identity is
+ * clone an authored scenario as a new independent document. member identity is
  * scenario-local, so every reference to a member is remapped with the document.
  */
 export function instantiateCombatScenario(

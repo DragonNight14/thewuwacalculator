@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Verifies context menus logic and compatibility invariants.
+  description: verifies context menus logic and compatibility invariants.
 */
 
 import { describe, expect, it, vi } from 'vitest'
@@ -103,8 +103,8 @@ describe('the menu a row offers', () => {
   })
 
   /*
-    a piece of a loop is not a node of its own, so it cannot be wrapped in
-    something or copied whole
+    a loop segment has no independent node identity and cannot be wrapped or
+    copied as a whole node.
   */
   it('refuses to wrap a row that cannot be lifted', () => {
     const entries = rowMenu({ canLift: false })

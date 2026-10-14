@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: evaluates theory optimizer echo combos against compact weapon
+  description: evaluates theory optimizer echo combos against compact weapon
                overlays so the gpu can keep the best weapon and echo pairing in
                one candidate record.
 */
@@ -37,8 +37,8 @@ struct WeaponMeta {
 };
 @group(0) @binding(12) var<uniform> weaponMeta: WeaponMeta;
 
-// theory batch pins the main echo at slot 0, freeing the main-position bits;
-// the chosen weapon index goes in the high bits instead (must match
+// theory batches pin the main echo at slot 0, freeing the main-position bits.
+// the high bits hold the chosen weapon index (must match
 // WEAPON_INDEX_SHIFT in constants.ts).
 const WEAPON_INDEX_SHIFT_C: u32 = 27u;
 
@@ -315,7 +315,7 @@ struct ComboEval {
     weapon: u32,
 };
 
-// compose a per-weapon Params from the shared base context plus weapon w's
+// compose a per-weapon params from the shared base context plus weapon w's
 // overlay. only the weapon-varying fields are overridden; everything else
 // (scaling, enemy multipliers, skill id/meta, archetype) stays from base.
 // overlay field order must match WEAPON_OVERLAY_SLOTS in config/constants.ts.
@@ -675,7 +675,7 @@ fn applySetEffectsBase(base: EchoBase) -> SetApplied {
     return s;
 }
 
-// apply runtime-dependent conditional set effects that cannot live purely in the LUT
+// apply runtime-dependent conditional set effects that cannot live purely in the lut
 fn applySetEffectsConditional(
     s: ptr<function, SetApplied>,
     setCount: array<u32, SET_SLOTS>,
@@ -852,7 +852,7 @@ fn evalMainPos(
     mainType0: vec4<f32>,
     mainType1: vec2<f32>,
     // top_stat contributions from the chosen main echo, expressed as
-    // percentage points (matches the CPU evaluator's units).
+    // percentage points (matches the cpu evaluator's units).
     mainCR: f32,
     mainCD: f32,
     mainDmgBns: f32,
@@ -925,14 +925,14 @@ fn evalMainPos(
         dmgBonus += extraDmgBonus * INV_100 * f32((mask >> 6u) & 1u);
     }
 
-    // seed crit aggregates with main-echo top_stat contributions so echoes
-    // like 6000201 (Adam Smasher for Lucy/Rebecca) actually shift the
+    // seed crit aggregates with main-echo top_stat contributions. echoes
+    // like 6000201 (adam smasher for Lucy/Rebecca) actually shift the
     // damage estimate.
     var critRateForDmg = pre.critRateTotal + mainCR * INV_100;
     var critDmgForDmg = pre.critDmgTotal + mainCD * INV_100;
     let baseMul = pre.resDefAmp * pre.dmgReductionTotal;
 
-    // 1505 team crit from Shorekeeper's own er
+    // 1505 team crit from shorekeeper's own er
     if (pre.charId == 1505.0) {
         critRateForDmg = critRateForDmg + min(max(finalER * 0.05, 0.0), 12.5) * INV_100 * toggleValue(pre.toggles, 1u);
         critDmgForDmg = critDmgForDmg + min(max(finalER * 0.1, 0.0), 25.0) * INV_100 * toggleValue(pre.toggles, 1u) * toggleValue(pre.toggles, 2u);
@@ -1205,8 +1205,8 @@ fn main(
 
     if (batchMode) {
         if (best > 0.0) {
-            // theory batch pins the main at slot 0, so the high bits carry the
-            // chosen weapon index instead of the main position.
+            // theory batches pin the main at slot 0. the high bits carry the
+            // chosen weapon index.
             let packedIdx = (bestWeapon << WEAPON_INDEX_SHIFT_C) | bestIndex;
             candidates[laneIndex] = Candidate(best, packedIdx);
         } else {

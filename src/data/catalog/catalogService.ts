@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Re-exports core catalog and seed service helpers for
+  description: re-exports core catalog and seed service helpers for
                resonators, weapons, and echoes from a shared entry point.
 */
 

@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Provides helpers for adapting scenario profile state into
+  description: provides helpers for adapting scenario profile state into
                active and team runtime views, lookup maps, and persisted updates.
 */
 
@@ -60,7 +60,7 @@ export interface WorkRtBndl {
   partRtsById: Record<string, ResRuntime>
 }
 
-/** Keep only target routing that resolves inside the materialized team. */
+/** keep only target routing that resolves inside the materialized team. */
 export function normalizeTargets(
     selections: Record<string, string | null>,
     runtimesById: Record<string, ResRuntime>,
@@ -175,7 +175,7 @@ export function findSlotIdFo(scenario: CombatScenario, resonatorId: string): Slo
   return null
 }
 
-// Build a normalized runtime from the scenario-owned member state.
+// build a normalized runtime from scenario member state.
 export function materializeScenarioRuntime(
     scenario: CombatScenario,
     resonatorId: string,
@@ -185,8 +185,8 @@ export function materializeScenarioRuntime(
 }
 
 /**
- * Materialize a detached, normalized active runtime from a stored profile.
- * Saved rotations use this path so inspecting one never has to load it into
+ * materialize a detached, normalized active runtime from a stored profile.
+ * saved rotations use this path so inspecting one never has to load it into
  * scenario state first.
  */
 export function runtimeFromSnapshot(
@@ -267,7 +267,7 @@ export function makeRuntimeMap(
   return runtimes
 }
 
-// Build one standalone/context runtime per working scenario.
+// build one standalone/context runtime per working scenario.
 export function mkInitRtLkp(workspace: ScenarioWorkspace): Record<string, ResRuntime> {
   const runtimes: Record<string, ResRuntime> = {}
 
@@ -395,9 +395,8 @@ function memberForAddedRuntime(
   return base
 }
 
-// Most workspace edits change one member field without changing team layout,
-// combat state, manual effects, or the program. Preserve all untouched
-// canonical branches instead of rebuilding the complete scenario for them.
+// most workspace edits change one member field. reuse untouched canonical
+// branches for team layout, combat state, manual effects, and program data.
 function applyMemberRuntimeDelta(
   scenario: CombatScenario,
   resonatorId: string,
@@ -457,8 +456,8 @@ function applyMemberRuntimeDelta(
   return reviseCombatScenario(scenario, { team: makeScenarioTeam(members) })
 }
 
-// Apply a legacy runtime edit to the canonical scenario. Runtime team fields are
-// interpreted only as a compatibility command payload for existing UI surfaces.
+// apply a legacy runtime edit to the canonical scenario. runtime team fields are
+// interpreted only as a compatibility command payload for existing ui surfaces.
 export function applyRuntimeToSimulation(
   scenario: CombatScenario,
   resonatorId: string,

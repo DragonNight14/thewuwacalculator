@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Locks lossless advanced-rotation migration at scenario and artifact boundaries.
+  description: locks lossless advanced-rotation migration at scenario and artifact boundaries.
 */
 
 import { beforeEach, describe, expect, it } from 'vitest'

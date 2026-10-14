@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Defines resonator catalog entities, including skill tabs,
+  description: defines resonator catalog entities, including skill tabs,
                authored state controls, display panels, metadata, and generated
                game data.
 */

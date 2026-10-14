@@ -1,7 +1,7 @@
 /*
   Author: Runor Ewhro
-  Description: Classifies authored effects by the state needed to decide their
-               activation. Build-bound effects are safe to include in static
+  description: classifies authored effects by the state needed to decide their
+               activation. build-bound effects are safe to include in static
                build displays; combat and active-target effects are not.
 */
 
@@ -89,8 +89,8 @@ function classifyPath(path: string, from?: EvalScpRoot): ActivationDependency {
     return 'activeTargeted'
   }
 
-  // Unknown context values are deliberately treated as combat state. This is
-  // conservative: new runtime/enemy inputs cannot silently enter Build stats.
+  // unknown context values are deliberately treated as combat state. this is
+  // conservative: new runtime/enemy inputs cannot silently enter build stats.
   return 'combatConditional'
 }
 
@@ -133,7 +133,7 @@ function conditionDependency(condition: CondExpr): ActivationDependency | null {
 }
 
 /**
- * Classify how an effect's application is decided. `passive` and
+ * classify how an effect's application is decided. `passive` and
  * `buildConditional` are stable for one concrete build; the evaluator still
  * decides whether a build condition (level, sequence, set count, etc.) passes.
  */

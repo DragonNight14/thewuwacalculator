@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: manages rotation-mode gpu execution for the optimizer.
+  description: manages rotation-mode gpu execution for the optimizer.
                this file initializes persistent gpu resources, builds
                per-job runtime buffers, dispatches the rotation shader,
                optionally reduces gpu candidates, decodes packed results,
@@ -106,7 +106,7 @@ interface RotGpuSttcSt {
     params: ReusableBuffer
   }
 
-  // cached bind group so we only recreate it when candidate/params buffers change
+  // recreate the cached bind group when candidate or parameter buffers change.
   bindGroup: GPUBindGroup | null
   bindGroupBuffer: {
     candidates: GPUBuffer | null
@@ -118,7 +118,7 @@ interface RotGpuSttcSt {
   actLockMaiok: number
 }
 
-// Each worker keeps the buffers for one initialized rotation payload.
+// each worker keeps the buffers for one initialized rotation payload.
 const rotGpuSession = new GpuResourceSession<RotGpuSttcSt>((state) => {
   destroyBuffer(state.paramsReuse)
   destroyBuffer(state.candRs)
@@ -539,7 +539,7 @@ export async function runRotGpuJob(
 }
 
 // run one explicit combo batch through the rotation gpu evaluator.
-// theory mode owns combo discovery, so this path only uploads the generated
+// theory mode generates combinations. this path uploads the generated
 // row buffer and lets the shared shader score each row set.
 export async function runRotGpuBtc(
     job: RotGpuBtcPay,

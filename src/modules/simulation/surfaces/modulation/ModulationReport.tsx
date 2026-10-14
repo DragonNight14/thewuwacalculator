@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Connects evaluation report state to the Modulation band,
+  description: connects evaluation report state to the modulation band,
                loadout, stats, and report drawer.
 */
 
@@ -9,7 +9,7 @@ import type { EchoInstance, ResRuntime } from '@/domain/entities/runtime'
 import type { CombatScenarioId } from '@/domain/entities/combatScenario.ts'
 import type { EvaluationBuildSnapshot, EvaluationEchoSlot, BuildEvaluationReport } from '@/engine/evaluation/buildEvaluation.ts'
 import type { ResView } from '@/modules/simulation/features/resonator/lib/resonator.ts'
-import { SeatStack } from '@/modules/simulation/surfaces/modulation/SeatStack.tsx'
+import { MemberSelector } from '@/modules/simulation/surfaces/modulation/MemberSelector.tsx'
 import { TeamEditButton } from '@/modules/simulation/features/teams/TeamEditButton.tsx'
 import {
   EchoCard,
@@ -85,7 +85,7 @@ export function ModulationReport({
   loadoutSlots: Array<EvaluationEchoSlot | null>
   sourceEchoes: Array<EchoInstance | null>
   onEchoOpen?: (slotIndex: number) => void
-  /** Runtime used by loadout mutations; null prevents writes to a stale report. */
+  /** runtime used by loadout mutations; null prevents writes to a stale report. */
   echoRuntime: ResRuntime | null
   echoScenarioId: CombatScenarioId
   echoResonatorName?: string | null
@@ -136,7 +136,7 @@ export function ModulationReport({
         onEchoes={onEchoLoadout}
         aside={modulationRoster.length > 0 ? (
           <>
-            <SeatStack roster={modulationRoster} memberId={modulationMemberId} onMember={onModulationMember} />
+            <MemberSelector roster={modulationRoster} memberId={modulationMemberId} onMember={onModulationMember} />
             {echoEditable ? <TeamEditButton scenarioId={echoScenarioId} /> : null}
           </>
         ) : null}

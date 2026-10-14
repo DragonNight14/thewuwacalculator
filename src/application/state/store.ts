@@ -1,7 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Composes canonical application actions and owns persisted mutations,
-               history, hydration, and scenario data leases.
+  description: combines application actions and manages persisted mutations, history, hydration, and scenario leases.
 */
 
 import { ensureResonatorData, hasResonatorData, retainResonatorData } from '@/data/gameData'
@@ -116,7 +115,7 @@ function applyPrssSna(
 export interface AppStore extends Omit<PersistedState, 'simulation' | 'combat'> {
   combat: ScenarioWorkspace
   simulation: SimulationState
-  // Echoes and builds remain resident for saved-status checks.
+  // echoes and builds remain resident for saved-status checks.
   invHydr: boolean
   savedRotationsHydrated: boolean
   history: PrssHistStt
@@ -219,7 +218,7 @@ export interface AppStore extends Omit<PersistedState, 'simulation' | 'combat'> 
     modifiers: EnvironmentTargetModifiers,
   ) => void
   // resonator actions own profile switching, runtime creation, and
-  // target/suggestion updates for the currently selected Simulation context.
+  // target/suggestion updates for the currently selected simulation context.
   setEnemy: (enemy: EnemyProfile) => void
   setActRes: (resonatorId: ResonatorId) => void
   actRes: (seed: ResSeed) => void
@@ -336,7 +335,7 @@ export interface AppStore extends Omit<PersistedState, 'simulation' | 'combat'> 
       input: OptStartPay,
       hooks?: {
         onProgress?: (progress: OptPrgr) => void
-        // Optional gate before synchronous compilation; the caller resolves
+        // optional gate before synchronous compilation; the caller resolves
         // it after its run-start transition settles.
         settle?: () => Promise<unknown>
       },
@@ -349,7 +348,7 @@ export interface AppStore extends Omit<PersistedState, 'simulation' | 'combat'> 
 
 // main zustand store
 const ntlPrssStt = mkNtlAppStt()
-// Only complete saved scenarios are evicted. Gear is used throughout the app.
+// only complete saved scenarios are evicted. gear is used throughout the app.
 const SAVED_ROTATIONS_IDLE_EVICT_MS = 15_000
 let savedRotationsLeaseCount = 0
 let savedRotationsEvictTimer: number | null = null

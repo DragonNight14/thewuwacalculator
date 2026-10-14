@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: protects generated weapon effects against omitted operations
+  description: protects generated weapon effects against omitted operations
                and disconnected state.
 */
 

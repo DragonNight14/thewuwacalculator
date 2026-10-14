@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Shared evaluation score band used by every build-analysis page.
+  description: shared evaluation score band used by every build-analysis page.
 */
 
 import { GRADE_LADDER } from '@/engine/evaluation/evaluation/grades.ts'
@@ -62,7 +62,7 @@ export function EvaluationBand({
   tone: string
 }) {
   const evaluation = report?.evaluation ?? null
-  // The band remains mounted while a run is pending. Unknown readings go quiet
+  // the band remains mounted while a run is pending. unknown readings go quiet
   // and the marker hunts until the shared evaluation report resolves.
   const reading = !evaluation || score == null || grade == null
   const pct = reading ? 0 : Math.max(0, Math.min(100, score / 2))

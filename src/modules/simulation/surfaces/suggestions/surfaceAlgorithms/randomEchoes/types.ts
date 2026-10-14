@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Defines random-Echo preparation, result, and worker-message
+  description: defines random-echo preparation, result, and worker-message
                contracts shared by the suggestion host and worker.
 */
 

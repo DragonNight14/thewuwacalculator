@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Module-level cache for weapon data, populated by
+  description: module-level cache for weapon data, populated by
                initializeGameData() before the app renders.
 */
 

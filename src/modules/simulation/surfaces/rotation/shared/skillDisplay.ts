@@ -1,9 +1,9 @@
 /*
   Author: Runor Ewhro
-  Description: Resolves rotation skill labels, colors, icons, and support ownership metadata.
+  description: resolves rotation skill labels, colors, icons, and support source metadata.
 */
 
-/* Shared first-class display identity for calculated skills. */
+/* shared first-class display identity for calculated skills. */
 
 import type { AttributeKey, SkillAggType } from '@/domain/entities/stats.ts'
 import { ATTR_COLORS } from '@/domain/gameData/attributeDisplay.ts'

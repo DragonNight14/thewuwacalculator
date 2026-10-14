@@ -1,7 +1,7 @@
 /*
   Author: Runor Ewhro
-  Description: Builds lazy Home metadata for read routes without importing
-               their full content into the Home chunk.
+  description: builds lazy home metadata for read routes without importing
+               their full content into the home chunk.
 */
 
 import { useEffect, useState } from 'react'
@@ -14,7 +14,7 @@ import { APP_ROUTES } from '@/shared/lib/appRoutes'
 export interface ReadStop {
   name: string
   to: string
-  // Optional compact metric and unit label for route metadata with a count.
+  // optional compact metric and unit label for route metadata with a count.
   figure: string | null
   says: string | null
 }

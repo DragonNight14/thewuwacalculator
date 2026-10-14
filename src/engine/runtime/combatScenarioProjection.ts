@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Converts the retired active-profile persistence contract into
+  description: converts the retired active-profile persistence contract into
                a canonical combat scenario for imports and schema migration.
 */
 
@@ -15,7 +15,7 @@ export interface LegacyCombatScenarioSource {
   session: CombatSession
 }
 
-/** Migration-only projection; live code reads the persisted scenario directly. */
+/** migration-only projection; live code reads the persisted scenario directly. */
 export function projectCombatScenario(
   source: LegacyCombatScenarioSource,
 ): CombatScenario {

@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Verifies the atomic store boundaries used by transient
+  description: verifies the atomic store boundaries used by transient
                configuration surfaces.
 */
 
@@ -152,7 +152,7 @@ describe('configuration commit boundaries', () => {
     }
   })
 
-  it('keeps nested teammate replacements and subsequent edits in the owning draft', () => {
+  it('keeps nested teammate replacements and subsequent edits in the same draft', () => {
     const initial = selectedCombatScenario(useAppStore.getState().combat)
     const seeds = listResSds().filter((seed) => seed.id !== initial.team.members[0].resonatorId)
     const original = makeScenarioMemberFromProfile(makeResProfile(seeds[0]))

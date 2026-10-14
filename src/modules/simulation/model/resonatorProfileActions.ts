@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: chooses the next active resonator id after one or more profiles
+  description: chooses the next active resonator id after one or more profiles
                are removed, preferring the current selection when it survives
                and otherwise walking nearby entries before falling back.
 */

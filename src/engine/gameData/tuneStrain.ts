@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Resolves the team-wide Tune Strain stack ceiling from resonator
+  description: resolves the team-wide tune strain stack ceiling from resonator
                response tags while keeping the base enemy-state stack separate.
 */
 

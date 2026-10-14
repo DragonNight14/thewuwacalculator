@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Projects executed node state, damage, writes, and loop context for read-only inspection.
+  description: projects executed node state, damage, writes, and loop context for read-only inspection.
 */
 
 import { DisplayImage } from '@/shared/ui/DisplayImage'
@@ -101,9 +101,7 @@ function ReadRefs({ rows }: { rows: Array<{ key: string; label: string; run: str
 }
 
 /**
- * The read panel's body: head, figure, and the sections the node actually
- * carries. Used for a compared node, where the panel is one of several being
- * read rather than the one being worked on.
+ * render the head, figure, and available sections for a compared node.
  */
 export function ReadInspector({
   node,
@@ -123,7 +121,7 @@ export function ReadInspector({
   return (
     <>
       <div className="rte-inspector__head">
-        {/* the slot the Totals / Node strip held: what is being read, and where
+        {/* the slot the totals / node strip held: what is being read, and where
             in the rotation it stands */}
         <div className="rte-readline">
           <i className="rte-readline__dot" aria-hidden="true" />
@@ -208,7 +206,7 @@ export function ReadInspector({
           </div>
         )}
 
-        {/* a handoff deals nothing, so it prints no figure rather than a zero */}
+        {/* handoffs deal no damage and display no damage figure. */}
         {note ? (
           <div className="rte-figure rte-figure--state">
             <b>{node.words}</b>

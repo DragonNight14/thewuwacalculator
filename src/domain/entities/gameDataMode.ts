@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Shared live/beta game-data mode definitions.
+  description: shared live/beta game-data mode definitions.
 */
 
 export type GameDataMode = 'live' | 'beta'

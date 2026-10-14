@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Covers Rover preference conversion, teammate collisions, and persistence.
+  description: covers rover preference conversion, teammate collisions, and persistence.
 */
 
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'

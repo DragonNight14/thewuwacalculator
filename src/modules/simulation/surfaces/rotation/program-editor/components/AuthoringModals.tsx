@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Hosts note, block, loop, condition, and feature authoring dialogs over editor operations.
+  description: hosts note, block, loop, condition, and feature authoring dialogs over editor operations.
 */
 
 import { DisplayImage } from '@/shared/ui/DisplayImage'
@@ -138,7 +138,7 @@ export function Condition({
       return
     }
 
-    // Rebuild drafts on open so abandoned edits cannot leak into another session.
+    // rebuild drafts on open so abandoned edits cannot leak into another session.
     const nextRows = initChng.map((change) => makeFeatCond(change, choices, makeNodeId))
     setRows(nextRows)
     setActRowId(null)
@@ -149,7 +149,7 @@ export function Condition({
 
   const nrmlQry = query.trim().toLowerCase()
 
-  // Restrict kind filters to values present in the current source catalog.
+  // restrict kind filters to values present in the current source catalog.
   const availableKinds = useMemo(() => {
     const present = new Set(choices.map((choice) => choice.state.kind as CondKind))
     return COND_KIND_ORDER.filter((kind) => present.has(kind))
@@ -172,7 +172,7 @@ export function Condition({
     return count
   }, [choices])
 
-  // Preserve first-seen owner order and count each source once.
+  // preserve first-seen owner order and count each source once.
   const owners = useMemo(() => {
     type Owner = { key: string; label: string; kind: CondTarget; profile: string; count: number }
     const list: Owner[] = []
@@ -225,7 +225,7 @@ export function Condition({
       ].some((value) => value?.toLowerCase().includes(nrmlQry) ?? false)
     }
 
-    // Results are the intersection of owner, state-shape, and text filters.
+    // results are the intersection of owner, state-shape, and text filters.
     const filtered: CondChoice[] = []
     let formulaRepresentative: CondChoice | null = null
     let formulaMatches = false

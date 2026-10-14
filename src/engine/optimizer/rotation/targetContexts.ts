@@ -1,11 +1,11 @@
 /*
   Author: Runor Ewhro
-  Description: Builds packed per-target rotation contexts and display context for optimizer execution.
+  description: builds packed per-target rotation contexts and display context for optimizer execution.
 */
 
 import { optimizerFloats } from '@/engine/optimizer/workers/payloadBuffers'
 /*
-  Shared owner-context resolution and numeric packing for any evaluator that
+  shared owner-context resolution and numeric packing for any evaluator that
   scores a materialized rotation as weighted skill targets.
 */
 

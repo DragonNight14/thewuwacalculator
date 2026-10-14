@@ -1,7 +1,7 @@
 /*
   Author: Runor Ewhro
-  Description: Reuses the Main Stat Suggestions search to cache its top layout
-               and cost-relative weights for synchronous Echo scoring.
+  description: reuses the main stat suggestions search to cache its top layout
+               and cost-relative weights for synchronous echo scoring.
 */
 
 import { getGameDataMode } from '@/data/gameData'
@@ -95,8 +95,8 @@ export function makeEchoMainStatProfileKey(
         runtimeSig(resonatorId === input.runtime.id ? scoringReferenceRuntime(runtime) : runtime),
       ])
 
-  // The scoring target follows combat context and the equipped main-stat
-  // layout, but not the substat rolls currently being graded. Otherwise tuning
+  // the scoring target follows combat context and equipped main stats. current
+  // substat rolls stay outside the target key. otherwise tuning
   // a single roll would move the 100% reference underneath the user.
   return makeEvaluationKey({
     version: 6,
@@ -213,8 +213,8 @@ function profileFromSuggestion(options: {
 }
 
 /**
- * Reuse Modulation's legal reference build for Echo scoring. This avoids
- * launching a second catalog-heavy Suggestions worker for the same resonator
+ * reuse modulation's legal reference build for echo scoring. this avoids
+ * launching a second catalog-heavy suggestions worker for the same resonator
  * immediately after the summary evaluation worker finishes.
  */
 export function cacheEchoMainStatScoringFromEvaluation(
@@ -258,8 +258,8 @@ export function cacheEchoMainStatScoringFromEvaluation(
   const idealSubstatValues: Record<string, number> = {}
   for (const row of referenceBuild.statRows) {
     const count = Math.round(row.substatCount)
-    // A 25-slot benchmark can still contain minimum/tier-budget values. Only
-    // an all-maximum reference can seed the independent Echo-quality ideal.
+    // a 25-slot benchmark can still contain minimum/tier-budget values. only
+    // an all-maximum reference can seed the independent echo-quality ideal.
     if (Math.abs(count - row.substatCount) > 0.000001) return null
     if (count <= 0 || !Number.isFinite(row.substatTotal) || row.substatTotal <= 0) continue
     if (Math.abs(row.substatTotal - count * (SUBSTAT_RANGES[row.key]?.max ?? 0)) > 0.0001) return null
@@ -315,7 +315,7 @@ export function cacheEchoMainStatScoringFromEvaluation(
   return cacheKey
 }
 
-// Called from the route shell so every scoring surface shares one reference
+// called from the route shell so every scoring surface shares one reference
 // for the equipped mains, independent of its current substat rolls.
 export function prepareEchoMainStatScoring(
     input: EchoMainStatProfileInput,

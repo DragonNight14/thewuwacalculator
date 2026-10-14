@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Protects shared warming concurrency, cancellation and retry behavior.
+  description: protects shared warming concurrency, cancellation and retry behavior.
 */
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 

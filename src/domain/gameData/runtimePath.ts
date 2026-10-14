@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Provides helpers for reading and writing nested runtime state
+  description: provides helpers for reading and writing nested runtime state
                values using dot-path access.
 */
 

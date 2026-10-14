@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Maps member-console stage and channel identifiers to controlled
+  description: maps member-console stage and channel identifiers to controlled
                mobile page selection.
 */
 

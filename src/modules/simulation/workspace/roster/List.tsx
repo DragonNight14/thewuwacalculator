@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Projects canonical profiles into ordered attribute groups and surface-specific roster metadata.
+  description: projects canonical profiles into ordered attribute groups and surface-specific roster metadata.
 */
 
 import { DisplayImage } from '@/shared/ui/DisplayImage'
@@ -23,25 +23,22 @@ import { withDefIconM } from '@/shared/lib/imageFallback.ts'
 import { ContextTrigger } from '@/application/context-menu/ContextTrigger.tsx'
 import type { MenuEntry } from '@/shared/ui/CtxMenu.tsx'
 import { type CssVars } from '@/modules/simulation/workspace/ui.tsx'
-import { RosterCapsule, type CapsuleMate, type CapsuleTarget } from './RosterCapsule.tsx'
-import { clearRosterHeld, readRosterHeld } from './RosterHeld.tsx'
+import { Details, type Teammate, type Target } from './Details.tsx'
+import { clearRosterScrollHandoff, readRosterScrollHandoff } from './LoadingPlaceholder.tsx'
+import { useDragRemove, type DragState } from './useDragRemove.ts'
 
-/*
-  A surface can ask the column to say more than who is on it. Only the rotation
-  editor does so far, and only because a rotation is a thing a resonator has
-  that no build surface has any use for.
-*/
-export type RosterReads = 'build' | 'rotation'
+/* rotation view shows rotation metadata alongside the shared roster. */
+export type View = 'build' | 'rotation'
 
 const FIND_RESET_MS = 1100
 
-export interface BuildAttrGroup {
+export interface AttributeGroup {
   attribute: AttributeKey
   accent: string
-  items: BuildRosterEntry[]
+  items: Entry[]
 }
 
-export interface BuildRosterEntry {
+export interface Entry {
   id: string
   scenarioId: CombatScenarioId
   name: string
@@ -50,11 +47,11 @@ export interface BuildRosterEntry {
   accent: string
   level: number
   sequence: number
-  /** Size of the authored rotation, and zero when none has been written. */
+  /** size of the authored rotation, and zero when none has been written. */
   rotationNodes: number
 }
 
-export interface BuildRosterSelection {
+export interface Selection {
   selectionMode: boolean
   isSelected: (id: string) => boolean
   buildClickCapture: (id: string) => (event: MouseEvent<HTMLElement>) => void
@@ -75,8 +72,8 @@ function seqPips(sequence: number) {
   ))
 }
 
-// The only thing a resonator carries that its portrait cannot show.
-function rotationNote(entry: BuildRosterEntry): string {
+// the only resonator detail that its portrait cannot show.
+function rotationNote(entry: Entry): string {
   if (entry.rotationNodes === 0) return 'No rotation'
   return `${entry.rotationNodes} ${entry.rotationNodes === 1 ? 'node' : 'nodes'}`
 }
@@ -86,66 +83,94 @@ function reduceMotion(): boolean {
     && document.documentElement.classList.contains('reduce-animation')
 }
 
-export function BuildRoster({
+export function List({
   roster,
   groups,
   contextResId,
-  reads,
+  view,
   onContextChange,
   onAddResonator,
   backgroundItems,
   selection,
   mates = [],
   onOpenMember,
+  onRemove,
+  confirmRemoval = false,
 }: {
-  roster: BuildRosterEntry[]
-  groups: BuildAttrGroup[]
+  roster: Entry[]
+  groups: AttributeGroup[]
   contextResId: string | null
-  /** What the surface beside the column wants the column to say. */
-  reads: RosterReads
+  /** roster data selected by the adjacent surface */
+  view: View
   onContextChange: (id: string) => void
   onAddResonator?: () => void
   backgroundItems?: MenuEntry[]
-  selection?: BuildRosterSelection
-  /** The context resonator's teammates, shown in its capsule. */
-  mates?: CapsuleMate[]
-  /** Opens a member's console; the capsule's portraits all lead here. */
+  selection?: Selection
+  /** teammates shown in the selected resonator's details panel. */
+  mates?: Teammate[]
+  /** opens a teammate's member console. */
   onOpenMember?: (resonatorId: string) => void
+  /** removes an item after its drag gesture completes. */
+  onRemove?: (resonatorId: string) => void
+  /** pending removal returns the pulled item to its home position. */
+  confirmRemoval?: boolean
 }) {
   const columnRef = useRef<HTMLDivElement | null>(null)
   const scrollRef = useRef<HTMLDivElement | null>(null)
-  const threadRef = useRef<HTMLElement | null>(null)
+  const listRef = useRef<HTMLElement | null>(null)
+  const dragLineRef = useRef<SVGSVGElement | null>(null)
+  const previewRef = useRef<HTMLElement | null>(null)
   const findTimer = useRef(0)
   const [folded, setFolded] = useState<ReadonlySet<AttributeKey>>(() => new Set())
   const [previewId, setPreviewId] = useState<string | null>(null)
   const [pinnedId, setPinnedId] = useState<string | null>(null)
   const [geom, setGeom] = useState<{ id: string; x: number; y: number } | null>(null)
   const [find, setFind] = useState('')
+  const [pulled, setPulled] = useState<DragState | null>(null)
   const releaseTimer = useRef(0)
-  // Restore the captured scroll position before paint, then consume the handoff once.
-  const [held] = useState(readRosterHeld)
+  // restore the captured scroll position before paint, then consume the handoff once.
+  const [scrollHandoff] = useState(readRosterScrollHandoff)
 
   useLayoutEffect(() => {
     const box = scrollRef.current
-    if (held && box) {
-      box.scrollTop = held.scrollTop
-      box.scrollLeft = held.scrollLeft
+    if (scrollHandoff && box) {
+      box.scrollTop = scrollHandoff.scrollTop
+      box.scrollLeft = scrollHandoff.scrollLeft
     }
-    clearRosterHeld()
-  }, [held])
+    clearRosterScrollHandoff()
+  }, [scrollHandoff])
 
   const contextEntry = useMemo(
     () => roster.find((entry) => entry.id === contextResId) ?? roster[0] ?? null,
     [contextResId, roster],
   )
 
-  const setThreadRef = useCallback((element: HTMLElement | null) => {
-    threadRef.current = element
+  // show the dragged item's name while it is being removed.
+  const capEntry = useMemo(
+    () => (pulled ? roster.find((entry) => entry.id === pulled.id) : null) ?? contextEntry,
+    [contextEntry, pulled, roster],
+  )
+
+  const noRemove = useCallback(() => undefined, [])
+  const pull = useDragRemove({
+    enabled: Boolean(onRemove) && !selection?.selectionMode,
+    confirmRemoval: confirmRemoval,
+    columnRef,
+    scrollRef,
+    listRef,
+    dragLineRef,
+    previewRef,
+    onState: setPulled,
+    onRemove: onRemove ?? noRemove,
+  })
+
+  const setListRef = useCallback((element: HTMLElement | null) => {
+    listRef.current = element
     selection?.surfaceProps.ref?.(element)
   }, [selection])
 
-  const beadOf = useCallback((id: string) => (
-    threadRef.current?.querySelector<HTMLElement>(`[data-bead][data-res-id="${CSS.escape(id)}"]`) ?? null
+  const itemOf = useCallback((id: string) => (
+    listRef.current?.querySelector<HTMLElement>(`[data-roster-item][data-res-id="${CSS.escape(id)}"]`) ?? null
   ), [])
 
   const [lastContextId, setLastContextId] = useState(contextResId)
@@ -160,21 +185,21 @@ export function BuildRoster({
 
   useEffect(() => {
     if (!contextEntry) return
-    const bead = beadOf(contextEntry.id)
+    const item = itemOf(contextEntry.id)
     const box = scrollRef.current
-    if (!bead || !box) return
+    if (!item || !box) return
     const boxRect = box.getBoundingClientRect()
-    const rect = bead.getBoundingClientRect()
+    const rect = item.getBoundingClientRect()
     if (rect.top >= boxRect.top && rect.bottom <= boxRect.bottom
       && rect.left >= boxRect.left && rect.right <= boxRect.right) {
       return
     }
-    bead.scrollIntoView({
+    item.scrollIntoView({
       block: 'nearest',
       inline: 'nearest',
       behavior: reduceMotion() ? 'auto' : 'smooth',
     })
-  }, [beadOf, contextEntry, folded])
+  }, [itemOf, contextEntry, folded])
 
   const releasePreview = useCallback((id?: string) => {
     window.clearTimeout(releaseTimer.current)
@@ -183,22 +208,22 @@ export function BuildRoster({
     }, 160)
   }, [])
 
-  const hasSpark = useCallback((entry: BuildRosterEntry) => (
-    reads === 'rotation' && (entry.id === contextEntry?.id || entry.rotationNodes > 0)
-  ), [contextEntry, reads])
+  const hasRotationDetails = useCallback((entry: Entry) => (
+    view === 'rotation' && (entry.id === contextEntry?.id || entry.rotationNodes > 0)
+  ), [contextEntry, view])
 
-  const capsuleEntry = useMemo(() => {
+  const detailsEntry = useMemo(() => {
     if (!pinnedId) return null
     const entry = roster.find((item) => item.id === pinnedId) ?? null
-    return entry && hasSpark(entry) ? entry : null
-  }, [hasSpark, pinnedId, roster])
+    return entry && hasRotationDetails(entry) ? entry : null
+  }, [hasRotationDetails, pinnedId, roster])
 
   const measureFor = useCallback((id: string): boolean => {
-    const bead = beadOf(id)
+    const item = itemOf(id)
     const column = columnRef.current
     const box = scrollRef.current
-    if (!bead || !column || !box) return false
-    const b = bead.getBoundingClientRect()
+    if (!item || !column || !box) return false
+    const b = item.getBoundingClientRect()
     const c = column.getBoundingClientRect()
     const view = box.getBoundingClientRect()
     const mid = b.top + b.height / 2
@@ -211,11 +236,11 @@ export function BuildRoster({
       prev && prev.id === next.id && prev.x === next.x && prev.y === next.y ? prev : next
     ))
     return true
-  }, [beadOf])
+  }, [itemOf])
 
   const measure = useCallback(() => {
-    if (capsuleEntry && !measureFor(capsuleEntry.id)) setPinnedId(null)
-  }, [capsuleEntry, measureFor])
+    if (detailsEntry && !measureFor(detailsEntry.id)) setPinnedId(null)
+  }, [detailsEntry, measureFor])
 
   const togglePin = useCallback((id: string) => {
     if (pinnedId === id) {
@@ -229,7 +254,7 @@ export function BuildRoster({
     if (!pinnedId) return undefined
     const onPointerDown = (event: PointerEvent) => {
       const target = event.target
-      if (target instanceof Element && target.closest('.blm-capsule, .blm-spark, [data-bead][data-active]')) return
+      if (target instanceof Element && target.closest('.build-roster-details, .build-roster-rotation-toggle, [data-roster-item][data-active]')) return
       setPinnedId(null)
     }
     const onKey = (event: globalThis.KeyboardEvent) => {
@@ -250,39 +275,39 @@ export function BuildRoster({
 
   useEffect(() => {
     const box = scrollRef.current
-    if (!box || !capsuleEntry) return undefined
+    if (!box || !detailsEntry) return undefined
     box.addEventListener('scroll', measure, { passive: true })
     return () => box.removeEventListener('scroll', measure)
-  }, [capsuleEntry, measure])
+  }, [detailsEntry, measure])
 
-  const capsuleTarget = useMemo<CapsuleTarget | null>(() => (
-    capsuleEntry && geom && geom.id === capsuleEntry.id
-      ? { entry: capsuleEntry, lead: capsuleEntry.id === contextEntry?.id, x: geom.x, y: geom.y }
+  const detailsTarget = useMemo<Target | null>(() => (
+    detailsEntry && geom && geom.id === detailsEntry.id
+      ? { entry: detailsEntry, lead: detailsEntry.id === contextEntry?.id, x: geom.x, y: geom.y }
       : null
-  ), [capsuleEntry, contextEntry, geom])
+  ), [detailsEntry, contextEntry, geom])
 
-  const onCapsuleFace = useCallback((entry: BuildRosterEntry) => {
+  const onDetailsFace = useCallback((entry: Entry) => {
     if (entry.id !== contextEntry?.id || selection?.selectionMode || !onOpenMember) {
       setPinnedId(null)
-      beadOf(entry.id)?.click()
+      itemOf(entry.id)?.click()
       return
     }
     onOpenMember(entry.id)
-  }, [beadOf, contextEntry, onOpenMember, selection])
+  }, [itemOf, contextEntry, onOpenMember, selection])
 
-  const onCapsuleMenu = useCallback((entry: BuildRosterEntry, event: MouseEvent<HTMLElement>) => {
-    const bead = beadOf(entry.id)
-    if (!bead) return
+  const onDetailsMenu = useCallback((entry: Entry, event: MouseEvent<HTMLElement>) => {
+    const item = itemOf(entry.id)
+    if (!item) return
     event.preventDefault()
-    bead.dispatchEvent(new window.MouseEvent('contextmenu', {
+    item.dispatchEvent(new window.MouseEvent('contextmenu', {
       bubbles: true,
       cancelable: true,
       clientX: event.clientX,
       clientY: event.clientY,
     }))
-  }, [beadOf])
+  }, [itemOf])
 
-  const onCapsuleMate = useCallback((resonatorId: string) => {
+  const onRosterTeammate = useCallback((resonatorId: string) => {
     onOpenMember?.(resonatorId)
   }, [onOpenMember])
 
@@ -296,7 +321,7 @@ export function BuildRoster({
     [folded, groups],
   )
 
-  const toggleKnot = useCallback((attribute: AttributeKey) => {
+  const toggleGroup = useCallback((attribute: AttributeKey) => {
     setFolded((current) => {
       const next = new Set(current)
       if (next.has(attribute)) next.delete(attribute)
@@ -305,13 +330,13 @@ export function BuildRoster({
     })
   }, [])
 
-  const focusBead = useCallback((entry: BuildRosterEntry | undefined) => {
+  const focusItem = useCallback((entry: Entry | undefined) => {
     if (!entry) return
-    const bead = beadOf(entry.id)
-    if (!bead) return
-    bead.focus()
-    bead.scrollIntoView({ block: 'nearest', behavior: reduceMotion() ? 'auto' : 'smooth' })
-  }, [beadOf])
+    const item = itemOf(entry.id)
+    if (!item) return
+    item.focus()
+    item.scrollIntoView({ block: 'nearest', behavior: reduceMotion() ? 'auto' : 'smooth' })
+  }, [itemOf])
 
   const stepFocus = useCallback((delta: number) => {
     if (visibleEntries.length === 0) return
@@ -326,10 +351,10 @@ export function BuildRoster({
       visibleEntries.length - 1,
       Math.max(0, (from < 0 ? 0 : from) + (here >= 0 || from >= 0 ? delta : 0)),
     )
-    focusBead(visibleEntries[next])
-  }, [contextEntry, focusBead, visibleEntries])
+    focusItem(visibleEntries[next])
+  }, [contextEntry, focusItem, visibleEntries])
 
-  // Typing a name walks the column to it. Committing stays an explicit Enter so
+  // typing a name scrolls the column to it. committing stays an explicit enter so
   // a search never rebuilds the board under you.
   const typeToFind = useCallback((char: string) => {
     window.clearTimeout(findTimer.current)
@@ -339,10 +364,10 @@ export function BuildRoster({
       const lower = query.toLowerCase()
       const hit = visibleEntries.find((entry) => entry.name.toLowerCase().startsWith(lower))
         ?? visibleEntries.find((entry) => entry.name.toLowerCase().includes(lower))
-      if (hit) focusBead(hit)
+      if (hit) focusItem(hit)
       return query
     })
-  }, [focusBead, visibleEntries])
+  }, [focusItem, visibleEntries])
 
   const onKeyDown = useCallback((event: KeyboardEvent<HTMLElement>) => {
     const { key } = event
@@ -358,13 +383,13 @@ export function BuildRoster({
     }
     if (key === 'Home' || key === 'End') {
       event.preventDefault()
-      focusBead(key === 'Home' ? visibleEntries[0] : visibleEntries[visibleEntries.length - 1])
+      focusItem(key === 'Home' ? visibleEntries[0] : visibleEntries[visibleEntries.length - 1])
       return
     }
-    if (key === ' ' && reads === 'rotation') {
+    if (key === ' ' && view === 'rotation') {
       const id = (document.activeElement as HTMLElement | null)?.dataset.resId
       const entry = id ? visibleEntries.find((item) => item.id === id) : undefined
-      if (entry && hasSpark(entry)) {
+      if (entry && hasRotationDetails(entry)) {
         event.preventDefault()
         togglePin(entry.id)
         return
@@ -377,12 +402,12 @@ export function BuildRoster({
       return
     }
     selection?.surfaceProps.onKeyDown?.(event)
-  }, [focusBead, hasSpark, reads, selection, stepFocus, togglePin, typeToFind, visibleEntries])
+  }, [focusItem, hasRotationDetails, view, selection, stepFocus, togglePin, typeToFind, visibleEntries])
 
   const onFocusColumn = useCallback((event: { target: EventTarget | null; currentTarget: HTMLElement }) => {
     if (event.target !== event.currentTarget) return
-    focusBead(contextEntry ?? undefined)
-  }, [contextEntry, focusBead])
+    focusItem(contextEntry ?? undefined)
+  }, [contextEntry, focusItem])
 
   return (
     <ContextTrigger
@@ -390,16 +415,16 @@ export function BuildRoster({
       ariaLabel="Context roster actions"
       getItems={(event) => {
         const target = event.target
-        return target instanceof Element && target.closest('button, a, input, .blm-capsule')
+        return target instanceof Element && target.closest('button, a, input, .build-roster-details')
           ? []
           : backgroundItems ?? []
       }}
     >
-    <div className="blm" data-reads={reads} data-from={held ? 'held' : undefined} ref={columnRef}>
-      <div className="blm-scroll" ref={scrollRef}>
-        <nav className="blm-thread"
+    <div className="build-roster" data-view={view} data-from={scrollHandoff ? 'loading' : undefined} ref={columnRef}>
+      <div className="build-roster-scroll" ref={scrollRef}>
+        <nav className="build-roster-list"
           aria-label="Context resonators"
-          ref={setThreadRef}
+          ref={setListRef}
           tabIndex={selection?.surfaceProps.tabIndex ?? 0}
           data-selection-focus-scope={selection?.surfaceProps['data-selection-focus-scope']}
           data-selection-focus-active={selection?.surfaceProps['data-selection-focus-active']}
@@ -415,38 +440,38 @@ export function BuildRoster({
               <Fragment key={group.attribute}>
                 {groups.length > 1 ? (
                   <button
-                    type="button" className="blm-knot"
-                    style={{ '--knot-ink': group.accent } as CssVars}
+                    type="button" className="build-roster-group-toggle"
+                    style={{ '--group-ink': group.accent } as CssVars}
                     data-folded={isFolded ? 'true' : undefined}
                     aria-expanded={!isFolded}
                     aria-label={`${label}, ${group.items.length} ${group.items.length === 1 ? 'resonator' : 'resonators'}`}
                     title={`${label} (${group.items.length})`}
                     tabIndex={-1}
-                    onClick={() => toggleKnot(group.attribute)}
+                    onClick={() => toggleGroup(group.attribute)}
                   >
-                    <span className="blm-knot-mark" aria-hidden="true">
+                    <span className="build-roster-group-toggle-mark" aria-hidden="true">
                       {attrIcon ? (
                         <DisplayImage src={attrIcon} alt="" loading="lazy" decoding="async" onError={withDefIconM} />
                       ) : null}
                     </span>
-                    <span className="blm-knot-n" aria-hidden="true">{group.items.length}</span>
+                    <span className="build-roster-group-toggle-n" aria-hidden="true">{group.items.length}</span>
                   </button>
                 ) : null}
-                <div className="blm-group"
+                <div className="build-roster-group"
                   data-folded={isFolded ? 'true' : undefined}
                   inert={isFolded}
                 >
-                  <div className="blm-group-body">
+                  <div className="build-roster-group-body">
                     {group.items.map((entry, index) => {
                       const isContext = entry.id === contextEntry?.id
                       const isPicked = selection?.isSelected(entry.id) ?? false
-                      const bead = (
+                      const item = (
                         <button
                           type="button"
-                          data-bead
+                          data-roster-item
                           data-res-id={entry.id}
                           className={[
-                            'blm-bead',
+                            'build-roster-item',
                             isPicked ? 'focus-selected' : '',
                             selection?.selectionMode ? 'selection-mode' : '',
                           ].filter(Boolean).join(' ')}
@@ -460,14 +485,16 @@ export function BuildRoster({
                             entry.name,
                             `level ${entry.level}`,
                             `sequence ${entry.sequence}`,
-                            reads === 'rotation' ? rotationNote(entry) : '',
+                            view === 'rotation' ? rotationNote(entry) : '',
                           ].filter(Boolean).join(', ')}
                           data-active={isContext ? 'true' : undefined}
                           data-pointed={previewId === entry.id ? 'true' : undefined}
                           data-selected={isPicked ? 'true' : undefined}
                           data-selection-focus-item="true"
+                          onPointerDown={(event) => pull.onPointerDown(entry.id, event)}
                           onClick={() => {
-                            if (isContext && hasSpark(entry) && !selection?.selectionMode) {
+                            if (pull.swallowClick()) return
+                            if (isContext && hasRotationDetails(entry) && !selection?.selectionMode) {
                               togglePin(entry.id)
                               return
                             }
@@ -479,9 +506,10 @@ export function BuildRoster({
                           onFocus={() => pointAt(entry.id)}
                           onBlur={() => releasePreview(entry.id)}
                         >
-                          <span className="blm-bead-pic">
+                          <span className="build-roster-item-image">
                             <DisplayImage src={entry.profile}
                               alt=""
+                              draggable={false}
                               loading="lazy"
                               decoding="async"
                               onError={withDefIconM}
@@ -498,13 +526,13 @@ export function BuildRoster({
                               ariaLabel={`${entry.name} actions`}
                               items={selection.getItems(entry.id)}
                             >
-                              {bead}
+                              {item}
                             </ContextTrigger>
-                          ) : bead}
-                          {hasSpark(entry) ? (
-                            <span className="blm-spark-row">
+                          ) : item}
+                          {hasRotationDetails(entry) ? (
+                            <span className="build-roster-rotation-toggle-row">
                               <button
-                                type="button" className="blm-spark"
+                                type="button" className="build-roster-rotation-toggle"
                                 style={{ '--row-ink': entry.accent } as CssVars}
                                 data-lead={isContext ? 'true' : undefined}
                                 data-on={pinned ? 'true' : undefined}
@@ -514,7 +542,7 @@ export function BuildRoster({
                                 title={isContext ? `${entry.name}: team and rotation` : `${entry.name}: rotation`}
                                 onClick={() => togglePin(entry.id)}
                               >
-                                <i className="blm-spark-mark" aria-hidden="true" />
+                                <i className="build-roster-rotation-toggle-mark" aria-hidden="true" />
                               </button>
                             </span>
                           ) : null}
@@ -529,20 +557,27 @@ export function BuildRoster({
         </nav>
       </div>
 
-      {reads === 'rotation' ? (
-        <RosterCapsule
-          target={capsuleTarget}
+      <svg className="build-roster-drag-line" ref={dragLineRef} aria-hidden="true">
+        <path />
+      </svg>
+      <figure className="build-roster-drag-preview" ref={previewRef} aria-hidden="true">
+        <img alt="" draggable={false} />
+      </figure>
+
+      {view === 'rotation' ? (
+        <Details
+          target={detailsTarget}
           mates={mates}
-          onFace={onCapsuleFace}
-          onFaceMenu={onCapsuleMenu}
-          onMate={onCapsuleMate}
+          onFace={onDetailsFace}
+          onFaceMenu={onDetailsMenu}
+          onMate={onRosterTeammate}
         />
       ) : null}
 
-      <div className="blm-foot">
+      <div className="build-roster-footer">
         {onAddResonator ? (
           <button
-            type="button" className="blm-socket"
+            type="button" className="build-roster-add"
             onClick={onAddResonator}
             title="See all resonators"
             aria-label="See all resonators"
@@ -551,23 +586,27 @@ export function BuildRoster({
           </button>
         ) : null}
 
-        <div className="blm-cap" aria-live="polite">
+        <div className="build-roster-status" aria-live="polite">
           {find ? (
-            <span className="blm-cap-find">{find}</span>
-          ) : contextEntry ? (
-            <Fragment key={contextEntry.id}>
-              <strong className="blm-cap-name" style={{ '--row-ink': contextEntry.accent } as CssVars}>
-                {contextEntry.name}
+            <span className="build-roster-status-find">{find}</span>
+          ) : capEntry ? (
+            <Fragment key={capEntry.id}>
+              <strong className="build-roster-status-name" style={{ '--row-ink': capEntry.accent } as CssVars}>
+                {capEntry.name}
               </strong>
-              <span className="blm-cap-sub" style={{ '--row-ink': contextEntry.accent } as CssVars}>
-                <span className="blm-cap-lv">Lv {contextEntry.level}</span>
-                <span className="blm-cap-seq" aria-label={`Sequence ${contextEntry.sequence} of 6`}>
-                  {seqPips(contextEntry.sequence)}
+              {pulled?.free ? (
+                <span className="build-roster-status-warn">Let go to remove</span>
+              ) : (
+                <span className="build-roster-status-sub" style={{ '--row-ink': capEntry.accent } as CssVars}>
+                  <span className="build-roster-status-lv">Lv {capEntry.level}</span>
+                  <span className="build-roster-status-seq" aria-label={`Sequence ${capEntry.sequence} of 6`}>
+                    {seqPips(capEntry.sequence)}
+                  </span>
                 </span>
-              </span>
+              )}
             </Fragment>
           ) : (
-            <span className="blm-cap-empty">No resonators yet</span>
+            <span className="build-roster-status-empty">No resonators yet</span>
           )}
         </div>
       </div>

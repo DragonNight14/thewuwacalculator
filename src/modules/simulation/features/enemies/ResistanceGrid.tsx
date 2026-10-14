@@ -1,16 +1,15 @@
 /*
   Author: Runor Ewhro
-  Description: The target's seven resistances, as one display both the pane and
+  description: the target's seven resistances, as one display both the pane and
                the console stand.
 
-               A cell says the resistance and, under it, what that resistance
+               a cell says the resistance and, under it, what that resistance
                does to damage; hovering trades their places, because the two are
-               the same fact read at two magnifications. A build that shreds an
-               element marks the cell rather than restating the arithmetic: the
-               title carries the base value for anyone who wants it.
+               the same fact read at two magnifications. a build that shreds an
+               element marks the cell. the title retains the base value.
 
-               The console reads one element at a time, so a cell there is also
-               how that element is picked. Handing it `onSelect` turns the cell
+               the console reads one element at a time, so a cell there is also
+               how that element is picked. handing it `onSelect` turns the cell
                into a button; without it, the display is read-only the way the
                pane has it.
 */
@@ -39,7 +38,7 @@ interface ResistanceGridProps {
   profile: EnemyProfile
   /** the elements, in the order the surface reads them */
   elements: EnemyElemId[]
-  /** a custom target owns its own resistances, so its cells are typed into */
+  /** a custom target has separate resistance values, so its cells are typed into */
   editable: boolean
   /** the build's own shred for an attribute, which the cell subtracts */
   shredFor: (attributeKey: string) => number

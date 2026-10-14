@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: builds route-level context-menu entries for navigation, layout,
+  description: builds route-level context-menu entries for navigation, layout,
                and app-history actions shared by the route chrome.
 */
 

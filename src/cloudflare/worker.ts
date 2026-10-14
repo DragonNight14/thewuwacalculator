@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Cloudflare worker entrypoint that serves static assets and
+  description: cloudflare worker entrypoint that serves static assets and
                handles the google oauth api endpoints used by drive sync.
 */
 

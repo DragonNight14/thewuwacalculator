@@ -1,7 +1,7 @@
 /*
   Author: Runor Ewhro
-  Description: Routes teammate manual-buff edits through the shared modifier
-               operations so local teammate state matches Simulation semantics.
+  description: routes teammate manual-buff edits through the shared modifier
+               operations so local teammate state matches simulation semantics.
 */
 
 import { readAppFile, xprtAppFile } from '@/application/persistence/fileCodec.ts'
@@ -121,7 +121,7 @@ export function TeammateManualBuffs({ runtime, onRtPdt }: { runtime: ResRuntime;
   const modifiers = manualBuffs.modifiers
 
   const resonator = getResById(runtime.id)
-  // Skill rows are resolved through the runtime, not the raw catalog, because
+  // skill rows are resolved through the runtime, not the raw catalog, because
   // labels and ids can depend on the teammate's current authored state.
   const skillOptions = useMemo(
     () =>
@@ -140,7 +140,7 @@ export function TeammateManualBuffs({ runtime, onRtPdt }: { runtime: ResRuntime;
     [resonator],
   )
 
-  // Quick buffs and custom modifiers live under the teammate runtime's local
+  // quick buffs and custom modifiers live under the teammate runtime's local
   // manualBuffs object; all writes preserve unrelated runtime state.
   const setQuick = (fn: (quick: QuickBuffs) => QuickBuffs) => {
     onRtPdt((prev) => ({
@@ -172,7 +172,7 @@ export function TeammateManualBuffs({ runtime, onRtPdt }: { runtime: ResRuntime;
   const duplicateMod = (modifier: MnlMod) => patchModifiers((list) => [...list, { ...modifier, id: makeModId() }])
   const removeMod = (id: string) => patchModifiers((list) => list.filter((modifier) => modifier.id !== id))
 
-  // preset rows get fresh ids and are reversed so the newest lands at the top of the reversed list
+  // assign new ids and show the newest preset row first.
   const addPresets = (presets: MnlMod[]) => {
     if (presets.length === 0) {
       return
@@ -244,7 +244,7 @@ export function TeammateManualBuffs({ runtime, onRtPdt }: { runtime: ResRuntime;
   }
 
   const targetFields = (modifier: MnlMod) => {
-    // Target controls decide which source bucket the modifier attaches to;
+    // target controls decide which source bucket the modifier attaches to;
     // effect controls below decide which numeric field inside that bucket moves.
     const scopeSelect = modField(
       'Scope',

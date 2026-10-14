@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Defines manual buff editor types for quick buffs and custom
+  description: defines manual buff editor types for quick buffs and custom
                modifiers across stats, attributes, skill types, and skills.
 */
 

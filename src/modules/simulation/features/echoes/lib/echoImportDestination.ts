@@ -1,8 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Keeps build-import destinations explicit. A resonator can own a
-               standalone context build and also appear as a teammate in the
-               active team, so its id alone is not enough to choose a runtime.
+  description: identifies the destination runtime for build imports when a resonator has multiple roles.
 */
 
 import type { ResProf } from '@/domain/entities/profile.ts'
@@ -31,8 +29,8 @@ export function mergeEchoImportIntoProfile(
   runtime: ResRuntime,
   options: { maxEffectsOnInit?: boolean } = {},
 ): ResProf {
-  // A first import supplies progression and equipment, but the card has no
-  // effect toggles. Initialize those from the resulting build when requested.
+  // a first import supplies progression and equipment, but the card has no
+  // effect toggles. initialize those from the resulting build when requested.
   const normalizedRuntime = options.maxEffectsOnInit
     ? maxRuntimeEffects(runtime)
     : maxEchoIfChg(runtime, profile.runtime.build.echoes)

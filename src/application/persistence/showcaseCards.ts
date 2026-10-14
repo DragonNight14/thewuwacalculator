@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Persists Showcase cards independently, publishing the index only after records are safe.
+  description: persists showcase cards independently, publishing the index only after records are safe.
 */
 import type { PersistedState } from '@/domain/entities/appState'
 import { showcaseCardSchema } from '@/engine/runtime/schema'
@@ -23,7 +23,7 @@ export function readShowcaseCards(): Cards | null {
       try {
         const result = showcaseCardSchema.safeParse(JSON.parse(localStorage.getItem(PREFIX + encodeURIComponent(id)) ?? 'null'))
         if (result.success) Object.defineProperty(cards, id, { value: result.data, enumerable: true, writable: true, configurable: true })
-      } catch { /* A damaged record must not discard the other cards. */ }
+      } catch { /* a damaged record must not discard the other cards. */ }
     }
     return cards
   } catch { return null }
@@ -32,13 +32,13 @@ export function readShowcaseCards(): Cards | null {
 export function writeShowcaseCards(cards: Cards): void {
   const ids = Object.keys(cards)
   let previous: string[] = []
-  try { const parsed: unknown = JSON.parse(localStorage.getItem(SHOWCASE_INDEX) ?? '[]'); if (Array.isArray(parsed)) previous = parsed.filter((id): id is string => typeof id === 'string') } catch { /* Replace a corrupt index after writing valid records. */ }
+  try { const parsed: unknown = JSON.parse(localStorage.getItem(SHOWCASE_INDEX) ?? '[]'); if (Array.isArray(parsed)) previous = parsed.filter((id): id is string => typeof id === 'string') } catch { /* replace a corrupt index after writing valid records. */ }
   for (const id of ids) {
     if (saved.get(id) === cards[id] && localStorage.getItem(PREFIX + encodeURIComponent(id)) != null) continue
     const parsed = showcaseCardSchema.parse(cards[id])
     localStorage.setItem(PREFIX + encodeURIComponent(id), JSON.stringify(parsed))
   }
-  // A failed record write leaves the legacy layout and previous index usable.
+  // a failed record write leaves the legacy layout and previous index usable.
   const index = JSON.stringify(ids)
   if (localStorage.getItem(SHOWCASE_INDEX) !== index) localStorage.setItem(SHOWCASE_INDEX, index)
   for (const id of previous) if (!Object.hasOwn(cards, id)) localStorage.removeItem(PREFIX + encodeURIComponent(id))

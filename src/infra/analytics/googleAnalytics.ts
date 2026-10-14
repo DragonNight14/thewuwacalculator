@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Provides Google Analytics helpers backed by the static gtag
+  description: provides google analytics helpers backed by the static gtag
                snippet in index.html.
 */
 

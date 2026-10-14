@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Selects a stable loading aside and portals scrim mode into the
+  description: selects a stable loading aside and portals scrim mode into the
                shared overlay host.
 */
 

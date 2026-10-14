@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Defines optimizer transport popup hosts and reusable setting rows.
+  description: defines optimizer transport popup hosts and reusable setting rows.
 */
 
 import { useRef } from 'react'

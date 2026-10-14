@@ -1,7 +1,7 @@
 /*
   Author: Runor Ewhro
-  Description: Coordinates the transient Echo-import notification with route
-               context, Modulation seat state, timeout control, and navigation.
+  description: coordinates the transient echo-import notification with route
+               context, modulation seat state, timeout control, and navigation.
 */
 
 import { DisplayImage } from '@/shared/ui/DisplayImage'
@@ -22,7 +22,7 @@ import {
   type ImportLanding,
 } from '@/modules/simulation/features/echoes/lib/importLanding.ts'
 
-// A notification that can navigate to an unresolved destination needs a longer
+// a notification that can navigate to an unresolved destination needs a longer
 // lifetime than one confirming an already-seated import.
 const LIFE_SEEN = 2800
 const LIFE_LINKED = 17000
@@ -62,7 +62,7 @@ function useTabBox(active: boolean, pathname: string): TabBox | null {
   useLayoutEffect(() => {
     if (!active) return undefined
 
-    // Re-measure for every source of navigation geometry changes. ResizeObserver
+    // re-measure for every source of navigation geometry changes. ResizeObserver
     // supplies the initial measurement when the header is already mounted.
     const head = document.querySelector<HTMLElement>('.ax-head')
     const observer = new ResizeObserver(measure)
@@ -91,8 +91,8 @@ export function ImportStamp() {
 
   const clear = useImportLanding((state) => state.clear)
 
-  // Clear the pending navigation action once its destination becomes the
-  // canonical Modulation seat.
+  // clear the pending navigation action once its destination becomes the
+  // canonical modulation seat.
   useEffect(() => {
     if (landing?.linked && isSeated(seat, landing)) clear(landing.key)
   }, [clear, landing, seat])
@@ -175,7 +175,7 @@ function StampFace({ landing, box, pathname }: { landing: ImportLanding; box: Ta
     '--is-tab-l': `${box.left}px`,
     '--is-tab-w': `${box.right - box.left}px`,
     '--is-tab-b': `${box.bottom}px`,
-    // Clamp the portal coordinate when the navigation target is near the edge.
+    // clamp the portal coordinate when the navigation target is near the edge.
     '--is-card-l': `${Math.max(8, box.left - 26)}px`,
   } as CSSProperties
 

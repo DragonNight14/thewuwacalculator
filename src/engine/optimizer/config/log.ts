@@ -1,7 +1,7 @@
 /*
   Author: Runor Ewhro
-  Description: Thin logging helpers for the optimizer pipeline. All output
-               is gated behind OPTIMIZER_LOGGING so it can be silenced in
+  description: thin logging helpers for the optimizer pipeline. all output
+               is gated behind OPTIMIZER_LOGGING for control in
                one place without touching the call sites.
 */
 

@@ -1,7 +1,7 @@
 /*
   Author: Runor Ewhro
-  Description: Cached Sonata set metadata loaded from JSON during
-               Simulation bootstrap.
+  description: cached sonata set metadata loaded from json during
+               simulation bootstrap.
 */
 
 export interface SntSetDef {
@@ -22,17 +22,17 @@ export function initSntSets(sets: SntSetDef[]): void {
   ) as Record<number, SntSetDef>
 }
 
-// get the display name for a Sonata set id
+// get the display name for a sonata set id
 export function getSntSetNam(id: number): string {
   return sntSetsById[id]?.name ?? `Set ${id}`
 }
 
-// get the icon path for a Sonata set id
+// get the icon path for a sonata set id
 export function getSntSetIco(id: number): string | null {
   return sntSetsById[id]?.icon ?? null
 }
 
-// get the ring color sampled from the Sonata set icon
+// get the ring color sampled from the sonata set icon
 export function getSntSetClr(id: number): string | null {
   return sntSetsById[id]?.color ?? null
 }

@@ -1,7 +1,7 @@
 /*
   Author: Runor Ewhro
-  Description: Shares the active evaluation summary with workspace descendants
-               without widening their dependency on evaluation ownership.
+  description: shares the active evaluation summary with workspace descendants
+               without adding a dependency on evaluation state.
 */
 
 import { createContext, useContext } from 'react'

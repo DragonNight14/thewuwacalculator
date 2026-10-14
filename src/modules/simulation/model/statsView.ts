@@ -1,7 +1,7 @@
 /*
   Author: Runor Ewhro
-  Description: builds shared stat displays and nested stat trees for
-               Simulation surfaces that need formatted labels, icons, colors,
+  description: builds shared stat displays and nested stat trees for
+               simulation surfaces that need formatted labels, icons, colors,
                and grouped modifier breakdowns.
 */
 
@@ -31,7 +31,7 @@ export interface StatsView {
 }
 
 // makeStatsView always exposes three core, five secondary, six attribute, and
-// four skill-type rows. Consumers that only need a badge should not allocate
+// four skill-type rows. consumers that only need a badge should not allocate
 // the formatted row objects or the substantially larger nested stats tree.
 export const STATS_VIEW_ROW_COUNT = 3 + 5 + 6 + 4
 
@@ -133,7 +133,7 @@ export function formatStatKeyLabel(key: string, mode: StatKeyLabelMode = 'defaul
   return STAT_KEY_LABELS[key] ?? toTitle(key)
 }
 
-// keys that should be rendered as percentages instead of flat values
+// stat keys rendered as percentages.
 const PRCNSTATKEYS = new Set([
   'critRate', 'critDmg', 'energyRegen', 'healingBonus', 'dmgBonus', 'amplify',
   'defIgnore', 'defShred', 'resShred', 'dmgVuln', 'shieldBonus', 'finalDmg',
@@ -163,7 +163,7 @@ export function makeStatsView(runtime: ResRuntime, finalStats: FinalStats): Stat
   const baseStats = seed ? resResBaseSt(seed, runtime.base.level) : undefined
   const traceNodes = runtime.base.traceNodes
 
-  // resolve weapon secondary stat contribution so base values reflect weapon stats too
+  // include weapon secondary stats in displayed base values.
   let wpnStatKey: string | null = null
   let wpnStatVl = 0
   const weaponId = runtime.build.weapon.id

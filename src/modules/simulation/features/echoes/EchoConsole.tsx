@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Resolves requested Echo-slot owners, fixes picker/editor mode
+  description: resolves requested echo-slot owners, fixes picker/editor mode
                for each session, and applies loadout edits within the cost budget.
 */
 
@@ -21,7 +21,7 @@ import { projectScenarioUiRuntimes } from '@/engine/runtime/scenarioRuntime.ts'
 import { holdResonatorData } from '@/data/gameData'
 import AppLoaderOverlay from '@/shared/ui/AppLoaderOverlay'
 
-// Load picker and editor modules only when a slot request needs them.
+// load picker and editor modules only when a slot request needs them.
 const EchoPicker = lazy(async () => ({
   default: (await import('@/modules/simulation/features/echoes/Picker.tsx')).EchoPicker,
 }))
@@ -30,10 +30,10 @@ const Edit = lazy(async () => ({
   default: (await import('@/modules/simulation/features/echoes/Edit.tsx')).Edit,
 }))
 
-// Shared loadout cost ceiling used by slot editing and clipboard imports.
+// shared loadout cost ceiling used by slot editing and clipboard imports.
 const MAX_ECHO_COST = 12
 
-// Load the console only after a request and hold it until the close completes.
+// load the console only after a request and hold it until the close completes.
 export function EchoConsoleHost() {
   const target = useEchoCnsl((state) => state.target)
 
@@ -68,7 +68,7 @@ function EchoConsole({
   const updResRt = useAppStore((state) => state.updResRt)
   const updScenarioResRt = useAppStore((state) => state.updScenarioResRt)
 
-  // Requests may target another profile: prefer its live participant runtime,
+  // requests may target another profile: prefer its live participant runtime,
   // falling back to the stored profile when it is outside the current scenario.
   const { partRtsById } = useAppStore(useShallow(selWorkDrvd))
   const initRtsById = useAppStore(selInitRtLkp)
@@ -113,7 +113,7 @@ function EchoConsole({
 
   const echo = runtime?.build.echoes[slotIndex] ?? null
 
-// Keep the initial request mode even after a pick fills an empty slot.
+// keep the initial request mode even after a pick fills an empty slot.
   const [mode] = useState<'pick' | 'edit'>(() => (echo ? 'edit' : 'pick'))
 
   const allEchoes = useMemo(() => listEchoes(), [])
@@ -123,7 +123,7 @@ function EchoConsole({
   const slotCost = echo ? getEchoById(echo.id)?.cost ?? 0 : 0
   const maxCost = MAX_ECHO_COST - totalCost + slotCost
 
-  // Close if the slot's owner leaves the runtime graph.
+  // close if the slot's owner leaves the runtime graph.
   useEffect(() => {
     if (visible && !closing && !runtime) {
       closeConsole()

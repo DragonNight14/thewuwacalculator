@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Selects bounded live Spine texture resolutions and maps canonical
+  description: selects bounded live spine texture resolutions and maps canonical
                texture pages to their generated display derivatives.
 */
 

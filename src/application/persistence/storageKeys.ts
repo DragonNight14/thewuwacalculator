@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Defines versioned storage identifiers without importing state
+  description: defines versioned storage identifiers without importing state
                hydration or schema construction.
 */
 
@@ -13,7 +13,7 @@ export const APPSTOREUISV = `${APP_STORAGE_KEY}.ui.saved-rotation-preferences`
 export const APPSTORECMBT = `${APP_STORAGE_KEY}.combat.workspace`
 export const APPSTORECMBTINDEX = `${APPSTORECMBT}.index`
 export const APPSTORECMBTREC = `${APPSTORECMBT}.scenario.`
-/** Retired v25 key retained only for cleanup and migration assertions. */
+/** retired v25 key retained only for cleanup and migration assertions. */
 export const APPSTOREPRFL = `${APP_STORAGE_KEY}.profiles`
 export const APPSTOREOPTS = `${APP_STORAGE_KEY}.optimizer-settings`
 export const SUGG_STORE_KEY = `${APP_STORAGE_KEY}.suggestions`

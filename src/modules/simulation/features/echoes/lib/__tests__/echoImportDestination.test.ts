@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Locks the import boundary between standalone context profiles
+  description: locks the import boundary between standalone context profiles
                and same-resonator teammate instances.
 */
 

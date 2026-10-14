@@ -1,7 +1,7 @@
 /*
   Author: Runor Ewhro
-  Description: Formats formula expressions, condition expressions, runtime
-               changes, and rotation node values into readable UI text.
+  description: formats formula expressions, condition expressions, runtime
+               changes, and rotation node values into readable ui text.
 */
 
 import type {

@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Scores individual echoes and full builds against
+  description: scores individual echoes and full builds against
                character-specific stat priorities, and aggregates
                total echo stat contributions.
 */
@@ -55,14 +55,13 @@ const FLAT_TO_PERCENT: Record<string, string> = {
   defFlat: 'defPercent',
 }
 
-// Utility rolls satisfy build requirements but do not describe Echo quality.
-// They are omitted from both earned points and the matching maximum, rather
-// than being retained as zero-value rolls that lower the displayed grade.
+// utility rolls satisfy build requirements and are excluded from echo quality.
+// exclude them from earned points and the matching maximum.
 const UTILITY_SCORE_STATS = new Set(['energyRegen', 'healingBonus'])
 
-// Character weight tables are immutable for the lifetime of a loaded catalog.
-// Cache the normalized ceiling because inventory, parser, and Simulation rows
-// otherwise recompute the same sort for every visible Echo.
+// character weight tables are immutable for the lifetime of a loaded catalog.
+// cache the normalized ceiling because inventory, parser, and simulation rows
+// otherwise recompute the same sort for every visible echo.
 const maxEchoScoreCache = new Map<string, number>()
 const mainWeightCeilingCache = new Map<string, number>()
 const substatScoreScaleCache = new Map<string, number>()
@@ -72,19 +71,18 @@ export interface EchoMainStatScoreProfile {
   charId: string
   weightsByCost: Record<number, Record<string, number>>
   bestByCost: Record<number, string[]>
-  /** The fixed, legal 25-roll reference selected by the packed evaluator. */
+  /** the fixed, legal 25-roll reference selected by the packed evaluator. */
   idealSubstatCounts?: Record<string, number>
-  /** Useful value ceilings for those rolls, excluding over-cap tails. */
+  /** useful value ceilings for those rolls, excluding over-cap tails. */
   idealSubstatValues?: Record<string, number>
-  /** Main-stat multiplicities from the same five-Echo reference build. */
+  /** main-stat multiplicities from the same five-echo reference build. */
   mainCountsByCost?: Record<number, Record<string, number>>
-  /** Concrete legal substat layout used to evaluate the reference. */
+  /** concrete legal substat layout used to evaluate the reference. */
   referenceEchoes?: EchoInstance[]
 }
 
-// A Simulation team needs at most three active member contexts. Keep one spare
-// for a just-switched target, but do not retain every scenario visited during
-// a long Modulation session.
+// a simulation team needs at most three active member contexts. keep one spare
+// for a just-switched target and bound retention during long modulation sessions.
 const MAIN_STAT_PROFILE_LIMIT = 4
 const mainStatProfiles = new Map<string, EchoMainStatScoreProfile>()
 const activeMainStatProfileByChar = new Map<string, string>()
@@ -103,8 +101,8 @@ export interface EchoScoringReference {
   referenceEchoes: EchoInstance[]
 }
 
-// Expose the active reference as a copy so diagnostics and tests can explain
-// exactly which legal five-Echo target produces 100% without mutating it.
+// expose the active reference as a copy so diagnostics and tests can explain
+// exactly which legal five-echo target produces 100% without mutating it.
 export function getEchoScoringReference(charId: string): EchoScoringReference | null {
   const profile = activeMainStatProfile(charId)
   if (!profile?.idealSubstatCounts || !profile.mainCountsByCost) {
@@ -170,8 +168,8 @@ export function subscribeEchoScoring(
   }
 }
 
-// Resolve the generated fallback independently of any current simulation
-// profile. The main-stat search uses this for utility stats that damage alone
+// resolve the generated fallback independently of any current simulation
+// profile. the main-stat search uses this for utility stats that damage alone
 // cannot value, and scoring uses it until the current context has been primed.
 export function getGeneratedMainStatWeight(
     charId: string,
@@ -196,7 +194,7 @@ export function getGeneratedMainStatWeight(
   return ceiling > 0 ? weight / ceiling : 0
 }
 
-// A cache miss retains the current scoring profile until a replacement is
+// a cache miss retains the current scoring profile until a replacement is
 // prepared; it does not temporarily restore generated fallback weights.
 export function activateEchoMainStatScoreProfile(
     charId: string,
@@ -207,7 +205,7 @@ export function activateEchoMainStatScoreProfile(
     return false
   }
 
-  // Refresh insertion order so frequently revisited contexts stay in the LRU.
+  // refresh insertion order so frequently revisited contexts stay in the lru.
   mainStatProfiles.delete(cacheKey)
   mainStatProfiles.set(cacheKey, profile)
   if (activeMainStatProfileByChar.get(charId) !== cacheKey) {
@@ -217,7 +215,7 @@ export function activateEchoMainStatScoreProfile(
   return true
 }
 
-// Store and activate a completed context profile. The cache is intentionally
+// store and activate a completed context profile. the cache is intentionally
 // small: each entry is cheap, while scenarios and target configurations can be
 // edited indefinitely during a session.
 export function cacheEchoMainStatScoreProfile(
@@ -250,8 +248,8 @@ export function deactivateEchoMainStatScoreProfile(charId: string): void {
   }
 }
 
-// Normalize primary-stat relevance within the main stats that can legally
-// appear at this cost. This keeps the best 1/3/4-cost main worth the same 44
+// normalize primary-stat relevance within the main stats that can legally
+// appear at this cost. this keeps the best 1/3/4-cost main worth the same 44
 // points without flattening the generated damage weights used for substats.
 function getMainWeight(charId: string, key: string, cost: number): number {
   const profile = activeMainStatProfile(charId)
@@ -279,10 +277,10 @@ function resScrVl(key: string, isSubStat: boolean, cost: number): number {
   return isSubStat ? getSbstScr(key) : getMnstScr(key, cost)
 }
 
-// Generated weights preserve the relative value of maximum legal rolls, but
+// generated weights preserve the relative value of maximum legal rolls, but
 // their absolute ceiling can differ by character after flat-stat calibration.
-// Normalize that effective ceiling before combining substats with the fixed
-// 44-point main-stat reference so Echo percentages remain comparable.
+// normalize that effective ceiling before combining substats with the fixed
+// 44-point main-stat reference so echo percentages remain comparable.
 function getSubstatScoreScale(charId: string): number {
   const cacheKey = `${getWeightSetKey()}:${charId}`
   const cached = substatScoreScaleCache.get(cacheKey)
@@ -365,9 +363,9 @@ function utilitySubstatSlots(echo: EchoInstance | null | undefined): number {
   )).length
 }
 
-// Estimate the matching maximum for one Echo. A utility main or substat is
-// removed from both sides of the ratio, so a five-sub Echo containing one ER
-// roll is graded against the best four scorable substats rather than five.
+// estimate one echo's matching maximum after removing utility stats from both
+// sides of the ratio. a five-sub echo with one er roll is graded against its
+// best four scorable substats.
 export function getMaxEchoSc(
     charId: string,
     echo?: EchoInstance | null,
@@ -457,9 +455,9 @@ function scoreEchoLoadoutReference(
   const earned = echoes.map(() => ({ main: 0, sub: 0 }))
   const fullMainIndices = new Set<number>()
 
-  // Main-stat counts belong to the whole reference build. When a build has
-  // more copies than the legal target, deterministic UID ordering decides
-  // which copy consumes the target rather than awarding every duplicate 44.
+  // main-stat counts belong to the whole reference build. when a build has
+  // more copies than the legal target, deterministic uid ordering decides
+  // which copy consumes the target, awarding that target once.
   for (const [costText, targetCounts] of Object.entries(mainTargets)) {
     const cost = Number(costText)
     for (const [key, count] of Object.entries(targetCounts)) {
@@ -493,9 +491,9 @@ function scoreEchoLoadoutReference(
     earned[index].main = REFERENCE_MAIN_SCORE * weight
   }
 
-  // Share each family's fixed point budget proportionally across its rolls.
-  // Total credit saturates at the useful value ceiling, with at most one full
-  // roll's credit per Echo. No piece loses HP credit just because another UID
+  // share each family's fixed point budget proportionally across its rolls.
+  // total credit saturates at the useful value ceiling, with at most one full
+  // roll's credit per echo. no piece loses hp credit just because another uid
   // won a tie, and extra over-cap value cannot increase the loadout score.
   for (const [key, count] of Object.entries(idealSubstats)) {
     const maxValue = SUBSTAT_RANGES[key]?.max ?? 0
@@ -564,7 +562,7 @@ function scoreEchoLoadoutReference(
   return { scores, totalScore, maxScore }
 }
 
-// Score Echoes as one loadout against the active fixed legal reference. The
+// score echoes as one loadout against the active fixed legal reference. the
 // fallback exists only while no simulation profile has been prepared yet.
 export function getEchoLoadoutScores(
     charId: string,
@@ -604,8 +602,8 @@ export function getMkScrPrcn(charId: string, echoes: Array<EchoInstance | null>)
   let maxMkScr = 0
   let totalScore = 0
 
-  // Preserve the five-Echo build denominator for empty slots while allowing
-  // each equipped Echo to omit only the utility slots it actually contains.
+  // preserve the five-echo build denominator for empty slots while allowing
+  // each equipped echo to omit only the utility slots it actually contains.
   for (let index = 0; index < 5; index += 1) {
     const echo = loadout[index] ?? null
     maxMkScr += echo ? getMaxEchoSc(charId, echo) : fullEchoMax

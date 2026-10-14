@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Generates rotation share payloads through the remote-token path
+  description: generates rotation share payloads through the remote-token path
                with an inline-token fallback, while keeping export and clipboard
                state scoped to the selected saved rotation.
 */
@@ -42,9 +42,9 @@ export function RotationShareModal({
   const [copied, setCopied] = useState<Channel | null>(null)
   const copyTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
 
-  // Share output depends on remote KV availability, so regenerate per entry/open
-  // instead of caching a possibly stale fallback decision.
-  /* eslint-disable react-hooks/set-state-in-effect -- this effect owns the async share-generation lifecycle for the modal. */
+  // regenerate share output for each entry and open. remote kv availability
+  // can change between attempts.
+  /* eslint-disable react-hooks/set-state-in-effect -- this effect handles async share generation for the modal. */
   useEffect(() => {
     if (!visible || !entry) return
 

@@ -1,14 +1,8 @@
 /*
   Author: Runor Ewhro
-  Description: Lowers an authored skill into the flat form the damage kernel
-               wants. A skill names its stats with strings, and resolving those
-               names to cells in the packed stat plane costs more than the
-               arithmetic they feed. The names are resolved once here; what the
-               kernel keeps is a list of cell indices to add up.
-
-               Cell order is deliberate and must not be rearranged: floating
-               point addition is not associative, so the lowered form sums the
-               same terms in the same order the object-shaped path did.
+  description: resolves authored skill stat names to packed cell indices once
+               before damage calculation. cell order must match the object path
+               because floating point addition depends on term order.
 */
 
 import type { ModBuff, SkillDef, SkillTypeKey } from '@/domain/entities/stats.ts'
@@ -24,7 +18,7 @@ import {
 } from '@/engine/rotation/numericLayout.ts'
 import type { NegEffectKey } from '@/domain/entities/stats.ts'
 
-/** The layered modifiers a direct damage skill resolves, in kernel order. */
+/** the layered modifiers a direct damage skill resolves, in kernel order. */
 export const SKILL_FIELDS = [
   'resShred', 'defIgnore', 'defShred', 'dmgVuln', 'dmgBonus', 'amplify', 'critRate', 'critDmg',
 ] as const
@@ -44,7 +38,7 @@ export const FIELD_CRIT_DMG = 7
 const FIELD_HAS_TOP: readonly boolean[] = [false, true, true, true, true, true, true, true]
 
 export interface SkillRecord {
-  /** Only direct damage is lowered; anything else falls back to the object path. */
+  /** only direct damage is lowered; anything else falls back to the object path. */
   readonly lowered: boolean
 
   /** [multiplier, count] pairs. */
@@ -55,7 +49,7 @@ export interface SkillRecord {
   readonly scalingEnergyRegen: number
   readonly flat: number
 
-  /** CSR over `fieldCells`, one run per entry in SKILL_FIELDS. */
+  /** csr over `fieldCells`, one run per entry in SKILL_FIELDS. */
   readonly fieldStart: Int32Array
   readonly fieldCells: Int32Array
   readonly fieldTopCell: Int32Array
@@ -68,12 +62,12 @@ export interface SkillRecord {
   readonly flatDmgCell: number
   readonly finalDmgCell: number
 
-  /** Immunity is a bit test once the names are indices. */
+  /** immunity is a bit test once the names are indices. */
   readonly attributeBit: number
   readonly skillTypeMask: number
   readonly negativeBit: number
 
-  /** Which bucket of the enemy's resistances this skill is resisted by. */
+  /** which bucket of the enemy's resistances this skill is resisted by. */
   readonly enemyResKey: EnemyResistN
 }
 
@@ -105,8 +99,7 @@ export function skillTypeMaskOf(skillTypes: readonly SkillTypeKey[]): number {
 }
 
 /**
- * Lower one skill. The result depends only on the skill, and a resolved skill
- * is immutable, so it is cached against that identity.
+ * lower one skill. resolved skills are immutable; their identity is the cache key.
  */
 export function compileSkillRecord(skill: SkillDef): SkillRecord {
   const cached = recordCache.get(skill)
@@ -128,7 +121,7 @@ function buildSkillRecord(skill: SkillDef): SkillRecord {
     const name = SKILL_FIELDS[field]! as keyof ModBuff
     fieldStart[field] = cells.length
     /*
-      The exact order the object path summed these in: every attribute, then
+      the exact order the object path summed these in: every attribute, then
       every skill type, then the skill's own buffs.
     */
     cells.push(finalAttributeCell('all', name))

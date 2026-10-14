@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Defines grouped manual-buff option metadata so Simulation tools
+  description: defines grouped manual-buff option metadata so simulation tools
                can render editable buff controls from a stable authored list.
 */
 

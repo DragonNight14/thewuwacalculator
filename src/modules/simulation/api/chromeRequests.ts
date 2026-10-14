@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Lightweight request actions for persistent app chrome.
+  description: lightweight request actions for persistent app chrome.
 */
 
 export { openEchoImport, useEchoImportRequested } from '../features/echoes/lib/echoImportStore'

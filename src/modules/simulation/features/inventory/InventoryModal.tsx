@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Manages saved echo and build inventory browsing, filtering,
+  description: manages saved echo and build inventory browsing, filtering,
                selection actions, equip targets, and persistence commands.
 */
 
@@ -544,8 +544,8 @@ function SvdMkCard({
   onRemove: () => void
 } & HtmlAttrs<HTMLElement>) {
   const mtchCur = equalBuildSnapshots(entry.build, currentBuild)
-  // saved builds can come from another resonator, so definitions are resolved from the entry instead of the currently
-  // open modal resonator.
+  // resolve saved build definitions from the entry's resonator id. entries may
+  // belong to a different resonator than the open modal.
   const resonatorDef = getResSeedBy(entry.resonatorId)
   const weaponDef = entry.build.weapon.id ? getWpnById(entry.build.weapon.id) : null
 
@@ -849,7 +849,7 @@ export function InvMdl({
       return false
     }
 
-    // The clipboard envelope includes source metadata; duplicate resolution reads only Echoes.
+    // the clipboard envelope includes source metadata; duplicate resolution reads only echoes.
     const wrote = await writeEchoClip(makeEchoClip({
       source: 'inventory',
       resonatorId,
@@ -905,7 +905,7 @@ export function InvMdl({
   )
 
   useEffect(() => {
-    // Clear focus identity when the filtered dataset no longer contains it.
+    // clear focus identity when the filtered dataset no longer contains it.
     if (fcsdTileId && !fltrBagIds.includes(fcsdTileId)) {
       // eslint-disable-next-line react-hooks/set-state-in-effect
       setFcsdTileI(null)
@@ -1193,7 +1193,7 @@ export function InvMdl({
     startRnmMk,
   ])
 
-  // Group Echoes by Sonata and saved builds by resonator identity.
+  // group echoes by sonata and saved builds by resonator identity.
   const echoGroups = useMemo(() => {
     if (!grouped) {
       return [{ setId: null as number | null, entries: filteredBag }]
@@ -1293,7 +1293,7 @@ export function InvMdl({
   }), [currentBuild.echoes, invChs])
 
   const jumpToEcho = useCallback((savedId: string) => {
-    // Clear filters before focusing an equipped Echo absent from the filtered grid.
+    // clear filters before focusing an equipped echo absent from the filtered grid.
     setSelCost(null)
     setSelSet(null)
     setEchoSrch('')
@@ -1670,7 +1670,7 @@ export function InvMdl({
                                   onActivate={selMode ? undefined : (event) => {
                                     setPreviewId(entry.id)
                                     if (railVisible) {
-                                      // With the rail active, tile clicks select a preview without opening a menu.
+                                      // with the rail active, tile clicks select a preview without opening a menu.
                                       return
                                     }
                                     openTileMenu(entry, slotFitStates, event)

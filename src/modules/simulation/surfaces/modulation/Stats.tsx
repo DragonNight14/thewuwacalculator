@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Projects baseline and evaluated stats and resolves source-level arithmetic for a selected row.
+  description: projects baseline and evaluated stats and resolves source-level arithmetic for a selected row.
 */
 
 import { DisplayImage } from '@/shared/ui/DisplayImage'
@@ -41,8 +41,7 @@ import { Tooltip } from '@/shared/ui/Tooltip.tsx'
 
 type CssVars = CSSProperties & Record<string, string | number>
 
-/* the two anchors keep the report's own tones, so a reader who knows the
-   evaluation's colours already knows what these two columns are */
+/* use the report colors for the 100% and 200% columns. */
 const TONE_100 = getBuildEvaluationTone(100).color
 const TONE_200 = getBuildEvaluationTone(200).color
 
@@ -63,8 +62,8 @@ function signedStatValue(key: string, value: number): string {
   return `${value > 0 ? '+' : '−'}${formatStatKeyValue(key, Math.abs(value))}`
 }
 
-/* Echo totals, counts, and roll quality are properties of the equipped Echoes
-   themselves. Build them synchronously so the popup is useful before a
+/* echo totals, counts, and roll quality are properties of the equipped echoes
+   themselves. build them synchronously so the popup is useful before a
    evaluation exists; damage/share are overlaid later from the evaluation. */
 function makeCurrentStatRows(runtime: ResRuntime): EvaluationStatContribution[] {
   const echoes = runtime.build.echoes.filter((echo) => echo != null)
@@ -109,13 +108,9 @@ interface SheetGroup {
 }
 
 /*
-  The flat and the percentage form of one stat are two rows in the report's
-  contribution table and one idea on the sheet, so they are paired here.
-
-  The two vocabularies do not line up on their own: an overview row keys ATK as
-  `atk`, while the contribution table keys the same stat's flat half `atkFlat`
-  and its scaling half `atkPercent`. A stat with only one form, Crit DMG say,
-  is keyed plainly and lands as the flat half.
+  pair flat and percentage contribution rows for each overview stat. for
+  example, overview `atk` uses `atkFlat` and `atkPercent` contributions;
+  single-form stats use the plain key.
 */
 interface Contrib {
   flat?: EvaluationStatContribution
@@ -161,13 +156,9 @@ function StatMark({ label, statKey }: { label: string; statKey: string }) {
 }
 
 /*
-  The reading. It opens in the program editor's dropdown shell rather than a
-  card of its own, and it holds the same three builds the row's columns hold, so
-  a stat can be read against its ideals without leaving the label.
-
-  A stat with both a flat and a scaling form keeps them side by side in one
-  cell. They are two separate readings of the same stat, not terms of a sum:
-  430 flat ATK and 71.5% ATK are not 501 of anything.
+  the program editor dropdown compares the same three builds as the row.
+  flat and percentage values for one stat appear together but remain separate
+  measurements, such as 430 flat atk and 71.5% atk.
 */
 function TipCell({
   contrib,
@@ -239,15 +230,15 @@ function StatTip({
   const rolls = (contrib: Contrib) => {
     const mains = (contrib.flat?.mainCount ?? 0) + (contrib.pct?.mainCount ?? 0)
     const subs = Math.round(((contrib.flat?.substatCount ?? 0) + (contrib.pct?.substatCount ?? 0)) * 10) / 10
-    /* a kind with nothing behind it is left out rather than read as "0 main" */
+    /* omit stat kinds with no backing value. */
     return [mains > 0 ? `${mains} main` : '', subs > 0 ? `${subs} sub` : '']
       .filter(Boolean).join(' \u00b7 ') || '\u2013'
   }
 
   const num = (value: number) => (value > 0 ? `+${Math.round(value).toLocaleString()}` : '\u2013')
-  // ER is additive. Reconcile each combat total against the same base printed
-  // in the sheet so Sonata, weapon, main-Echo, and active bonuses are not
-  // mistaken for Echo stat lines.
+  // er is additive. reconcile each combat total against the same base printed
+  // in the sheet so sonata, weapon, main-echo, and active bonuses are not
+  // mistaken for echo stat lines.
   const erOtherGain = (column: keyof TriContrib) => {
     const row = overview[column]
     if (!row) return 0
@@ -473,9 +464,10 @@ function StatRow({
 }) {
   const displayBonus = row.total - displayBase
   const flat = near(row.total, displayBase)
-  /* a stat no echo touches has nothing for the tooltip to say, so the label
-     stays plain text rather than offering a reading it cannot give */
-  const hasEcho = Boolean(contrib.cur.flat?.total || contrib.cur.pct?.total)
+  /* any displayed build can supply echo details, even when the current build
+     has none for this stat. */
+  const hasEcho = [contrib.cur, contrib.b1, contrib.b2]
+    .some(({ flat, pct }) => Boolean(flat?.total || pct?.total))
   const same100 = b100 ? near(b100.total, row.total) : true
   const same200 = b200 ? near(b200.total, row.total) : true
   const hasScopes = scoped.length > 0
@@ -881,13 +873,9 @@ function StatWorksheet({
 }
 
 /*
-  The other half of the residue: a modifier with no row anywhere in the sheet.
-  It reads in the sheet's own row shape so the same disclosure reaches it --
-  without a row, "Heavy Attack DEF Ignore" has nothing to open under.
-
-  The two anchor cells stay empty on purpose. EvaluationOverviewStats carries the
-  same three groups the sheet does, so the search never states a DEF Ignore, and
-  a number invented for those columns would be a lie rather than a gap.
+  render modifiers without a standard sheet row using the same disclosure
+  layout. leave the two comparison cells empty because evaluation does not
+  provide defence ignore values for them.
 */
 function ResidueStatRow({
   row,
@@ -964,7 +952,7 @@ function ResidueStatRow({
         <span className="pst-st">
           <span className="pst-name-txt">{row.label}</span>
           {/* one mark, not two: a modifier with no unconditional value is
-              entirely scoped, so the count would be saying it again. The name
+              entirely scoped, so the count would be saying it again. the name
               column is narrow and the pills would eat the label. */}
           {row.displayValue === null ? (
             <i className="pst-only" title={`Only where a scope reaches it · ${row.scoped.length} scope${row.scoped.length > 1 ? 's' : ''}`}>
@@ -1257,7 +1245,7 @@ export function ModulationStats({
   const [opened, setOpened] = useState<Record<string, boolean>>({})
   const toggleOpen = (key: string) => setOpened((prev) => ({ ...prev, [key]: !prev[key] }))
 
-  /* what the tree holds and the sheet never prints, split by what it is */
+  /* group stat-tree values that have no sheet row by type. */
   const residue = useMemo(() => makeStatResidue(statsTree), [statsTree])
 
   const builtOn = useMemo(() => [

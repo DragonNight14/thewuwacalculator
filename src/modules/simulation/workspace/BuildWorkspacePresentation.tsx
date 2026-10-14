@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Isolates Showcase customization, artwork and capture from simulation ownership.
+  description: renders showcase customization, artwork, and capture within the build workspace.
 */
 import { lazy, memo, Suspense, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type ComponentProps, type ReactNode, type RefObject } from 'react'
 import { useAppStore } from '@/application/state'
@@ -10,7 +10,7 @@ import { resolveShowcaseImage, type ShowcaseImage } from '@/application/media/sh
 import { useAppModal } from '@/shared/ui/useAppModal'
 import { useTstStr } from '@/shared/util/toastStore'
 import { buildTextSlotVars, collectCardFontFamilies, splitHoistedCss } from '../surfaces/showcase/cardStyleVars'
-import { DEFAULT_PORTRAIT_SURFACE, readPortraitSurface } from '../surfaces/showcase/portraitSurface'
+import { DEFAULT_PORTRAIT_SURFACE, inkForSurface, readPortraitSurface } from '../surfaces/showcase/portraitSurface'
 import type { CardExportTarget } from '../surfaces/showcase/cardTransfer'
 import { ensureGoogleFamily, ensureShowcaseFonts } from '@/application/theme/typography'
 import { BuildRail } from './BuildRail'
@@ -65,7 +65,7 @@ export function BuildWorkspacePresentation({ railProps, dockProps, boardRef, pag
   const showToast = useTstStr((state) => state.show)
   const [captureAction, setCaptureAction] = useState<'download' | 'clipboard' | null>(null)
   useEffect(() => { onCaptureChange(captureAction) }, [captureAction, onCaptureChange])
-  // Showcase customization persists independently for each resonator.
+  // showcase customization persists independently for each resonator.
   const patchShowcaseCardStyle = useAppStore((state) => state.patchShowcaseCardStyle)
   const toggleShowcaseHide = useAppStore((state) => state.toggleShowcaseHide)
   const patchShowcaseCardHidden = useAppStore((state) => state.patchShowcaseCardHidden)
@@ -163,13 +163,13 @@ export function BuildWorkspacePresentation({ railProps, dockProps, boardRef, pag
 
   const [cssExpanded, setCssExpanded] = useState(false)
   const [tuneDrawerOpen, setTuneDrawerOpen] = useState(false)
-  // Session uploads are deliberately kept outside persisted preferences.
+  // session uploads are deliberately kept outside persisted preferences.
   const [sessionImages, setSessionImages] = useState<Record<string, { portrait?: string; backdrop?: string }>>({})
   const sessionImagesRef = useRef(sessionImages)
   sessionImagesRef.current = sessionImages
   const [uploadTarget, setUploadTarget] = useState<'portrait' | 'backdrop'>('portrait')
   const uploadModal = useAppModal()
-  // Session images override persisted refs; IndexedDB refs resolve only while active.
+  // session images override persisted refs; IndexedDB refs resolve only while active.
   const sessionForRail = railResId ? sessionImages[railResId] : undefined
   const portraitRef = sessionForRail?.portrait ?? cardStyle.portraitImage
   const backdropRef = sessionForRail?.backdrop ?? cardStyle.backdropImage
@@ -198,6 +198,7 @@ export function BuildWorkspacePresentation({ railProps, dockProps, boardRef, pag
     ? sampledSurface.color
     : DEFAULT_PORTRAIT_SURFACE
   const surfaceColor = cardStyle.surface ?? derivedSurfaceColor
+  const textColor = cardStyle.text ?? inkForSurface(surfaceColor)
 
   const [portraitSource, setPortraitSource] = useState<{ owner: string | null; ref: string | null; source: string } | null>(null)
   const onPortraitReady = useCallback((source: string) => setPortraitSource((previous) => previous?.owner === railResId && previous.ref === portraitRef && previous.source === source ? previous : { owner: railResId, ref: portraitRef, source }), [portraitRef, railResId])
@@ -240,7 +241,7 @@ export function BuildWorkspacePresentation({ railProps, dockProps, boardRef, pag
         return { ...prev, [railResId]: { ...current, [uploadTarget]: undefined } }
       })
     } else {
-      // Credits remain persisted even when the selected image is session-only.
+      // credits remain persisted even when the selected image is session-only.
       updateShowcaseStyle(creditPatch)
       setSessionImages((prev) => {
         const previousRef = prev[railResId]?.[uploadTarget]
@@ -254,7 +255,7 @@ export function BuildWorkspacePresentation({ railProps, dockProps, boardRef, pag
     setEditMode(uploadTarget)
   }, [railResId, updateShowcaseStyle, uploadTarget])
 
-  // Reset all persisted and session fields owned by one image group.
+  // reset persisted and session fields for one image group.
   const handleResetGroup = useCallback((group: 'portrait' | 'backdrop') => {
     if (!railResId) return
     if (group === 'portrait') {
@@ -343,7 +344,7 @@ export function BuildWorkspacePresentation({ railProps, dockProps, boardRef, pag
       showToast({ content: error instanceof Error ? error.message : 'That card file could not be imported.', variant: 'error' })
     }
   }, [railResId, patchShowcaseCardHidden, showToast, updateShowcaseStyle])
-  // Convert neutral-at-50 controls into offsets around canonical spine placement.
+  // convert neutral-at-50 controls into offsets around canonical spine placement.
   const showcasePlacement = useMemo(() => {
     const base = getEvaluationSpinePlacement(railResId)
     return {
@@ -455,10 +456,10 @@ export function BuildWorkspacePresentation({ railProps, dockProps, boardRef, pag
     cardStyle.maskTopSharp, cardStyle.maskRightSharp, cardStyle.maskBottomSharp, cardStyle.maskLeftSharp,
   ])
 
-  // Convert semantic text-role overrides into the CSS-variable contract.
+  // convert semantic text-role overrides into the css-variable contract.
   const textSlotVars = useMemo(() => buildTextSlotVars(cardStyle.textSlots ?? {}), [cardStyle.textSlots])
 
-  // Hoist at-rules that are invalid inside @scope and scope the remaining declarations.
+  // hoist at-rules that are invalid inside @scope and scope the remaining declarations.
   const customCssParts = useMemo(
     () => (cardStyle.customCss ? splitHoistedCss(cardStyle.customCss) : null),
     [cardStyle.customCss],
@@ -472,7 +473,7 @@ export function BuildWorkspacePresentation({ railProps, dockProps, boardRef, pag
   const railStyle = useMemo<CssVars>(() => ({
     '--resonator-accent': isShowcase ? cardStyle.accent ?? railModel.accent : railModel.accent,
     ...(isShowcase ? { '--bg': surfaceColor } : {}),
-    ...(isShowcase && cardStyle.text ? { '--text': cardStyle.text } : {}),
+    ...(isShowcase ? { '--text': textColor } : {}),
     ...(isShowcase
       ? {
           '--rail-glass': `color-mix(in srgb, var(--bg) ${cardStyle.opacity ?? 82}%, transparent)`,
@@ -488,16 +489,15 @@ export function BuildWorkspacePresentation({ railProps, dockProps, boardRef, pag
     cardStyle.displayFont,
     cardStyle.monoFont,
     cardStyle.opacity,
-    cardStyle.text,
     isShowcase,
     maskVars,
     railModel.accent,
     surfaceColor,
+    textColor,
     textSlotVars,
   ])
 
-  // These controls change inherited CSS only. Apply their frame-coalesced
-  // preview to the owning element without reconciling the card or its artwork.
+  // apply inherited css changes directly to the card once per frame.
   const appliedVars = useRef<string[]>([])
   useLayoutEffect(() => {
     const card = buildCardRef.current
@@ -516,7 +516,7 @@ export function BuildWorkspacePresentation({ railProps, dockProps, boardRef, pag
     buildCardRef.current?.dispatchEvent(new Event('showcase:typography'))
   }, [cardStyle.displayFont, cardStyle.monoFont, cardStyle.textSlots, cardStyle.customCss])
 
-  // Persisted font stacks require their external family stylesheets to be rehydrated.
+  // persisted font stacks require their external family stylesheets to be rehydrated.
   useEffect(() => {
     if (!isShowcase) return
     const families = collectCardFontFamilies({
@@ -571,7 +571,7 @@ return <ContextTrigger asChild ariaLabel="Build Lab stage actions" items={boardC
                     onLayoutChange={setShowcaseLayout}
                     accent={cardStyle.accent ?? railModel.accent}
                     surface={surfaceColor}
-                    text={cardStyle.text ?? '#eef2f7'}
+                    text={textColor}
                     cardOpacity={cardStyle.opacity ?? 82}
                     portraitX={cardStyle.portraitX ?? 50}
                     portraitY={cardStyle.portraitY ?? 50}
@@ -586,9 +586,12 @@ return <ContextTrigger asChild ariaLabel="Build Lab stage actions" items={boardC
                     maskLeftSharp={cardStyle.maskLeftSharp ?? 0}
                     portraitImage={resolvedPortrait}
                     backdropImage={resolvedBackdrop}
-                    backdropX={cardStyle.backdropX ?? 50}
-                    backdropY={cardStyle.backdropY ?? 28}
-                    backdropScale={cardStyle.backdropScale ?? 50}
+                    resId={railResId}
+                    fallbackArt={railModel.portraitSrc}
+                    displayFont={cardStyle.displayFont ?? null}
+                    backdropX={cardStyle.backdropX ?? (cardStyle.backdropY == null ? 20 : 50)}
+                    backdropY={cardStyle.backdropY ?? (cardStyle.backdropX == null ? 50 : 28)}
+                    backdropScale={cardStyle.backdropScale ?? 67}
                     backdropBlur={cardStyle.backdropBlur ?? 30}
                     backdropOpacity={cardStyle.backdropOpacity ?? 67}
                     statsColumn={cardStyle.statsColumn ?? 'build'}

@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Coordinates mobile Home plate selection, deferred art changes,
+  description: coordinates mobile home plate selection, deferred art changes,
                coverage data, and work-drawer state.
 */
 
@@ -19,7 +19,7 @@ import { AlsoPlate, DevPlate, FeedPlate, NewsPlate, ResonatorPlate } from '@/mod
 import { WorkDrawer } from '@/modules/home/mobile/WorkDrawer'
 import Thewuwacalculator from '@/assets/thewuwacalculator.svg?react'
 
-// Delay art commits until selection settles so intermediate requests collapse.
+// delay art commits until selection settles so intermediate requests collapse.
 const GROUND_WAIT = 280
 
 interface Plate {
@@ -37,7 +37,7 @@ export function MobileHomePage() {
   const coverage = useCoverage()
   const rtChrmMenu = useRtChrmMen()
 
-  // Undefined is pending; null is a completed unavailable result.
+  // undefined is pending; null is a completed unavailable result.
   const [arrivals, setArrivals] = useState<Arrivals | null | undefined>(undefined)
   useEffect(() => {
     let live = true

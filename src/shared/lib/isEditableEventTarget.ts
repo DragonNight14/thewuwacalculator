@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Detects whether a dom event target is an editable surface so
+  description: detects whether a dom event target is an editable surface so
                keyboard shortcuts and selection helpers can avoid hijacking
                native text editing interactions.
 */

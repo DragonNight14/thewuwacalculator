@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: builds the packed optimizer-facing combat context for a
+  description: builds the packed optimizer-facing combat context for a
                selected skill by converting final stat state, enemy data,
                and archetype-specific rules into numeric fields used by
                the optimizer backend.
@@ -394,7 +394,7 @@ export function makeOptContext(options: {
       break
   }
 
-  // immunity zeroes the result via resMult, mirroring the elemental RES=100 shortcut.
+  // immunity zeroes the result via resMult, mirroring the elemental res=100 shortcut.
   // healing/shield ignore enemy multipliers, so leave them untouched.
   if (
       skill.archetype !== 'healing'

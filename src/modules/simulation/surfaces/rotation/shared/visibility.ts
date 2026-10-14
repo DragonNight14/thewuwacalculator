@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Keeps rotation authoring choices available when an earlier
+  description: keeps rotation authoring choices available when an earlier
                condition can change the state that controls their visibility.
 */
 

@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: the parts an echo card is built from: a sonata band carrying the
+  description: the parts an echo card is built from: a sonata band carrying the
                main stats, the substats it rolled, and a ribbon inked with its
                grade. surfaces bring their own wrapper, so a modal row and a
                bench slot can wear the same face with their own chrome on it.
@@ -24,7 +24,7 @@ export interface EchoCardStat {
   value: number
 }
 
-// leaves the spare ones empty rather than letting a short echo reflow
+// reserve five substat tracks; short echoes leave unused tracks empty.
 const SUB_TRACKS = 5
 
 export function echoStatTitle(key: string, value: number): string {
@@ -70,7 +70,7 @@ export function EchoCardBand({
   mainEcho: boolean
   primary: EchoCardStat
   secondary: EchoCardStat
-  // a surface can pin its own mark to the band without owning the band
+  // optional overlay mark for the card band.
   overlay?: ReactNode
 }) {
   return (

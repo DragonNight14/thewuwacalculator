@@ -1,7 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Hosts app-wide floating selection actions so features can
-               register top-center selection toolbars without owning layout.
+  description: renders floating selection toolbars registered by app features.
 */
 
 import { createContext as mkCtx, Fragment, useContext, useEffect, useId, useMemo, useRef, useState } from 'react'
@@ -20,7 +19,7 @@ export interface FltnSelCtn {
   onSelect: () => void
 }
 
-/** What the rail's readout says it is holding. */
+/** what the rail's readout says it is holding. */
 export interface FltnSelRead {
   count: number
   one: string
@@ -98,7 +97,7 @@ function resFcsScp(session: RgstFltnSelS | null): HTMLElement | null {
   )
 }
 
-/** The rail's readout: what is picked, or the idle line when nothing is. */
+/** the rail's readout: what is picked, or the idle line when nothing is. */
 function SelectionRead({ read }: { read?: FltnSelRead }) {
   const count = read?.count ?? 0
   const idle = count === 0

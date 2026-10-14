@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: lazily acquires and caches a WebGPU adapter/device pair,
+  description: lazily acquires and caches a WebGPU adapter/device pair,
                and exposes a small helper to test whether WebGPU is usable
                in the current execution context.
 */
@@ -50,7 +50,7 @@ export async function getGpuDevice(): Promise<GPUDevice> {
     maxBufferSize: dptrLmts.maxBufferSize,
   }
 
-  // create and cache the gpu device so later calls stay cheap
+  // cache the gpu device across calls.
   cachedDevice = await cchdDptr.requestDevice({ requiredLimits: rqrdLmts })
 
   cachedDevice.lost.then((info) => {

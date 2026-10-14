@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Edits optimizer search constraints and execution preferences,
+  description: edits optimizer search constraints and execution preferences,
                gates mode-dependent settings, and opens delegated configuration.
 */
 
@@ -25,7 +25,7 @@ import { useConfigurationSession } from '@/shared/ui/useConfigurationSession.ts'
 const BUCKETS: PieceCount[] = [5, 3, 1]
 const BUCKET_LABEL: Record<PieceCount, string> = { 5: '5pc', 3: '3pc', 1: '1pc' }
 
-// Elemental main-stat filtering uses one selectedBonus, unlike the plain-stat list.
+// elemental main-stat filtering uses one selectedBonus, unlike the plain-stat list.
 const MAIN_STATS: Array<{ value: string; label: string; glyph: string }> = [
   { value: 'atk%', label: 'ATK%', glyph: 'atkPercent' },
   { value: 'hp%', label: 'HP%', glyph: 'hpPercent' },
@@ -204,7 +204,7 @@ export function OptTransport(props: OptTransportProps) {
 
   const isTheory = searchMode === 'theory'
   const isCombo = targetMode === 'combo'
-  // Rotation mode does not apply single-skill keep trimming or stat limits.
+  // rotation mode does not apply single-skill keep trimming or stat limits.
   const limitsLive = !isCombo
   const filterLive = !isCombo && !isTheory
 

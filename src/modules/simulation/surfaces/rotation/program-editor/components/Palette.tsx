@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Builds searchable feature and condition choices from the live team and target state.
+  description: builds searchable feature and condition choices from the live team and target state.
 */
 
 import { DisplayImage } from '@/shared/ui/DisplayImage'
@@ -76,7 +76,7 @@ interface OwnerTab {
   id: string
   label: string
   profile?: string
-  /** enemy art is served from a different asset tree, so it falls back apart */
+  /** enemy art uses a separate asset tree and fallback. */
   isEnemy?: boolean
 }
 
@@ -97,7 +97,7 @@ function featureArt(member: RotationMember, feature: FeatDef): Pick<PaletteFeatu
 
 // one visible, resolved feature per skill, with the skill's hit rows hung
 // underneath it the way the skill menu lists them: a sub-hit is a detail of a
-// step, so it is reached through the step rather than beside it.
+// step and is reached through that step.
 function collectFeatures(
   member: RotationMember,
   runtimesById: Record<string, ResRuntime>,
@@ -139,7 +139,7 @@ function collectFeatures(
 
     const tab = (skill.tab ?? 'normalAttack') as SkillTabKey
     const color = skillDisplayColor(skill, member.attribute)
-    // only the first tile for a skill carries its hits, so a skill listing
+    // only the first tile for a skill lists its hits, so a skill listing
     // more than one total does not repeat them
     const hits = claimed.has(feature.skillId) ? [] : hitsBySkill.get(feature.skillId) ?? []
     claimed.add(feature.skillId)
@@ -275,7 +275,7 @@ function featTile(
   )
 }
 
-// Extract bounded context around the first case-insensitive description match.
+// extract bounded context around the first case-insensitive description match.
 function mkSnippet(text: string, needle: string) {
   const at = text.toLowerCase().indexOf(needle)
   if (at < 0) {
@@ -297,8 +297,8 @@ function mkSnippet(text: string, needle: string) {
 }
 
 /*
-  What a state's own text says, read in the palette rather than after adding it.
-  The text is not hung on a hover here: the row turns over on its mark and stays
+  show a state's own text in the palette before insertion.
+  the text is not hung on a hover here: the row turns over on its mark and stays
   turned, because this is the surface where the choice is still being made and
   two states have to be able to stand open against each other.
 */
@@ -442,7 +442,7 @@ export function Palette({
     [actRt, members, enemyProfile.id],
   )
 
-  // Resolve description parameters before indexing so search and snippets use
+  // resolve description parameters before indexing; search and snippets use
   // the same concrete text as condition inspection.
   const condText = useMemo(() => {
     const byId = new Map<string, string>()

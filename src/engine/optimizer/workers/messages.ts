@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: defines the message protocol and gpu-static payload shapes used
+  description: defines the message protocol and gpu-static payload shapes used
                by optimizer workers for cpu/gpu job execution, optional gpu
                bootstrap, progress, completion, cancellation, and error reporting.
 */
@@ -170,7 +170,7 @@ export type OptTaskOutMs =
     | OptTaskRrrMs
 
 // start streaming theory combo batches for a given prep payload.
-// the producer walks the synthetic theory row space and posts batches as soon
+// the producer iterates through the synthetic theory row space and posts batches as soon
 // as they are filled, so the orchestrator never blocks the main thread on
 // generation work.
 export interface OptThryProdSt {
@@ -185,10 +185,8 @@ export interface OptThryProdSt {
   shard?: { index: number; count: number }
 }
 
-// hand a reusable Int32Array buffer back to the producer worker so it can
-// continue without allocating a fresh buffer for the next batch. lowMem
-// signals the producer to drop the buffer rather than retain it past the
-// minimum needed to keep emission flowing.
+// return a reusable Int32Array buffer to the producer for the next batch.
+// in low-memory mode the producer retains only the minimum emission capacity.
 export interface OptThryProdRt {
   type: 'returnTheoryBuffer'
   runId: number

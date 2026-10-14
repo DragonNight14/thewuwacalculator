@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Implements rotation node id data-flow and calculation invariants.
+  description: implements rotation node id data-flow and calculation invariants.
 */
 
 export function makeNodeId(prefix: string): string {

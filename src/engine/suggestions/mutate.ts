@@ -1,7 +1,7 @@
 /*
   Author: Runor Ewhro
-  Description: builds, mutates, and validates durable main-stat and set-plan
-               suggestion Echo loadouts.
+  description: builds, mutates, and validates durable main-stat and set-plan
+               suggestion echo loadouts.
 */
 
 import type { EchoDef } from '@/domain/entities/catalog'
@@ -156,7 +156,7 @@ export function derSuggMainS(
     }
   }
 
-  // special-case characters that often want ER in the option pool
+  // special-case characters that often want er in the option pool
   const numericId = Number.parseInt(resonatorId, 10)
   if (numericId === 1206 || numericId === 1209 || numericId === 1412 || numericId === 1505 || numericId == 1110) {
     allowedFilter.add('er')
@@ -277,7 +277,7 @@ function xpndSetPlanT(
       mainEcho && getEchoSets(mainEcho.id).includes(entry.setId) && entry.pieces > 0
   ))?.setId ?? null
 
-  // Use the main Echo when its catalog definition supports the plan. Its
+  // use the main echo when its catalog definition supports the plan. its
   // currently selected set must not influence plan assignment.
   const mustUseMain = mainSpprPlan != null || pieces.length >= nonNullSlots.length
   const rmnnPcs = [...pieces]
@@ -327,7 +327,7 @@ function pickTmplDefF(
   const candidates = (cost ? listChsByCos(cost) : listEchoes())
       .filter((entry) => entry.sets.includes(setId))
 
-  // an id is only "used up" for THIS set; the same id is still free for others.
+  // an id is only "used up" for this set; the same id is still free for others.
   const unused = candidates.filter((entry) => !usedKeys.has(echoSetKey(entry.id, setId)))
   const pool = unused.length > 0 ? unused : candidates
 
@@ -662,7 +662,7 @@ export function mkSetPlanCnd(slotCount: number): SetPlanEntry[][] {
           { setId: fiveSetId, pieces: 2 },
         ])
       }
-      if (slotCount >= 6) { // not possible with 5 slots, but for completeness
+      if (slotCount >= 6) { // guard the general case beyond five slots.
         plans.push([
           { setId: oneSetId, pieces: 1 },
           { setId: fiveSetId, pieces: 5 },

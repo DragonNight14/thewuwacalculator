@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Resolves and displays runtime-prepared skill data, parameters, hits, and effect descriptions.
+  description: resolves and displays runtime-prepared skill data, parameters, hits, and effect descriptions.
 */
 
 import { DisplayImage } from '@/shared/ui/DisplayImage'
@@ -31,8 +31,7 @@ type SkdView = SkillTabKey | 'concerto' | 'chains'
 interface RailEntry {
   view: SkdView
   label: string
-  /* the rail's own art. a skill wears its node glyph; the chain has no node of
-     its own, so it wears its first sequence icon. */
+  /* rail art: skills use node glyphs; the chain uses its first sequence icon. */
   glyph: string
   keys: SkillTabKey[]
   count: number
@@ -70,7 +69,7 @@ export function SkillData({
   const details = useMemo(() => (resonatorId ? getResDtls(resonatorId) : null), [resonatorId])
   const curSldrClr = ATTR_COLORS[resonator?.attribute ?? 'physical'] ?? '#888'
 
-  // a single Concerto entry and the pane prints both.
+  // a single concerto entry and the pane prints both.
   const [actView, setActView] = useState<SkdView>(() => viewOfTab(requestedTab ?? 'normalAttack'))
   const mobile = useMobileUi()
   const [mPage, setMPage] = useState('skill')
@@ -113,8 +112,7 @@ export function SkillData({
       })
     }
 
-    /* the chain is not a skill and carries no multipliers, so it stands at the
-       foot of the rail rather than among the tabs it would be counted with */
+    /* show the chain after skill multipliers. */
     if (chains.length > 0) {
       out.push({
         view: 'chains',
@@ -207,7 +205,7 @@ export function SkillData({
                 </button>
               )
 
-              /* the forte circuit carries the inherents in game, so its rail
+              /* the forte circuit includes inherents in game, so its rail
                  entry folds open to them. the row still selects the tab; the
                  chevron is the only part that answers the fold. */
               if (entry.view === 'forteCircuit' && inherents.length > 0) {
@@ -262,7 +260,7 @@ export function SkillData({
             {rslvView === 'chains' ? (
               /*
                 the chain is read, not set: this is the catalogue's own text
-                for every node, whatever the build owns, so no node is dimmed or
+                for every node, regardless of the current build, so no node is dimmed or
                 called locked here.
               */
               chains.map((chain) => {

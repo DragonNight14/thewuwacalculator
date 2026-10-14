@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Verifies grouped suggestion identity, distinct set-bonus
+  description: verifies grouped suggestion identity, distinct set-bonus
                matching, and exact scored weapon-state materialization.
 */
 

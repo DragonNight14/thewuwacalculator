@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Verifies that set-plan rows stand in worn sets among
+  description: verifies that set-plan rows stand in worn sets among
                effect-equivalent alternatives, keep the engine's pick on ties,
                and leave filler slots as worn.
 */
@@ -25,7 +25,7 @@ describe('worn-preferring set plans', () => {
     expect(preferWornSets(display, concrete, [{ setId: 9, pieces: 5 }]).setPlan).toEqual(concrete)
   })
 
-  it('drops filler entries the display left out, so those echoes stay as worn', () => {
+  it('keeps worn Echoes when the display omits filler entries', () => {
     const display = [{ setIds: [5, 11], pieces: 2 }, { setIds: [24, 26], pieces: 2 }]
     const concrete = [{ setId: 5, pieces: 2 }, { setId: 24, pieces: 2 }, { setId: 12, pieces: 1 }]
     const { setPlan } = preferWornSets(display, concrete, [{ setId: 11, pieces: 5 }])
@@ -33,7 +33,7 @@ describe('worn-preferring set plans', () => {
   })
 
   it('keeps fillers when dropping them would let worn echoes rebuild a tier', () => {
-    // A lone 2pc slot: three free worn Eternal Radiance echoes would restore 5pc.
+    // a lone 2pc slot: three free worn eternal radiance echoes would restore 5pc.
     const display = [{ setIds: [5, 11], pieces: 2 }]
     const concrete = [{ setId: 5, pieces: 2 }, { setId: 12, pieces: 1 }, { setId: 13, pieces: 1 }, { setId: 14, pieces: 1 }]
     const { setPlan } = preferWornSets(display, concrete, [{ setId: 11, pieces: 5 }])

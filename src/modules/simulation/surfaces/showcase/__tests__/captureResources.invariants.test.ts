@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Protects complete CSS URL replacement and font-family Unicode
+  description: protects complete css url replacement and font-family unicode
                subset selection for standalone capture documents.
 */
 

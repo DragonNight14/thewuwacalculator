@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: chooses the correct live simulation path for the active
+  description: chooses the correct live simulation path for the active
                resonator, using an existing combat graph when possible and
                falling back to a standalone resonator simulation otherwise.
 */
@@ -41,9 +41,8 @@ let liveRunCch: { prepWork: PrepWork; value: SimResult | null } | null = null
 
 /*
   the default live run, held against the prepared workspace it came from. the
-  results pane and the toolbar summary both want it, and the pipeline is the
-  expensive part of a render, so the second caller gets the first one's answer
-  rather than simulating the rotation again.
+  the results pane and toolbar summary share one pipeline result. cache the
+  simulation across both readers.
 */
 export function selLiveRun(prepWork: PrepWork | null): SimResult | null {
   if (!prepWork) {
@@ -59,7 +58,7 @@ export function selLiveRun(prepWork: PrepWork | null): SimResult | null {
   return value
 }
 
-// Build the current live computation result for Simulation tools.
+// build the current live computation result for simulation tools.
 // returns null when the active runtime or seed is missing
 export function mkLiveCmpt(
   runtime: ResRuntime | null,
@@ -83,7 +82,7 @@ export function mkLiveCmpt(
 
   const prepSmlt = runPrepWorkS(prepWork, options)
   if (prepSmlt) {
-    // the prepared workspace path already knows how to simulate graph-aware and
+    // the prepared workspace path already supports simulation of graph-aware and
     // standalone cases, so prefer it whenever it can materialize a result.
     return prepSmlt
   }

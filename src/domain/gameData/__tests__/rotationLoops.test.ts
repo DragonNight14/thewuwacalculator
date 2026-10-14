@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Protects the reading that decides which loop runs back around
+  description: protects the reading that decides which loop runs back around
                to its own start.
 */
 
@@ -43,8 +43,7 @@ describe('which loop runs back around to its own start', () => {
   })
 
   /*
-    a rotation can hold the same loop identity twice, and a later loop must
-    still close at its own end rather than at the earlier one's.
+    a rotation can reuse a loop identity. the later loop closes at its own end.
   */
   it('does not pair a loop with an earlier loop of the same identity', () => {
     expect(findRotWrapLoop([

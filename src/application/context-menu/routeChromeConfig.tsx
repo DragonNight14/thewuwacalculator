@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: defines the authored route chrome navigation consumed by the
+  description: defines the authored route chrome navigation consumed by the
                sidebar and route context menus.
 */
 

@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: renders the number input surface for Simulation controls.
+  description: renders the number input surface for simulation controls.
 */
 
 import { useState } from 'react'

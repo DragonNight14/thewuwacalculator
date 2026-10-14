@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Defines generated weapon catalog entities, including passive
+  description: defines generated weapon catalog entities, including passive
                metadata and per-level stat progression.
 */
 

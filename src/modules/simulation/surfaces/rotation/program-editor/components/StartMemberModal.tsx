@@ -1,7 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Reads the opening states the preamble is about to write and asks
-               which resonator starts on field before it writes them.
+  description: selects the initial on-field resonator for preamble state writes.
 */
 
 import { DisplayImage } from '@/shared/ui/DisplayImage'

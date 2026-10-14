@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Defines the zod schema used to validate manual quick buffs
+  description: defines the zod schema used to validate manual quick buffs
                and custom manual modifier entries.
 */
 
@@ -45,7 +45,7 @@ const skillTypeSchema = z.lazy(() => z.enum([
   'hack',
 ]))
 
-// Preserve imported and persisted buffs written before the finalDmg rename.
+// preserve imported and persisted buffs written before the finalDmg rename.
 const mnlTopStatSchema = z.lazy(() => z.pipe(z.transform((value) => value === 'special' ? 'finalDmg' : value), z.enum([
     'flatDmg',
     'amplify',

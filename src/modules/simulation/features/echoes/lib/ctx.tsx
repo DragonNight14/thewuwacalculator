@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Provides echo-surface context shared between panes, menus, and
+  description: provides echo-surface context shared between panes, menus, and
                clipboard actions so those features can coordinate selection and
                inventory behavior.
 */

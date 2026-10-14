@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Orchestrates legacy app-state import by normalizing older saved
+  description: orchestrates legacy app-state import by normalizing older saved
                data into the current persistence schema.
 */
 
@@ -52,8 +52,8 @@ function resLegUi(
   controls: JsonRecord,
   baseUi: UiState,
 ): UiState {
-  // legacy controls used older key names, so each value is coerced and then
-  // folded into the initialized ui object instead of trusted as a full shape.
+  // legacy controls use older keys. coerce each value into the initialized ui
+  // shape.
   const nextTheme = coerceString(controls['user-theme'])
   const sortKey = coerceString(controls.sortKey)
   const sortOrder = coerceString(controls.sortOrder)
@@ -464,7 +464,7 @@ export function mprtLegAppSt(
   // are filled from current defaults without preserving stale optimizer state.
   const snapshot = initAppState({
     ...baseState,
-    // Legacy backups define their encounter through imported profiles/session;
+    // legacy backups define their encounter through imported profiles/session;
     // the default scenario must not override that migration input.
     combat: undefined,
     ui: resLegUi(backup.controls, baseState.ui),

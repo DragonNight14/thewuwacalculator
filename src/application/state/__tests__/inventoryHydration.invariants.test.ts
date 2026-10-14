@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Keeps inventory rehydration read-only for unchanged data while
+  description: keeps inventory rehydration read-only for unchanged data while
                preserving catalog repairs and changes made between loads.
 */
 
@@ -145,7 +145,7 @@ describe('inventory hydration writes', () => {
     useTeamCnsl.getState().close()
     expect(read).not.toHaveBeenCalled()
 
-    // Gear mutations update shared status without touching the evicted snapshots.
+    // gear mutations update shared status without touching the evicted snapshots.
     read.mockClear()
     useAppStore.getState().rmInvEcho(state.library.echoes[0].id)
     useAppStore.getState().rmInvBuild(state.library.builds[0].id)
@@ -154,7 +154,7 @@ describe('inventory hydration writes', () => {
     expect(isBuildSaved(selectSavedBuildSignatures(useAppStore.getState()), build)).toBe(false)
     expect(read).not.toHaveBeenCalled()
 
-    // An explicit full export restores saved snapshots, including writes made before eviction.
+    // an explicit full export restores saved snapshots, including writes made before eviction.
     useAppStore.getState().ensureFullLibrary()
     const snapshot = selectPersisted(useAppStore.getState())
     expect(snapshot.library.rotations).toEqual(rotations)

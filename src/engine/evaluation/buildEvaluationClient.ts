@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: browser-side client for dispatching build evaluation work to
+  description: browser-side client for dispatching build evaluation work to
                a dedicated worker.
 */
 
@@ -23,8 +23,7 @@ type WorkerReq = EvaluationWorkerIn extends infer Job
   ? Job extends { id: number } ? Omit<Job, 'id'> : never
   : never
 
-// Keep only the most recent few reports so returning to a resonator can reuse
-// its exact result without keeping an unbounded collection of report graphs.
+// retain a bounded set of recent reports for reuse when returning to a resonator.
 const MAX_REPORT_CACHE = 3
 type ProgressListener = (progress: ShowcaseAnalysisProgress) => void
 type ShowcaseProgressState = {
@@ -102,7 +101,7 @@ function reportJobMessage(
   }
 }
 
-/** Owns evaluation transport, in-flight work, completed caches, and cancellation. */
+/** manages evaluation transport, in-flight work, completed caches, and cancellation. */
 export class EvaluationClient {
   private activeReportKey: string | null = null
   private activeReportCancel: Int32Array | null = null
@@ -189,8 +188,7 @@ export class EvaluationClient {
       sourceKey?: string
     } = {},
   ): Promise<BuildEvaluationReport | null> {
-    // Equivalent omitted/default section options share one cache entry instead
-    // of retaining duplicate reports under syntactically different requests.
+    // canonicalize omitted and default section options to one cache entry.
     const canonicalOptions = canonicalReportOptions(options.reportOptions)
     const reportKey = makeEvaluationKey({
       mode: getGameDataMode(),
@@ -292,7 +290,7 @@ export class EvaluationClient {
     })
   }
 
-  // One compact result, independent from the full report cache.
+  // one compact result, independent from the full report cache.
   runShowcase(payload: ShowcaseAnalysisInput, onProgress?: ProgressListener): Promise<ShowcaseAnalysisResult> {
     const key = `showcase:${makeEvaluationKey({ mode: getGameDataMode(), payload })}`
     if (this.showcaseCache?.key === key) {

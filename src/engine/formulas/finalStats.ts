@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Computes final stats from base stats, weapon base attack,
+  description: computes final stats from base stats, weapon base attack,
                and a unified buff pool.
 */
 

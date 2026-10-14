@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Verifies allocation-light modulation counts match fully
+  description: verifies allocation-light modulation counts match fully
                materialized effect groups for every resonator.
 */
 

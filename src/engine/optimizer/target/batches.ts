@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: generates cpu-side batches of 5-echo optimizer combinations,
+  description: generates cpu-side batches of 5-echo optimizer combinations,
                optionally enforcing a locked main echo, while pruning any
                branch whose accumulated echo cost already exceeds the max.
 */
@@ -38,7 +38,7 @@ export function* gnrtTgtCpuCm(options: {
     return
   }
 
-  // holds the currently explored 5-combo during dfs
+  // stores the current five-echo combination during dfs
   const combo = new Int32Array(ECHOES_PER_SET)
 
   // one batch stores `batchSize` combos, each combo taking 5 slots

@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: runs the cpu fallback path for rotation-mode optimizer search.
+  description: runs the cpu fallback path for rotation-mode optimizer search.
                it evaluates generated combo batches exactly across all rotation
                contexts, applies constraints using the display context, tracks
                progress, and returns the best bag result refs.
@@ -162,7 +162,7 @@ function evalRotCmbCore(
 }
 
 // base (single-weapon) rotation combo evaluation using the payload's contexts.
-// caller must have already run mkCmbBaseStt for this combo (scratch holds the
+// caller must have already run mkCmbBaseStt for this combo (scratch stores the
 // echo-stat aggregate, reused across contexts).
 function evalRotCmbXc(
     payload: PckdRotXctnP,
@@ -181,10 +181,9 @@ function evalRotCmbXc(
 
 // weapon-search rotation combo evaluation: score the combo against every
 // candidate weapon's full context set and keep the best, tagging its index.
-// the per-target weights are weapon-independent, so payload.contextWeight is
-// reused; only the contexts and display context change per weapon. caller must
-// have already run mkCmbBaseStt for this combo. the echo aggregate is
-// combo-only, so it is shared across all weapons and contexts here.
+// per-target weights and the echo aggregate are weapon-independent and reused
+// across contexts. only the context and display context change per weapon.
+// the caller has already run mkCmbBaseStt for this combo.
 function evalRotCmbWeapons(
     payload: PckdRotXctnP,
     comboIds: Int32Array,
@@ -243,7 +242,7 @@ export async function runRotSrchBt(
   const collector = new OptResultSet(job.jobResultLimit, payload.lowMmryMode)
   const scratch = makeCpuScratch()
 
-  // scratch.comboIds is reused per combo to avoid new allocations
+  // each combo reuses scratch.comboIds.
   const comboIds = scratch.comboIds
 
   // weapon search scores each combo against every candidate weapon's full

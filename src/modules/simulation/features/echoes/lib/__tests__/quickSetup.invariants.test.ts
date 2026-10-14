@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Verifies dual-set main Echoes remain legal leaders for
+  description: verifies dual-set main echoes remain legal leaders for
                five-piece quick-build plans.
 */
 

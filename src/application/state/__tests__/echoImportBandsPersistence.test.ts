@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Keeps Echo import choices across modal sessions and persisted UI
+  description: keeps echo import choices across modal sessions and persisted ui
                reloads, while older snapshots retain the original defaults.
 */
 

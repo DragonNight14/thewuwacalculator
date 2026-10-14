@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Shared skill-tab order and labels for Simulation controls and
+  description: shared skill-tab order and labels for simulation controls and
                editor surfaces.
 */
 
@@ -89,8 +89,7 @@ export function shortenSkillTabLabel(label: string): string {
 }
 
 export function makeSkillTabOptions(order: readonly SkillTabKey[]): Array<{ value: SkillTabKey; label: string }> {
-  // keep select option building centralized so every consumer inherits the
-  // same labels and ordering for a given tab order list.
+  // centralize select options for consistent labels and tab order.
   return order.map((value) => ({
     value,
     label: getSkillTabLabel(value),

@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Verifies first-time teammate gear selection, cold-inventory fast
+  description: verifies first-time teammate gear selection, cold-inventory fast
                paths, and isolation of existing teammate and effect state.
 */
 
@@ -77,7 +77,7 @@ describe('first-time teammate initialization', () => {
   })
   afterEach(() => {
     vi.restoreAllMocks()
-    // Zustand copies action properties into each next state object.
+    // zustand copies action properties into each next state object.
     useAppStore.setState({ ensInvHydr: hydrateInventory })
   })
 

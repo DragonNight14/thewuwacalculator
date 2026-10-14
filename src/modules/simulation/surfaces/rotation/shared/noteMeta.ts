@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Reads and writes authored rotation-note metadata without changing executable node identity.
+  description: reads and writes authored rotation-note metadata without changing executable node identity.
 */
 
 export const ROT_NOTE_COLORS: readonly string[] = [
@@ -12,7 +12,7 @@ export const ROT_NOTE_COLORS: readonly string[] = [
   '#ed55ed',
 ]
 
-/** The first note is Note, then Note 2, Note 3, and so on. */
+/** the first note is note, then note 2, note 3, and so on. */
 export function makeNoteLabel(labels: Iterable<string | null | undefined>): () => string {
   const used = new Set<number>()
   for (const label of labels) {
@@ -38,7 +38,7 @@ export function makeNoteLabel(labels: Iterable<string | null | undefined>): () =
   }
 }
 
-/** Choose the first unused note colour, cycling only after the palette fills. */
+/** choose the first unused note colour, cycling only after the palette fills. */
 export function makeNoteColor(colors: Iterable<string | null | undefined>): () => string {
   const used = new Set([...colors].filter((color): color is string => Boolean(color)))
   let cursor = 0

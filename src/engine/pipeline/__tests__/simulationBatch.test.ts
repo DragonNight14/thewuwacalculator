@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Verifies the simulationBatch.test behavior and its compatibility invariants.
+  description: verifies the simulationBatch.test behavior and its compatibility invariants.
 */
 
 import { describe, expect, it, vi } from 'vitest'

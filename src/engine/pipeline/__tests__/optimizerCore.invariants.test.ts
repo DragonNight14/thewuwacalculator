@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: protects optimizer internals that span cpu search, gpu packing,
+  description: protects optimizer internals that span cpu search, gpu packing,
                set-state encoding, stat constraints, and generated echo data.
 */
 
@@ -56,8 +56,7 @@ function makeEchoInstance(
 }
 
 function makeInventoryEchoes() {
-  // use real catalog choices so slot counts and locked-main behavior track
-  // generated data rather than a synthetic echo definition
+  // real catalog choices exercise generated slot counts and locked-main rules.
   const fourCost = listChsByCos(4)[0]
   const oneCosts = listChsByCos(1).slice(0, 4)
 

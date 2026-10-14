@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: derives default optimizer settings from the current runtime,
+  description: derives default optimizer settings from the current runtime,
                selected target skill, and marginal stat weighting heuristics.
 */
 
@@ -50,7 +50,7 @@ function mapWeightKey(
   return null
 }
 
-// pick the strongest elemental bonus bucket so defaults can prefer it
+// defaults prefer the strongest elemental bonus bucket.
 function pickDefaultBonus(weights: Partial<Record<string, number>>): string | null {
   let bestKey: string | null = null
   let bestWeight = 0
@@ -94,8 +94,8 @@ function makeTargetSkill(params: {
   return prepareSkill(runtime, targetSkill.id, context)
 }
 
-// Carry execution/search preferences across resonator-specific reinitialization.
-// Each new resonator derives its own target independently of search preferences.
+// carry execution/search preferences across resonator-specific reinitialization.
+// each new resonator derives its own target independently of search preferences.
 export function preserveToggles(existing?: OptSets | null): Partial<OptSets> {
   if (!existing) {
     return {}

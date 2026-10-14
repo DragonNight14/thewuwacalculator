@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Constructs and edits the advanced editor's working node model.
+  description: constructs and edits the advanced editor's working node model.
 */
 
 import type {
@@ -83,7 +83,7 @@ export function makeFeatureNode(entry: {
 }
 
 /**
- * Responses remain ordinary editable attachments. Do not filter visibleWhen
+ * responses remain ordinary editable attachments. do not filter visibleWhen
  * here: a mode condition earlier in the program can differ from the build's
  * current mode, and the executor checks the response at the actual break.
  */
@@ -147,9 +147,9 @@ export function makeConditionNode(
 }
 
 /**
- * States worth writing before the rotation starts. Three kinds are left out:
+ * states worth writing before the rotation starts. three kinds are left out:
  * the active resonator, which the generated handoff sets at the end; the
- * per-state target routing, which is a routing choice rather than a state; and
+ * per-state target routing, which belongs to routing; and
  * the rotation formula modifiers, which are one pseudo-state standing for a
  * whole group.
  */
@@ -170,7 +170,7 @@ function lastActiveResonatorNode(nodes: EditorNode[]): EditorCondition | EditorH
   return undefined
 }
 
-/** One state the preamble will write, already read for display. */
+/** one state the preamble will write, already read for display. */
 export interface OpeningState {
   key: string
   resonatorId: string
@@ -181,8 +181,8 @@ export interface OpeningState {
 }
 
 /**
- * The opening states in the order the preamble writes them, one per state a
- * resonator owns. Shares the key the generator dedupes on so a preview and the
+ * the opening states in the order the preamble writes them, one per state a
+ * resonator has. shares the key the generator dedupes on so a preview and the
  * written block can never disagree about how many there are.
  */
 export function openingStates(condChoices: CondChoice[]): OpeningState[] {
@@ -207,8 +207,8 @@ export function countOpeningStates(condChoices: CondChoice[]): number {
 }
 
 /**
- * Every opening state at its default value, then a handoff to whoever starts.
- * Paths the preamble already writes are skipped and a trailing handoff is
+ * every opening state at its default value, then a handoff to whoever starts.
+ * paths the preamble already writes are skipped and a trailing handoff is
  * replaced, so running this twice does not double what it produced.
  */
 export function buildPreambleEntries({

@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: defines the minimal skill shape the optimizer needs when
+  description: defines the minimal skill shape the optimizer needs when
                matching main-echo bonuses and packed damage contexts, and
                extracts that shape from a full skill definition.
 */

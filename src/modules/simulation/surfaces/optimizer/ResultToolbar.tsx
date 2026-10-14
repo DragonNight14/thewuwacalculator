@@ -1,7 +1,7 @@
 /*
   Author: Runor Ewhro
-  Description: Maintains the optimizer result predicate model shared by filtering
-               and find/jump actions, including SQL-like readout serialization.
+  description: maintains the optimizer result predicate model shared by filtering
+               and find/jump actions, including sql-like readout serialization.
 */
 
 import { useMemo, useState } from 'react'
@@ -180,14 +180,14 @@ export function ResultToolbar({
     return base.concat(
       facetPlans(facets).map((plan) => ({
         value: plan.planKey,
-        // pieces-only text; the option body renders sonata tokens instead of names.
+        // the option body renders sonata tokens and piece counts.
         label: `${plan.badges.map((badge) => badge.count).join(' + ')}  ·  ${plan.count}`,
       })),
     )
   }, [facets, isNum, col, colMeta.label])
 
-  // set-plan options render as sonata token clusters (icon + piece badge), so
-  // keep each plan's badges and build count reachable from its option value.
+  // set-plan options render sonata token clusters. store each plan's badges
+  // and build count with its option value.
   const planFacetMap = useMemo(() => {
     if (isNum || !facets || col === 'main' || col === 'set') {
       return null

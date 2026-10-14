@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: estimates marginal stat weights from live damage recomputation
+  description: estimates marginal stat weights from live damage recomputation
                so optimizer defaults can bias toward the current target skill.
 */
 

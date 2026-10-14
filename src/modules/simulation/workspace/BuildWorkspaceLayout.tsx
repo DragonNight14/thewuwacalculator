@@ -1,8 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Shared structural primitives for Build Lab pages. They own the
-               roster, rail, and page-column geometry while each route supplies
-               its own data, controls, and main content.
+  description: provides roster, rail, and page-column layout for build pages.
 */
 
 import { forwardRef } from 'react'

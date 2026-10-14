@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Coordinates queued confirmation requests and promise resolution through the shared dialog.
+  description: coordinates queued confirmation requests and promise resolution through the shared dialog.
 */
 
 import { useCallback } from 'react'
@@ -13,7 +13,7 @@ interface ConfirmRequest {
   message: ReactNode
   confirmLabel?: string
   cancelLabel?: string
-  // Secondary is a distinct commit path, not a second cancel path; callers use
+  // secondary is a distinct commit path, not a second cancel path; callers use
   // it when the same prompt can complete through two valid mutations.
   secondaryLabel?: string
   variant?: 'info' | 'danger'

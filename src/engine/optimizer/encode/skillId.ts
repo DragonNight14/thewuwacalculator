@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: encodes skill type, element, and a stable hashed identifier
+  description: encodes skill type, element, and a stable hashed identifier
                into compact integers used by the optimizer/runtime pipeline.
 */
 

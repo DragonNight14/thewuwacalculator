@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Verifies the selection.test behavior and its compatibility invariants.
+  description: verifies the selection.test behavior and its compatibility invariants.
 */
 
 import { describe, expect, it } from 'vitest'
@@ -101,7 +101,7 @@ describe('rotation editor selection model', () => {
     ])
   })
 
-  it('selects loop bodies but lets owning blocks represent their descendants', () => {
+  it('selects loop bodies through their parent blocks', () => {
     const setup = block('setup', 'setup', [condition('setup-condition')])
     const uptime = block('uptime', 'uptime', [setup], { ratio: 1 })
     const repeat = block('repeat', 'repeat', [step('repeat-child')])

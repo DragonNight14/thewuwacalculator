@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: evaluates a single already-chosen optimizer combo against a
+  description: evaluates a single already-chosen optimizer combo against a
                packed target context, reconstructs final combat stats from
                echo rows + set rows + main-echo bonuses, and returns the
                resulting damage/stat snapshot if all constraints pass.
@@ -331,8 +331,8 @@ export function evalTarget(options: TargetEvaluationOptions): { damage: number; 
   return damage == null ? null : { damage, stats }
 }
 
-// Packed contexts are immutable during a search. Unpack them once, then
-// prepare each candidate frame's set effects once. A trial only totals the
+// packed contexts are immutable during a search. unpack them once, then
+// prepare each candidate frame's set effects once. a trial only totals the
 // changing stat rows and evaluates the shared formula, without result objects.
 export function prepareTargetScoring(
   contexts: readonly Float32Array[],
@@ -353,7 +353,7 @@ export function prepareTargetScoring(
     return index
   })
 
-  // Fixed frame inputs must not change for the lifetime of the returned scorer.
+  // fixed frame inputs must not change for the lifetime of the returned scorer.
   return ({ sets, kinds, comboIds, mainEchoBuffs, mainIndex }: Pick<
     TargetEvaluationOptions, 'sets' | 'kinds' | 'comboIds' | 'mainEchoBuffs' | 'mainIndex'
   >) => {
@@ -378,14 +378,14 @@ export function prepareTargetScoring(
       return total
     }
     const scorer = (stats: Float32Array) => {
-      // Reuse JS-number totals rather than Float32 scratch to preserve the
+      // reuse js-number totals to preserve the
       // original summation precision, including conversion thresholds.
       mkBaseStts(stats, comboIds, base)
       return scoreBase(base)
     }
-    // Reference-allocation trials change only the first Echo's substat lane.
-    // Bind the other four rows once for this main-stat candidate, so each
-    // trial reads one row instead of summing all five again.
+    // reference-allocation trials change only the first echo's substat lane.
+    // bind the other four rows once per main-stat candidate; each trial reads
+    // their precomputed total.
     scorer.prepareFirstLane = (fixedStats: Float32Array) => {
       if (comboIds.length !== 5 || comboIds[0] !== 0 || comboIds[1] !== 1
         || comboIds[2] !== 2 || comboIds[3] !== 3 || comboIds[4] !== 4) return scorer

@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Standard close button used by app modals so dismissal affordances
+  description: standard close button used by app modals so dismissal affordances
                stay visually and semantically consistent.
 */
 

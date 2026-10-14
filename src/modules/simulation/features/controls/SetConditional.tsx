@@ -1,7 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Filters Sonata effect parts by ownership and piece count, then
-               edits sparse disabled-part overrides against catalog defaults.
+  description: filters sonata effects by source and piece count and edits disabled-part overrides.
 */
 
 import { DisplayImage } from '@/shared/ui/DisplayImage'
@@ -281,7 +280,7 @@ export function SetCond(props: {
     setQuery(event.target.value)
   }, [])
 
-  // Piece-filter counts apply the search query but not the selected piece filter.
+  // piece-filter counts apply the search query across all piece choices.
   const pieceCounts = useMemo(() => {
     const term = query.trim().toLowerCase()
     const counts: Record<PieceFilter, number> = { all: 0, one: 0, two: 0, three: 0, five: 0 }

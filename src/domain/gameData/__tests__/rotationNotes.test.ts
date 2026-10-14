@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Verifies the rotationNotes.test behavior and its compatibility invariants.
+  description: verifies the rotationNotes.test behavior and its compatibility invariants.
 */
 
 import { describe, expect, it } from 'vitest'
@@ -28,7 +28,7 @@ describe('stripRotationNotes', () => {
     expect(detachRotationNote(host)).toBe(host)
   })
 
-  it('removes standalone and owned notes from every execution branch', () => {
+  it('removes standalone and attached notes from every execution branch', () => {
     const items: RotationNode[] = [
       { id: 'root-note', type: 'note', label: 'Opening', text: 'Display only' },
       {

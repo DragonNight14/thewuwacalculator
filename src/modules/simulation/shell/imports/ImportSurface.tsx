@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Registers share handlers, resolves incoming payloads, and gates imports behind confirmation.
+  description: registers share handlers, resolves incoming payloads, and gates imports behind confirmation.
 */
 
 import {
@@ -29,9 +29,9 @@ import { ImportReceived } from './ImportReceived.tsx'
 import { useRotationImportHandler } from './rotationImport.ts'
 
 interface ImportSurfaceApi {
-  // Callers hand off raw share text; the provider owns validation and review.
+  // callers pass raw share text; the provider validates it and presents the review.
   queryImport: (raw: string) => Promise<void>
-  // Manual imports enter through the same resolver as deep links and files.
+  // manual imports enter through the same resolver as deep links and files.
   openImport: () => void
 }
 
@@ -54,7 +54,7 @@ type Phase =
   | { mode: 'input' }
   | { mode: 'review'; resolved: ResolvedImport }
 
-const NOT_FOUND = 'Could not read that link. Make sure the whole link or token was copied.'
+const NOT_FOUND = 'Could not read that link. Copy the complete link or token and try again.'
 
 export function ImportSurfaceProvider({ children }: { children: ReactNode }) {
   const rotationHandler = useRotationImportHandler()
@@ -140,7 +140,7 @@ export function ImportSurfaceProvider({ children }: { children: ReactNode }) {
         setError(null)
       }
     } catch {
-      setError('Could not read the clipboard. Paste the token into the field instead.')
+      setError('Could not read the clipboard. Enter the token in the field.')
     }
   }, [])
 
@@ -151,7 +151,7 @@ export function ImportSurfaceProvider({ children }: { children: ReactNode }) {
       const { readAppFile } = await import('@/application/persistence/fileCodec.ts')
       await toReview(await readAppFile(file))
     } catch {
-      setError('Failed to read that file. Make sure it is a valid export.')
+      setError('Failed to read that file. Select a valid export.')
     } finally {
       event.target.value = ''
     }

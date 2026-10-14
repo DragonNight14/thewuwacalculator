@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Defines the global toast store used for showing, dismissing,
+  description: defines the global toast store used for showing, dismissing,
                and removing notification toasts.
 */
 
@@ -18,9 +18,9 @@ export type TstPstn =
 export type ToastVariant = 'default' | 'success' | 'error' | 'warning'
 
 /*
-  Where a toast stands unless its caller says otherwise. Bottom right keeps the
+  where a toast stands unless its caller says otherwise. bottom right keeps the
   report clear of the head, the rail and the account column, and it is the one
-  corner no surface writes into. A caller can still name its own position, but
+  corner no surface writes into. a caller can still name its own position, but
   every corner it picks is another place somebody has to learn to look.
 */
 export const DEF_PSTN: TstPstn = 'bottom-right'
@@ -64,7 +64,7 @@ export const useTstStr = create<ToastStore>((set, get) => ({
     return id
   },
 
-  // mark a toast as exiting so the ui can animate it out
+  // mark exiting toasts for the ui exit animation.
   dismiss(id) {
     set((state) => ({
       toasts: state.toasts.map((toast) =>

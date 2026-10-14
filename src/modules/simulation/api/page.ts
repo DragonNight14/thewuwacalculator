@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Exports the Simulation route entry without loading it through contract-only imports.
+  description: exports the simulation route entry without loading it through contract-only imports.
 */
 
 export { SimulationPage } from '../shell/SimulationPage'

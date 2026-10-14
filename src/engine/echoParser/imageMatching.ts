@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Provides image matching helpers for echo and set icon
+  description: provides image matching helpers for echo and set icon
                recognition using canvas preprocessing, shape checks,
                histograms, and pixel comparison.
 */
@@ -525,7 +525,7 @@ const ECHO_H = 182
 const SET_W = 32
 const SET_H = 32
 
-// run tasks a few at a time so decoding overlaps the network without flooding it
+// run a small batch of tasks to overlap decoding with network work.
 async function runPooled<T>(items: T[], task: (item: T) => Promise<void>): Promise<void> {
   const limit = Math.min(8, items.length)
   let cursor = 0

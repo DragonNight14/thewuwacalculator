@@ -1,7 +1,7 @@
 /*
   Author: Runor Ewhro
-  Description: Coordinates persisted appearance and behavior preferences,
-               local data import/export, storage accounting, and Drive backups.
+  description: coordinates persisted appearance and behavior preferences,
+               local data import/export, storage accounting, and drive backups.
 */
 
 import { GoogleOAuthProvider } from '@react-oauth/google'
@@ -408,10 +408,9 @@ function SettingRow({
 }
 
 
-// The thing this control controls is a signature, so it shows the signature: the
-// plate renders exactly what a showcase card prints, in the card's own face, while
-// you type. The Echo parser writes the same preference, so the drafts follow the
-// store during render rather than through an effect.
+// the plate previews the showcase card's signature as the user types. the echo
+// parser writes the same preference; drafts reconcile with the store during
+// render.
 function PlayerPlate() {
   const playerId = useAppStore((state) => state.ui.preferences.playerId)
   const playerUid = useAppStore((state) => state.ui.preferences.playerUid)
@@ -556,7 +555,7 @@ function CalibrationContent() {
   const [lgcyMprtStts, setLgcyMprtS] = useState<string | null>(null)
   const [lgcyMprtRrr, setLgcyMprtR] = useState<string | null>(null)
 
-  // Initialize the editable theme slot from the current mode; later picks are local.
+  // initialize the editable theme slot from the current mode; later picks are local.
   const liveSlot: SlotId = ui.theme === 'background' ? 'background' : ui.theme === 'light' ? 'light' : 'dark'
   const [openSlot, setOpenSlot] = useState<SlotId>(liveSlot)
   const [seenLive, setSeenLive] = useState(liveSlot)
@@ -654,14 +653,13 @@ function CalibrationContent() {
   const switchedOn = switchable.filter((item) => item.checked).length
 
   const mkCurSnapJso = useCallback(() => {
-    // hydrate inventory first so exports always capture the fully realized
-    // persisted snapshot instead of a lazily trimmed view.
+    // hydrate inventory before exporting the complete persisted snapshot.
     useAppStore.getState().ensureFullLibrary()
     const snapshot = selectPersisted(useAppStore.getState())
     return JSON.stringify(snapshot)
   }, [])
 
-  // Measure compact JSON data and standalone export payloads before compression.
+  // measure compact json data and standalone export payloads before compression.
   const [weights, setWeights] = useState<{
     parts: { name: string; bytes: number }[]
     total: number
@@ -680,7 +678,7 @@ function CalibrationContent() {
         { name: 'Echoes', bytes: size(snapshot.library.echoes) },
         { name: 'Working scenarios', bytes: size(snapshot.combat) },
         { name: 'Builds', bytes: size(snapshot.library.builds) },
-        // Saved rotations already contain complete scenarios. Include
+        // saved rotations already contain complete scenarios. include
         // standalone scenario snapshots in this same group, counted once.
         { name: 'Saved rotations', bytes: size([...snapshot.library.rotations, ...snapshot.library.scenarios]) },
         { name: 'Simulation', bytes: size(snapshot.simulation) },
@@ -744,7 +742,7 @@ function CalibrationContent() {
     setDrftFUrl(ui.bodyFontUrl)
   }, [ui.bodyFontName, ui.bodyFontUrl])
 
-  // Load preset font stylesheets once on mount, independently of the selected font.
+  // load preset font stylesheets once on mount, independently of the selected font.
   useEffect(() => {
     for (const preset of BODY_FONT_PRESETS) {
       if (preset === SYSTEM_FONT_NAME || preset === WUWA_FONT_NAME) continue
@@ -757,7 +755,7 @@ function CalibrationContent() {
 
     const loadPreview = async () => {
       setFontPrvwL(true)
-      // Loading a preview stylesheet does not persist a font selection.
+      // loading a preview stylesheet does not persist a font selection.
       const resolved = await applyPrvwBod(drftFontName, drftFontUrl)
       if (cancelled) {
         return
@@ -963,7 +961,7 @@ function CalibrationContent() {
         throw new Error('Google Drive session expired. Sign in again to continue.')
       }
 
-      // Yield one frame so the busy state commits before synchronous serialization.
+      // yield one frame so the busy state commits before synchronous serialization.
       await waitForNextP()
       const raw = mkCurSnapJso()
       const result = await pldSnapToDrv(accessToken, raw)
@@ -1410,7 +1408,7 @@ function CalibrationContent() {
                 </div>
                 {!canApplyFont && !fontPrvwLdng ? (
                   <p className="cal-help cal-help--warn">
-                    That is not a fonts.googleapis.com link, so it cannot be loaded.
+                    Enter a fonts.googleapis.com link to load this font.
                   </p>
                 ) : null}
               </div>
@@ -1523,7 +1521,7 @@ function CalibrationContent() {
               <div className="cal-block">
                 <div className="cal-blockh">
                   <h3>Player</h3>
-                  <span>the only thing in here that is you rather than bytes</span>
+                  <span>the personal part of this data</span>
                 </div>
                 <PlayerPlate />
               </div>

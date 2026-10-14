@@ -1,7 +1,7 @@
 /*
   Author: Runor Ewhro
-  Description: defines the level scaling table and enemy max Off-Tune factor
-               used by Tune Rupture and Hack damage.
+  description: defines the level scaling table and enemy max off-tune factor
+               used by tune rupture and hack damage.
 */
 
 const TUNERPTRLVLS = [

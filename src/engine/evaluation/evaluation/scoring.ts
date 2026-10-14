@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Scores encoded Echo stat buffers against direct or rotation
+  description: scores encoded echo stat buffers against direct or rotation
                suggestion contexts.
 */
 
@@ -34,8 +34,8 @@ function evaluateContext(
   })
 }
 
-// Resolve the same representative combat-stat snapshot used by optimizer
-// result rows. Rotation damage still scores every weighted context below.
+// resolve the same representative combat-stat snapshot used by optimizer
+// result rows. rotation damage still scores every weighted context below.
 export function resolveEvaluationStats(
     ctx: SuggestContext,
     build: EncodedEvaluationBuild,
@@ -45,7 +45,7 @@ export function resolveEvaluationStats(
   return evaluateContext(context, ctx, build)?.stats ?? null
 }
 
-// Search frames share an immutable suggestion context. Weak keys release its
+// search frames share an immutable suggestion context. weak keys release its
 // compiled scorer with the search, without retaining completed reports/teams.
 const scoringByContext = new WeakMap<SuggestContext, ReturnType<typeof prepareTargetScoring>>()
 

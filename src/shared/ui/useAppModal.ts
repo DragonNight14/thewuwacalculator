@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Coordinates modal visible, open, closing, payload, and delayed-unmount state transitions.
+  description: coordinates modal visible, open, closing, payload, and delayed-unmount state transitions.
 */
 
 import { useCallback, useMemo, useState } from 'react'
@@ -8,7 +8,7 @@ import { useAnimatedModalValue, useAnimatedVisibility } from '@/shared/hooks/use
 import type { AppModalState } from '@/shared/ui/AppModal'
 
 export const MODAL_EXIT_MS = 320
-// Publish the open phase after mount so dialog refs exist before focus handling.
+// publish the open phase after mount so dialog refs exist before focus handling.
 const MODAL_OPEN_DELAY = 1
 
 function getDialogProps(state: AppModalState): AppModalState {
@@ -45,7 +45,7 @@ export function useResetModalValue<T>(
   const modal = useAppModal()
 
   const show = useCallback((nextValue: T) => {
-    // Reset both local and external drafts before publishing the open state.
+    // reset both local and external drafts before publishing the open state.
     resetValue(nextValue)
     setValue(nextValue)
     modal.show()

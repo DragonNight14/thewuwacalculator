@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Renders the authored privacy policy with shared legal-page metadata.
+  description: renders the authored privacy policy with shared legal-page metadata.
 */
 
 import { useNavX } from '@/shared/navigation/useNavX'

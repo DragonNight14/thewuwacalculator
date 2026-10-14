@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: centralized optimizer search-space counting helpers for both
+  description: centralized optimizer search-space counting helpers for both
                inventory-facing estimates and encoded main-index subsets.
 */
 
@@ -80,7 +80,7 @@ function getAllowedSets(settings: OptSets): Set<number> {
 }
 
 // count main-eligible catalog/set candidates by cost under the visible set
-// filter. the worker attempts main echo by concrete catalog+set row, so this
+// filter. the worker attempts main echo by concrete catalog and set row. this
 // keeps the prepared total aligned with the processed counter.
 function cntMainByCost(settings: OptSets): Map<number, number> {
   const setIds = getAllowedSets(settings)
@@ -112,9 +112,8 @@ function cntMainByCost(settings: OptSets): Map<number, number> {
 }
 
 // count legal cost/main layouts for the five current substat profiles.
-// this intentionally ignores set identity; set identity is counted by the
-// set-plan dimension so equivalent slot-level set permutations do not inflate
-// theory mode's displayed search space.
+// the set-plan dimension counts set identity. ignore it here to deduplicate
+// equivalent slot-level permutations in the displayed theory search space.
 export function countTheoryMain(settings: OptSets, slotCount: number): number {
   const setIds = getAllowedSets(settings)
   const mainByCost = cntMainByCost(settings)
@@ -217,7 +216,7 @@ function getMainIndices(
   return indices
 }
 
-// sum the exact number of valid 5-echo combos from one DP row up to a cost cap
+// sum the exact number of valid 5-echo combos from one dp row up to a cost cap
 function countDpRows(row: Int32Array, maxCost: number): number {
   let total = 0
 
@@ -228,7 +227,7 @@ function countDpRows(row: Int32Array, maxCost: number): number {
   return total
 }
 
-// build a DP table where dp[k][c] = number of ways to choose k echoes
+// build a dp table where dp[k][c] = number of ways to choose k echoes
 // with total cost exactly c, optionally skipping one excluded index.
 // this is the core counting engine for the exact cost-constrained modes.
 function makeDpExclude(

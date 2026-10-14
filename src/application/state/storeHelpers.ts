@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Collects app-store bootstrap and derived-state helpers for
+  description: collects app-store bootstrap and derived-state helpers for
                initial persistence loading and per-resonator suggestion state
                access.
 */
@@ -26,7 +26,7 @@ export function mkDefRotName(
   return `${resName} Rotation ${xstnCnt + 1}`
 }
 
-// Gear is shared by every equipped-status surface. Saved scenarios stay on disk.
+// gear is shared by every equipped-status surface. saved scenarios stay on disk.
 export function mkNtlAppStt(): HydratedAppState {
   if (typeof window === 'undefined') return makeAppState()
   return loadPrssAppS({ includeInventory: 'gear' }) ?? makeAppState()
@@ -37,7 +37,7 @@ export function getSuggsSttF(
   resonatorId: ResonatorId,
 ): SuggestState {
   // callers often mutate suggestion state locally before writing back, so hand
-  // them a clone instead of a direct store reference.
+  // them a clone, preserving the store reference.
   return state.simulation.suggestionsByResonatorId[resonatorId]
     ? structuredClone(state.simulation.suggestionsByResonatorId[resonatorId])
     : makeSuggest()

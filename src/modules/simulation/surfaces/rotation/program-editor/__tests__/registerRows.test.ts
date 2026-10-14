@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Protects Off-Tune landing authoring before a rotation is run.
+  description: protects off-tune landing authoring before a rotation is run.
 */
 
 import { describe, expect, it } from 'vitest'

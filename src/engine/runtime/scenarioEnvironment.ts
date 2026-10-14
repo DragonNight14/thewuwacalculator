@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Creates combat environments and resolves authored manual
+  description: creates combat environments and resolves authored manual
                effects against equal scenario-member subscriptions.
 */
 
@@ -126,7 +126,7 @@ export function resolveEnvironmentManualBuffs(
   return resolved
 }
 
-/** Apply target-owned encounter modifiers without turning them into attacker buffs. */
+/** apply encounter target modifiers separately from attacker buffs. */
 export function applyEnvironmentTargetModifiers(
   pool: UnifiedBuffPool,
   modifiers: EnvironmentTargetModifiers,
@@ -157,7 +157,7 @@ function subtractQuickBuffs(target: ManualBuffs, contribution: ManualBuffs): voi
   target.quick.healingBonus -= contribution.quick.healingBonus
 }
 
-/** Reverse the aggregate UI projection back into one member-authored source. */
+/** reverse the aggregate ui projection back into one member-authored source. */
 export function extractMemberManualBuffs(
   environment: CombatEnvironment,
   member: ScenarioTeamMember,
@@ -181,9 +181,9 @@ export function extractMemberManualBuffs(
       continue
     }
 
-    // If the old UI edited the projected value, retain only its delta from
+    // if the old ui edited the projected value, retain only its delta from
     // the environment source so the next aggregate projection reproduces the
-    // value the user saw instead of double-applying the shared contribution.
+    // value the user saw while applying the shared contribution once.
     index = authored.modifiers.findIndex((candidate) => (
       candidate.id === contribution.id && candidate.scope === contribution.scope
     ))
@@ -210,7 +210,7 @@ export function replaceMemberManualEffect(
   return { ...environment, manualEffects }
 }
 
-/** Detach edited inherited buffs for one member, then store the desired projection. */
+/** detach edited inherited buffs for one member, then store the desired projection. */
 export function replaceProjectedMemberManualBuffs(
   environment: CombatEnvironment,
   member: ScenarioTeamMember,

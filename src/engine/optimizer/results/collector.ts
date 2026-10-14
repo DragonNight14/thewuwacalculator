@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: collects optimizer bag results into a deduped lookup keyed by
+  description: collects optimizer bag results into a deduped lookup keyed by
                equipped echo ids, with a compact bigint fast path for the
                common fixed-width five-echo result layout.
 */
@@ -80,7 +80,7 @@ class OptBagRsltLk {
   private keys3: Int32Array
   private keys4: Int32Array
   private damages: Float64Array | Float32Array
-  // low-memory mode stores damage at f32 precision. it MUST match the heap's
+  // low-memory mode stores damage at f32 precision. it must match the heap's
   // damage precision in OptResultSet, because sorted() relies on exact
   // equality between a heap entry's damage and this table's recorded best.
   private readonly useF32: boolean
@@ -394,7 +394,7 @@ export class OptResultSet {
   private readonly k: number
   private bestDamageBySet: OptBagRsltLk
   // columnar min-heap on damage. parallel typed arrays replace the previous
-  // array of OptBagResult objects, removing per-result allocation + GC
+  // array of OptBagResult objects, removing per-result allocation + gc
   // tracking that became significant at high result limits (up to 65536).
   private readonly heapDmg: Float64Array | Float32Array
   private readonly heapI0: Int32Array
@@ -563,7 +563,7 @@ export class OptResultSet {
       return
     }
 
-    // heap full: root holds the current minimum. only displace it when the
+    // heap full: root stores the current minimum. only displace it when the
     // candidate beats it.
     if (damage <= this.heapDmg[0]) {
       return

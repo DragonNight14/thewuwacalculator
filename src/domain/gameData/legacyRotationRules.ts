@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Implements the legacyRotationRules logic for the gameData module.
+  description: implements the legacyRotationRules logic for the gameData module.
 */
 
 import type {
@@ -8,7 +8,7 @@ import type {
   RtChng,
 } from '@/domain/gameData/contracts.ts'
 
-/** Persisted pre-fork run rule. It is accepted only by compatibility migration. */
+/** persisted pre-fork run rule. it is accepted only by compatibility migration. */
 export interface LegacyRotWhenRunOverride {
   runs: Record<string, number>
   multiplier?: number
@@ -17,7 +17,7 @@ export interface LegacyRotWhenRunOverride {
   changes?: RtChng[]
 }
 
-/** Persisted pre-fork run rule. Current RotationNode does not expose this. */
+/** persisted pre-fork run rule. current RotationNode does not expose this. */
 export interface LegacyRotWhenRule {
   loops?: Array<{ loopId: string; runs: number[] }>
   overrides?: LegacyRotWhenRunOverride[]
@@ -259,10 +259,9 @@ function collectLegacyLoopScopeByNode(
   }
 
   /*
-    Attachments execute at their parent's cursor rather than owning a place in
-    the flat marker stream. Give them that exact structural scope so loop
-    legacy rules receive the same structural scope as their parent before the
-    one-time migration materializes them.
+    attachments execute at their parent's cursor within the flat marker stream.
+    assign each attachment its parent's structural scope before one-time
+    migration materializes legacy loop rules.
   */
   const indexAttachments = (
     node: RotationNode,
@@ -290,4 +289,4 @@ function collectLegacyLoopScopeByNode(
 
   return loopScopeByNodeId
 }
-/* Input-only support for rotations authored before exact loop pass forks. */
+/* input-only support for rotations authored before exact loop pass forks. */

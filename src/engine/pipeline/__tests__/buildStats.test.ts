@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Verifies that build-stat projection includes build-bound
+  description: verifies that build-stat projection includes build-bound
                passives while excluding live combat control state.
 */
 

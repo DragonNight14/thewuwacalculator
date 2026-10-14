@@ -1,15 +1,15 @@
 /*
   Author: Runor Ewhro
-  Description: Compiles participant effects into packed numeric team state for repeated combat evaluation.
+  description: compiles participant effects into packed numeric team state for repeated combat evaluation.
 */
 
 /*
-  Shader-like Simulation effect kernel.
+  shader-like simulation effect kernel.
 
-  Rich runtimes and authored effect objects are consumed once by compilation.
-  Evaluation thereafter uses dense participant lanes, numeric registers and
-  typed instruction streams. The object-shaped Simulation context is only a
-  cold materialization boundary for UI and compatibility callers.
+  rich runtimes and authored effect objects are consumed once by compilation.
+  evaluation thereafter uses dense participant lanes, numeric registers and
+  typed instruction streams. the object-shaped simulation context is only a
+  cold materialization boundary for ui and compatibility callers.
 */
 
 import { getGameData } from '@/data/gameData/index.ts'
@@ -235,13 +235,13 @@ export interface NumericTeamState {
   readonly program: NumericTeamProgram
   activeLane: number
   /*
-    A write does not rebuild the buff graph; it records which lanes went stale.
-    A rotation writes several states in a row before it reads anything, and
+    a write does not rebuild the buff graph; it records which lanes went stale.
+    a rotation writes several states in a row before it reads anything, and
     rebuilding after each one repeats the same work for every write in the run.
   */
   dirtySources: number
   dirtyTargets: number
-  /** Monotonic register revision for small compatibility projections. */
+  /** monotonic register revision for small compatibility projections. */
   revision: number
   readonly baseStats: Float64Array
   readonly weaponAttack: Float64Array
@@ -266,21 +266,21 @@ export interface NumericTeamState {
   readonly skillBuffScratch: Float64Array
   readonly skillScalarScratch: Float64Array
   /*
-    Who moved a figure, not just by how much. The sum alone cannot say which
-    buff put the Off-Tune there, and a register readout that names no source is
-    a number the reader has to take on faith. Off by default: the search paths
+    who moved a figure, not just by how much. the sum alone cannot say which
+    buff put the off-tune there, and a register readout that names no source is
+    a number the reader has to take on faith. off by default: the search paths
     run the same kernel and have nothing to read it with.
   */
   traceContributions: boolean
   skillScalarTrace: SkillScalarWrite[]
   /* one list per lane, since a lane is recomputed on its own */
   buildupRateTrace: ContributionWrite[][]
-  /** Delta log used only while a scoped rotation branch is open. */
+  /** delta log used only while a scoped rotation branch is open. */
   readonly transactionLog: NumericUndoEntry[]
   transactionDepth: number
 }
 
-/** One effect's contribution to a figure, as the kernel applied it. */
+/** one effect's contribution to a figure, as the kernel applied it. */
 export interface ContributionWrite {
   ownerKey: string
   /** the lane the effect came from, which is not always the lane it landed on */
@@ -288,7 +288,7 @@ export interface ContributionWrite {
   value: number
 }
 
-/** One effect's contribution to one skill scalar, as the kernel applied it. */
+/** one effect's contribution to one skill scalar, as the kernel applied it. */
 export interface SkillScalarWrite extends ContributionWrite {
   field: SkillScalarField
 }
@@ -310,7 +310,7 @@ export interface NumericTeamInput {
   enemy: EnemyProfile
   basePools: Partial<Record<SlotId, UnifiedBuffPool>>
   baseStats?: Partial<Record<SlotId, ResBaseStats>>
-  /** Optional cold-build source filter; omitted by live Simulation execution. */
+  /** optional cold-build source filter; omitted by live simulation execution. */
   includeEffectSource?: (source: DataSrcRef) => boolean
 }
 
@@ -901,7 +901,7 @@ function clearImmunities(state: NumericTeamState, lane: number): void {
 }
 
 /*
-  The one pool cell a readout names sources for. Watching a single destination
+  the one pool cell a readout names sources for. watching a single destination
   keeps the cost of tracing to one integer compare per write, which is what
   makes it affordable in the recompute loop at all.
 */
@@ -998,8 +998,8 @@ function markNumericDirty(state: NumericTeamState, sourceMask: number, targetMas
 }
 
 /**
- * Rebuild whatever went stale since the last read. Every path that reads a
- * derived value calls this first, so a caller never sees a half-written graph.
+ * rebuild stale graph nodes before every derived read. callers receive a
+ * complete graph.
  */
 export function syncNumericTeam(state: NumericTeamState): void {
   const sourceMask = state.dirtySources
@@ -1016,7 +1016,7 @@ function recomputeMask(state: NumericTeamState, sourceMask: number, targetMask: 
   for (let lane = 0; lane < laneCount; lane += 1) {
     if (!(sourceMask & (1 << lane))) continue
     /*
-      A source plane is what a lane offers to the lanes that read it. When no
+      a source plane is what a lane offers to the lanes that read it. when no
       program reads this one, deriving it is work nothing can observe, and a
       team where only the active member buffs others has more such lanes than
       not.
@@ -1260,8 +1260,8 @@ export function createNumericTeam(input: NumericTeamInput): NumericTeamState {
 }
 
 /*
-  Recompute every lane so the contribution traces describe the state as it
-  stands. A trace is only written while a lane is being recomputed, so a lane
+  recompute every lane so the contribution traces describe the state as it
+  stands. a trace is only written while a lane is being recomputed, so a lane
   that never goes dirty during a run would otherwise have nothing to show and
   its whole figure would fall to the unattributed remainder.
 */
@@ -1293,13 +1293,13 @@ export function forkNumericTeam(source: NumericTeamState): NumericTeamState {
   }
 }
 
-/** Begin a scoped branch without copying the team's register banks. */
+/** begin a scoped branch without copying the team's register banks. */
 export function checkpointNumericTeam(state: NumericTeamState): NumericTeamCheckpoint {
   state.transactionDepth += 1
   return { state, logIndex: state.transactionLog.length }
 }
 
-/** Restore only registers written since the checkpoint and invalidate derived lanes. */
+/** restore only registers written since the checkpoint and invalidate derived lanes. */
 export function rollbackNumericTeam(checkpoint: NumericTeamCheckpoint): void {
   const state = checkpoint.state
   for (let index = state.transactionLog.length - 1; index >= checkpoint.logIndex; index -= 1) {
@@ -1325,7 +1325,7 @@ export function rollbackNumericTeam(checkpoint: NumericTeamCheckpoint): void {
   state.transactionDepth = Math.max(0, state.transactionDepth - 1)
   state.revision += 1
   const all = (1 << state.program.laneIds.length) - 1
-  // A temporary branch may have synchronized derived planes. Re-deriving once
+  // a temporary branch may have synchronized derived planes. re-deriving once
   // from restored registers is cheaper than snapshotting every derived array.
   markNumericDirty(state, all, all)
 }
@@ -1380,7 +1380,7 @@ export interface NumericRegisterRead {
   value: string | number | boolean | undefined
 }
 
-/** Read one tagged runtime register without projecting a ResRuntime object. */
+/** read one tagged runtime register without projecting a ResRuntime object. */
 export function readNumericRuntime(
     state: NumericTeamState,
     resonatorId: string,
@@ -1398,7 +1398,7 @@ export function readNumericRuntime(
   return { found: true, value: undefined }
 }
 
-/** Project only the small combat register group needed by damage formulas. */
+/** project only the small combat register group needed by damage formulas. */
 export function materializeNumericCombat(
     state: NumericTeamState,
     lane: number,
@@ -1450,7 +1450,7 @@ export function setNumericActiveLane(state: NumericTeamState, resonatorId: strin
   return state.program.activeDependencyMask
 }
 
-/** Read a runtime skill condition from its compiled numeric program. */
+/** read a runtime skill condition from its compiled numeric program. */
 export function evaluateNumericCondition(
     state: NumericTeamState,
     lane: number,
@@ -1461,7 +1461,7 @@ export function evaluateNumericCondition(
   return program ? executeConditionNode(state, program, 0) : undefined
 }
 
-/** Compatibility name for callers preparing an individual skill. */
+/** compatibility name for callers preparing an individual skill. */
 export const evaluateNumericSkillCondition = evaluateNumericCondition
 
 export function writeNumericRoute(
@@ -1496,7 +1496,7 @@ function skillOperationMatches(skill: SkillDef, operation: NumericSkillOperation
   return true
 }
 
-/** Apply compiled skill effects without rebuilding an effect context or graph. */
+/** apply compiled skill effects without rebuilding an effect context or graph. */
 export function prepareNumericSkill(state: NumericTeamState, lane: number, skill: SkillDef): SkillDef {
   syncNumericTeam(state)
   let multiplier = skill.multiplier

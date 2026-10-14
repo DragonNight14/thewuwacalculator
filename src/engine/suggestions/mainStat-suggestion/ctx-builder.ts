@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: builds default and filtered main-stat pools for the
+  description: builds default and filtered main-stat pools for the
                suggestion engine using stat weights and character rules.
 */
 

@@ -1,7 +1,7 @@
 /*
   Author: Runor Ewhro
-  Description: Filters enemy presets and returns the selected enemy profile
-               template for Simulation target configuration.
+  description: filters enemy presets and returns the selected enemy profile
+               template for simulation target configuration.
 */
 
 import { DisplayImage } from '@/shared/ui/DisplayImage'

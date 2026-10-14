@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Subscribes React score displays to simulation-profile changes.
+  description: subscribes react score displays to simulation-profile changes.
 */
 
 import { useCallback, useMemo, useSyncExternalStore } from 'react'

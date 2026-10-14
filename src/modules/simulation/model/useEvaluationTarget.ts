@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Prepares a deferred evaluation simulation for the selected target.
+  description: prepares a deferred evaluation simulation for the selected target.
 */
 
 import { useEffect, useMemo, useState } from 'react'
@@ -55,8 +55,8 @@ export function useEvaluationTarget({
   }, [deferHeavyWork, settleInputs])
   /* eslint-enable react-hooks/set-state-in-effect */
 
-  // Check the settled input identity during render so an edit cannot run one
-  // stale preparation before the effect resets the gate.
+  // check settled input identity during render. an edit invalidates stale
+  // preparation before the effect resets the gate.
   const heavyWorkReady = !deferHeavyWork || settledInputs === settleInputs
   const resolvedTargetRuntime = heavyWorkReady ? targetRuntime : null
   const resolvedTargetSeed = heavyWorkReady ? targetSeed : null

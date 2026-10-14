@@ -1,8 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: owns the long-form reference documentation entries used by the
-               docs page, keeping simulation math and evaluation explanations in
-               structured data rather than page component branches.
+  description: defines structured reference content for simulation math and build evaluation.
 */
 
 export interface DocProseBlock {
@@ -23,7 +21,7 @@ export interface DocTableBlock {
   rows: string[][]
 }
 
-/** Renders the live grade ladder from the evaluation module. */
+/** renders the live grade ladder from the evaluation module. */
 export interface DocLadderBlock {
   type: 'ladder'
   caption: string
@@ -31,7 +29,7 @@ export interface DocLadderBlock {
 }
 
 /**
- * Renders the live Tune Break level table from the engine. Shows the key
+ * renders the live tune break level table from the engine. shows the key
  * breakpoints by default and expands to every level from 1 to 90.
  */
 export interface DocLevelTableBlock {
@@ -53,12 +51,12 @@ export interface DocSection {
   blocks: DocBlock[]
 }
 
-/** Selects the topic's interactive calculation example. */
+/** selects the topic's interactive calculation example. */
 export type DocInstrument = 'anchorScale' | 'stackRamp' | 'searchSpace' | 'none'
 
 export interface DocTopic {
   id: string
-  /** Stable short topic code, e.g. "SCORE". */
+  /** stable short topic code, e.g. "SCORE". */
   code: string
   eyebrow: string
   title: string
@@ -66,7 +64,7 @@ export interface DocTopic {
   summary?: string
   drives: string
   instrument: DocInstrument
-  /** Calculation caveats for the selected instrument. */
+  /** calculation caveats for the selected instrument. */
   instrumentNote?: string[]
   aliases?: string[]
   sections: DocSection[]
@@ -94,8 +92,8 @@ const evaluationTopic: DocTopic = {
           type: 'prose',
           text: [
             'A build score request starts with the selected resonator state, the latest simulation, the enemy profile, and the other team members. The score cannot be computed from Echo totals alone, because the denominator is generated for the same rotation, team state, enemy, weapon, active controls, Sonata state, and main Echo assumptions.',
-            'The returned number places active build damage on a generated reference scale: 0% is the no-Echo baseline, 100% is the constrained investment benchmark, and 200% is the maximum-value benchmark. Scores can exceed 100%. This compares damage inside one standardized combat situation; Echo-card quality uses its own reference, described in section 12.',
-            'To make scores comparable, evaluation uses standard levels and an enemy instead of your configured ones. It sets the resonator to level 90, maximizes skills and trace nodes, and raises the equipped weapon to its maximum level. It uses a level 100 enemy with 20% RES. Your Echoes, weapon choice and rank, sequence, team, and active controls stay as configured.',
+            'The score compares active build damage with generated references in one standardized combat situation: 0% is the no-Echo baseline, 100% is the constrained investment benchmark, and 200% is the maximum-value benchmark. Scores can exceed 100%; section 12 describes the separate Echo-card quality reference.',
+            'Evaluation uses standardized levels and enemy settings for comparable scores. It sets the resonator to level 90, maximizes skills and trace nodes, and raises the equipped weapon to its maximum level. It uses a level 100 enemy with 20% RES. Your Echoes, weapon choice and rank, sequence, team, and active controls stay as configured.',
           ],
         },
         {
@@ -136,7 +134,7 @@ const evaluationTopic: DocTopic = {
             ['Echo stat table', 'defines legal main stats, fixed secondary stats, available substats, and possible roll values'],
             ['Echo catalog', 'defines cost, set membership, and which Echoes can be selected as the main Echo'],
             ['Sonata set definitions', 'define piece activation, utility states, stack controls, and set effects'],
-            ['Enemy profile and team state', 'feed the same damage evaluator used by active and reference builds'],
+            ['Enemy profile and team state', 'provide inputs to the damage evaluator for active and reference builds'],
           ],
         },
       ],
@@ -247,7 +245,7 @@ const evaluationTopic: DocTopic = {
           type: 'prose',
           text: [
             'Reference builds use five Echoes that could exist in Wuthering Waves. For example, a 4-4-3-3-3 build containing Hoartoise cannot have a five-piece Tidebreaking Courage set if no eligible Echo combination can form it. The search checks possible Echo costs, Sonata sets, main Echo choices, and primary main stats. It rejects combinations that cannot preserve a required utility set or main Echo support effect.',
-            'One Echo can contribute to each of two different Sonata sets, so the search accepts five distinct Echo-and-set combinations. It rejects a repeated Echo in the same set.',
+            'One Echo can contribute to each of two different Sonata sets. The search accepts five distinct Echo-and-set combinations and rejects a repeated Echo in the same set.',
             'Before choosing substats, the search decides the five Echo costs, their Sonata sets, and the main Echo effect. It applies those choices before comparing damage in the same combat situation used for the equipped build.',
             'The 0% reference uses no Echo stats, Sonata effects, or main Echo effect. The 100% and 200% references search possible five-Echo builds with different substat limits.',
           ],
@@ -419,7 +417,7 @@ const evaluationTopic: DocTopic = {
           text: [
             'Energy Regen is a requirement matching the equipped build\'s resolved combat ER total, except for resonators that ignore ER, such as Lucilla and Phrolova. The reference build first gets ER from its character, weapon, team, chosen main stats, Sonata effects, and main Echo, using the same representative combat-stat snapshot as the equipped build. Any remaining ER is supplied by generated substats.',
             'The 100% reference tries one to five Energy Regen substats, each with a possible in-game value. Each one counts toward the limit of 16 damage-affecting or required Energy Regen substats, and choosing a higher Energy Regen value uses some of the 32 shared moves. The generated total may exceed the target when that is the smallest available roll combination that reaches it; both scoring and the report use the resulting total. A build that cannot meet Energy Regen within these limits is rejected. The 200% reference uses its separate maximum-value rule while preserving the exact missing Energy Regen total.',
-            'If the equipped build has a completed utility Sonata set at its full piece count, the generated 100% and 200% builds keep that set and piece count. The search also carries over the set’s active controls and stack values so its effects are scored in the same state.',
+            'If the equipped build has a completed utility Sonata set, the generated 100% and 200% builds use the same set, piece count, active controls, and stack values.',
             'The equipped build uses its selected main Echo effect. Generated reference builds can choose another eligible main Echo unless the equipped one has a support effect that applies beyond its wearer. In that case they keep the same main Echo. A self-only effect does not lock the choice, though any Energy Regen it supplies still contributes to the equipped build’s Energy Regen target.',
           ],
         },
@@ -431,7 +429,7 @@ const evaluationTopic: DocTopic = {
             ['Completed utility Sonata set', 'becomes a required generated set plan entry with the same set id and max piece count'],
             ['Utility set controls', 'use the same active values and stacks for preserved utility sets'],
             ['Support main Echo effect', 'requires generated reference builds to use that main Echo'],
-            ['Self-only main Echo effect', 'not locked, but any ER it supplies contributes to the preserved ER target'],
+            ['Self-only main Echo effect', 'unlocked; any ER it supplies contributes to the preserved ER target'],
           ],
         },
         {
@@ -551,7 +549,7 @@ const evaluationTopic: DocTopic = {
           type: 'prose',
           text: [
             'Echo score measures the quality of the equipped Echoes. Once a simulation reference is available, the five cards are scored together against one damage-derived substat target. The combined Echo-quality percentage uses those same points. Build score separately measures rotation damage against its 0%, 100%, and 200% reference builds.',
-            'The Echo-quality reference keeps the equipped Echoes, Sonata sets, and primary main stats, clears their substats, then chooses 25 substats at their highest possible values, with at most five copies of any one stat. It uses the current combat and rotation context. Values beyond the point where they stop improving damage, such as excess Crit Rate, receive no extra credit. The search finds a legal reference but does not prove it is the strongest possible one.',
+            'The Echo-quality reference keeps the equipped Echoes, Sonata sets, and primary main stats, clears their substats, then chooses 25 substats at their highest possible values, with at most five copies of any one stat. It uses the current combat and rotation context. Values beyond the point where they stop improving damage, such as excess Crit Rate, receive no extra credit. The search finds a legal reference; global optimality is unproven.',
             'This Echo-quality reference is separate from the 100% build-score reference, which limits damage-affecting and required Energy Regen substats to 16 and shares 32 moves between possible values. Changing equipped substats does not move the Echo-quality target. Changing the main stats, weapon, team, or other combat context can rebuild it. An Echo’s points can still change when another Echo changes because copies of the same substat share a point budget.',
             'A matching primary main stat is worth 44 points. Matching uses how many times each main stat appears at each Echo cost in the reference; extra copies do not each earn another 44 points. Other main stats can receive partial credit from weights at that Echo cost. The fixed secondary main stat affects damage but earns no separate quality points.',
             'Each selected substat contributes up to 21 points. A stat absent from the reference receives zero. Energy Regen substats and Energy Regen / Healing Bonus primary main stats are excluded from both earned points and the possible total. Energy Regen still counts toward the 16-substat limit and 32-move budget in the separate 100% build-score reference.',
@@ -689,9 +687,9 @@ const evaluationTopic: DocTopic = {
         {
           type: 'prose',
           text: [
-            'Crit Value is just Crit Rate converted at a 2:1 ratio plus Crit DMG. You know this...',
+            'Crit Value equals twice Crit Rate plus Crit DMG.',
             'An echo instance/slot compute CV from sub stats only (as per usual). When looking at the full build though, it computes based on the aggregated total (from main stats and sub stats). The Echo totals badge colors the full-build number by averaging it back toward a one-Echo badge scale.',
-            'That averaging first subtracts a crit-main baseline of 44 CV per 4-cost Echo, capped at two. Only 4-cost Echoes can roll a crit main stat (+44 CV each), so a 44111 lineup reaches a higher raw total CV (298) than a standard 43311 (254). A full 5-slot build fits at most two 4-cost Echoes (the 12-cost budget leaves 4+4+1+1+1), so subtracting up to two crit mains removes that contribution and judges both lineups on substat CV alone: each reduces to 210 (5 x 42) and reaches 100%. Stacking three or more 4-cost Echoes means dropping slots (444 uses three), where the cap stops the discount growing while the divide-by-five still penalizes the empty slots, keeping those builds below 100%.',
+            'That averaging first subtracts a crit-main baseline of 44 CV per 4-cost Echo, capped at two. Only 4-cost Echoes can roll a crit main stat (+44 CV each). A 44111 lineup reaches 298 raw CV; a standard 43311 reaches 254. A full 5-slot build fits at most two 4-cost Echoes under the 12-cost budget (4+4+1+1+1). Subtracting up to two crit mains judges both lineups on substat CV alone: each reduces to 210 (5 x 42) and reaches 100%. Three or more 4-cost Echoes require empty slots (444 uses three). The discount cap and divide-by-five keep those builds below 100%.',
           ],
         },
         {
@@ -768,7 +766,7 @@ const optimizerTopic: DocTopic = {
         {
           type: 'prose',
           text: [
-            'This app\'s optimizer engine is a very delicate and adorable little munchkin (Yes it is). And so a lot of effort is put into making sure it is as efficient, as expressive, as fast and as accurate as it can be all at once. We don\'t want to have it eat up all your memory and run for days now, do we?',
+            'This app\'s optimizer engine is a very delicate and adorable little munchkin (Yes it is). It balances expressive searches with speed, accuracy, and memory use.',
             'The engine has two layers. First, Simulation resolves skills, team and enemy state, active controls, rotation events and effects for the selected scenario. It then stores the values needed for repeated scoring in fixed-length numeric arrays. The scorer uses those arrays to calculate damage for each candidate build without resolving the scenario again.',
             'The scoring loop runs once per candidate. Inventory search can test hundreds of millions or even billions of five-Echo combinations; the GPU path makes searches of that size practical. Theory search first removes duplicate combinations, then scores the remaining distinct builds. Suggestions test fewer builds but use the same scoring routine because they may still evaluate thousands of alternatives.',
             'The fast evaluator scores candidates from the prepared numeric data. A single-skill target uses one damage setup. A rotation target uses one setup per recorded damage event and combines their damage using stored weights. For each candidate, the evaluator adds its Echo stats, prepared Sonata bonuses and main-Echo bonuses, then calculates damage and displayed stats. It does not replay the rotation or resolve effects and controls again.',
@@ -801,9 +799,9 @@ const optimizerTopic: DocTopic = {
           rows: [
             ['packed setup', 'One fixed numeric view of a damage problem: compiled stats, enemy factors, skill-specific fields, toggles, and metadata stored in one numeric array.', 'CPU workers, GPU shaders, and suggestion routes can all score the same problem without reopening runtime objects.'],
             ['fast evaluator', 'The repeated scorer that takes the packed setup plus encoded Echo rows, set rows, and main-Echo rows and returns damage and visible stats.', 'This is the only part allowed to run once per candidate at scale.'],
-            ['hot loop', 'The inner repeated candidate-evaluation path inside inventory search, theory search, and the suggestion engines.', 'Its cost multiplies by the entire search space, so even small extra logic here matters.'],
-            ['prep stage', 'The one-time phase that simulates rotations, resolves selected skills, applies effects, removes current Echoes when needed, prepares set effects, and encodes scoring inputs.', 'These calculations run once per search instead of once per candidate.'],
-            ['materialization', 'The final phase that turns compact winning rows back into concrete Echo ids, weapon ids, and display stats.', 'The UI only needs a few winners, so object reconstruction is delayed until after search.'],
+            ['hot loop', 'The inner repeated candidate-evaluation path inside inventory search, theory search, and the suggestion engines.', 'Its cost is multiplied across the entire search space.'],
+            ['prep stage', 'The one-time phase that simulates rotations, resolves selected skills, applies effects, removes current Echoes when needed, prepares set effects, and encodes scoring inputs.', 'These calculations run once per search.'],
+            ['materialization', 'The final phase that turns compact winning rows back into concrete Echo ids, weapon ids, and display stats.', 'Object reconstruction runs after search for the few winners shown in the UI.'],
           ],
         },
         {
@@ -813,7 +811,7 @@ const optimizerTopic: DocTopic = {
             ['sum encoded Echo stat rows', 'rebuild the combat graph'],
             ['count distinct set pieces and add prepared set rows', 'replay the rotation sequence'],
             ['add one chosen main-Echo bonus row', 'resolve authored effect registries'],
-            ['apply one packed scoring setup or a stored weighted list of them', 'walk runtime controls to decide scenario logic'],
+            ['apply one packed scoring setup or a stored weighted list of them', 'resolve scenario logic from runtime controls'],
             ['check min/max stat constraints and keep bounded winners', 'search-space canonicalization and equivalence pruning'],
           ],
         },
@@ -828,7 +826,7 @@ const optimizerTopic: DocTopic = {
           text: [
             'Okay, now for the actual algorithm, every run begins from one build state, one enemy, one set of active controls, and one scoring objective. The first decision is what damage number to optimize: one selected skill or one weighted rotation total. The second decision is what candidate space to search: real inventory Echoes, generated candidates, or a narrower recommendation space such as main-stat rewrites, Sonata reassignment, weapon swaps, or substat perturbations.',
             'The full optimizer removes the equipped Echoes before scoring replacement builds. The rest of the combat state stays fixed. Suggestions keep the equipped Echoes and change only the part being compared, such as main stats or Sonata sets.',
-            'That separation matters because the scoring objective and the candidate generator are independent. Single skill and rotation runs both feed into the same damage evaluator. Inventory search, theory search, and the smaller recommendation engines differ mainly in how they enumerate candidates before calling that evaluator.',
+            'The scoring objective is independent of candidate generation: single-skill and rotation runs use the same damage evaluator, while inventory, theory, and recommendation searches generate candidates differently.',
           ],
         },
         {
@@ -907,7 +905,7 @@ const optimizerTopic: DocTopic = {
           type: 'prose',
           text: [
             'Rotation search starts from the same Echo-free state, then applies the selected rotation program and simulates it once under the current team and enemy conditions. That simulation is not repeated inside the hot search loop.',
-            'After the simulation, the engine keeps only the damage events that can be rescored safely for every candidate build: they must belong to the optimized character and they must belong to one of the supported damage families. Each kept event also carries the weight it contributed inside the original simulated total.',
+            'Candidate scoring uses simulated damage events from the optimized character in supported damage families, with each event weighted by its contribution to the original total.',
             'The optimizer objective for rotation search is therefore not “run a rotation again for every candidate”. It is “re-evaluate the stored event list for every candidate, then sum those event damages with the original event weights”.',
           ],
         },
@@ -936,7 +934,7 @@ const optimizerTopic: DocTopic = {
         {
           type: 'prose',
           text: [
-            'Every available Echo is encoded once into dense numeric rows so the hot loop never needs to reopen the original Echo objects. One row holds the raw stat contribution of that Echo: primary main stat, fixed secondary stat, and all substats. Parallel arrays hold Echo cost, Sonata set, and a compact identity used during piece counting. The identity value exists only so set pieces can be counted as distinct Echo/set pairings.',
+            'Each available Echo is encoded once as a numeric row containing its primary main stat, fixed secondary stat, and substats; parallel arrays store cost, Sonata set, and an identity for counting distinct Echo/set pairs. Candidate scoring reads these arrays directly.',
             'Main-Echo effects are encoded separately from the ordinary stat row. Each Echo also gets a second bonus row containing only the extra bonuses it would supply if that Echo became the chosen main Echo. That is what lets the engine test one five-Echo candidate under several main-Echo choices without rebuilding the entire candidate from scratch.',
           ],
         },
@@ -996,7 +994,7 @@ const optimizerTopic: DocTopic = {
           text: [
             'Both single-skill and rotation search reuse one shared numeric package. It contains the encoded Echo rows, the prepared Sonata lookup, the legal main-Echo choices, the stat-limit rules, and the combination-index data that lets workers jump directly into their assigned part of the five-Echo space.',
             'The stat-limit rules are stored as fixed min/max pairs in this order: ATK, HP, DEF, Crit Rate, Crit DMG, Energy Regen, DMG Bonus, and final damage. A disabled rule stores a minimum above its maximum, which makes that check automatically pass.',
-            'The combination-index data serves two purposes. It gives the engine an exact or estimated search-space size for progress reporting, and it gives CPU and GPU workers a deterministic mapping from job range to candidate combinations. When the main Echo is not locked, each legal five-Echo choice must still be tested under up to five main-Echo choices, so the visible progress count expands by that factor even though the underlying Echo combination is the same.',
+            'The combination-index data provides an exact or estimated search-space size for progress reporting and a deterministic mapping from job range to candidate combinations for CPU and GPU workers. With an unlocked main Echo, each legal five-Echo choice is tested under up to five main-Echo choices. The visible progress count includes those additional tests.',
           ],
         },
         {
@@ -1045,7 +1043,7 @@ const optimizerTopic: DocTopic = {
           type: 'prose',
           text: [
             'Before search starts, the selected skill is compressed into one fixed numeric damage template. That template already contains the non-Echo side of the calculation: base and final non-Echo stats, enemy resistance and defense multipliers, skill scaling coefficients, crit fields, flat damage terms, and any special fields needed by Tune Break, Hack, or the supported negative-effect branches.',
-            'From that point onward, a candidate build only has to contribute its own Echo stats, set bonuses, and chosen-main-Echo bonuses. The fast evaluator combines those candidate rows with the fixed template and computes damage directly.',
+            'The fast evaluator combines the fixed template with each candidate’s Echo stats, set bonuses, and selected main-Echo bonuses to compute damage.',
             'This is the reason the optimizer can score very large search spaces without reopening the full build model for every candidate.',
           ],
         },
@@ -1074,7 +1072,7 @@ const optimizerTopic: DocTopic = {
         {
           type: 'prose',
           text: [
-            'Rotation search uses the same idea, but one template is not enough. Every kept damage event from the earlier rotation simulation becomes its own fixed numeric template, and each one keeps its original rotation weight.',
+            'Rotation search creates a fixed numeric template for every kept damage event from the earlier simulation. Each template retains its original rotation weight.',
             'The final rotation score for one candidate build is the weighted sum across that template list. The engine does not rerun the rotation itself. It reruns only the damage computation for the kept events.',
           ],
         },
@@ -1099,9 +1097,9 @@ const optimizerTopic: DocTopic = {
         {
           type: 'prose',
           text: [
-            'The inventory search space is every legal way to choose 5 distinct inventory Echoes whose total cost does not exceed 12. That is the base combinatorial problem the optimizer has to walk.',
+            'Inventory search evaluates legal combinations of five distinct Echoes with total cost at most 12.',
             'A locked main Echo does not shrink the build to four slots. The build still has five Echoes. The lock only says that the winning five-Echo candidate must contain one specific Echo, and that only that Echo can be treated as the chosen main Echo when the candidate is scored.',
-            'The engine also keeps a separate count of this space. That count feeds the progress bar and the displayed search size. It is a work estimate, not a damage result.',
+            'A separate count of legal combinations supplies the progress bar and displayed search size; it estimates work, not damage.',
           ],
         },
         {
@@ -1129,8 +1127,8 @@ const optimizerTopic: DocTopic = {
         {
           type: 'prose',
           text: [
-            'Theory search generates Echo candidates from the catalog instead of using saved Echoes. It keeps the current build’s substat profiles and varies Echo identity, cost, Sonata set, allowed main stat, and main-Echo choice. It scores those candidates with the same calculation used by Inventory search.',
-            'The generated row space is much larger than the set of distinct final builds, so it is compacted before scoring. Slot permutations that produce the same total stats are collapsed into one canonical ordering, and set-plan variants that differ only by a redundant promoted 1-piece set are also collapsed. The goal is to emit one scored representative per distinct theoretical build, not every bookkeeping permutation that leads to the same totals.',
+            'Theory search generates Echo candidates from the catalog. It keeps the current build’s substat profiles and varies Echo identity, cost, Sonata set, allowed main stat, and main-Echo choice. It scores those candidates with the same calculation used by Inventory search.',
+            'The generated row space contains many equivalent final builds. Before scoring, slot permutations with the same total stats collapse into one canonical ordering. Set-plan variants that differ only by a redundant promoted 1-piece set also collapse. Scoring receives one representative per distinct theoretical build.',
             'The displayed theory size is therefore the count of emitted canonical candidates, not the raw cross-product of slot rows. Once those candidates exist, the same CPU, GPU, worker, and result stages used by inventory search take over.',
           ],
         },
@@ -1160,7 +1158,7 @@ const optimizerTopic: DocTopic = {
         {
           type: 'prose',
           text: [
-            'The single-skill CPU path is the simplest exact search. It walks the assigned five-Echo candidates, skips any candidate whose total cost exceeds 12, scores every remaining candidate against the selected skill, and keeps only the strongest results.',
+            'The single-skill CPU search scores assigned five-Echo candidates within the 12-cost limit against the selected skill and retains the strongest results.',
             'The candidate score follows one fixed order. First sum the raw stat rows of the chosen 5 Echoes. Then count the Sonata pieces they activate and add the corresponding prepared Sonata bonuses. Then test each legal main-Echo choice by adding the matching main-Echo bonus row. Then rebuild the final visible stats, compute the selected-skill damage, and apply the stat-limit gate.',
             'Weapon search reuses the same order. The engine prepares extra weapon-specific stat and effect overlays once, then scores the same five-Echo candidate against every candidate weapon and keeps the best weapon together with the best Echo choice.',
           ],
@@ -1190,9 +1188,9 @@ const optimizerTopic: DocTopic = {
         {
           type: 'prose',
           text: [
-            'The rotation CPU path reuses the same candidate-build reconstruction, but changes the objective. Instead of evaluating one selected skill, it evaluates every kept rotation event for the candidate build, multiplies each event by its stored weight, and sums the results into one rotation total.',
+            'The rotation CPU path reuses candidate-build reconstruction. It evaluates every kept rotation event for the candidate build, multiplies each event by its stored weight, and sums the results into one rotation total.',
             'The stat-limit gate moves to the end. Rotation search first finds the best weighted total for the candidate build, then rebuilds one representative visible stat line for that winning version and checks the stat limits there. So the damage total comes from many weighted events while the visible stat gate comes from one representative skill.',
-            'Rotation weapon search extends the same idea to weapons. A weapon can change more than one fixed quantity inside the rotation score, so each candidate weapon receives its own prepared event-template list before the Echo candidate is rescored.',
+            'Rotation weapon search prepares an event-template list for each candidate weapon before rescoring the Echo candidate. Weapons can change multiple fixed quantities in the rotation score.',
           ],
         },
         {
@@ -1223,9 +1221,9 @@ const optimizerTopic: DocTopic = {
         {
           type: 'prose',
           text: [
-            'The GPU path does not change the rules or the math. It solves the same search problem with the same constraints, but moves the repeated scoring work onto the graphics processor.',
+            'The GPU path solves the same search problem under the same rules, math, and constraints. Repeated scoring runs on the graphics processor.',
             'All long-lived numeric arrays are uploaded once: Echo rows, prepared Sonata bonuses, costs, type identities, main-Echo bonus rows, fixed damage templates, stat limits, and combination-index data. Individual GPU jobs then only send small run-specific values such as their start range, job size, and main-Echo lock state.',
-            'Single-skill and rotation search use separate GPU kernels because one scores one fixed damage problem and the other scores a weighted event list. Theory search also uses its own batch shape so one generated candidate stays one scored candidate rather than being merged too early.',
+            'Single-skill and rotation search use separate GPU kernels for fixed damage and weighted event lists; theory search batches candidates without merging their scores.',
           ],
         },
         {
@@ -1254,8 +1252,8 @@ const optimizerTopic: DocTopic = {
           type: 'prose',
           text: [
             'The worker layer is the run coordinator. It decides between CPU and GPU execution, splits the compiled search into smaller jobs, dispatches those jobs, merges the returned local winners, and reports progress or cancellation back to the page.',
-            'CPU jobs usually describe a slice of the five-Echo combination space. GPU jobs do the same, except Theory search can also hand over explicit generated batches. Each worker keeps its prepared numeric data after the first job so setup cost does not dominate the run.',
-            'Progress has two phases when Theory search is active because generating the canonical theory candidates is its own step before scoring begins. Inventory search usually enters the scoring phase immediately.',
+            'CPU jobs usually describe a slice of the five-Echo combination space. GPU jobs do the same, and Theory search can also hand over explicit generated batches. Each worker retains prepared numeric data after the first job to amortize setup cost.',
+            'Theory search reports candidate generation and scoring separately; inventory search usually begins with scoring.',
           ],
         },
         {
@@ -1314,7 +1312,7 @@ const optimizerTopic: DocTopic = {
           type: 'prose',
           text: [
             'Search workers return compact numeric results. Before displaying a result, the app resolves its Echo IDs, optional weapon ID, and stat summary.',
-            'Single skill results rebuild that summary from the chosen skill damage problem. Rotation results rebuild it from the representative direct-damage template prepared earlier. If weapon search was active, the summary is rebuilt using the winning weapon rather than the currently equipped weapon so the shown stats match the shown damage.',
+            'Single skill results rebuild that summary from the chosen skill damage problem. Rotation results use the representative direct-damage template prepared earlier. With weapon search active, the summary uses the winning weapon and matches the displayed damage.',
             'At that point the result is back in form you perceive: five Echoes, one damage value, an optional winning weapon, and one visible stat line.',
           ],
         },
@@ -1378,9 +1376,9 @@ const optimizerTopic: DocTopic = {
           type: 'prose',
           text: [
             'Main Stat and Sonata suggestions keep the equipped Echoes. Each candidate changes either the main stats or the Sonata assignments, then uses the prepared skill or rotation calculation to score the result.',
-            'Main Stat suggestions generate allowed main-stat combinations under the five-slot and 12-cost rules. They apply each combination to the equipped Echoes and score it without main-Echo passive bonuses. The displayed current-build baseline excludes those bonuses too, so the comparison measures only the main-stat change.',
+            'Main Stat suggestions generate allowed main-stat combinations under the five-slot and 12-cost rules. They apply each combination to the equipped Echoes and score it without main-Echo passive bonuses. The displayed current-build baseline also excludes those bonuses, isolating the main-stat change.',
             'Sonata suggestions keep the equipped Echoes, clear their set assignments, and test allowed Sonata plans in slot order. Each plan is scored without main-Echo passive bonuses. The engine caches partial-set results and removes mixed plans that deal the same damage as a simpler partial plan.',
-            'The Sonata display is grouped from the scored results rather than from set names. Plans with the same damage and contributing set-effect shape render as one row with grouped set icons and piece counts. Any set effect whose removal does not change the scored damage is not part of the visible plan, even if it appeared in one raw generated set assignment.',
+            'The Sonata display groups scored results by damage and contributing set effects. Equivalent plans render as one row with grouped set icons and piece counts. Any set effect whose removal does not change the scored damage is absent from the visible plan, even if it appeared in a raw generated assignment.',
             'Each suggestion type changes one part of the equipped build while using the same prepared damage calculation. Main Stat suggestions change main stats; Sonata suggestions change set assignments. Neither searches for different Echoes.',
           ],
         },
@@ -1407,7 +1405,7 @@ const optimizerTopic: DocTopic = {
         {
           type: 'prose',
           text: [
-            'Weapon suggestions keep the equipped Echoes and the scoring objective, but neutralize the current weapon before candidate scoring begins. Each candidate weapon then adds its own base attack, secondary stat, passive controls, and passive effects onto that neutral baseline.',
+            'Weapon suggestions score each candidate against the equipped Echoes and selected objective, starting from a weapon-neutral baseline and applying that weapon’s base attack, secondary stat, passive controls, and effects.',
             'After those weapon-specific stats and effects are applied, the engine rebuilds the fixed direct skill template or the weighted rotation event list for that weapon. The unchanged Echo build is then rescored under the candidate weapon. When two passive states matter, such as default versus maximized passive state, both are scored and the chosen comparison setting decides ranking.',
           ],
         },
@@ -1436,7 +1434,7 @@ const optimizerTopic: DocTopic = {
           text: [
             'Substat Priority keeps the equipped Echoes. It scores the current build once, then changes one substat at a time to measure the damage gained or lost.',
             'For each substat, the engine measures damage after adding the selected number of value steps, removing that many steps, or removing the whole current amount. Additions stop at the maximum allowed across five Echo slots. Removals stop at the amount the build has. Each result shows the damage change and its percentage of current damage.',
-            'A "value step" means moving to the next possible value for a substat; it does not mean rolling an Echo in game. For Crit DMG, 12.6% to 13.8% is one step of 1.2 percentage points. Each substat uses its own possible values, so step sizes can differ.',
+            'A value step advances a substat to its next legal value; for Crit DMG, 12.6% to 13.8% is one step of 1.2 percentage points, and other substats use their own legal values.',
           ],
         },
         {
@@ -1698,7 +1696,7 @@ const negativeEffectsTopic: DocTopic = {
           type: 'prose',
           text: [
             'Both branches finish by distributing total damage across the skill hit list and then applying branch-specific crit fields. Tune Break crit comes from the skill Tune Break crit fields. Negative-effect crit comes from the skill negative-effect crit fields plus effect-specific crit buffs.',
-            'Hack shares the Tune Break level branch but does not use Tune Break crit fields. It keeps the level-scale and Tune Break Boost side of the formula while treating crit as the neutral path.',
+            'Hack uses the Tune Break level scale and Boost fields. Its crit path is neutral.',
           ],
         },
         {

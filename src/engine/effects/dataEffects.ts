@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Applies runtime and skill data-driven effects by building
+  description: applies runtime and skill data-driven effects by building
                effect contexts from combat state, evaluating conditions,
                and mutating buff pools or skill definitions.
 */
@@ -239,7 +239,7 @@ export function listGraphEffectRows(
     return contexts.map(mkFfctCtxEnt)
   })
 
-  // One authored team source is evaluated once for this recipient. Its
+  // one authored team source is evaluated once for this recipient. its
   // source runtime is the recipient because the team state is projected there.
   entries.push(mkFfctCtxEnt({
     team,
@@ -358,10 +358,8 @@ function mkDynmCtx(
     pool?: UnifiedBuffPool,
 ): EffectContext {
   /*
-    Resolving a source's final stats is a full pre-stats pass, and only a
-    formula that reaches for `sourceFinalStats` ever needs one. Hand it over as
-    a getter so the cost lands on the effects that actually read it instead of
-    on every context built.
+    resolving source final stats requires a full pre-stats pass. a getter defers
+    that work until a formula reads `sourceFinalStats`.
   */
   return {
     ...baseContext,
@@ -655,7 +653,7 @@ function executeRuntimeEffect(
 }
 
 // apply runtime effects for one explicit candidate source
-// this keeps suggestion overlays out of the normal runtime-owned source lookup.
+// this excludes suggestion overlays from normal runtime source lookup.
 export function applyCandRt(
     pool: UnifiedBuffPool,
     input: CandFxNpt,

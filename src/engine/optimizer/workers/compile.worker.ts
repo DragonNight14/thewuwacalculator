@@ -1,8 +1,8 @@
 /*
   Author: Runor Ewhro
-  Description: Worker that compiles optimizer payloads off the main thread,
+  description: worker that compiles optimizer payloads off the main thread,
                upgrades packed arrays to shared buffers when possible, and
-               can also materialize compact result refs back into UID-based
+               can also materialize compact result refs back into uid-based
                result entries.
 */
 
@@ -175,12 +175,12 @@ self.onmessage = async (event: MessageEvent<OptCompInMsg>) => {
         payload,
       }
 
-      // transfer regular ArrayBuffers to avoid copying large payloads
+      // regular ArrayBuffers transfer without copying large payloads.
       scope.postMessage(response, trns)
       return
     }
 
-    // materialize result refs back into UID-based result entries
+    // materialize result refs back into uid-based result entries
     logOptimizer('[optimizer:compile-worker] materializing results', {
       runId: message.runId,
       resultCount: message.results.length,

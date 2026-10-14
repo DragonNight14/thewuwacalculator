@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Defines the shared echo catalog shape used for echo metadata
+  description: defines the shared echo catalog shape used for echo metadata
                and display information.
 */
 

@@ -1,7 +1,7 @@
 /*
   Author: Runor Ewhro
-  Description: verifies that Twin Nova Dyad Origins stacks reach only the
-               prepared Twin Nova skills used by damage evaluation.
+  description: verifies that twin nova dyad origins stacks reach only the
+               prepared twin nova skills used by damage evaluation.
 */
 
 import { describe, expect, it } from 'vitest'

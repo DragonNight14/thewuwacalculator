@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: shared resonator view helpers, menu metadata, filter options,
+  description: shared resonator view helpers, menu metadata, filter options,
                skill-tab utilities, and combined seed/detail lookup helpers.
 */
 

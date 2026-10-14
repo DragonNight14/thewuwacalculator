@@ -1,7 +1,7 @@
 /*
   Author: Runor Ewhro
-  Description: Expands register layout metadata into grouped headers, stat
-               cells, and Off-Tune trace readouts.
+  description: expands register layout metadata into grouped headers, stat
+               cells, and off-tune trace readouts.
 */
 
 import type { CSSProperties, ReactNode, RefObject } from 'react'
@@ -52,7 +52,7 @@ export function useScrollbarInset(
   }, [listRef, scrollerRef])
 }
 
-/** Maps register layout values to the custom properties consumed by grid hosts. */
+/** maps register layout values to the custom properties consumed by grid hosts. */
 export function registerVars(register: RegisterLayout): CSSProperties {
   return {
     '--rte-cols': register.template,
@@ -62,7 +62,7 @@ export function registerVars(register: RegisterLayout): CSSProperties {
 }
 
 /**
- * Expands bands in track order while preserving separators and collapsed-group
+ * expands bands in track order while preserving separators and collapsed-group
  * markers in the resulting grid children.
  */
 export function bandCells(
@@ -162,14 +162,14 @@ export function OffTuneCell({
 }: {
   step: EditorStep
   run: number
-  /** Value preformatted with the register's active precision. */
+  /** value preformatted with the register's active precision. */
   text: string
   ghost?: boolean
-  /** Row color properties copied across the Tooltip portal boundary. */
+  /** row color properties copied across the tooltip portal boundary. */
   accent?: CSSProperties
-  /** Updates the step where Off-Tune accumulation resumes after Tune Break. */
+  /** updates the step where off-tune accumulation resumes after tune break. */
   onResume?: (id: string, on: boolean) => void
-  /** Draft cooldown state, which may differ from the last executed trace. */
+  /** draft cooldown state, which may differ from the last executed trace. */
   authoringState?: OffTuneAuthoringState
 }) {
   const trace = offTuneTraceAt(step, run)
@@ -270,7 +270,7 @@ function pct(value: number): string {
   return `${fmtExact(value * 100)}%`
 }
 
-/** Separates pre-rate buildup, rate modifiers, and post-rate additions. */
+/** separates pre-rate buildup, rate modifiers, and post-rate additions. */
 function OffTuneReadout({
   trace,
   label,

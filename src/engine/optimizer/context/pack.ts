@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: packs compiled optimizer skill context into the fixed float
+  description: packs compiled optimizer skill context into the fixed float
                layout used by CPU/GPU execution and provides patch helpers
                for per-job gpu dispatch metadata.
 */
@@ -179,7 +179,7 @@ function calcCritDmg(characterId: number, finalER: number): number {
   return Math.min(Math.max(0, finalER - 100), 160)
 }
 
-// Shorekeeper grants team crit stats from her own final energy regen.
+// shorekeeper grants team crit stats from her own final energy regen.
 function calcShoreCritRate(characterId: number, finalER: number, innerOn: boolean): number {
   if (characterId !== 1505 || !innerOn) {
     return 0
@@ -215,7 +215,7 @@ function calcJingranFusion(characterId: number, finalHp: number, fortuneStacks: 
     Math.min(Math.max(0, finalHp * 0.00005), 2.5) * Math.max(0, fortuneStacks)
 }
 
-// remove special resonator-side conversions so packed context stores normalized base terms
+// remove resonator-side conversions; packed context stores normalized base terms.
 function normPckdCtx(options: {
   compiled: CompTargetSkill
   skill: SkillDef

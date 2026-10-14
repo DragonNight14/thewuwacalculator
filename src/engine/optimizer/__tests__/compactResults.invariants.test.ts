@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Verifies compact optimizer result reconstruction, shared immutable
+  description: verifies compact optimizer result reconstruction, shared immutable
                candidate data, identity rejection, and exact facet projection.
 */
 

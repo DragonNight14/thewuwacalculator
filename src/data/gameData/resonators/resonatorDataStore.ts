@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Module-level cache for resonator catalog and detail data,
+  description: module-level cache for resonator catalog and detail data,
                populated by initializeGameData() before the app renders.
 */
 

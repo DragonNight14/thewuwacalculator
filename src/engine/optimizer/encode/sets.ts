@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: builds the optimizer's precomputed set lookup table and
+  description: builds the optimizer's precomputed set lookup table and
                resolves encoded set effects from compact set counts during
                optimizer evaluation.
 */
@@ -132,7 +132,7 @@ export type BuildSetRowsOptions = {
 
 const ECHO_SET_STATE_CONTROL_RE = /^echoSet:(\d+):bonus:(.+)$/
 
-// Runtime set controls are user-editable stateful set effects. The optimizer
+// runtime set controls are user-editable stateful set effects. the optimizer
 // proper keeps using static maxed rows; callers that render live previews can
 // opt into these parts so display-only damage reflects the current toggle.
 export function listDynamicSetStateParts(runtime: ResRuntime): DynamicSetStatePart[] {
@@ -172,7 +172,7 @@ const SETCNSTRULEV: Record<number, readonly SetRule[]> = Object.freeze({
   ]),
 })
 
-// cached derived rules so the lut does not need to be rebuilt from definitions every time
+// cache derived rules and reuse the lut across evaluations.
 let cchdRlsBySet: SetRule[][] | null = null
 
 type SetDataLkp =
@@ -232,7 +232,7 @@ function getPartEnts(def: SetDef, partKey: string) {
   }
 
   // prefer max values because normal optimizer rows assume triggered set states
-  // are maxed. Max-only bonuses are part of that static maxed contribution.
+  // are maxed. max-only bonuses are part of that static maxed contribution.
   const maxedEntries = maxStateEntries(state)
   if (maxedEntries.length > 0) {
     return maxedEntries
@@ -596,7 +596,7 @@ export function buildSetRows(
 
 // resolve packed set effects at runtime from actual set counts and a skill mask
 // this is used by the non-vectorized evaluator path where the result is needed
-// as named fields rather than as a raw row vector.
+// as named fields with stable semantic keys.
 export function applySetVec(
     setCount: Uint8Array,
     skillMask: number,

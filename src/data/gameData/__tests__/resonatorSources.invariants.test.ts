@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Protects generated resonator-source invariants that are easy to
+  description: protects generated resonator-source invariants that are easy to
                regress during authored override updates.
 */
 

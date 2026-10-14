@@ -1,7 +1,7 @@
 /*
   Author: Runor Ewhro
-  Description: Resolves generated, mode-specific Echo stat weights while
-               preserving the scoring accessors used by Simulation surfaces.
+  description: resolves generated, mode-specific echo stat weights while
+               preserving the scoring accessors used by simulation surfaces.
 */
 
 import betaArtifact from './generated/charStatWeights.beta.json'
@@ -25,7 +25,7 @@ function currentArtifact(): CharStatWeightArtifact {
   return artifacts[getGameDataMode()]
 }
 
-// Include the selected data mode so consumers can safely cache derived scores.
+// include the selected data mode so consumers can safely cache derived scores.
 export function getWeightSetKey(): string {
   const artifact = currentArtifact()
   return `${artifact.mode}:${artifact.revision}`

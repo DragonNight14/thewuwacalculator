@@ -1,7 +1,7 @@
 /*
   Author: Runor Ewhro
-  Description: subscribes to a CSS media query and returns whether it currently
-               matches, SSR-safe and updating as the viewport changes.
+  description: subscribes to a css media query and returns whether it currently
+               matches, ssr-safe and updating as the viewport changes.
 */
 
 import { useEffect, useState } from 'react'

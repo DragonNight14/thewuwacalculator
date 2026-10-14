@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Converts editor projections back into canonical authored rotation nodes.
+  description: converts editor projections back into canonical authored rotation nodes.
 */
 
 import type {
@@ -85,7 +85,7 @@ function indexOriginals(items: RotationNode[]): OriginalIndex {
 }
 
 /**
- * Rewrite an authored change from a value in display form. The controls speak
+ * rewrite an authored change from a value in display form. the controls speak
  * the regular text the rows do, so the value is parsed back against the state
  * it writes before it is stored.
  */
@@ -238,7 +238,7 @@ function writeAttachedNote<T extends RotationNode>(
   return next as T
 }
 
-/** Serialize one attached feature without inventing a second feature shape. */
+/** serialize one attached feature without inventing a second feature shape. */
 function serializeAttachedFeature(
   node: EditorStep,
 ): Extract<RotationNode, { type: 'feature' }> | null {
@@ -316,7 +316,7 @@ function serializeStep(
   else delete nextNode.offTuneResume
 
   if (node.changesEdited || node.attachedEdited) {
-    // Rebuild edited writes while preserving untouched attachment semantics.
+    // rebuild edited writes while preserving untouched attachment semantics.
     const normalizedBase = normalizeFeatureAttachments(base)
     delete nextNode.changes
     delete nextNode.attached
@@ -414,8 +414,8 @@ function serializeCondition(
 
 
 /*
-  a handoff is a condition writing the active resonator, so it round trips the
-  same way one does: its source stays untouched unless the page edited it. Only
+  a handoff writes the active resonator as a condition. it preserves its source
+  unless the page edited it. only
   the active-resonator write is replaced because a condition may carry others.
 */
 function serializeHandoff(
@@ -477,7 +477,7 @@ function makeLoopStart(
     id: node.id,
     loopId,
   }
-  // Materialize editor defaults so every serialized marker is self-contained.
+  // materialize editor defaults so every serialized marker is self-contained.
   if (!source || node.labelEdited || base.label == null) {
     next.label = node.label
   }
@@ -511,7 +511,7 @@ function serializeLoop(
   original: RotationNode | undefined,
   originals: OriginalIndex,
 ): RotationNode[] {
-  // Check in the viewed pass so children land in passForks when they diverged.
+  // check in the viewed pass and store diverged children in passForks.
   const checked = isCheckoutableLoop(node) ? checkinLoopBlock(node) : node
   const templateNodes = isCheckoutableLoop(checked)
     ? (checked.passTemplate ?? checked.children)
@@ -530,8 +530,7 @@ function serializeLoop(
     }
   }
 
-  // a loop written with no end runs on round to its own start, so it is
-  // written the way it was authored rather than closed on the way out
+  // preserve an authored open loop; execution wraps to its start.
   return node.noEnd
     ? [start, ...children]
     : [start, ...children, makeLoopEnd(start, originals, node.sourceEndNode)]
@@ -701,8 +700,8 @@ function serializeList(
 }
 
 /**
- * Serialize a clipboard-sized editor fragment through the same authored-node
- * path as a complete section. This deliberately returns ordinary rotation
+ * serialize a clipboard-sized editor fragment through the same authored-node
+ * path as a complete section. this deliberately returns ordinary rotation
  * feature/condition/block nodes: the flat projection is a view, never a
  * second clipboard format.
  */
@@ -718,7 +717,7 @@ export function editorSectionsToRotation(
   originalItems: RotationNode[],
   options?: { checkedIn?: boolean },
 ): Array<{ id: string; title: string; meta: string; items: RotationNode[] }> {
-  // Capture the currently checked-out pass into passForks before walking.
+  // capture the currently checked-out pass into passForks before walking.
   const ready = options?.checkedIn ? sections : checkinAllLoopPasses(sections)
   const originals = indexOriginals(originalItems)
   return ready.map((section) => ({

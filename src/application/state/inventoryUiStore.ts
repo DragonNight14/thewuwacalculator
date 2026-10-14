@@ -1,7 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Owns session-only inventory mounting, visibility, and query
-               state outside the canonical saved inventory.
+  description: stores session-only inventory visibility, mounting, and query state.
 */
 
 import { create } from 'zustand'

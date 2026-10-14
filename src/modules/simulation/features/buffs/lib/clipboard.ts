@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Serializes, parses, and clones advanced manual buff modifiers
+  description: serializes, parses, and clones advanced manual buff modifiers
                for cross-surface clipboard copy and paste workflows.
 */
 

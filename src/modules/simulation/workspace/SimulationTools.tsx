@@ -1,7 +1,7 @@
 /*
   Author: Runor Ewhro
-  Description: Shared navigation for tools that use the build workspace. The
-               URL owns which page is active.
+  description: shared navigation for tools that use the build workspace. the
+               url determines the active page.
 */
 
 import { AxLink } from '@/shared/navigation/useNavX'

@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Counts persisted references to each Rover identity so conversion
+  description: counts persisted references to each rover identity so conversion
                impact is known before a gender preference is committed.
 */
 
@@ -14,9 +14,9 @@ export interface RoverSaveCount {
   builds: number
   rotations: number
   scenarios: number
-  // Each attribute pair is converted independently.
+  // each attribute pair is converted independently.
   byAttribute: Record<string, number>
-  // Saves containing both identities from the same attribute pair.
+  // saves containing both identities from the same attribute pair.
   shared: number
 }
 
@@ -41,8 +41,8 @@ export function countRoverSaves(library: SavedArtifactLibrary): Record<RoverForm
     mark(hit.form, hit.attribute)
   }
 
-  // Count dormant teammate setups too: they are persisted in the save and converted.
-  // A save counts once per form it holds, however many Rover forms it contains.
+  // count dormant teammate setups too: they are persisted in the save and converted.
+  // a save counts once per stored form, however many rover forms it contains.
   const tallyScenario = (scenario: CombatScenario | undefined, kind: 'rotations' | 'scenarios') => {
     const members = scenario?.team?.members
     if (!members) return

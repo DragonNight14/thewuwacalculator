@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: defines shared suggestion engine input, result, and worker
+  description: defines shared suggestion engine input, result, and worker
                message types for durable main-stat, set-plan, and weapon flows.
 */
 
@@ -37,7 +37,7 @@ export interface SuggestInput {
   includeEchoAttacks?: boolean
 }
 
-/** The only simulation fields read while preparing Suggestions contexts. */
+/** the only simulation fields read while preparing suggestions contexts. */
 export interface SuggestionSimulation {
   finalStats: SimResult['finalStats']
   allSkills: SimResult['allSkills']
@@ -83,7 +83,7 @@ export interface RotSuggCtx {
   contextStride: number
   contextWeight: Float32Array
   contextCount: number
-  /** Representative context retained for materialized result statistics. */
+  /** representative context retained for materialized result statistics. */
   displayContext: Float32Array | null
   setConstLut: Float32Array
 }
@@ -144,7 +144,7 @@ export interface SetPlanEntry {
   pieces: number
 }
 
-/** Set ids sharing one entry are effect-equivalent at this piece count. */
+/** set ids sharing one entry are effect-equivalent at this piece count. */
 export interface SetPlanDisplayEntry {
   setIds: number[]
   pieces: number

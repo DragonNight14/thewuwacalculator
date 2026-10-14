@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Shares an already resolved Showcase backdrop without triggering
+  description: shares an already resolved showcase backdrop without triggering
                a second media-resolution lifecycle in workspace descendants.
 */
 

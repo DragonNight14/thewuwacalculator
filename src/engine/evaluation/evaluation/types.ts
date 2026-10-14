@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Defines evaluation inputs, anchors, scores, reports, and worker result contracts.
+  description: defines evaluation inputs, anchors, scores, reports, and worker result contracts.
 */
 import type { ResRuntime } from '@/domain/entities/runtime';
 import type { SkillTypeKey } from '@/domain/entities/stats';
@@ -151,9 +151,9 @@ export type EvaluationStatTreeNode = EvaluationStatTreeLeaf | EvaluationStatTree
 
 export interface BuildEvaluation {
   userDamage: number
-  baselineDamage: number      // no Echo stats, Sonata rows, or main Echo effect (0%)
-  referenceDamage: number     // best legal generated Echo frame + evaluation-quality substats (100%)
-  maximumDamage: number       // best legal generated Echo frame + max-roll substats (200%)
+  baselineDamage: number      // no echo stats, sonata rows, or main echo effect (0%)
+  referenceDamage: number     // best legal generated echo frame + evaluation-quality substats (100%)
+  maximumDamage: number       // best legal generated echo frame + max-roll substats (200%)
   percent: number             // 0 = baseline, 1 = evaluation, 2 = perfection
   grade: string
   invariantStats: EvaluationStatTreeNode[]

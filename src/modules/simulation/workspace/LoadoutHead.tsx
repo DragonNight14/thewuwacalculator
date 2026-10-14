@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Coordinates loadout summary, bulk actions, and inventory or parser entry points.
+  description: coordinates loadout summary, bulk actions, and inventory or parser entry points.
 */
 
 import { isBuildSaved, selectSavedBuildSignatures } from '@/application/state/savedGearStatus'
@@ -46,7 +46,7 @@ export function LoadoutHead({
   editable = true,
   canSaveEcho,
   onEchoes,
-  onForge,
+  onGenerateLoadout,
   onEquip,
   aside,
   headRef,
@@ -62,9 +62,8 @@ export function LoadoutHead({
   editable?: boolean
   canSaveEcho: (echo: EchoInstance) => boolean
   onEchoes?: (echoes: Array<EchoInstance | null>) => void
-  /* a surface with its own forge (the optimizer's workspace has one) hands it
-     over rather than letting the head open a second one */
-  onForge?: () => void
+  /* a surface can provide its own loadout generator action. */
+  onGenerateLoadout?: () => void
   /* a proposal cannot be taken off, only put on */
   onEquip?: () => void
   aside?: ReactNode
@@ -75,7 +74,7 @@ export function LoadoutHead({
   const addBuildToInv = useAppStore((state) => state.addInvBuild)
   const addEchoesToInv = useAppStore((state) => state.addInvEchoes)
   const confirmation = useConfirm()
-  const forgeModal = useAppModal()
+  const generatorModal = useAppModal()
   const effects = useAppPopup()
   const effectsTriggerRef = useRef<HTMLButtonElement>(null)
   const effectsRef = useRef<HTMLDivElement>(null)
@@ -97,7 +96,7 @@ export function LoadoutHead({
     return slots
   }, []), [canSaveEcho, echoes])
 
-  // a build is only "saved" while the bag holds this exact weapon and loadout
+  // a build is only "saved" while the bag contains this exact weapon and loadout
   const alreadySaved = useMemo(() => {
     if (!runtime) return false
     return isBuildSaved(savedBuilds, {
@@ -165,11 +164,11 @@ export function LoadoutHead({
       onSelect: () => { if (runtime) openTeamCnsl(runtime.id, 'loadout', scenarioId) },
     },
     {
-      key: 'forge',
-      label: 'Forge',
+      key: 'generate',
+      label: 'Generate',
       title: 'Build a loadout from your bag',
       disabled: !editable || !runtime,
-      onSelect: onForge ?? forgeModal.show,
+      onSelect: onGenerateLoadout ?? generatorModal.show,
     },
     {
       key: 'save',
@@ -263,22 +262,22 @@ export function LoadoutHead({
         <span className="lho-seg lho-seg--rest" aria-hidden="true" />
       </div>
 
-      {!onForge && forgeModal.visible && runtime ? (
+      {!onGenerateLoadout && generatorModal.visible && runtime ? (
         <QuickSetup
-          visible={forgeModal.visible}
-          open={forgeModal.open}
-          closing={forgeModal.closing}
+          visible={generatorModal.visible}
+          open={generatorModal.open}
+          closing={generatorModal.closing}
           portalTarget={mainPortal()}
           currentEchoes={echoes}
-          onClose={forgeModal.hide}
+          onClose={generatorModal.hide}
           onGenerate={(next) => {
             onEchoes?.(next)
             showToast({
-              content: 'Echo build forged.',
+              content: 'Echo loadout generated.',
               variant: 'success',
               duration: 2600,
             })
-            forgeModal.hide()
+            generatorModal.hide()
           }}
         />
       ) : null}

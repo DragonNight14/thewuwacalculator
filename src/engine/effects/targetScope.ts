@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Resolves effect target ids and checks whether a data-driven
+  description: resolves effect target ids and checks whether a data-driven
                effect applies to a given runtime target.
 */
 
@@ -46,7 +46,7 @@ export function resFfctTgtId(
 
   const ownerKey = effect.ownerKey
   if (ownerKey) {
-    // A persisted route that points outside the eligible set should disable this
+    // a persisted route that points outside the eligible set should disable this
     // effect for the source, not silently fall back to the active resonator.
     const selection = getScopedTargetSelection(
       context.selectedTargetsByOwnerKey,

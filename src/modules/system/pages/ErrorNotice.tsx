@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Normalizes route and startup errors, builds copyable diagnostics,
+  description: normalizes route and startup errors, builds copyable diagnostics,
                and renders without depending on application state or providers.
 */
 

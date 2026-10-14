@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Guards saved detail scheduling against live and unavailable ids.
+  description: guards saved detail scheduling against live and unavailable ids.
 */
 
 import { describe, expect, it, vi } from 'vitest'
@@ -20,7 +20,7 @@ function fixture() {
 }
 
 describe('saved rotation detail scheduling', () => {
-  it('keeps rich detail on the main thread so its flat trace remains available', async () => {
+  it('keeps rich detail and its flat trace on the main thread', async () => {
     const { saved } = fixture()
     const worker = vi.fn(() => { throw new Error('detail must not enter a worker') })
     vi.stubGlobal('Worker', worker)
@@ -47,7 +47,7 @@ describe('saved rotation detail scheduling', () => {
     const completed = new Map<string, RunResult | null>()
 
     expect(pendingSavedRotationDetails([saved], requested, completed)).toEqual([saved])
-    // Even an unavailable simulation is a completed lookup, so it is not retried.
+    // an unavailable simulation counts as a completed lookup and is not retried.
     completed.set(saved.id, null)
     expect(pendingSavedRotationDetails([saved], requested, completed)).toEqual([])
   })

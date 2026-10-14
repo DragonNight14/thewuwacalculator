@@ -3,10 +3,10 @@ import path from 'node:path'
 
 /*
   Author: Runor Ewhro
-  Description: Vite builds this app as a single-page bundle, so every browser route starts
-               from the same HTML shell unless we create route-specific copies after the
-               client build. This script keeps crawlers, link unfurlers, and no-JavaScript
-               readers pointed at the same metadata that the runtime uses once React loads.
+  description: vite builds this app as a single-page bundle, so every browser route starts
+               from the same html shell unless we create route-specific copies after the
+               client build. this script keeps crawlers, link unfurlers, and no-JavaScript
+               readers pointed at the same metadata that the runtime uses once react loads.
 */
 const root = process.cwd()
 const configPath = path.join(root, 'src/shared/lib/seoRoutes.json')
@@ -17,7 +17,7 @@ const syncPublic = process.argv.includes('--sync-public')
 const config = JSON.parse(fs.readFileSync(configPath, 'utf8'))
 const routeByPath = new Map(config.routes.map((route) => [route.path, route]))
 
-// HTML escaping is split by destination so route copy can safely pass through
+// html escaping is split by destination so route copy can safely pass through
 // both element text and quoted attributes without over-escaping generated tags.
 function escapeAttr(value) {
   return String(value)
@@ -39,9 +39,8 @@ function absoluteUrl(pathname) {
   return `${config.siteUrl}${pathname.startsWith('/') ? pathname : `/${pathname}`}`
 }
 
-// A missing route is treated as non-indexable fallback content instead of a hard
-// failure. That lets direct unknown URLs still receive a valid shell while known
-// routes get the stronger canonical and social metadata from seoRoutes.json.
+// unknown routes receive a valid, non-indexable fallback shell. known routes
+// receive canonical and social metadata from seoRoutes.json.
 function resolveRoute(pathname) {
   const normalized = pathname === '/' ? '/' : pathname.replace(/\/+$/, '') || '/'
   const route = routeByPath.get(normalized)
@@ -62,8 +61,8 @@ function resolveRoute(pathname) {
   }
 }
 
-// JSON-LD mirrors the visible route metadata while describing the app once at
-// site scope. Route pages point back to the same SoftwareApplication node so
+// json-ld mirrors the visible route metadata while describing the app once at
+// site scope. route pages point back to the same SoftwareApplication node so
 // search engines can connect calculator, guide, changelog, and policy pages.
 function structuredData(route) {
   return {
@@ -117,9 +116,9 @@ function structuredData(route) {
   }
 }
 
-// Vite owns the baseline index.html. These helpers make the postbuild pass
+// vite generates the baseline index.html. these helpers make the postbuild pass
 // idempotent by replacing existing tags when present and inserting missing tags
-// near the title when a local HTML edit has not already provided them.
+// near the title when a local html edit has not already provided them.
 function upsertHeadTag(html, matcher, fallbackBefore, replacement) {
   if (matcher.test(html)) return html.replace(matcher, replacement)
   return html.replace(fallbackBefore, `${replacement}\n    $&`)
@@ -166,9 +165,8 @@ function setJsonLd(html, route) {
   )
 }
 
-// The app is still client-rendered, but this small noscript payload gives
-// crawlers and users without JavaScript a truthful route label instead of a
-// blank root node.
+// the app is client-rendered. this noscript payload gives crawlers and users
+// without javascript the route label.
 function setNoScript(html, route) {
   const content = `<noscript data-seo-route="${escapeAttr(route.path)}"><main><h1>${escapeText(route.title)}</h1><p>${escapeText(route.description)}</p></main></noscript>`
   if (/<noscript data-seo-route=/.test(html)) {
@@ -177,9 +175,9 @@ function setNoScript(html, route) {
   return html.replace(/<div id="root"><\/div>/, `<div id="root"></div>\n    ${content}`)
 }
 
-// Each route receives the same client bundle and a different head. The runtime
+// each route receives the same client bundle and a different head. the runtime
 // can still update metadata during navigation, while direct requests and social
-// previews get the right page identity before JavaScript executes.
+// previews get the right page identity before javascript executes.
 function htmlForRoute(baseHtml, route) {
   let html = baseHtml
   html = setTitle(html, route.fullTitle)
@@ -215,7 +213,7 @@ function writeFile(filePath, content) {
   fs.writeFileSync(filePath, content)
 }
 
-// Public discovery files are generated from the route config so sitemap,
+// public discovery files are generated from the route config so sitemap,
 // robots, runtime metadata, and static route output cannot drift separately.
 function buildSitemap() {
   const urls = config.routes.map((route) => [
@@ -243,7 +241,7 @@ function buildRobots() {
   ].join('\n')
 }
 
-// The --sync-public mode updates source-controlled public files. The normal
+// the --sync-public mode updates source-controlled public files. the normal
 // postbuild path writes the same discovery files into dist so deploy artifacts
 // are complete even when public files were not regenerated in the same command.
 if (syncPublic) {
@@ -254,8 +252,8 @@ if (syncPublic) {
   writeFile(sourceIndexPath, htmlForRoute(sourceIndex, resolveRoute('/')))
 }
 
-// During postbuild, Vite has already copied static assets and emitted the root
-// HTML shell. Mutating dist keeps the source template simple while producing
+// during postbuild, vite has already copied static assets and emitted the root
+// html shell. mutating dist keeps the source template simple while producing
 // route-addressable files for static hosts and crawlers.
 if (fs.existsSync(distDir)) {
   writeFile(path.join(distDir, 'sitemap.xml'), buildSitemap())
@@ -267,8 +265,8 @@ if (fs.existsSync(distDir)) {
     const rootRoute = resolveRoute('/')
     writeFile(indexPath, htmlForRoute(baseHtml, rootRoute))
 
-    // Nested index.html files let static hosting serve clean URLs without a
-    // JavaScript redirect, while the React router still owns in-app navigation.
+    // nested index.html files let static hosting serve clean urls without a
+    // javascript redirect, while the react router still handles in-app navigation.
     for (const route of config.routes) {
       const resolved = resolveRoute(route.path)
       const routePath = path.join(distDir, route.path.replace(/^\/+/, ''), 'index.html')

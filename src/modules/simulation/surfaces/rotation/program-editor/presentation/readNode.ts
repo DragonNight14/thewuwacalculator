@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Resolves display identity, ownership, and execution state for rotation rows.
+  description: resolves display identity, source metadata, and execution state for rotation rows.
 */
 
 import type { RunResult } from '@/modules/simulation/surfaces/rotation/program-editor/simulation/runProgram.ts'
@@ -113,9 +113,9 @@ function countWords(text: string | undefined): number {
 }
 
 /**
- * Resolve everything the read panel prints for one node. `buffsFor` is handed
+ * resolve everything the read panel prints for one node. `buffsFor` is handed
  * in because a buff line builds its own combat context, which only the page
- * holds the runtimes for.
+ * has the required runtimes for.
  */
 export function resolveReadNode({
   id,

@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Scores compatible weapon candidates for suggestions by applying
+  description: scores compatible weapon candidates for suggestions by applying
                weapon stat and passive overlays onto a neutral suggestion
                context before reusing the packed evaluator.
 */
@@ -71,7 +71,7 @@ function mkWpnSt(wpn: GenWpn, input: PrepWeaponPlan): WeaponState {
   }
 }
 
-/* An enabled default variant uses the control's authored resting value. */
+/* an enabled default variant uses the control's authored resting value. */
 function defCtrlVal(st: SourceState): boolean | number | string {
   if (st.defaultValue != null) return st.defaultValue
   if (st.kind === 'toggle') return false
@@ -79,14 +79,14 @@ function defCtrlVal(st: SourceState): boolean | number | string {
   return st.min ?? 0
 }
 
-/* A max variant falls back to the highest value allowed by the authored control. */
+/* a max variant falls back to the highest value allowed by the authored control. */
 function maxCtrlVal(st: SourceState): boolean | number | string {
   if (st.kind === 'toggle') return true
   if (st.kind === 'stack' || st.kind === 'number') return st.max ?? st.defaultValue ?? st.min ?? 0
   return st.defaultValue ?? st.options?.[0]?.id ?? ''
 }
 
-/* Persisted overrides may outlive their source data, so constrain them again. */
+/* persisted overrides may outlive their source data, so constrain them again. */
 function clmpCtrlVal(
     st: SourceState,
     value: boolean | number | string,
@@ -111,7 +111,7 @@ function clmpCtrlVal(
   return opts.some((option) => option.id === str) ? str : maxCtrlVal(st)
 }
 
-/* Missing sparse entries mean enabled with authored values. */
+/* missing sparse entries mean enabled with authored values. */
 function stCfgFor(
     settings: WeaponPlanSet,
     id: string,
@@ -276,9 +276,9 @@ function mkDrctCtx(
   }
 }
 
-// Run each candidate through the complete rotation pipeline. Weapon
-// passives can change setup effects and per-entry overlays, so applying them to
-// the already-materialized baseline contexts understates the whole rotation.
+// run each candidate through the complete rotation pipeline. weapon passives
+// can change setup effects and per-entry overlays; baseline contexts would
+// understate the rotation.
 function scoreRotWpn(
     wpn: GenWpn,
     mode: WpnMode,

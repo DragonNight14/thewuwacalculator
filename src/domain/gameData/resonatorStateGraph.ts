@@ -1,7 +1,7 @@
 /*
   Author: Runor Ewhro
-  Description: Materializes compact resonator state graph nodes into UI controls
-               and source states used by the Simulation runtime.
+  description: materializes compact resonator state graph nodes into ui controls
+               and source states used by the simulation runtime.
 */
 
 import type {

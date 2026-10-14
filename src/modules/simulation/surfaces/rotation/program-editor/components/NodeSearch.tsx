@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Indexes editor nodes for keyboard-searchable navigation while
+  description: indexes editor nodes for keyboard-searchable navigation while
                retaining the current execution readout and loop-run selection.
 */
 
@@ -27,7 +27,7 @@ export interface NodeSearchProps {
   names: SearchNames
   runsByLoopId: LoopRunSelections
   onPick: (target: RotationNodeTarget) => void
-  /** Selection summary retained independently of transient search state. */
+  /** selection summary retained independently of transient search state. */
   readout: { name: string; value: number | null; color?: string } | null
   stale: boolean
   decimals: number
@@ -52,14 +52,14 @@ export function NodeSearch({
 }: NodeSearchProps) {
   const [query, setQuery] = useState('')
   const [active, setActive] = useState(0)
-  /** Null follows each result's requested run; zero selects its current aggregate. */
+  /** null follows each result's requested run; zero selects its current aggregate. */
   const [loopRun, setLoopRun] = useState<number | null>(null)
   const hostRef = useRef<HTMLDivElement | null>(null)
   const toggleRef = useRef<HTMLButtonElement | null>(null)
   const inputRef = useRef<HTMLInputElement | null>(null)
   const popupRef = useRef<HTMLDivElement | null>(null)
 
-  // Rebuild the node index with rotation changes, not with every query keystroke.
+  // rebuild the node index with rotation changes, not with every query keystroke.
   const index = useMemo(
     () => open ? buildNodeIndex(sections, names) : [],
     [names, open, sections],
@@ -236,7 +236,7 @@ export function NodeSearch({
                 className={`rte-find__hit${isAt ? ' is-at' : ''}`}
                 role="option"
                 aria-selected={isAt}
-                // Retain input focus so subsequent arrow keys continue navigating results.
+                // retain input focus so subsequent arrow keys continue navigating results.
                 onMouseDown={(event) => event.preventDefault()}
                 onClick={() => pick(hit)}
               >

@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Preserves columns temporarily hidden by the viewport or docked panel.
+  description: preserves columns temporarily hidden by the viewport or docked panel.
 */
 
 import type { StatKey } from '@/modules/simulation/surfaces/rotation/program-editor/presentation/registerRows'

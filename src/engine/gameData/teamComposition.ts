@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Builds cached team composition summaries with member,
+  description: builds cached team composition summaries with member,
                attribute, and weapon-type counts for team-based logic.
 */
 

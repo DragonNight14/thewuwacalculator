@@ -1,7 +1,7 @@
 /*
   Author: Runor Ewhro
-  Description: Keeps optimizer allowed-set selections aligned with authored
-               Sonata set piece-count metadata before search-space filtering.
+  description: keeps optimizer allowed-set selections aligned with authored
+               sonata set piece-count metadata before search-space filtering.
 */
 
 import type { OptSetChoice } from '@/domain/entities/optimizer.ts'

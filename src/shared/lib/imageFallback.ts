@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: shared image fallback handlers for Simulation and Read UI
+  description: shared image fallback handlers for simulation and read ui
                so repeated onerror helpers do not live inside features.
 */
 
@@ -38,7 +38,7 @@ export function withDefEchoMg(event: SyntVnt<HTMLImageElement>) {
   swapMgToFllb(event, DEF_ICON_SRC)
 }
 
-// Picker grids use shared display variants, with canonical art as their first fallback.
+// picker grids use shared display variants, with canonical art as their first fallback.
 export function withPickerImageFallback(event: SyntVnt<HTMLImageElement>) {
   const image = event.currentTarget
   const authored = image.dataset.fullSrc

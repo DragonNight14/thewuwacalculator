@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Coalesces dirty persistence domains and notifies flush owners
+  description: coalesces dirty persistence domains and notifies flush owners
                when newly dirty state becomes available.
 */
 

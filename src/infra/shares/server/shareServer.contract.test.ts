@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Locks the Worker share-token API contract for KV-backed create
+  description: locks the worker share-token api contract for kv-backed create
                and fetch behavior.
 */
 

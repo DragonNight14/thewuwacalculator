@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Owns lazy Simulation surface bodies and their preload contract.
+  description: loads simulation surface components lazily and defines their preload behavior.
 */
 
 import { createRouteChunk } from '@/shared/navigation/routeChunk'
@@ -15,7 +15,7 @@ export const buildWorkspacePane = createRouteChunk(async () => (
 ))
 
 export const suggestionsPane = createRouteChunk(async () => (
-  (await import('@/modules/simulation/surfaces/suggestions/climb/SuggestionsLab.tsx')).SuggestionsLab
+  (await import('@/modules/simulation/surfaces/suggestions/results/Page.tsx')).Page
 ))
 
 export const rotationPane = createRouteChunk(async () => (

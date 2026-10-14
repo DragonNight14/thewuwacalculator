@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: shared numeric helpers for lightweight ui and state shaping.
+  description: shared numeric helpers for lightweight ui and state shaping.
 */
 
 // clamp a number into an inclusive range
@@ -16,9 +16,9 @@ export function truncTo(value: number, digits = 0): number {
 
   const factor = 10 ** Math.max(0, digits)
   const scaled = value * factor
-  /* Values assembled from Float32 stat lanes can land just below an intended
-     decimal boundary (for example 50.1f + 49.8f -> 99.8999977). Snap only
-     within one Float32 rounding-error bound; meaningful fractions below the
+  /* values assembled from float32 stat lanes can land just below an intended
+     decimal boundary (for example 50.1f + 49.8f -> 99.8999977). snap only
+     within one float32 rounding-error bound; meaningful fractions below the
      boundary must still truncate downward. */
   const tolerance = Math.max(
     Number.EPSILON * Math.max(1, Math.abs(scaled)),

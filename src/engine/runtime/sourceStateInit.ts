@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Initializes and maxes source state controls for weapons,
+  description: initializes and maxes source state controls for weapons,
                main echoes, and echo sets.
 */
 

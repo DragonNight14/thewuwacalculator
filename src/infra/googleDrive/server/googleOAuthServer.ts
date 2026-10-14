@@ -1,7 +1,7 @@
 /*
   Author: Runor Ewhro
-  Description: Implements the server-side google oauth code exchange and token
-               refresh handlers used by the Cloudflare worker api routes.
+  description: implements the server-side google oauth code exchange and token
+               refresh handlers used by the cloudflare worker api routes.
 */
 
 export interface GglAuthEnv {

@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Verifies optimizer pool generations suppress callbacks retained
+  description: verifies optimizer pool generations suppress callbacks retained
                by an invalidated run.
 */
 

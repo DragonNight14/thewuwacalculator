@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: shared echo-pane helpers for stat labels, icon resolution,
+  description: shared echo-pane helpers for stat labels, icon resolution,
                default echo instancing, and set/cost summaries.
 */
 

@@ -1,8 +1,7 @@
 /*
   Author: Runor Ewhro
-  Description: Stable navigation-facing preload contract. The app routing
-               layer installs its chunk registry without making links depend
-               on app-owned route modules.
+  description: defines the navigation preload contract so links can preload
+               chunks without importing application route modules.
 */
 
 interface NavigationPreloader {

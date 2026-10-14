@@ -1,7 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Compares the account a build card carries against the saved one
-               and says what the prompt should ask.
+  description: compares the account on a build card with the saved account for import prompts.
 */
 
 import type { ParsedBuildMetadata } from '@/engine/echoParser/buildMetadata'
@@ -25,7 +24,7 @@ export interface IdentityAsk {
   verdict: string
 }
 
-// Group numeric UIDs into stable three-digit segments without changing other ids.
+// group numeric uids into stable three-digit segments without changing other ids.
 export function groupUid(uid: string): string {
   return /^\d+$/.test(uid) ? uid.replace(/\B(?=(\d{3})+(?!\d))/g, ' ') : uid
 }
@@ -38,7 +37,7 @@ export function idntyDffrs(saved: PlayerIdentity, card: PlayerIdentity): boolean
   return saved.playerId !== card.playerId || saved.playerUid !== card.playerUid
 }
 
-// how many places two UIDs disagree in, padded so a dropped digit still counts
+// how many places two uids disagree in, padded so a dropped digit still counts
 export function uidDgtDff(left: string, right: string): number {
   const width = Math.max(left.length, right.length)
   let count = 0

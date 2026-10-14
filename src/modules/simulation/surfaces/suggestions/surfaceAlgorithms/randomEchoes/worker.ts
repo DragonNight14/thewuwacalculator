@@ -1,7 +1,7 @@
 /*
   Author: Runor Ewhro
-  Description: Initializes worker-local game data and executes isolated
-               random-Echo suggestion jobs for the requesting client.
+  description: initializes worker-local game data and executes isolated
+               random-echo suggestion jobs for the requesting client.
 */
 
 /// <reference lib="webworker" />

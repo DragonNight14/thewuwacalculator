@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Defines optimizer state types for set selections, stat
+  description: defines optimizer state types for set selections, stat
                constraints, and settings.
 */
 

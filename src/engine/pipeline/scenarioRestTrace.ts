@@ -1,7 +1,7 @@
 /*
   Author: Runor Ewhro
-  Description: Resolves a scenario's non-rotation combat state into one
-               provenance-preserving effect graph for future tree and web UIs.
+  description: resolves a scenario's non-rotation combat state into one
+               provenance-preserving effect graph for future tree and web uis.
 */
 
 import type {
@@ -203,7 +203,7 @@ function resolveGameOperations(
   const operations: ScenarioRestOperation[] = []
 
   effect.operations.forEach((operation, operationIndex) => {
-    // Skill-triggered mutations need a concrete skill and are deliberately not
+    // skill-triggered mutations need a concrete skill and are deliberately not
     // part of a scenario rest-state trace.
     if (
       operation.type === 'add_skill_mod'
@@ -458,7 +458,7 @@ function activeTargetStates(scenario: CombatScenario): ScenarioRestTargetState[]
   return states
 }
 
-/** Resolve a prepared scenario without running or mutating its rotation program. */
+/** resolve a prepared scenario without running or mutating its rotation program. */
 export function tracePreparedRestState(
   prepared: PreparedCombatScenario,
 ): ScenarioRestStateTrace {
@@ -834,7 +834,7 @@ export function tracePreparedRestState(
   }
 }
 
-/** Prepare and trace the scenario's persisted rest state without executing a rotation. */
+/** prepare and trace the scenario's persisted rest state without executing a rotation. */
 export function traceScenarioRestState(
   scenario: CombatScenario,
 ): ScenarioRestStateTrace {

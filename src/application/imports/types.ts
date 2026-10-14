@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Defines pluggable import handlers that recognize, describe, and apply shared payloads.
+  description: defines pluggable import handlers that recognize, describe, and apply shared payloads.
 */
 
 import type { ReactNode } from 'react'
@@ -10,21 +10,21 @@ export interface ImportReview {
   title: string
   summary: ReactNode
   primaryLabel: string
-  // Secondary is another import mutation, not cancel; absence keeps a single
+  // secondary is another import mutation, not cancel; absence keeps a single
   // commit path for payload kinds that have no meaningful split.
   secondaryLabel?: string
-  // Present only when the payload exposes independently applicable parts.
+  // present only when the payload exposes independently applicable parts.
   take?: ImportTake
 }
 
-// Load and library-retention choices share the persisted rotation-import contract.
+// load and library-retention choices share the persisted rotation-import contract.
 export type ImportLoad = RotationImportLoad
 export type ImportPick = RotationImportPick
 
 export interface ImportTake {
   name: string
   resonatorName: string
-  // Multiple entries may be retained, but application always targets the first.
+  // multiple entries may be retained, but application always targets the first.
   count: number
   steps: number
   level: number
@@ -35,8 +35,8 @@ export interface ImportTake {
 
 export type ImportApplyVariant = 'primary' | 'secondary' | ImportPick
 
-// Detection and application are split so every payload is reviewed before any
-// domain state changes, even when it arrived from a URL.
+// detection and application are split so every payload is reviewed before any
+// domain state changes, even when it arrived from a url.
 export interface ImportHandler<P = unknown> {
   kind: string
   detect: (parsed: unknown) => P | null | Promise<P | null>
@@ -44,7 +44,7 @@ export interface ImportHandler<P = unknown> {
   apply: (payload: P, variant: ImportApplyVariant) => void | Promise<void>
 }
 
-// Type erasure lets the registry hold many payload shapes while preserving the
+// type erasure lets the registry hold many payload shapes while preserving the
 // validated payload inside the bound apply callback.
 export interface RegisteredImport {
   kind: string

@@ -1,8 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Owns the optimizer's disposable Echo preview workspace. A
-               preview shares the selected loadout until an immutable edit replaces a slot;
-               edits stay local until an Echo is explicitly saved or equipped.
+  description: provides an editable echo preview for optimizer results; changes remain local until saved or equipped.
 */
 
 import { lazy, Suspense, useCallback, useMemo, useState } from 'react'
@@ -36,39 +34,38 @@ import { useAppModal, useAppModalValue } from '@/shared/ui/useAppModal.ts'
 import { mainPortal } from '@/shared/lib/portalTarget.ts'
 import { useTstStr } from '@/shared/util/toastStore.ts'
 
-/** Owns the preview-scoped Forge modal. A future trigger only needs to call
-    `openForge`; generated Echoes are returned to the detached loadout owner. */
-export function useOptimizerPreviewForge({
+/** manages the generator modal for the optimizer preview; generated echoes update the detached loadout. */
+export function usePreviewGenerator({
   echoes,
   onGenerate,
 }: {
   echoes: Array<EchoInstance | null>
   onGenerate: (echoes: Array<EchoInstance | null>) => void
 }) {
-  const forge = useAppModal()
+  const generator = useAppModal()
   const showToast = useTstStr((state) => state.show)
-  const openForge = useCallback(() => forge.show(), [forge])
-  const portal = forge.visible ? (
-    <Suspense fallback={<AppLoaderOverlay mode="scrim" text="Loading Echo forge..." />}><QuickSetup
-      visible={forge.visible}
-      open={forge.open}
-      closing={forge.closing}
+  const openGenerator = useCallback(() => generator.show(), [generator])
+  const portal = generator.visible ? (
+    <Suspense fallback={<AppLoaderOverlay mode="scrim" text="Loading loadout generator..." />}><QuickSetup
+      visible={generator.visible}
+      open={generator.open}
+      closing={generator.closing}
       portalTarget={mainPortal()}
       currentEchoes={echoes}
-      onClose={forge.hide}
+      onClose={generator.hide}
       onGenerate={(generated) => {
         onGenerate(cloneEchoLoadout(generated))
         showToast({
-          content: 'Preview conjured~! ✦(ゝ｡∂)',
+          content: 'Preview loadout generated',
           variant: 'success',
           duration: 3000,
         })
-        forge.hide()
+        generator.hide()
       }}
     /></Suspense>
   ) : null
 
-  return { openForge, portal }
+  return { openGenerator, portal }
 }
 
 function previewSlotId(slotIndex: number): string {
@@ -101,10 +98,8 @@ export function OptimizerEchoPreview({
   const [echoes, setEchoes] = useState<Array<EchoInstance | null>>(
     () => sourceEchoes.slice(),
   )
-  // picking another row seeds the workspace again. it is the same five slots
-  // taking new data, so the seed is swapped in during render rather than by
-  // remounting the surface, which would replay every card's entrance and throw
-  // away the selection, the menus and the modals with it.
+  // picking another row seeds the same five workspace slots. swap the seed
+  // during render to preserve selection, menus, modals, and card animation state.
   const [seed, setSeed] = useState({ key: previewKey, echoes: sourceEchoes })
   if (seed.key !== previewKey || (seed.echoes !== sourceEchoes && sourceEchoes.some((echo, index) => {
     const previous = seed.echoes[index]
@@ -122,7 +117,7 @@ export function OptimizerEchoPreview({
   const picker = useAppModalValue<number>()
   const editor = useAppModalValue<number>()
   const allEchoes = useMemo(() => listEchoes(), [])
-  const { openForge, portal: forgePortal } = useOptimizerPreviewForge({
+  const { openGenerator, portal: generatorPortal } = usePreviewGenerator({
     echoes,
     onGenerate: setEchoes,
   })
@@ -407,7 +402,7 @@ export function OptimizerEchoPreview({
           editable={editable}
           canSaveEcho={echoSurface.canSaveEcho}
           onEchoes={writeLoadout}
-          onForge={openForge}
+          onGenerateLoadout={openGenerator}
           onEquip={loadoutCount > 0 ? () => onEquip(echoes) : undefined}
         />
         <div className="wk-echoes" {...echoSelection.surfaceProps}>
@@ -490,7 +485,7 @@ export function OptimizerEchoPreview({
         /></Suspense>
       ) : null}
 
-      {forgePortal}
+      {generatorPortal}
     </>
   )
 }

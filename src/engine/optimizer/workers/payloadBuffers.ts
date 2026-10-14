@@ -1,10 +1,10 @@
 /*
   Author: Runor Ewhro
-  Description: Discovers transferable numeric buffers and promotes aliased typed
+  description: discovers transferable numeric buffers and promotes aliased typed
                array views into shared storage without losing offsets or lengths.
 */
 
-/** Numeric payload fields are top-level, including optional weapon fields. */
+/** numeric payload fields are top-level, including optional weapon fields. */
 export function payloadTransfers(payload: object): ArrayBuffer[] {
   const buffers = new Set<ArrayBuffer>()
   for (const value of Object.values(payload)) {
@@ -25,14 +25,14 @@ export function sharePayload<T extends object>(payload: T): T {
       shared.set(value.buffer, buffer)
     }
     const Ctor = value.constructor as new (buffer: SharedArrayBuffer, offset: number, length: number) => ArrayBufferView
-    // All optimizer views are numeric typed arrays, never DataView.
+    // all optimizer views are numeric typed arrays, never DataView.
     const view = value as ArrayBufferView & { length: number }
     Object.assign(payload, { [key]: new Ctor(buffer, view.byteOffset, view.length) })
   }
   return payload
 }
 
-/** Allocate final compiler output directly in shareable storage when supported. */
+/** allocate final compiler output directly in shareable storage when supported. */
 export function optimizerFloats(source: number | ArrayLike<number>): Float32Array {
   const length = typeof source === 'number' ? source : source.length
   const result = typeof SharedArrayBuffer === 'undefined'

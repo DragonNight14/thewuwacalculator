@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Builds and queries the game data registry used to organize
+  description: builds and queries the game data registry used to organize
                sources, owners, states, effects, skills, features, and rotations.
 */
 

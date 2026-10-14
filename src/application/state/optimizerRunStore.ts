@@ -1,7 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Owns transient optimizer progress, prepared payloads, results,
-               and cancellation state outside persisted settings.
+  description: stores transient optimizer progress, prepared payloads, results, and cancellation state.
 */
 
 import { create } from 'zustand'

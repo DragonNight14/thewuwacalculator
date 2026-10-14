@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: runs an optional gpu-side candidate reduction pass.
+  description: runs an optional gpu-side candidate reduction pass.
                if the raw candidate count is already small enough, it
                returns the original buffer unchanged. otherwise it launches
                a compute shader that reduces candidates in workgroup-sized
@@ -27,11 +27,11 @@ interface RdcRsblBffr {
   params: ReusableBuffer
 }
 
-// cached pipeline objects so shader compilation/layout creation only happens once
+// cached pipeline objects share one shader compilation and layout creation.
 let cachedPipeline: GPUComputePipeline | null = null
 let cachedLayout: GPUBindGroupLayout | null = null
 
-// cached bind group so we only recreate it when one of its bound buffers changes
+// recreate the cached bind group when a bound buffer changes.
 let cchdBindGrp: GPUBindGroup | null = null
 let cchdBindGrpB: {
   input: GPUBuffer | null

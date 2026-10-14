@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Resolves whether route changes may use view transitions under current motion preferences.
+  description: resolves whether route changes may use view transitions under current motion preferences.
 */
 
 import { APP_ROUTES, SIMULATION_ROUTES } from '@/shared/lib/appRoutes'
@@ -13,11 +13,8 @@ export function motionAllowed(): boolean {
   return !document.documentElement.classList.contains('reduce-animation')
 }
 
-// Two pages that stand in the same room: the roster, the rail and the band are
-// the same elements in the same places on both, and only the work between them
-// differs. Handing one page to the other would blink furniture that never
-// moved, so a move between them is drawn as a single dissolve instead of the
-// two beats, said to the stylesheet by this class on the root.
+// these routes share the roster, rail, and band in the same positions. mark a
+// move between them with one dissolve to keep those elements visually stable.
 const SAME_ROOM: string[][] = [
   [
     SIMULATION_ROUTES.modulation,
@@ -29,8 +26,7 @@ const SAME_ROOM: string[][] = [
 
 const DISSOLVE = 'ax-dissolve'
 
-// the class is only ever read while a transition is running, so it is dropped a
-// beat after the move it was armed for rather than held for the route
+// the class applies only during a transition and expires after the move.
 const DISSOLVE_HELD = 700
 
 let dropAt = 0
@@ -41,21 +37,10 @@ function sameRoom(from: string, to: string): boolean {
 }
 
 /*
-  The front door gives the line more room and full ink; every other route keeps
-  it quiet until you reach for it. The line is told this here, on the click,
-  rather than by the chrome's own render on the route that follows.
-
-  The reason is that the line's move is a real transition on padding and
-  opacity, and a transition that only starts when the route commits is running
-  while the destination is being built. A heavy surface holds the main thread
-  long enough for the whole travel to pass without a frame, so the line is seen
-  at one padding and then the other and reads as having been rebuilt. Armed on
-  the click it has already begun, and most of it is behind us before the page it
-  is going to costs anything.
-
-  It is only the click that can arm it, so a load, a back and a forward are
-  reconciled by the chrome instead; those land on a page that is already built,
-  which is the case this was never about.
+  home uses a wider, opaque indicator; other routes animate it on interaction.
+  start the padding and opacity transition on click because destination setup
+  can block animation frames after the route commits. initial loads and history
+  navigation synchronize the indicator from the destination route.
 */
 const FRONT = 'ax-front'
 

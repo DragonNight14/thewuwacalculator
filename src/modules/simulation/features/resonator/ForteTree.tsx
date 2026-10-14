@@ -1,14 +1,8 @@
 /*
   Author: Runor Ewhro
-  Description: The forte tree: five columns on an arc, the two skills that dock
-               under the spine, and the resonance-mode sigil at its head.
-
-               It renders the same structure wherever it stands, and nothing
-               about how it looks. The console and Modulation are
-               different surfaces with different grounds, so each brings its own
-               skin: the root carries `frt--<surface>` and the skin files fill in
-               the `--frt-*` tokens `forte-tree.css` leaves open. Neither surface
-               overrides the other's rules.
+  description: renders five forte columns, two additional skills, and the
+               resonance-mode icon. console and modulation share the structure
+               but use separate `frt--<surface>` styles and `--frt-*` tokens.
 */
 
 import { Fragment, useState, type CSSProperties as CssProps } from 'react'
@@ -28,7 +22,7 @@ export type ForteSurface = 'console' | 'page' | 'modulation'
 /*
   one door on the placard. the note is whatever else the tab it opens will
   render besides the skill itself, which is only ever the forte circuit's
-  inherents, and is read off the branch rather than stated here.
+  inherents. read the note from the branch.
 */
 interface ForteDoor {
   key: SkillTabKey
@@ -38,8 +32,8 @@ interface ForteDoor {
 }
 
 /*
-  the four-point star the game sets behind every node. one shape reused at two
-  scales rather than art per node, so it costs a <use> and stays crisp.
+  the four-point star behind each node reuses one shape at two scales.
+  svg <use> keeps it crisp.
 */
 function Spark() {
   return (
@@ -49,7 +43,7 @@ function Spark() {
   )
 }
 
-/* the wisp that trails a conduit, so a link reads as drawn rather than ruled */
+/* a wisp trails the conduit link. */
 function Wisp() {
   return (
     <svg viewBox="0 0 24 100" preserveAspectRatio="none" aria-hidden="true">
@@ -149,9 +143,8 @@ function Dial({
 }
 
 /*
-  the two skills the game docks under the spine rather than giving a column of
-  their own. the outro skill carries no level, so it wears no collar and holds
-  the space its neighbour's readout takes to keep both labels on one baseline.
+  align both skills below the spine; the level-free outro reserves the same
+  readout width as the adjacent skill.
 */
 function DockRow({
   dock,
@@ -201,9 +194,8 @@ function DockRow({
 }
 
 /*
-  one column: the stat nodes stack above the dial that sets the skill's level,
-  and the conduit between them lights with the node it feeds. every conduit is
-  the same length, so the arch is entirely in where a column starts.
+  each column places stat nodes above its skill level dial. conduits have equal
+  length; column positions determine the arch.
 */
 function BranchCol({
   branch,
@@ -224,14 +216,13 @@ function BranchCol({
   dockLevel: (entry: ForteDock) => number
   /* which column the placard is pointing at, if any */
   cued: SkillTabKey | null
-  /* whether the tree stands a placard at all, and so whether a node carries
-     the sentence it is otherwise only drawing the figure of */
+  /* whether nodes display a detail placard */
   reads: boolean
   onSkillChange: (next: number) => void
   onDockChange: (entry: ForteDock, next: number) => void
   onTraceToggle: (nodeId: string) => void
 }) {
-  // both stacks are drawn top down, and the game hangs the later unlock highest
+  // reverse both stacks to display later unlocks above earlier ones.
   const stones = [...branch.traces].reverse()
   const inherents = [...branch.inherents].reverse()
   const spine = branch.key === FORTE_SPINE
@@ -303,16 +294,16 @@ function BranchCol({
   the placard: the label under the exhibit, standing on the horizon the tree
   is drawn over.
 
-  It hangs out of the tree's flow rather than under it, because the surface
-  draws the ring horizon off the tree's own box: taking room in the column
+  it hangs outside the tree's flow. the surface draws the ring horizon from
+  the tree box; taking room in the column
   would push the arc up and the rings down, and the placard is meant to arrive
   on the ground the tree already stands on, not move it.
 
-  Hovering a door lights exactly what the tab it opens will render, and the
-  caption names the door itself. Two of them land on the modal's Concerto view
+  hovering a door lights exactly what the tab it opens will render, and the
+  caption names the door itself. two of them land on the modal's concerto view
   together, which is the modal's own grouping and not something the tree should
-  restate: the reader is looking for the outro skill, so the placard says Outro
-  Skill.
+  restate: the reader is looking for the outro skill, so the placard says outro
+  skill.
 */
 function Placard({
   subject,
@@ -352,7 +343,7 @@ function Placard({
         ))}
       </span>
 
-      {/* the caption holds its line whether or not a door is under the pointer */}
+      {/* keep the caption height stable when no skill is hovered */}
       <span className="frt-placard-cap">
         {at ? `${at.label}${at.note ? ` ${at.note}` : ''}` : ' '}
       </span>
@@ -465,10 +456,7 @@ export function ForteTree({
   const [cued, setCued] = useState<SkillTabKey | null>(null)
   const reads = Boolean(onSkillData)
 
-  /*
-    seven doors: the five columns, then the two the spine docks. a column's
-    note is whatever else its tab renders, which the branch already carries.
-  */
+  /* seven detail entries: five columns and two additional skills. */
   const doors: ForteDoor[] = reads
     ? [
       ...branches.map((branch) => ({
@@ -513,7 +501,7 @@ export function ForteTree({
             branch={branch}
             level={skillLevel(branch)}
             activeNodes={activeNodes}
-            /* the spine carries the skills the tree has no column for */
+            /* render the two additional skills under the center column. */
             dock={branch.key === FORTE_SPINE ? dock : []}
             dockLevel={dockLevel}
             cued={cued}

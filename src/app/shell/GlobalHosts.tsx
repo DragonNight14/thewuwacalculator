@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Mounts app-wide singleton hosts outside the route lifecycle so
+  description: mounts app-wide singleton hosts outside the route lifecycle so
                their state survives navigation.
 */
 

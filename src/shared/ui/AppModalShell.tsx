@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Owns app modal shell behavior and state transitions for the ui module.
+  description: renders the modal shell and handles dismissal and transitions.
 */
 
 import type { ReactNode } from 'react'

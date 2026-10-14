@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Defines suggestion state types for targeted feature
+  description: defines suggestion state types for targeted feature
                suggestions and random generation preferences.
 */
 

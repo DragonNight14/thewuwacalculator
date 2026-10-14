@@ -1,10 +1,10 @@
 /*
   Author: Runor Ewhro
-  Description: accuracy guard for the optimizer's fast path. The optimizer scores
+  description: accuracy guard for the optimizer's fast path. the optimizer scores
                builds with an encoded re-implementation of the damage formula
                (cpu/computeDamage + target/evaluate); if it drifts from the
                canonical calcSkillDamage, every ranking and reported number is
-               wrong. This sweeps real optimizer results and asserts each
+               wrong. this sweeps real optimizer results and asserts each
                reported damage equals what you actually get by equipping that
                build and recomputing through the real pipeline + formula.
 */
@@ -528,7 +528,7 @@ describe('optimizer parity invariants', () => {
   })
 })
 
-// Search controls never enter the equipped baseline's numeric result.
+// search controls never enter the equipped baseline's numeric result.
 it.each([false, true])('dedicated baseline preserves packed results (rotation %s)', (rotationMode) => {
   const { seed, runtime } = makeShorekeeperRuntime()
   const settings = { ...makeOptSets(), rotationMode, searchMode: 'inventory' as const, targetSkillId: '1505021' }

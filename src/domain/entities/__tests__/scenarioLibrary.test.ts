@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Verifies the one-working-scenario-per-context-resonator invariant.
+  description: verifies the one-working-scenario-per-context-resonator invariant.
 */
 
 import { describe, expect, it, vi } from 'vitest'
@@ -68,7 +68,7 @@ describe('scenario workspace', () => {
     expect(selectScenario(added, scenario.id).selectedScenarioId).toBe(scenario.id)
   })
 
-  it('rejects another live scenario for an existing context but permits replacement in place', () => {
+  it('permits in-place replacement of an existing live scenario and rejects a second one', () => {
     const workspace = makeAppState().combat
     const current = workspace.scenariosById[workspace.selectedScenarioId]
     const duplicate = { ...structuredClone(current), id: combatScenarioId('scenario:duplicate') }

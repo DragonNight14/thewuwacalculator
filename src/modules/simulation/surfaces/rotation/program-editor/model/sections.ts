@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Partitions the flat authored program into preamble and main sections without changing execution order.
+  description: partitions the flat authored program into preamble and main sections without changing execution order.
 */
 
 import type { RotationNode } from '@/domain/gameData/contracts.ts'

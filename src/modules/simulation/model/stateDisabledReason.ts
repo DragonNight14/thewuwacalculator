@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Explains unmet control dependencies and condition expressions from canonical runtime state.
+  description: explains unmet control dependencies and condition expressions from canonical runtime state.
 */
 
 import type { CondExpr, EvalScpRoot, SourceState } from '@/domain/gameData/contracts'
@@ -41,7 +41,7 @@ function normLbl(label: string): string {
 }
 
 // convert one runtime-path requirement into a readable sentence
-// This handles common condition patterns shown in the Simulation UI.
+// this handles common condition patterns shown in the simulation ui.
 function dscrRtRqrm(
   root: EvalScpRoot | undefined,
   path: string,

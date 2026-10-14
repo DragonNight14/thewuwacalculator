@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Derives weapon, set-tier, and main-stat differences between a
+  description: derives weapon, set-tier, and main-stat differences between a
                held suggestion and the equipped loadout.
 */
 
@@ -27,7 +27,7 @@ import { RichDscr } from '@/modules/simulation/ui/RichDescription.tsx'
 import { statIconSrc } from '@/modules/simulation/workspace/ui.tsx'
 import { readSetTiers } from '@/modules/simulation/workspace/LoadoutEffects.tsx'
 import { getDiffLabel, getDiffTone } from '../lib/suggestions.ts'
-import type { ClimbKind, ClimbRow } from '@/modules/simulation/surfaces/suggestions/climb/model.ts'
+import type { Kind, Row } from '@/modules/simulation/surfaces/suggestions/results/model.ts'
 
 const pct = (value: number) =>
   `${value > 0 ? '+' : value < 0 ? '−' : ''}${getDiffLabel(value, false)}`
@@ -38,7 +38,7 @@ const tone = (value: number) => {
 }
 
 function Glyph({ src }: { src: string | null }) {
-  return src ? <i className="clb-leaf-glyph" aria-hidden="true" style={glyphVars(src, '--g')} /> : null
+  return src ? <i className="suggestion-results-comparison-glyph" aria-hidden="true" style={glyphVars(src, '--g')} /> : null
 }
 
 interface WeaponFace {
@@ -53,7 +53,7 @@ interface WeaponFace {
 
 function WeaponHead({ face }: { face: WeaponFace }) {
   return (
-    <div className="clb-leaf-wpn">
+    <div className="suggestion-results-comparison-wpn">
       <span className="wcon-icon">
         <DisplayImage src={face.icon} alt="" decoding="async" onError={withDefWpnMg} />
         <i className="wcon-rank">R{face.rank}</i>
@@ -79,12 +79,12 @@ function WeaponStats({ face, extra }: { face: WeaponFace, extra?: string }) {
         ) : null}
         {fmtWpnStatDs(face.statKey, face.statValue)}
       </span>
-      {extra ? <span className="wcon-stat clb-leaf-faint">{extra}</span> : null}
+      {extra ? <span className="wcon-stat suggestion-results-comparison-faint">{extra}</span> : null}
     </span>
   )
 }
 
-function WeaponLeaf({ row, equipped }: { row: ClimbRow, equipped: WeaponState }) {
+function Weapon({ row, equipped }: { row: Row, equipped: WeaponState }) {
   const [fold, setFold] = useState(false)
   const plan = row.weapon!
   const catalog = getWeapon(plan.weaponId)
@@ -102,13 +102,13 @@ function WeaponLeaf({ row, equipped }: { row: ClimbRow, equipped: WeaponState })
     atk: wornStats.atk, statKey: worn.statKey, statValue: wornStats.scndStatVl,
   } : null
 
-  // Preserve both scored passive modes when the result provides them.
+  // preserve both scored passive modes when the result provides them.
   const stacked = row.variants.find((variant) => variant.mode === 'max') ?? null
   const resting = row.variants.find((variant) => variant.mode === 'default') ?? null
 
   return (
     <>
-      <div className="wcon-body clb-leaf-body" style={{ '--rar': rarity } as CssProps}>
+      <div className="wcon-body suggestion-results-comparison-body" style={{ '--rar': rarity } as CssProps}>
         <span className="wcon-sec">
           {typeKey ? (
             <i className="wcon-sec-type" aria-hidden="true" style={glyphVars(`/assets/game/weapons/types/${typeKey}.webp`, '--g')} />
@@ -128,7 +128,7 @@ function WeaponLeaf({ row, equipped }: { row: ClimbRow, equipped: WeaponState })
           />
         ) : null}
         {stacked && resting ? (
-          <span className="clb-leaf-dmg">
+          <span className="suggestion-results-comparison-dmg">
             <span>Stacked <b>{formatCompactNum(stacked.damage)}</b> <em className={tone(stacked.delta)}>{pct(stacked.delta)}</em></span>
             <span>Resting <b>{formatCompactNum(resting.damage)}</b> <em className={tone(resting.delta)}>{pct(resting.delta)}</em></span>
           </span>
@@ -140,18 +140,18 @@ function WeaponLeaf({ row, equipped }: { row: ClimbRow, equipped: WeaponState })
           <h4 className="lho-fx-head">Equipped</h4>
           <button
             type="button"
-            className="clb-leaf-fold"
+            className="suggestion-results-comparison-fold"
             aria-expanded={fold}
             onClick={() => setFold((open) => !open)}
           >
             <DisplayImage src={worn.icon} alt="" decoding="async" onError={withDefWpnMg} />
-            <span className="clb-leaf-fold-name">
+            <span className="suggestion-results-comparison-fold-name">
               <strong>{worn.name}</strong>
               <WeaponStats face={wornFace} extra={worn.passive.name} />
             </span>
-            <i className="clb-leaf-chev" aria-hidden="true" />
+            <i className="suggestion-results-comparison-chev" aria-hidden="true" />
           </button>
-          <div className={`clb-leaf-fold-body${fold ? ' is-open' : ''}`}>
+          <div className={`suggestion-results-comparison-fold-body${fold ? ' is-open' : ''}`}>
             <div>
               {worn.passive.desc ? (
                 <RichDscr
@@ -179,10 +179,10 @@ interface SetMove {
 
 function Pips({ from, to }: { from: number, to: number }) {
   return (
-    <span className="clb-leaf-pips" role="img" aria-label={`${from} to ${to} pieces`}>
+    <span className="suggestion-results-comparison-pips" role="img" aria-label={`${from} to ${to} pieces`}>
       {Array.from({ length: 5 }, (_, index) => {
         const state = index < Math.min(from, to) ? 'is-kept' : index < to ? 'is-gain' : index < from ? 'is-lost' : ''
-        return <i key={index} className={`clb-leaf-pip ${state}`} />
+        return <i key={index} className={`suggestion-results-comparison-pip ${state}`} />
       })}
     </span>
   )
@@ -194,8 +194,8 @@ const GROUPS = [
   { key: 'lost', label: 'Lost' },
 ] as const
 
-function SetLeaf({ row, echoes, next }: {
-  row: ClimbRow
+function Sets({ row, echoes, next }: {
+  row: Row
   echoes: Array<EchoInstance | null>
   next: Array<EchoInstance | null>
 }) {
@@ -220,7 +220,7 @@ function SetLeaf({ row, echoes, next }: {
       }
     }
 
-    // A tray offers effect-equivalent sets; name the ones the plan does not use.
+    // a tray offers effect-equivalent sets; name the ones the plan does not use.
     const used = new Set((row.setPlan ?? []).map((entry) => getSntSetNam(entry.setId)))
     const seen = new Set<string>()
     const swaps = row.trays.flatMap((tray) => {
@@ -240,20 +240,20 @@ function SetLeaf({ row, echoes, next }: {
     <>
       <section className="lho-fx-part">
         <h4 className="lho-fx-head">Set pieces</h4>
-        <div className="clb-leaf-pieces">
+        <div className="suggestion-results-comparison-pieces">
           {moves.map((move) => (
-            <div key={move.id} className="clb-leaf-piece">
-              <span className="clb-leaf-piece-name">
+            <div key={move.id} className="suggestion-results-comparison-piece">
+              <span className="suggestion-results-comparison-piece-name">
                 {move.icon ? <DisplayImage src={move.icon} alt="" decoding="async" onError={withDefIconM} /> : null}
                 {move.name}
               </span>
               <Pips from={move.from} to={move.to} />
-              <span className="clb-leaf-piece-n">{move.from} → {move.to}</span>
+              <span className="suggestion-results-comparison-piece-n">{move.from} → {move.to}</span>
             </div>
           ))}
         </div>
         {swaps.map((swap) => (
-          <p key={swap.key} className="clb-leaf-alt">
+          <p key={swap.key} className="suggestion-results-comparison-alt">
             {swap.others.map((entry, index) => (
               <span key={entry.name}>
                 {index > 0 ? (index === swap.others.length - 1 ? ' or ' : ', ') : null}
@@ -269,8 +269,8 @@ function SetLeaf({ row, echoes, next }: {
       <section className="lho-fx-part">
         <h4 className="lho-fx-head">Sonata effect</h4>
         {GROUPS.map((group) => effects[group.key].length ? (
-          <div key={group.key} className={`clb-leaf-grp is-${group.key}`}>
-            <span className="clb-leaf-grp-k">{group.label}</span>
+          <div key={group.key} className={`suggestion-results-comparison-grp is-${group.key}`}>
+            <span className="suggestion-results-comparison-grp-k">{group.label}</span>
             {effects[group.key].map(({ move, pieces, desc }) => (
               <div key={`${move.id}:${pieces}`} className="lho-fx-tier" data-on={group.key === 'lost' ? undefined : 'true'}>
                 <span className="lho-fx-mark" role="img" aria-label={group.key === 'lost' ? 'Not active' : 'Active'} />
@@ -278,7 +278,7 @@ function SetLeaf({ row, echoes, next }: {
                   <span className="lho-fx-tier-head">
                     {move.icon ? <DisplayImage src={move.icon} alt="" className="lho-fx-glyph" decoding="async" onError={withDefIconM} /> : null}
                     {move.name}
-                    <span className="clb-leaf-pc">{pieces}pc</span>
+                    <span className="suggestion-results-comparison-pc">{pieces}pc</span>
                   </span>
                   <RichDscr description={desc} className="rich-description lho-fx-desc" />
                 </div>
@@ -294,9 +294,9 @@ function SetLeaf({ row, echoes, next }: {
   )
 }
 
-function MainStatLeaf({ echoes, next }: { echoes: Array<EchoInstance | null>, next: Array<EchoInstance | null> }) {
+function MainStats({ echoes, next }: { echoes: Array<EchoInstance | null>, next: Array<EchoInstance | null> }) {
   const { slots, totals } = useMemo(() => {
-    // A recipe has no slot identity: pair identical main stats within each
+    // a recipe has no slot identity: pair identical main stats within each
     // cost first, and only what is left over counts as a change.
     type Main = { key: string, value: number }
     const byCost = (list: Array<EchoInstance | null>) => {
@@ -340,19 +340,19 @@ function MainStatLeaf({ echoes, next }: { echoes: Array<EchoInstance | null>, ne
     <>
       <section className="lho-fx-part">
         <h4 className="lho-fx-head">Main stats</h4>
-        <div className="clb-leaf-stats">
+        <div className="suggestion-results-comparison-stats">
           {slots.map((slot) => (
-            <div key={slot.index} className={`clb-leaf-stat${slot.same ? ' is-same' : ' is-new'}`}>
-              <span className="clb-leaf-cost">{slot.cost}c</span>
-              <span className="clb-leaf-stat-name">
+            <div key={slot.index} className={`suggestion-results-comparison-stat${slot.same ? ' is-same' : ' is-new'}`}>
+              <span className="suggestion-results-comparison-cost">{slot.cost}c</span>
+              <span className="suggestion-results-comparison-stat-name">
                 <Glyph src={statIconSrc(slot.to.key)} />
                 {formatStatKeyLabel(slot.to.key)}
               </span>
-              <span className="clb-leaf-fig">
+              <span className="suggestion-results-comparison-fig">
                 {slot.same ? null : (
                   <s>{formatStatKeyLabel(slot.from.key)} {formatStatKeyValue(slot.from.key, slot.from.value)}</s>
                 )}
-                <span className="clb-leaf-to">{formatStatKeyValue(slot.to.key, slot.to.value)}</span>
+                <span className="suggestion-results-comparison-to">{formatStatKeyValue(slot.to.key, slot.to.value)}</span>
               </span>
             </div>
           ))}
@@ -362,12 +362,12 @@ function MainStatLeaf({ echoes, next }: { echoes: Array<EchoInstance | null>, ne
       <section className="lho-fx-part">
         <h4 className="lho-fx-head">Stat change</h4>
         {totals.length ? (
-          <div className="clb-leaf-stats">
+          <div className="suggestion-results-comparison-stats">
             {totals.map(([key, value]) => (
-              <div key={key} className="clb-leaf-stat">
+              <div key={key} className="suggestion-results-comparison-stat">
                 <span><Glyph src={statIconSrc(key)} /></span>
-                <span className="clb-leaf-stat-name">{formatStatKeyLabel(key)}</span>
-                <span className={`clb-leaf-fig ${value > 0 ? 'up' : 'dn'}`}>
+                <span className="suggestion-results-comparison-stat-name">{formatStatKeyLabel(key)}</span>
+                <span className={`suggestion-results-comparison-fig ${value > 0 ? 'up' : 'dn'}`}>
                   {value > 0 ? '+' : '−'}{formatStatKeyValue(key, Math.abs(value))}
                 </span>
               </div>
@@ -381,16 +381,16 @@ function MainStatLeaf({ echoes, next }: { echoes: Array<EchoInstance | null>, ne
   )
 }
 
-export function ResultLeaf({ kind, row, weapon, echoes, preview }: {
-  kind: ClimbKind
-  row: ClimbRow
+export function Comparison({ kind, row, weapon, echoes, preview }: {
+  kind: Kind
+  row: Row
   weapon: WeaponState
   echoes: Array<EchoInstance | null>
-  /** Materialized candidate loadout; null identifies the worn baseline. */
+  /** materialized candidate loadout; null identifies the worn baseline. */
   preview: Array<EchoInstance | null> | null
 }) {
-  if (row.weapon) return <WeaponLeaf row={row} equipped={weapon} />
+  if (row.weapon) return <Weapon row={row} equipped={weapon} />
   const next = preview ?? echoes
-  if (kind === 'setPlans') return <SetLeaf row={row} echoes={echoes} next={next} />
-  return <MainStatLeaf echoes={echoes} next={next} />
+  if (kind === 'setPlans') return <Sets row={row} echoes={echoes} next={next} />
+  return <MainStats echoes={echoes} next={next} />
 }

@@ -1,9 +1,9 @@
 /*
   Author: Runor Ewhro
-  Description: Reads OCR'd echo stat lines against the game's own stat names
-               and legal rolls. A label is matched by edit distance, and the
-               number has to be a roll that stat can have, so each half checks
-               the other instead of a table of remembered misreads.
+  description: reads ocr'd echo stat lines against the game's own stat names
+               and legal rolls. a label is matched by edit distance, and the
+               number must be a legal roll for the matched stat. each half
+               validates the other.
 */
 
 import {
@@ -52,7 +52,7 @@ function labelForms(label: string): string[] {
   return forms
 }
 
-// short names leave little room: "AK" is ATK, but "HP" must never become "DEF"
+// short names leave little room: "AK" is atk, but "HP" must never become "DEF"
 function formTolerance(form: string): number {
   return form.length <= 3 ? 1 : Math.max(1, Math.floor(form.length * 0.25))
 }

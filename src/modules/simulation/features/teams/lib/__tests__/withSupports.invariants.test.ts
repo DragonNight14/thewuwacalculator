@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Verifies the team picker's one-step write: kept members keep their
+  description: verifies the team picker's one-step write: kept members keep their
                seat identity, departed ones are removed, new ones are appended,
                and the order matches the picked seats.
 */

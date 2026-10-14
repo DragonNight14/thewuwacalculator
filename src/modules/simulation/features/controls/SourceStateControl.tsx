@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Edits boolean, numeric, and enumerated source-state controls through canonical runtime paths.
+  description: edits boolean, numeric, and enumerated source-state controls through canonical runtime paths.
 */
 
 import type { ReactNode } from 'react'
@@ -26,7 +26,7 @@ import { getSrcSttDsb } from '@/modules/simulation/model/stateDisabledReason.ts'
 import { getSrcSttNct } from '@/engine/gameData/controlOptions.ts'
 import { srcSttNumMax } from '@/engine/runtime/sourceStateInit.ts'
 
-// renders the control for each resonator source state and wires into the runtime update helpers.
+// renders each resonator source state control and calls the runtime update helpers.
 interface SrcSttCntrPr {
   srcRt: ResRuntime
   tgtRt: ResRuntime
@@ -39,7 +39,7 @@ interface SrcSttCntrPr {
   cellOwnsClick?: boolean
 }
 
-// renders the control for each resonator source state and wires into the runtime update helpers.
+// converts a numeric source state value.
 
 function toNumber(value: unknown): number {
   if (typeof value === 'number' && Number.isFinite(value)) {

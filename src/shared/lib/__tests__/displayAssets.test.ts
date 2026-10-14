@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Preserves canonical art identity and responsive derivative selection.
+  description: preserves canonical art identity and responsive derivative selection.
 */
 import { describe, expect, it } from 'vitest'
 import { resolveDisplayImage } from '../displayAssets'

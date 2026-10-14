@@ -1,7 +1,7 @@
 /*
   Author: Runor Ewhro
-  Description: Builds data-driven echo set source packages from cached
-               JSON definitions loaded during Simulation bootstrap.
+  description: builds data-driven echo set source packages from cached
+               json definitions loaded during simulation bootstrap.
 */
 
 import type {
@@ -321,9 +321,9 @@ function partDescription(def: SetDef, key: string, fallback?: string): string | 
   return part?.description ?? fallback ?? part?.label
 }
 
-// Effect labels identify the set bonus itself. The corresponding SourceState
-// keeps the part label for the toggle/enabler control (for example, "Fusion
-// DMG +10%").
+// effect labels identify the set bonus itself. the corresponding SourceState
+// keeps the part label for the toggle/enabler control (for example, "fusion
+// dmg +10%").
 function effectName(def: SetDef, pieceCount: number): string {
   return `${def.name} ${pieceCount}pc`
 }
@@ -424,7 +424,7 @@ function mkSetPkg(def: SetDef): SrcPkg {
     const isToggle = perStep.every((ps, index) => ps.value === state.max[index].value)
     const part = def.parts.find((entry) => entry.key === stateId)
     const requirement = stateReq(def, state)
-    // A later exclusive branch wins if legacy controls retain both branches;
+    // a later exclusive branch wins if legacy controls retain both branches;
     // current state setters clear the sibling through SourceState.resets.
     const superseding = stateEntries.slice(stateIndex + 1)
       .filter(([, candidate]) => candidate.resets?.includes(stateId))
@@ -436,8 +436,8 @@ function mkSetPkg(def: SetDef): SrcPkg {
       ...(requirement ? [requirement] : []),
     )
 
-    // Healing is the authored trigger; the magnitude comes from the source's
-    // resolved buildup-rate stat, so this is an enabler instead of a stack input.
+    // healing is the authored trigger; the magnitude comes from the source's
+    // resolved buildup-rate stat. this enables buildup without adding a stack.
     if (def.id === 25 && stateId === 'starryRadiance5pc') {
       states.push(makeToggle(
         def.id,
@@ -492,7 +492,7 @@ function mkSetPkg(def: SetDef): SrcPkg {
         )
       }
     } else {
-      // Stack and per-step states share a bounded numeric control, but retain
+      // stack and per-step states share a bounded numeric control, but retain
       // distinct data kinds because their downstream evaluation differs.
       const maxStacks = stateMaxVal(state) as number
 
@@ -509,7 +509,7 @@ function mkSetPkg(def: SetDef): SrcPkg {
       }
       states.push(sourceState)
 
-      // group per-stack/max pairs by scope so we can generate one effect per scope
+      // each scope groups its per-stack/max pairs into one effect.
       const pairsByScope = new Map<
         EffectDef['targetScope'],
         Array<{ perStack: Buff; max: Buff }>
@@ -587,7 +587,7 @@ function mkSetPkg(def: SetDef): SrcPkg {
     owners: [makeOwner(def.id, def.name)],
     states: states.map((state) => ({
       ...state,
-      // Controls require the same equipped-piece threshold as their effects.
+      // controls require the same equipped-piece threshold as their effects.
       visibleWhen: setGte(def.id, pieceReq),
     })),
     effects,

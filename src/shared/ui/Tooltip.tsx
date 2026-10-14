@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Shared radix-tooltip wrapper with app-level defaults for delay,
+  description: shared radix-tooltip wrapper with app-level defaults for delay,
                placement, and close timing.
 */
 
@@ -68,7 +68,7 @@ export const Tooltip: React.FC<TooltipProps> = ({
       {/*
         forceMount belongs on the portal as well as the content: radix gates the
         portal on `open` alone, so without it the subtree is torn out the instant
-        the tooltip closes and the exit animation never paints. The popup's own
+        the tooltip closes and the exit animation never paints. the popup's own
         visibility gate below still unmounts once the exit has finished.
       */}
       {popup.visible ? (
@@ -96,16 +96,15 @@ export const Tooltip: React.FC<TooltipProps> = ({
 }
 
 export interface HoverCardProps {
-  // The trigger remains mounted permanently; hover/focus handlers are attached
-  // to the wrapper instead of mutating the child.
+  // the trigger remains mounted; the wrapper handles hover and focus events.
   children: ReactNode
-  // A function defers expensive catalog lookup/formatting until the first
-  // visible frame instead of paying it during the parent render.
+  // a function defers expensive catalog lookup and formatting until the first
+  // visible frame.
   content: ReactNode | (() => ReactNode)
-  // Disabled instances skip portal and pointer work while preserving trigger layout.
+  // disabled instances skip portal and pointer work while preserving trigger layout.
   disabled?: boolean
   label?: string
-  // Class hooks are split so caller skins can target trigger, portal root, and
+  // class hooks are split so caller skins can target trigger, portal root, and
   // measured card independently of the shared placement mechanics.
   triggerClassName?: string
   rootClassName?: string

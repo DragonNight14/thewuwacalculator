@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Verifies worker-cloned main-stat and Sonata candidates retain
+  description: verifies worker-cloned main-stat and sonata candidates retain
                canonical simulation scores and legal search-space membership.
 */
 
@@ -64,7 +64,7 @@ describe('main-stat suggestion worker payload', () => {
     } else if (compactMain?.context.mode === 'target' && prepared.context.mode === 'target') {
       expect(compactMain.context.pckdCtx).toEqual(prepared.context.pckdCtx)
     }
-    // Worker transfer must retain every input needed for finalist simulation.
+    // worker transfer must retain every input needed for finalist simulation.
     const transferred = structuredClone(prepared)
     expect(transferred.scoringInput.runtime.id).toBe('1208')
     expect(transferred.scoringInput.includeEchoAttacks).toBe(true)
@@ -87,7 +87,7 @@ describe('main-stat suggestion worker payload', () => {
     }
     const setResults = runSetPlanqc(structuredClone(preparedSets))
     expect(setResults.length).toBeGreaterThan(0)
-    // Changing Echo bodies during full simulation must not reintroduce plans
+    // changing echo bodies during full simulation must not reintroduce plans
     // suppressed by the original isolated useful-piece comparisons.
     const isolated = sggsSetPlns({
       ctx: rotationMode ? null : preparedSets.context,

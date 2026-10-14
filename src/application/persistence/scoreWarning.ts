@@ -1,11 +1,11 @@
 /*
   Author: Runor Ewhro
-  Description: Persists the versioned acknowledgement for the Build Score
+  description: persists the versioned acknowledgement for the build score
                comparison warning.
 */
 
 const SCORE_WARNING_STORE = 'seen-score-warning'
-// A version change invalidates acknowledgements recorded for older guidance.
+// a version change invalidates acknowledgements recorded for older guidance.
 const SCORE_WARNING_VERSION = '1'
 
 export function isScoreWarningSeen(): boolean {
@@ -20,6 +20,6 @@ export function markScoreWarningSeen(): void {
   try {
     localStorage.setItem(SCORE_WARNING_STORE, SCORE_WARNING_VERSION)
   } catch {
-    // Failed writes leave the acknowledgement unpersisted.
+    // failed writes leave the acknowledgement unpersisted.
   }
 }

@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Defines random-generation limits and enumerates legal Echo cost
+  description: defines random-generation limits and enumerates legal echo cost
                plans and main-stat combinations.
 */
 
@@ -28,7 +28,7 @@ export function makeRandomEchoCostPlans(requiredCost?: number | null): number[][
 
   const filtered = COST_COMBOS.filter((plan) => plan.includes(requiredCost))
 
-  // An unsupported constraint must not collapse the entire candidate space.
+  // an unsupported constraint must not collapse the entire candidate space.
   return (filtered.length ? filtered : COST_COMBOS).map((plan) => [...plan])
 }
 
@@ -46,7 +46,7 @@ export function mkMainStatCo(
 
     const filtered = weightedKeys.filter((key) => key in valid)
 
-    // A filter with no legal option for this cost tier falls back to its full domain.
+    // a filter with no legal option for this cost tier falls back to its full domain.
     return filtered.length ? filtered : keys
   })
 

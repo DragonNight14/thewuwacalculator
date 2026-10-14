@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Produces content-addressed display images without changing the
+  description: produces content-addressed display images without changing the
                canonical art used by saved builds and high-resolution exports.
 */
 import { createHash } from 'node:crypto'
@@ -63,8 +63,8 @@ export async function buildDisplayAssets({ publicDir = defaultPublicDir, manifes
         const filename = `${fingerprint}-${width}.webp`
         const target = join(outputDir, filename)
         const existing = await stat(target).catch(() => null)
-        // A previous interrupted generation may already have completed this
-        // content-addressed file. Decode it before trusting that partial run.
+        // a previous interrupted generation may already have completed this
+        // content-addressed file. decode it before trusting that partial run.
         if (existing?.size) {
           const decoded = await sharp(target).raw().toBuffer({ resolveWithObject: true }).catch(() => null)
           if (decoded?.info.width === width) {
@@ -74,7 +74,7 @@ export async function buildDisplayAssets({ publicDir = defaultPublicDir, manifes
         }
         const { data, info } = await sharp(bytes).resize({ width, withoutEnlargement: true })
           .webp({ quality: settings.quality, alphaQuality: settings.alphaQuality, effort: settings.effort }).toBuffer({ resolveWithObject: true })
-        // Avoid adding another lossy generation when the authored WebP is
+        // avoid adding another lossy generation when the authored webp is
         // already smaller at the same resolution.
         const output = metadata.format === 'webp' && width === metadata.width && bytes.length <= data.length ? bytes : data
         await writeAtomic(target, output)

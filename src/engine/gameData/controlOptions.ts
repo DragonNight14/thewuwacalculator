@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Resolves conditional select-option sets for resonator controls
+  description: resolves conditional select-option sets for resonator controls
                and source states, and normalizes invalid stored control values.
 */
 

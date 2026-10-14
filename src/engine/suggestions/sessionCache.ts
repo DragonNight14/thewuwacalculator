@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Provides a small in-memory LRU cache for Suggestions results
+  description: provides a small in-memory lru cache for suggestions results
                so reopening the pane with identical inputs can reuse the last
                successful computation without re-dispatching worker jobs.
 */

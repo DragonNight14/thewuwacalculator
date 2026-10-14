@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: runs build evaluation jobs inside a dedicated web worker.
+  description: runs build evaluation jobs inside a dedicated web worker.
 */
 
 /// <reference lib="webworker" />
@@ -51,8 +51,8 @@ scope.onmessage = async (event: MessageEvent<EvaluationWorkerIn>) => {
     await initGameData({ mode: message.gameDataMode, resonatorIds, calculationOnly: true,
       weaponIds: participants.flatMap((runtime) => runtime.build.weapon.id ? [runtime.build.weapon.id] : []),
     })
-    // Rehydrate persisted anchors before the first search so a cold worker (idle
-    // teardown / page reload) can re-score from disk instead of re-searching.
+    // rehydrate persisted anchors before the first search. a cold worker after
+    // idle teardown or page reload can then score from disk.
     if (message.type === 'report' || message.type === 'score' || message.type === 'summary') await ensureAnchorStoreHydrated()
     makeCancelCheck(message)?.()
     const result = message.type === 'report' ? buildReport(message)

@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Verifies default-rotation suggestion targets remain detached from
+  description: verifies default-rotation suggestion targets remain detached from
                live state and reset target-specific settings between resonators.
 */
 

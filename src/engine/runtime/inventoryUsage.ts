@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Builds app-level derived inventory usage indexes for saved
+  description: builds app-level derived inventory usage indexes for saved
                echoes and builds.
 */
 

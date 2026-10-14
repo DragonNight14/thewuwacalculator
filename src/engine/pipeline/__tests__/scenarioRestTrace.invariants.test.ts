@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Verifies scenario rest traces preserve effect provenance,
+  description: verifies scenario rest traces preserve effect provenance,
                member routing, target beneficiaries, and environment sources.
 */
 

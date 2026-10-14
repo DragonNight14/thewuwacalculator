@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: resolves saved rotations into the marks the saved list draws.
+  description: resolves saved rotations into the marks the saved list draws.
                a saved rotation is one run from zero to its average, cut into
                the members who dealt it, so everything here exists to turn an
                entry into those runs and to work out the window the field is
@@ -37,9 +37,8 @@ export interface SavedMember {
   name: string
   accent: string
   profile: string
-  /* the standing art, and where the face sits inside it. the picked row's cut
-     lands every member's face on the same spot, so it needs the point rather
-     than the picture alone */
+  /* standing art and the face position within it. the picked row aligns each
+     member's face to the same point. */
   sprite: string
   faceX: number
   faceY: number
@@ -69,12 +68,11 @@ export interface SavedEntry {
   dps: number | null
   updatedAt: number
   entry: SavedRotation
-  /* the last completed live take rather than one that was kept. it is resolved
-     and ranked exactly like the rest, and drawn as the row it would become */
+  /* the latest completed live take, resolved and ranked as a saved row. */
   live: boolean
 }
 
-/** Members that dealt damage, independent of who merely occupied a team slot. */
+/** members that dealt damage, independent of who merely occupied a team slot. */
 export function savedContributors(row: Pick<SavedEntry, 'members'>): SavedMember[] {
   return row.members.filter((member) => member.to > member.from)
 }
@@ -108,8 +106,7 @@ export interface SavedMemberTake {
   damage: number
   share: number
   total: number
-  /* the take's own snapshot, so the ledger can open one and read the build the
-     figure was made with rather than only the figure */
+  /* the take's snapshot lets the ledger show the build behind its figure. */
   entry: SavedRotation
 }
 
@@ -327,7 +324,7 @@ export function makeSavedEntries(
         cmp = a.avg - b.avg
         break
       case 'dps':
-        // a rotation nobody timed has no rate, so it sorts last either way
+        // untimed rotations have no rate and sort last in either direction.
         if (a.dps != null && b.dps == null) return -1
         if (a.dps == null && b.dps != null) return 1
         cmp = (a.dps ?? 0) - (b.dps ?? 0)
@@ -368,8 +365,7 @@ export function rankSavedEntries(rows: SavedEntry[]): ReadonlyMap<string, number
 
 /*
   one axis, from zero to the highest ceiling in the filter. it is the same in
-  both views, which is what lets the gridlines behind the rows be one backdrop
-  rather than a set that rebuilds itself section by section. starting at zero
+  both views and gives their rows one shared gridline backdrop. starting at zero
   also means the scale needs no declaring: the gridlines say it.
 */
 export function makeSavedScale(lo: number, hi: number): SavedAxis {
@@ -392,14 +388,9 @@ export function makeSavedAxis(rows: SavedEntry[]): SavedAxis {
 }
 
 /*
-  the window the field is read through while an entry is selected. zero stays
-  fixed so the selected entry's complete run remains visible; its highest
-  rendered value opens the ceiling, and a take just above it is pulled in when
-  it is close enough to compare.
-
-  The reach is what keeps the zoom a zoom. An archive usually holds one take
-  worth several of the others, and reaching for that one whatever the distance
-  hands the window straight back to the full range.
+  the selected entry sets a zero-based axis range with padding for nearby
+  results. limit the range expansion so distant high-value entries do not
+  force the full archive scale.
 */
 const WIN_PAD = 0.06
 const WIN_REACH = 1
@@ -490,7 +481,7 @@ export function groupSavedEntries(rows: SavedEntry[]): SavedGroup[] {
   return groups
 }
 
-/* Every member who appears anywhere in the archive, accumulated from the
+/* every member who appears anywhere in the archive, accumulated from the
    same average-damage segments the field draws. */
 export function makeSavedRoster(rows: SavedEntry[]): SavedRosterMember[] {
   const roster = new Map<ResonatorId, SavedRosterMember>()
@@ -520,7 +511,7 @@ export function makeSavedRoster(rows: SavedEntry[]): SavedRosterMember[] {
   ))
 }
 
-/* One selected member's damage in every saved entry that contains them. The
+/* one selected member's damage in every saved entry that contains them. the
    row order is preserved so the ledger can be read directly against the field. */
 export function makeMemberTakes(
   rows: SavedEntry[],

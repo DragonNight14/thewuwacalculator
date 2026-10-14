@@ -1,7 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Holds the stat reader to the card's printed names and legal
-               rolls, over clean lines and the misreads OCR actually makes.
+  description: tests stat recognition against printed names, legal rolls, and common ocr errors.
 */
 
 import { describe, expect, it } from 'vitest'
@@ -67,7 +66,7 @@ describe('substat lines', () => {
     expect(readSubstat('## 13.8%')).toBeNull()
   })
 
-  it('snaps a number no single slip explains, and says so', () => {
+  it('snaps an invalid roll and reports the correction', () => {
     expect(readSubstat('Crit. Rate 8.4%')).toMatchObject({ key: 'critRate', fix: 'snapped' })
   })
 

@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: inventory-facing Simulation helpers for slot fit checks and
+  description: inventory-facing simulation helpers for slot fit checks and
                generic sorting so inventory features stay mostly presentational.
 */
 
@@ -22,8 +22,8 @@ export interface InventoryPage<T, G extends { entries: T[] }> {
 }
 
 /**
- * Page grouped inventory rows without flattening away their visual bands.
- * Only the current page reaches React, which bounds card DOM, decoded images,
+ * page grouped inventory rows without flattening away their visual bands.
+ * only the current page reaches react, which bounds card dom, decoded images,
  * refs, and event handlers even when a library contains hundreds of entries.
  */
 export function paginateInventoryGroups<T, G extends { entries: T[] }>(

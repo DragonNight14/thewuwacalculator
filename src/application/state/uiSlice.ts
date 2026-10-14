@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Defines persisted preferences and transient interface mutations,
+  description: defines persisted preferences and transient interface mutations,
                including history bounds and inventory visibility delegation.
 */
 

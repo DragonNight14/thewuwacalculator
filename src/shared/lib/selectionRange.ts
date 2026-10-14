@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: shared helpers for extending selection across an ordered list
+  description: shared helpers for extending selection across an ordered list
                so shift-click range selection behaves consistently.
 */
 

@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Joins the status report's coverage domains with live catalog
+  description: joins the status report's coverage domains with live catalog
                counts; enemy data resolves asynchronously.
 */
 

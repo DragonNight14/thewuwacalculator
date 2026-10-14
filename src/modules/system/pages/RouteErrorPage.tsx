@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Adapts React Router failures to the shared diagnostic notice and
+  description: adapts react router failures to the shared diagnostic notice and
                stays in the eager route graph so lazy-chunk failures remain visible.
 */
 

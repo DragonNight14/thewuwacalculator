@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Defines game-data identities required before catalog bundles are
+  description: defines game-data identities required before catalog bundles are
                available.
 */
 

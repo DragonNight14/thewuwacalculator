@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: executes feature and rotation simulations by walking rotation
+  description: executes feature and rotation simulations by walking rotation
                nodes, applying runtime changes, resolving feature owners/skills,
                and collecting weighted damage feature rows for rotation
                programs.
@@ -207,7 +207,7 @@ type RotNspcSnapshot = Pick<
 >
 
 interface RotPartStt {
-  // owning seed for this participant
+  // seed for this participant.
   seed: ResSeed
 
   // current runtime state for this participant
@@ -231,7 +231,7 @@ interface RotVrlyStt {
   // retained for trace identity and branch comparison
   version: number
 
-  // Runtime and combat revisions are deliberately separate. Formula-only
+  // runtime and combat revisions are deliberately separate. formula-only
   // writes must not invalidate a materialized team graph or combat contexts.
   runtimeVersion: number
   combatVersion: number
@@ -278,9 +278,9 @@ const preparedRotationProgramBrand: unique symbol = Symbol('PreparedRotationProg
 const preparedRotationProgramCache = new WeakMap<RotationNode[], PreparedRotationProgram>()
 
 /**
- * Opaque execution input produced by `prepareRotationProgram`.
+ * opaque execution input produced by `prepareRotationProgram`.
  *
- * Keeping the normalized items behind a readonly branded wrapper prevents a
+ * keeping the normalized items behind a readonly branded wrapper prevents a
  * raw authored node array from being passed to the executor by accident.
  */
 export interface PreparedRotationProgram {
@@ -293,13 +293,13 @@ interface RotationExec {
   environment: RunEnvironment
   program: CompiledRotationPlan | null
   overlay: RotVrlyStt
-  /** Score/tape execution mutates one compact shadow; branches clone it once. */
+  /** score/tape execution mutates one compact shadow; branches clone it once. */
   mutableOverlay: boolean
   numericTeam: NumericTeamState
   formulaRegisters: Float64Array
-  /** Enemy Off-Tune accumulated since the last authored Tune Break entry. */
+  /** enemy off-tune accumulated since the last authored tune break entry. */
   offTune: number
-  /** execution-order cooldown state following the latest Tune Break */
+  /** execution-order cooldown state following the latest tune break */
   offTuneSeal: OffTuneSealState
 
   // lazily resolved runtime snapshots for the current overlay version
@@ -320,8 +320,8 @@ interface RotationExec {
   // inspection snapshots are only needed by the state browser, not loop traces
   inspectSnapshots: boolean
 
-  // Consecutive feature rows commonly observe the same immutable overlay.
-  // Share that snapshot instead of allocating participant/routing maps per row.
+  // consecutive feature rows commonly observe the same immutable overlay.
+  // reuse one participant and routing snapshot across the rows.
   nspcSnapshotCache: WeakMap<RotVrlyStt, RotNspcSnapshot>
 
   // accumulated feature result rows produced so far
@@ -329,17 +329,17 @@ interface RotationExec {
   captureEntries: boolean
   captureNodeIds: ReadonlySet<string> | null
 
-  // Rowless execution accumulates directly into one Float64 triple per team
-  // member. It is intentionally allocation-free inside the feature hot path.
+  // rowless execution accumulates directly into one float64 triple per team
+  // member. it is intentionally allocation-free inside the feature hot path.
   scoreIds: readonly string[]
   scoreIndexById: Record<string, number>
   scoreValues: Float64Array | null
   normalizedScoreValues: Float64Array | null
-  /** Optional rowless aggregation filter; null preserves the general score API. */
+  /** optional rowless aggregation filter; null preserves the general score api. */
   scoreAggregationType: SkillAggType | null
 
-  // Six reusable scalar cells: one accumulated triple and one evaluation
-  // triple. Score-only execution never allocates a DamageResult or sub-hit row.
+  // six reusable scalar cells: one accumulated triple and one evaluation
+  // triple. score-only execution never allocates a DamageResult or sub-hit row.
   damageScratch: Float64Array
   formulaFinalScratch: Float64Array
   combatScratch: DamageCombatState
@@ -355,19 +355,17 @@ interface RotationExec {
   actLoopRuns: Record<string, number>
   actLoopRunqi: Record<string, number>
   /*
-    Product of the enclosing loops' run counts, kept in step with
-    `actLoopRunqi`. Every damage evaluation reads it, so it is maintained at
-    loop boundaries rather than recomputed per feature.
+    product of enclosing loop run counts, kept in step with `actLoopRunqi`.
+    update it at loop boundaries for all damage evaluations.
   */
   loopDivisor: number
 
   /*
-    Monotonic id so damage consumers can tell one feature's hits apart. It is a
-    shared box rather than a field because scoped branches clone the state and
-    their invocations still have to be distinguishable from the parent's.
+    a monotonic id distinguishes hits from separate feature invocations.
+    scoped branches clone state; the shared box keeps ids unique across them.
   */
   invocationGroup: { value: number }
-  /** Shared counter box so scoped branches contribute to one execution. */
+  /** shared invocation counter across scoped branches. */
   metrics: RunMetrics
 }
 
@@ -505,7 +503,7 @@ function buildScope(
   }
 }
 
-/** Direct node gating reads enabled; authored condition nodes execute separately. */
+/** direct node gating reads enabled; authored condition nodes execute separately. */
 function shldRunRotNo(
   node: RotationNode,
   compiledFlags?: number,
@@ -522,7 +520,7 @@ function sumSkillHits(skill: Pick<SkillDef, 'hits'>): number {
 const EMPTY_SCALAR_WRITES: readonly SkillScalarWrite[] = []
 const EMPTY_RATE_WRITES: readonly ContributionWrite[] = []
 
-/** what to call the lane a buff came from, as the reader knows it */
+/** display name for the resonator in a buff's source lane */
 function laneName(state: RotationExec, lane: number): string {
   const resonatorId = state.numericTeam.program.laneIds[lane]
   if (!resonatorId) return ''
@@ -548,10 +546,8 @@ function formatOffTune(value: number, max: number): string {
 }
 
 /*
-  The register can only print where the gauge ended up. This rebuilds the
-  working behind that figure from the same operands the line above used, so the
-  readout names every hit and every buff instead of asking the reader to take a
-  total on faith. It runs only when entries are being captured.
+  rebuild the unrounded gauge contributions from the same operands as the
+  register. captured entries name every hit and buff behind the final value.
 */
 function traceOffTune(
   skill: SkillDef,
@@ -584,8 +580,8 @@ function traceOffTune(
   }
 
   /*
-    An effect's own name is not enough on a team: two members can grant the
-    same thing, and the reader is choosing between them. The lane that cast it
+    an effect's own name is not enough on a team: two members can grant the
+    same thing, and the reader is choosing between them. the lane that cast it
     goes in front of it.
   */
   const sourceName = (write: ContributionWrite): string => {
@@ -625,10 +621,9 @@ function traceOffTune(
   const [post, postTotal] = named('directOffTune', skill.directOffTune ?? 0)
 
   /*
-    The rate is one figure made of shares: the caster's own 1 plus whatever the
-    team put on top. The caster's row carries the remainder as well, so the
-    rows always add up to the rate actually applied even where a node formula
-    or a base pool moved it outside the kernel's view.
+    split the applied rate among caster and team sources. assign any remainder
+    from node formulas or base pools to the caster so source rows sum to the
+    applied rate.
   */
   const rateSources: OffTuneSource[] = []
   let rateBuffed = 0
@@ -1037,7 +1032,7 @@ function mkRotStt(
   }
 }
 
-// Preparation removes display-only nodes. Structural compatibility migration
+// preparation removes display-only nodes. structural compatibility migration
 // happens once during hydration/import, never while executing a rotation.
 export function prepareRotationProgram(items: RotationNode[]): PreparedRotationProgram {
   const cached = preparedRotationProgramCache.get(items)
@@ -1058,8 +1053,8 @@ const offTuneSealCache = new WeakMap<
 >()
 
 /**
- * Expand the compiled structural order used by literal repeats and loop
- * passes. The cooldown itself still advances at runtime; this cold pass only
+ * expand the compiled structural order used by literal repeats and loop
+ * passes. the cooldown itself still advances at runtime; this cold pass only
  * tells a break whether an authored landing exists before the next break.
  */
 function appendOffTuneFeatureOrder(
@@ -1113,7 +1108,7 @@ function appendOffTuneFeatureOrder(
   }
 }
 
-/** whether a feature node is the Tune Break that empties the gauge */
+/** whether a feature node is the tune break that empties the gauge */
 function isTuneBreakFeat(
   environment: RunEnvironment,
   node: Extract<RotationNode, { type: 'feature' }>,
@@ -1133,9 +1128,9 @@ function isTuneBreakFeat(
 }
 
 /*
-  Which feature empties the gauge is a question for the catalog, so the plan is
+  which feature empties the gauge is a question for the catalog, so the plan is
   held against the environment that answered it as well as against the program.
-  Both are stable across a search, which is the only place this runs hot.
+  both are stable across a search, which is the only place this runs hot.
 */
 function offTuneSealFor(
   environment: RunEnvironment,
@@ -1157,8 +1152,8 @@ function offTuneSealFor(
   return sealPlan
 }
 
-// Execute one prepared authored program. Callers choose the program explicitly;
-// program selection belongs to callers; preparation only normalizes the AST.
+// execute one prepared authored program. callers choose the program explicitly;
+// program selection belongs to callers; preparation only normalizes the ast.
 export function executeRotationProgram(
   environment: RunEnvironment,
   program: PreparedRotationProgram,
@@ -1186,7 +1181,7 @@ export function executeRotationProgram(
 }
 
 /**
- * Execute the exact same compiled program without allocating feature rows,
+ * execute the exact same compiled program without allocating feature rows,
  * sub-hit arrays, effective-stat registers, or inspection data.
  */
 export function executeRotationScore(
@@ -1315,7 +1310,7 @@ function activeLoopDivisor(state: RotationExec): number {
   return state.loopDivisor
 }
 
-/** Accumulate one exact damage triple into both supported loop readings. */
+/** accumulate one exact damage triple into both supported loop readings. */
 function addNumericScore(
   state: RotationExec,
   scoreIndex: number,
@@ -1337,9 +1332,8 @@ function addNumericScore(
 }
 
 /*
-  A scoped branch can produce more rows than an argument list can carry: a
-  repeat body inside a many-pass loop reaches that on its own. Append them one
-  by one rather than spreading the whole array into `push`.
+  a scoped branch can exceed the argument limit of `push`, especially when a
+  repeat body runs in a many-pass loop. append its rows individually.
 */
 function appendAll<T>(target: T[], source: readonly T[]): void {
   for (let index = 0; index < source.length; index += 1) {
@@ -1771,7 +1765,7 @@ function getRslvRtLkp(state: RotationExec): Record<string, ResRuntime> {
 }
 
 // apply routing overlay paths to a cloned routing object
-// kept separate from runtime overlay because routing lives in slot state, not runtime state
+// kept separate from runtime overlay because routing is stored in slot state, not runtime state
 function applyRtngVrl(
   state: RotationExec,
   resonatorId: string,
@@ -1791,7 +1785,7 @@ function applyRtngVrl(
   return nextRouting
 }
 
-// Materialize a full graph only for requested inspector snapshots. Calculation
+// materialize a full graph only for requested inspector snapshots. calculation
 // and score execution never use this compatibility path.
 function getMatGrph(state: RotationExec): CombatGraph {
   if (state.overlay.combatVersion === 0) {
@@ -1887,7 +1881,7 @@ function getPart(state: RotationExec, resonatorId: string): RotPartStt | null {
 }
 
 /**
- * Resolve only the runtime/seed pair. Conditions, loop gates, and authored
+ * resolve only the runtime/seed pair. conditions, loop gates, and authored
  * state writes do not consume calculated combat stats, so forcing a complete
  * effect graph and combat context for them is pure overhead.
  */
@@ -2572,7 +2566,7 @@ function withRtEffectScale(
 }
 
 // read the current value addressed by a runtime change after overlays have been applied
-// used mainly by inspection mode so the ui can display what a condition node changed
+// inspection mode reads the value changed by a condition node here.
 function readRtChngVl(
   state: RotationExec,
   change: RtChng,
@@ -2664,7 +2658,7 @@ function resolveRotationSkill(
   )
 }
 
-// resolve which participant owns a feature
+// resolve the participant associated with a feature
 // the preferred resonator is checked first, then all participants are scanned
 function findFeatOwn(
   state: RotationExec,
@@ -2703,11 +2697,11 @@ function resFeatNodeS(
 
 interface AppliedRotWrite {
   change: RtChng
-  /** Runtime that actually received the write after feature-condition fallback. */
+  /** runtime that actually received the write after feature-condition fallback. */
   resonatorId: string
 }
 
-/** One authored entry's cooldown treatment, shared by its attached hit rows. */
+/** one authored entry's cooldown treatment, shared by its attached hit rows. */
 interface FeatOffTuneSeal {
   resolved: boolean
   reset: boolean
@@ -2718,29 +2712,29 @@ interface FeatOffTuneSeal {
 
 interface RunFeatOptions {
   /**
-   * Multiplies this feature's authored multiplier. Used so a parent's
+   * multiplies this feature's authored multiplier. used so a parent's
    * multiplier scales each attached child feature the way a repeat multiplies
    * its body.
    */
   multiplierScale?: number
-  /** Child attach runs never carry attachments of their own. */
+  /** child attach runs never carry attachments of their own. */
   asAttachment?: boolean
   /**
-   * Writes already applied by the parent's local attachment scope. An attached
+   * writes already applied by the parent's local attachment scope. an attached
    * negative-effect feature must see these when it decides whether its own
    * fixed stack value should apply.
    */
   preAppliedWrites?: AppliedRotWrite[]
-  /** Intern-table feature id from the compiled instruction stream. */
+  /** intern-table feature id from the compiled instruction stream. */
   compiledFeatureId?: string
-  /** Parent entry treatment inherited by attached hits without advancing it. */
+  /** parent entry treatment inherited by attached hits without advancing it. */
   offTuneSeal?: FeatOffTuneSeal
 }
 
 /**
- * Execute one feature node.
+ * execute one feature node.
  *
- * Attachments (or legacy `changes`) open a local overlay scope:
+ * attachments (or legacy `changes`) open a local overlay scope:
  * 1. attached conditions apply first
  * 2. the parent feature evaluates under that overlay
  * 3. sibling attached features evaluate under the same overlay, with
@@ -2777,7 +2771,7 @@ function runFeatNode(
     resume: null,
   }
 
-  // Any attachment opens one local group. Catalog follow-up writes produced by
+  // any attachment opens one local group. catalog follow-up writes produced by
   // the parent or a child stay visible to later siblings in the group, but do
   // not leak into the next top-level authored node.
   const hasAttachments = attachedConditions.length > 0 || attachedFeatures.length > 0
@@ -2800,8 +2794,8 @@ function runFeatNode(
       continue
     }
     if (runItem.type === 'condition') {
-      // The negative-effect path only needs to know about writes that actually
-      // reached this local overlay. A disabled or run-gated condition must not
+      // the negative-effect path only needs to know about writes that actually
+      // reached this local overlay. a disabled or run-gated condition must not
       // suppress a feature's explicit stack value.
       const conditionResonatorId = resNodeResId(local, runItem, ownResId)
       preAppliedWrites.push(...runItem.changes.map((change) => ({
@@ -2912,8 +2906,8 @@ function runFeatBody(
 
   const skillResult = resolveRotationSkill(lclFeatStt, participant, skill)
   /*
-    the kernel writes its trace into one scratch list, so it has to be taken
-    before anything else prepares a skill on this team.
+    the kernel reuses one scratch trace list. capture this trace before
+    preparing another team skill.
   */
   const captureCurrentNode = !lclFeatStt.captureNodeIds || lclFeatStt.captureNodeIds.has(node.id)
   const skillScalarWrites = captureCurrentNode && lclFeatStt.numericTeam.skillScalarTrace.length > 0
@@ -2936,7 +2930,7 @@ function runFeatBody(
     : ftrdSkll
   const flatScoreOnly = !lclFeatStt.captureEntries && !lclFeatStt.nspcNtrs
     && Boolean(lclFeatStt.scoreValues)
-  // The scalar kernel takes the node multiplier as a numeric operand. Avoid
+  // the scalar kernel takes the node multiplier as a numeric operand. avoid
   // cloning the skill and every hit in the score-only path.
   const scaledSkill = flatScoreOnly
     ? formulaSkill
@@ -2988,7 +2982,7 @@ function runFeatBody(
       entryOffTuneSeal.resume = offTuneResume
     }
   }
-  /* the target is still refusing Off-Tune, so this feature puts none on it */
+  /* the target's off-tune immunity suppresses this feature's buildup. */
   lclFeatStt.offTune = offTuneReset
     ? 0
     : offTuneSealed
@@ -3092,8 +3086,8 @@ function runFeatBody(
   }
 
   /*
-    Score and captured execution both use the same numeric kernel. Score mode
-    writes three caller-owned scalars; capture mode asks that kernel to emit
+    score and captured execution both use the same numeric kernel. score mode
+    writes three supplied scalars; capture mode calls that kernel for
     per-hit rows and materializes objects only for inspector metadata.
   */
   if (flatScoreOnly && lclFeatStt.scoreValues) {
@@ -3170,7 +3164,7 @@ function runFeatBody(
       scoreInto(0, baseCmbtStt)
     }
 
-    // Empty negative-effect states are semantically absent, not zero rows.
+    // empty negative-effect states are semantically absent, not zero rows.
     if (negFfctCmbtK && scratch[2] <= 0) {
       return lclFeatStt
     }
@@ -3471,7 +3465,7 @@ function runRptNode(
       ),
     )
 
-  /* The canonical block keeps repeat, uptime and setup on one body. Retain
+  /* the canonical block keeps repeat, uptime and setup on one body. retain
      the old direct repeat path when it has neither optional attribute. */
   if (hasSetup) {
     const numericCheckpoint = checkpointNumericTeam(state.numericTeam)
@@ -3735,7 +3729,7 @@ function runPtmNode(
   })
 }
 
-/** Execute a non-marker node after its enabled/when gate has passed. */
+/** execute a non-marker node after its enabled/when gate has passed. */
 function runExecutableNode(
   state: RotationExec,
   node: ExecutableRotationNode,
@@ -3804,9 +3798,8 @@ function isLoopBndrFo(
 ): boolean { return node.type === 'loop' && node.loopId === loopId }
 
 /**
- * A loop reports where it actually finished, not where its own end marker
- * sits. A nested loop can carry the sequence past this loop's end, and the
- * caller has to resume after that rather than replay what already ran.
+ * a loop reports its furthest executed position. a nested loop may carry the
+ * sequence past the outer end marker; callers resume after that position.
  */
 interface RotLoopRun {
   state: RotationExec
@@ -3823,8 +3816,8 @@ interface RotLoopFrm {
   runs: number
   fallbackResId: string
   /**
-   * Loops that already ran to completion inside the current pass of this
-   * frame. Reset on every new run, because a nested loop is a fresh call on
+   * loops that already ran to completion inside the current pass of this
+   * frame. reset on every new run, because a nested loop is a fresh call on
    * each pass of its parent.
    */
   finished: Set<string>
@@ -3955,8 +3948,8 @@ function runLoopNodeFrameStack(
   let nextState = setActLoopRu(state, initialFrame)
   let stack: RotLoopFrm[] = [initialFrame]
   /*
-    Every frame this walker creates is a nested loop inside the same authored
-    list, so one compiled block covers them all. The identity check keeps the
+    every frame this walker creates is a nested loop inside the same authored
+    list, so one compiled block covers them all. the identity check keeps the
     lookup honest if a frame is ever built over another list.
   */
   const compiledBlock = state.program?.blockByItems.get(items)
@@ -3964,18 +3957,15 @@ function runLoopNodeFrameStack(
     frame.items === items ? compiledBlock?.flagsByIndex[frame.cursor] : undefined
   )
   /*
-    Nested frames share this items array, so the furthest index any of them
-    consumed is how far the whole call reached. A nested loop whose end marker
-    sits past this loop's own end takes the sequence with it, and the caller
-    must resume after that rather than replaying the overshoot.
+    nested frames share this items array, so the furthest index any of them
+    consumed is the furthest position reached by the call. a nested loop may
+    cross this loop's end marker; the caller resumes after that position.
   */
   let furthest = startIndex
   /*
-    A cursor is circular, so a wrap-around layout can walk onto the start
-    marker of a loop that already finished. Each loop is one call per pass of
-    whatever is walking it, so a finished loop's start is stepped over rather
-    than started again. The record lives on the enclosing frame's pass, since
-    a nested loop is a fresh call on each pass of its parent.
+    a circular cursor can revisit the start marker of a completed loop.
+    skip that marker after one call per enclosing pass. the enclosing frame's
+    pass stores the record; each parent pass invokes a nested loop afresh.
   */
   const closeTopFrame = () => {
     const closing = stack[stack.length - 1]
@@ -4017,7 +4007,7 @@ function runLoopNodeFrameStack(
     }
     if (runItem.type === 'loop') {
       /*
-        A loop that already ran to completion is done. Wrapping onto its start
+        a loop that already ran to completion is done. wrapping onto its start
         again is the sequence walking past it, not a second call, so step over
         it without re-entering or re-tracing.
       */
@@ -4026,8 +4016,8 @@ function runLoopNodeFrameStack(
         continue
       }
 
-      // Explicit frames retain cursor, run counter, and trace state without
-      // making nested authored loops depend on JavaScript call-stack depth.
+      // explicit frames retain cursor, run counter, and trace state without
+      // making nested authored loops depend on javascript call-stack depth.
       if (!shldRunRotNo(runItem, flagsAt(frame))) {
         nextState = ppndNspcEnt(nextState, {
           nodeId: runItem.id,
@@ -4062,7 +4052,7 @@ function runLoopNodeFrameStack(
         }
 
         const nstdStartNdx = frame.cursor
-        // Nested loops that already carry lazy pass forks must run those
+        // nested loops that already carry lazy pass forks must run those
         // bodies, not re-walk the shared marker template.
         if (Object.keys(readPassForks(runItem)).length > 0) {
           const nested = runLoopNode(
@@ -4085,11 +4075,11 @@ function runLoopNodeFrameStack(
 
         const nestedFrame = mkLoopFrm(frame.items, nstdStartNdx, frame.fallbackResId)
         /*
-          A loop is a call: the nested frame owns everything up to its own end
-          marker, and this frame resumes after it. Advancing only past the
+          a loop is a call: the nested frame processes nodes through its end
+          marker, and this frame resumes after it. advancing only past the
           nested start would leave this cursor inside the nested body, so the
           body would run once more per enclosing pass outside the nested run
-          context. A nested loop with no reachable end marker runs until it
+          context. a nested loop with no reachable end marker runs until it
           wraps to its own start, and this frame resumes after that start.
         */
         const nestedEnd = findLoopEndN(nextState, frame.items, runItem, frame.cursor)
@@ -4130,7 +4120,7 @@ function runLoopNodeFrameStack(
 }
 
 /**
- * Loops with lazy pass forks run each resolved body as its own list. Loops
+ * loops with lazy pass forks run each resolved body as its own list. loops
  * without forks keep the marker frame-stack walker (free/nested markers).
  */
 function runLoopNode(
@@ -4209,14 +4199,14 @@ function runLoopNode(
       actLoopRunqi: rmnnLoopRunC,
       loopDivisor: mkLoopDivisor(rmnnLoopRunC),
     },
-    // A circular loop consumes the remainder before wrapping to entries the
+    // a circular loop consumes the remainder before wrapping to entries the
     // caller already passed; a forward loop resumes at its end marker.
     resumeIndex: circular ? Math.max(startIndex, items.length - 1) : endIndex ?? startIndex,
   }
 }
 
 // main rotation interpreter
-// walks nodes in order and updates execution state as each node resolves
+// processes nodes in order and updates execution state as each node resolves
 export function runRotTimes(
   state: RotationExec,
   items: readonly RotationNode[],
@@ -4225,7 +4215,7 @@ export function runRotTimes(
   let nextState = state
   const compiledBlock = state.program?.blockByItems.get(items)
   /*
-    Each loop in this list is one call. A wrap-around layout can leave a loop's
+    each loop in this list is one call. a wrap-around layout can leave a loop's
     start marker sitting after its end, and resuming there must not start the
     same loop over.
   */
@@ -4325,10 +4315,9 @@ export function runRotTimes(
     finishedLoops.add(runItem.loopId)
 
     /*
-      Resume after whichever came last: this loop's own end marker, or the
-      furthest item a nested loop took with it. A nested loop whose end sits
-      past this one's would otherwise have its tail replayed here, outside
-      every loop context.
+      resume after the later of this loop's end marker and any nested loop's
+      last item. otherwise, nested loop items after this marker replay outside
+      the loop context.
     */
     if (endIndex !== null && endIndex > index) {
       index = Math.max(endIndex, loopRun.resumeIndex)
@@ -4448,7 +4437,7 @@ export function runFeatureSimulation(
   }
 }
 
-// Execute one explicit rotation while retaining damage and inspection rows.
+// execute one explicit rotation while retaining damage and inspection rows.
 export function runDetailedRotation(
   context: CombatContext,
   seed: ResSeed,

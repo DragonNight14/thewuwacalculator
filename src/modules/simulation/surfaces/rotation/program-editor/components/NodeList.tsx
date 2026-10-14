@@ -1,8 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Renders the editor's node tree and owns the drag gestures over
-               it: moving a node, inserting one from the palette, taking one
-               out, and moving where a block ends.
+  description: renders the editor node tree and handles drag operations for moving, inserting, and removing nodes.
 */
 
 import { DisplayImage } from '@/shared/ui/DisplayImage'
@@ -181,7 +179,7 @@ interface DragBinding {
   zone: (containerId: string, opts?: ZoneOpts) => Record<string, unknown>
   /** swallows drops inside the list that land on no node, so they never reach the shell */
   sink: Record<string, unknown>
-  /** the shell takes a node out of the rotation when one lands on it */
+  /** drop target that removes a node from the rotation */
   discard: Record<string, unknown>
   leaving: boolean
 }
@@ -208,10 +206,8 @@ function Grip({ handlers }: { handlers: Record<string, unknown> }) {
   )
 }
 
-/* the rows sit inside scrollers and inside a collapsible per section and per
-   block, all of which have to clip. so the card cannot open where it is
-   written: it is drawn against the viewport instead, and told where the
-   bubble it belongs to happens to be standing. */
+/* position the card relative to the viewport because rows can be clipped by
+   scrollers and collapsibles. */
 const ASIDE_HOSTS = '.rte-row, .rte-cond, .rte-swap, .rte-block__head'
 const ASIDE_GAP = 16
 const ASIDE_EDGE = 8
@@ -244,15 +240,9 @@ function mkAsideSpot(bubble: DOMRect, card: DOMRect): AsideSpot {
 }
 
 /**
- * The name of the state a condition writes, keyed to the game's own text for
- * it. A state with a description is underlined and glosses on hover; one
- * without is the plain name it always was, and that absence is readable.
- *
- * The gloss answers to the term and nothing else. Selecting a row is not a
- * question about the word in it, and a card left standing open for as long as
- * the row keeps focus is in the way of the work. A keyboard is not shut out by
- * that: selecting the row prints the same description in the inspector, which
- * is the fuller reading of it anyway.
+ * display the condition state name from game data and underline it when a
+ * description is available. hover shows the description; keyboard selection
+ * shows it in the inspector without keeping a tooltip open on row focus.
  */
 function CondName({
   node,
@@ -296,9 +286,9 @@ function CondName({
 }
 
 /**
- * A note attached to a line, drawn as an aside about it: a small bubble on the
+ * a note attached to a line, drawn as an aside about it: a small bubble on the
  * row at rest, and the remark itself in a tailed bubble that opens on hover or
- * keyboard focus. The tail is the point of it, since proximity alone cannot say
+ * keyboard focus. the tail is the point of it, since proximity alone cannot say
  * which of two neighbouring rows a floating card belongs to.
  */
 function NoteAside({
@@ -321,12 +311,12 @@ function NoteAside({
     const host = bubRef.current?.closest(ASIDE_HOSTS) ?? bubRef.current
     if (!host) return
     /*
-      A row can carry both a note and a state gloss, and the row is the host of
+      a row can carry both a note and a state gloss, and the row is the host of
       both. `onTerm` is what keeps them apart: crossing onto the glossed word,
       by pointer or by focus, stands the note down, and coming back off it
       hands the row its note again.
 
-      The pointer pair bubbles, so the row hears it for a term it does not own
+      the pointer pair bubbles, so the row hears it for a term it does not own
       a reference to, and both act only on crossing the term's own edge:
       `show` is not idempotent, and calling it on every child the pointer
       passes would restart the card's entrance.
@@ -425,9 +415,7 @@ function NoteAside({
 }
 
 /**
- * A note standing in the list on its own. `EditorNote` carries no owner, so
- * unlike every other node there is nobody behind it: it gets no portrait and no
- * bubble to speak from, and reads as narration ruled off on both sides.
+ * render a standalone `EditorNote` without a portrait or speaker bubble.
  */
 function NoteLine({
   node,
@@ -482,9 +470,8 @@ function NoteLine({
 }
 
 /**
- * What the thing in your hand says it is: a face, a name, and at most one
- * qualifier. Not the row, and none of its numbers, because the numbers belong
- * to where the node sits and it is currently nowhere.
+ * show a dragged node's portrait, name, and optional qualifier without
+ * row-specific numeric values.
  */
 function ghostParts(
   node: EditorNode,
@@ -528,12 +515,8 @@ function buildGhost(
 }
 
 /**
- * Every node is a thing you can pick up. The whole gesture lives here so a
- * step, a condition, a handoff and a loop all behave the same way, and so the
- * caller only has to say which id an element stands for.
- *
- * There is no separate reparent gesture: dropping beside a node that lives
- * inside a loop is what moves something into that loop.
+ * handles dragging for every node type by id. dropping beside a node inside
+ * a loop moves the dragged node into that loop.
  */
 export function useNodeDrag({
   members,
@@ -549,8 +532,8 @@ export function useNodeDrag({
   members: EditorMember[]
   disabled?: boolean
   /**
-   * While selection mode is on the list is otherwise undraggable, because a
-   * press on a row is how a row is picked. The picked rows keep their grips,
+   * while selection mode is on the list is otherwise undraggable, because a
+   * press on a row is how a row is picked. the picked rows keep their grips,
    * and a grip there takes the whole set.
    */
   selection?: {
@@ -584,16 +567,15 @@ export function useNodeDrag({
   const selIds = selection?.ids
 
   /*
-    Outside selection mode every node can be picked up. Inside it, only a
-    picked row can, and doing so picks up all of them. Everything else the
+    outside selection mode every node can be picked up. inside it, only a
+    picked row can, and doing so picks up all of them. everything else the
     gesture can do stays switched off there.
   */
   const canGrab = (id: string) => !disabled || (selMode && Boolean(selIds?.has(id)))
   /*
-    A target cannot be a row in hand, nor a row inside a block in hand: both
-    would be asking the set to land inside itself. Refused at the row rather
-    than at the move, so the drop line never offers a place that will not take
-    it.
+    a target cannot be a row in hand, nor a row inside a block in hand: both
+    would place the set inside itself. refuse the target during row evaluation;
+    the drop line only offers valid positions.
   */
   const inHand = (id: string) => Boolean(held?.ids) && Boolean(selection?.holds.has(id))
   const [armedId, setArmedId] = useState<string | null>(null)
@@ -621,7 +603,7 @@ export function useNodeDrag({
       event.stopPropagation()
       setArmedId(id)
     },
-    // the grip sits inside a button, so its press must not also select or fold
+    // prevent grip clicks from selecting or folding the enclosing button.
     onClick: (event: React.MouseEvent) => {
       if (!canGrab(id)) {
         return
@@ -682,7 +664,7 @@ export function useNodeDrag({
       const pill = buildGhost(node, roster, event.currentTarget.closest('.rte-page'), heldIds?.length ?? 1)
       if (pill) {
         event.dataTransfer.setDragImage(pill, 14, pill.offsetHeight / 2)
-        // setDragImage snapshots synchronously, so the element can go straight out
+        // setDragImage snapshots synchronously; remove the element next frame.
         requestAnimationFrame(() => pill.remove())
       }
 
@@ -707,8 +689,8 @@ export function useNodeDrag({
       const types = event.dataTransfer.types
       const fromPalette = types.includes(PALETTE_MIME)
 
-      // an extent drag lands on a row rather than beside it: that row becomes
-      // the last node inside the block. a setup branch is never a boundary.
+      // an extent drag makes the target row the block's last node. setup
+      // branches cannot serve as boundaries.
       if (types.includes(EXTENT_MIME)) {
         if (opts.acceptsOnly === 'condition') {
           return
@@ -725,7 +707,7 @@ export function useNodeDrag({
         return
       }
 
-      // A setup branch holds preconditions and inert notes. Notes do not enter
+      // a setup branch contains preconditions and inert notes. notes do not enter
       // the simulation, so they can annotate setup without changing it.
       if (opts.acceptsOnly) {
         const kind = fromPalette
@@ -806,7 +788,7 @@ export function useNodeDrag({
     className: `${opts.base ?? 'rte-sec__zone'}${overZone === containerId ? ' is-over' : ''}`,
     onDragLeave: () => setOverZone((prev) => (prev === containerId ? null : prev)),
     onDragOver: (event: React.DragEvent) => {
-      // Selection mode disables unselected row grabs, but a selected row is
+      // selection mode disables unselected row grabs, but a selected row is
       // still a live drag source and must be able to arm this empty target.
       if (disabled && !heldId) {
         return
@@ -819,11 +801,8 @@ export function useNodeDrag({
       }
 
       /*
-        the same rule the rows enforce: a setup branch holds preconditions and
-        inert notes.
-        a refusal stops here rather than bubbling, or the block around it would
-        take the drop instead and light up while the pointer is over a branch
-        that has already said no.
+        setup branches accept only conditions and notes. stop rejected drops
+        here so the enclosing block does not appear to accept them.
       */
       if (opts.acceptsOnly) {
         const kind = fromPalette
@@ -875,7 +854,7 @@ export function useNodeDrag({
     },
   })
 
-  // a drop inside the list but on no node must not reach the shell, which
+  // a drop on empty list space must stop before the shell, which
   // reads any drop on itself as taking the node out of the rotation
   const sink = {
     onDragOver: (event: React.DragEvent) => {
@@ -955,13 +934,8 @@ export function useNodeDrag({
 }
 
 /**
- * The pass selector: one rail cut into cells, one per pass of the loop, with
- * the pass being shown filled. A cell selects its own pass; pressing the pass
- * already filled steps to the next and wraps, so a long loop's thin cells
- * never have to be hit exactly. Arrow keys walk the passes.
- *
- * Spans rather than buttons because it sits inside the block head and the
- * restated header, both of which are themselves buttons.
+ * render one selector cell per loop pass. selecting the active cell advances
+ * to the next pass with wraparound; arrow keys also change the pass.
  */
 function RunTrack({
   loopId,
@@ -1034,7 +1008,7 @@ function RunTrack({
 }
 
 /**
- * The handoff drops the row grid entirely: a swap has no damage and no stats,
+ * the handoff drops the row grid entirely: a swap has no damage and no stats,
  * so pretending it is a table row is what made it disappear before.
  */
 function SwapRow({
@@ -1098,7 +1072,7 @@ function SwapRow({
 }
 
 /**
- * A condition row. The prior value is revealed on hover, or held open by the
+ * a condition row. the prior value is revealed on hover, or held open by the
  * page's `showPriors` switch.
  */
 function CondLine({
@@ -1120,7 +1094,7 @@ function CondLine({
 }: {
   node: EditorCondition
   run: number
-  /** folded under a head above it, which carries the source art for both */
+  /** folded under a head above it, which displays source art for both */
   underHead?: boolean
   fold?: { count: number; shut: boolean; onToggle: () => void }
   drag: DragBinding
@@ -1139,7 +1113,7 @@ function CondLine({
   const art = roster.art(node.owner)
   const foldable = (fold?.count ?? 0) > 1
   const artSrc = underHead ? null : node.sourceIcon
-  // Simulation may observe a different before/after value on a later pass.
+  // simulation may observe a different before/after value on a later pass.
   const wrote = atRun(node.byRun, run, { from: node.from, to: node.to, rising: node.rising })
   const hasPrior = wrote.from !== undefined
   const stateLabel = hasPrior ? `${wrote.from} to ${wrote.to}` : wrote.to
@@ -1165,7 +1139,7 @@ function CondLine({
       {...drag.props(node.id, node, inSetup ? { acceptsOnly: 'condition' } : {})}
     >
       <Grip handlers={drag.grip(node.id)} />
-      {/* the owner column carries where the state came from. with no art for
+      {/* the source column identifies the state source. with no art for
           the source it falls back to the plain mark. */}
       <i
         className={`rte-cond__tick${foldable ? ' is-foldable' : ''}${
@@ -1229,7 +1203,7 @@ const STICKY_ROW = 22
 /** how long a scope must stay enclosing before its entry is taken on */
 const STICKY_ENTER_DELAY = 300
 
-/** Restates the headers of every scope enclosing the top of the scrollport. */
+/** restates the headers of every scope enclosing the top of the scrollport. */
 function useStickyScopes(deps: unknown) {
   const scrollerRef = useRef<HTMLDivElement | null>(null)
   const [stack, setStack] = useState<StickyState>({ scopes: [], shift: 0 })
@@ -1280,8 +1254,7 @@ function useStickyScopes(deps: unknown) {
     if (!waiting.current) {
       waiting.current = window.setTimeout(() => {
         waiting.current = 0
-        // re-read on settle rather than committing `next`: a scope scrolled
-        // past while the timer ran must never arrive
+        // re-read when the timer settles; a scope can scroll past meanwhile.
         const settled = readStickyScopes(scroller, STICKY_ROW)
         if (!sameStack(shown.current, settled)) {
           shown.current = settled
@@ -1330,9 +1303,7 @@ function useStickyScopes(deps: unknown) {
 }
 
 /**
- * A row's cells, laid out band by band so each one lands under its own group
- * heading. A step and the features it carries both draw this, which is what
- * keeps an attachment reading as a feature rather than as a second shape.
+ * align step and attached-feature cells under the same column groups.
  */
 interface NodeListProps {
   sections: EditorSection[]
@@ -1350,9 +1321,9 @@ interface NodeListProps {
   showPriors: boolean
   onOpenChange: (id: string, open: boolean) => void
   onSelect: (node: EditorStep | null, id: string) => void
-  /** rows are standing beside the one being read, so a click stands one up */
+  /** enable clicking rows to add them to the comparison */
   compareMode: boolean
-  /** `on` is already standing, `off` is a row the full rack has no room for */
+  /** `on` marks included rows; `off` marks rows excluded by the limit */
   compareMark: (id: string) => 'on' | 'off' | null
   onCompareToggle: (id: string) => void
   onAddSelection: (id: string) => void
@@ -1372,7 +1343,7 @@ interface NodeListProps {
   percentDisplay: PercentDisplay
   /** what a right-click on a row offers, built by the page from its actions */
   rowMenu: (node: EditorNode) => MenuEntry[]
-  /** move where Off-Tune starts counting again after a Tune Break */
+  /** move where off-tune starts counting again after a tune break */
   onOffTuneResume: (id: string, on: boolean) => void
   offTuneAuthoring: ReadonlyMap<string, OffTuneAuthoringState>
   drag: DragBinding
@@ -1465,8 +1436,7 @@ export function NodeList({
       return
     }
 
-    /* while rows are being stood up beside each other, a click stands one up
-       rather than opening it, and a full rack simply stops taking picks */
+    /* in comparison mode, clicks add rows to the rack until it is full. */
     if (compareMode) {
       event.preventDefault()
       event.stopPropagation()
@@ -1513,9 +1483,8 @@ export function NodeList({
       || window.matchMedia('(prefers-reduced-motion: reduce)').matches
 
     /*
-      Opening nested Radix collapsibles takes 280ms. Waiting for that layout
-      keeps the final scroll position centred instead of measuring the target
-      while one of its ancestors still has zero height.
+      nested radix collapsibles take 280ms to open. measure the target after
+      layout settles to center its final scroll position.
     */
     const timer = window.setTimeout(() => {
       const target = [...scroller.querySelectorAll<HTMLElement>('[data-rte-node-id]')]
@@ -1619,9 +1588,8 @@ export function NodeList({
     const art = roster.art(node.owner)
     const flags = step ? ghosts.get(step.id) : undefined
     /*
-      an attached write only has a per-run value once a run has produced one,
-      so a write authored since the last run falls back to what it was authored
-      as. it is marked as such rather than passed off as something that ran.
+      attached writes gain per-run values after execution. newly authored
+      writes show their authored value with an unrun marker.
     */
     const ranWrites = step ? atRun(step.writesByRun, run, undefined) : undefined
     const writes = ranWrites ?? step?.pendingWrites
@@ -1632,7 +1600,7 @@ export function NodeList({
     const runLength = runInfo?.length ?? 1
     const foldable = opensRun && runLength > 1
     const runShut = foldable && shutIds.has(node.id)
-    /* what the step carries folds on a key of its own: a run head has already
+    /* attached features use a separate fold key: a run head has already
        spent its node id on the run */
     const carried = step?.attached ?? []
     const carryId = carryFoldId(node.id)
@@ -1683,8 +1651,7 @@ export function NodeList({
                   ? `${art.alt} . ${runLength} steps in a row . click to ${runShut ? 'show' : 'fold'} them`
                   : art.alt
               }
-              // a button inside the row button would nest interactives, so the
-              // portrait takes the role instead
+              // the portrait takes the button role without nesting buttons.
               {...(foldable
                 ? {
                     role: 'button',
@@ -1712,10 +1679,8 @@ export function NodeList({
           <em className="rte-step__name">{node.label}</em>
           {multiplier > 1 ? <i className="rte-step__mult">x{multiplier}</i> : null}
           {/*
-            how many features this step carries, and the control that folds
-            them. it counts what it holds the way the portrait's badge counts a
-            run, and sits at the other end of the name so the two never read as
-            one control.
+            show the attached-feature count and expand control after the step
+            name, separate from the portrait's run badge.
           */}
           {carried.length > 0 ? (
             <i
@@ -1776,7 +1741,7 @@ export function NodeList({
             contentAsChild
           >
             {/*
-              the content box is the grid item, so it spans every column and the
+              the content box is the grid item. it spans every column while
               carried rows inside keep their own tracks. it needs a real box of
               its own for the height animation, which is why the rows below are
               no longer grid items of the row itself.
@@ -1999,9 +1964,8 @@ export function NodeList({
     const isLoop = block.type === 'loop'
     const isContinuation = block.wrap === 'head' || block.wrap === 'middle'
     /*
-      a loop that closes inside a block below it is not a loop that comes back
-      around, so it is not drawn as one. its bracket carries on down its own
-      lane instead: this is how far left of the block holding it that lane sits,
+      a loop closing inside a lower block has a bracket extending down its
+      own lane. the lane offset is measured from its enclosing block,
       and the seams stay behind with the wrap they belong to.
     */
     const crossDepth = crossings.get(block.id)
@@ -2018,7 +1982,7 @@ export function NodeList({
     })
     const crossHostDepth = crossHost ? crossings.get(crossHost.id) : undefined
     const lane = crossDepth ?? crossHostDepth
-    // a marker at the foot of its list holds no rows: the body is all above it
+    // a marker at the end of its list contains no rows: the body is all above it
     const isMarkerOnly = block.wrap === 'tail' && block.children.length === 0
     /*
       the bracket's bottom cap, which is the end being dragged, is drawn by
@@ -2027,7 +1991,7 @@ export function NodeList({
       continuation at the top of the list, not the one holding the start.
     */
     const closes = !block.wrap || block.wrap === 'head'
-    // an uptime's setup branch is part of the block, not something it holds
+    // an uptime's setup branch is part of the block, not separate content
     const hasBody = block.children.some(
       (child) => !(isEditorBlock(child) && child.type === 'setup'),
     )
@@ -2037,7 +2001,7 @@ export function NodeList({
     const run = isLoop ? selectedLoopRun(block, runsByLoopId) : parentRun
     const blockOff = inheritedDisabled || Boolean(block.disabled)
     const total = blockOff ? 0 : blockTotal(block, run)
-    // Formula values and fork bodies can vary the evaluated value by pass.
+    // formula values and fork bodies can vary the evaluated value by pass.
     const blockRuns = blockRunsAt(block, parentRun)
     const setupHost = isSetup ? setupHosts.get(block.id) ?? null : null
     const steps = blockSteps(block)
@@ -2056,7 +2020,7 @@ export function NodeList({
     const childInheritedDisabled = block.type === 'loop'
       ? inheritedDisabled
       : blockOff
-    // a setup holds conditions, so a step count there is always zero
+    // a setup contains conditions, so a step count there is always zero
     const note = isSetup
       ? `${block.children.length} ${block.children.length === 1 ? 'condition' : 'conditions'}`
       : `${steps} ${steps === 1 ? 'step' : 'steps'}`
@@ -2064,9 +2028,8 @@ export function NodeList({
       ?? (block.type === 'repeat' || block.type === 'uptime' ? DEFAULT_ROT_BLOCK_COLOR : undefined)
 
     /*
-      Collapsible is driven directly rather than through Expandable: the head
-      selects and only the chevron folds, and Expandable's trigger necessarily
-      wraps the whole header.
+      drive collapsible directly. the head selects while only the chevron
+      folds; expandable wraps the whole header in its trigger.
     */
     const frame = (
         <section
@@ -2078,19 +2041,18 @@ export function NodeList({
             acceptsOnly: isSetup || inSetup ? 'condition' : undefined,
           })}
           /*
-            Each authored container owns its visible colour. `--rte-blk` stays
+            each authored container defines its visible colour. `--rte-blk` stays
             local to that surface; run labels receive their loop colour as
             explicit data so nested blocks cannot recolour another loop rule.
           */
           style={{
             ...roster.accent(block.owner),
             ...(blockColor ? { '--rte-blk': blockColor } : {}),
-            // how many levels in this element sits from the crossing loop's lane
+            // depth of this element relative to the crossing loop lane.
             ...(lane != null ? { '--rte-cross': lane } : {}),
             /*
-              the stretch of line a crossed block draws is the loop's, not its
-              own, so the colour is handed over explicitly rather than resolved
-              from the block it happens to be drawn on
+              a crossed block draws part of the loop line. pass the loop colour
+              explicitly to that segment.
             */
             ...(crossHost?.color ? { '--rte-cross-blk': crossHost.color } : {}),
           } as React.CSSProperties}
@@ -2122,9 +2084,8 @@ export function NodeList({
               !isSetup && compareMark(block.id) ? ` is-cmp-${compareMark(block.id)}` : ''
             }${!isSetup && staleIds.has(block.id) ? ' is-stale' : ''}`}
             /*
-              a setup branch is display only: it is part of its uptime block
-              rather than a node you can inspect, so its head keeps the plain
-              press-to-fold behaviour instead of selecting anything.
+              setup branches are display-only parts of uptime blocks. their
+              heads fold the branch without selecting a node.
             */
             {...(isSetup
               ? { onClick: () => onOpenChange(block.id, shut) }
@@ -2136,7 +2097,7 @@ export function NodeList({
                 })}
           >
             {/* open, the bracket in the gutter is the grip. shut, there is no
-                gutter to grab, so the head carries one. */}
+                gutter to grab, so the header displays one. */}
             {shut && !isSetup ? <Grip handlers={drag.grip(block.id)} /> : null}
             {isSetup ? (
               <ChevronDown className="rte-block__chev" size="0.8rem" aria-hidden="true" />
@@ -2144,8 +2105,7 @@ export function NodeList({
               /*
                 the head selects, so only this folds and the press stops here.
                 the marker's own segment has no content of its own to fold: it
-                folds the segment above it, which it reaches through the shared
-                fold id rather than through Collapsible.
+                folds the segment above it through their shared fold id.
               */
               const fold = (
                 <span
@@ -2201,7 +2161,7 @@ export function NodeList({
 
             <span className="rte-block__fill" />
 
-            {/* the total holds whether the block is open or shut: what it
+            {/* the total remains visible whether the block is open or shut: what it
                 contributes is worth knowing while reading it, not only while
                 it is folded away */}
             <i className="rte-block__note">
@@ -2215,10 +2175,9 @@ export function NodeList({
           {isMarkerOnly ? null : (
             <Collapsible.Content className="expandable__content">
               {/*
-                the body is the block's own drop area: released on a row a node
-                lands beside it, and released in the space around the rows it
-                joins the block. without that, a release inside a block would
-                bubble out and be read as a drop somewhere else entirely.
+                row drops insert beside that row; drops in the remaining block
+                area insert into the block. the zone prevents drops from
+                propagating to an outer area.
               */}
               <div
                 {...drag.zone(block.id, {
@@ -2237,9 +2196,8 @@ export function NodeList({
                   : null}
 
                 {/*
-                  a setup branch is part of its uptime rather than part of the
-                  body, so a block left holding only its setup is still empty
-                  and still has to say where a step would go.
+                  a setup branch does not populate the uptime body. a block
+                  holding only setup still shows the step insertion point.
                 */}
                 {hasBody ? null : (
                   <p className="rte-empty rte-empty--block">
@@ -2272,7 +2230,7 @@ export function NodeList({
         </section>
     )
 
-    // nothing to fold means no height to animate, so no Collapsible either
+    // nothing to fold means no height to animate, so no collapsible either
     const section = isMarkerOnly ? frame : (
       <Collapsible.Root
         key={block.id}
@@ -2285,18 +2243,15 @@ export function NodeList({
     )
 
     /*
-      an arrow says the body leaves the list and comes back into it, which is
-      only ever true of a loop that runs back around to its own start. a loop
-      that closes further in never leaves: its bracket carries the whole story,
-      so there is nothing to seam.
+      show the wrap arrow only when the loop returns to its start; bounded and
+      crossing loops use the bracket without an outer seam.
     */
     if (!block.wrap || crossing) {
       return section
     }
 
     /*
-      the seam sits outside the segment, so it carries the loop colour itself
-      and closes on its own transition rather than in the height animation.
+      the seam renders outside the segment with the loop color and transition.
     */
     const seam = (direction: 'up' | 'down') => (
       <div
@@ -2304,8 +2259,7 @@ export function NodeList({
         aria-hidden="true"
         style={block.color ? ({ '--rte-blk': block.color } as React.CSSProperties) : undefined}
       >
-        {/* the body arrives at the top and carries on down; at the bottom it
-            goes back up. the arrow is where it is headed next. */}
+        {/* the arrow points down at the start and up at the end. */}
         <i>{direction === 'down' ? <ArrowDown size="0.7rem" /> : <ArrowUp size="0.7rem" />}</i>
         <u />
       </div>
@@ -2326,9 +2280,7 @@ export function NodeList({
       className={`rte-list${showPriors ? ' is-priors' : ''}`}
       data-selection-mode={selectionMode ? 'true' : undefined}
       /*
-        the tracks are stated rather than counted in css, because a row and the
-        heading over it have to agree on how many there are and only this knows
-        what the page is showing
+        declare the visible track count here. rows and headings share it.
       */
       style={{
         '--rte-statn': statKeys.length,
@@ -2356,19 +2308,17 @@ export function NodeList({
           <div className="rte-sticky__stack">
             {stack.scopes.map((scope, index) => (
               <button
-                // keyed by identity, not position: a swap at the same depth
-                // has to remount rather than morph
+                // scope identity keys force a remount when a same-depth scope swaps.
                 key={scope.key}
                 type="button"
                 className={`rte-sticky__row rte-sticky__row--${scope.kind}`}
                 /*
                   only the last entry moves, and it moves behind the ones above
-                  it: outer scopes stack in front so the ending one slides under
-                  them rather than dragging the whole column with it.
+                  it. outer scopes stack in front while the ending scope slides
+                  beneath them.
                 */
                 style={{
-                  // read off the element rather than passed: the stack sits
-                  // outside the scopes it restates, so nothing inherits
+                  // set the external stack color from each scope.
                   ...(scope.accent
                     ? scope.kind === 'run'
                       ? { '--rte-res': scope.accent }
@@ -2397,8 +2347,7 @@ export function NodeList({
                 {/*
                   the pass being read is worth having while the loop's own head
                   is off screen, which is exactly when this row exists. the run
-                  comes from state rather than from the scraped header, so it
-                  cannot go stale between measures.
+                  comes from current state and stays valid between measures.
                 */}
                 {scope.kind === 'loop' && scope.runs > 1 ? (
                   <RunTrack

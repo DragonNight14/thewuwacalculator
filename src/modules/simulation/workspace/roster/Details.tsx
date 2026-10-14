@@ -1,16 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: What a bead's spark pins out on the rotation surface. The bead
-               stretches into a capsule carrying the resonator's name and the
-               size of its rotation, and on the lead, the two teammates beside
-               it. Every portrait in it opens that member's console.
-
-               The capsule carries its own copy of the bead's portrait, so it
-               can stand over the bead and read as the bead stretching rather
-               than as a card appearing beside it. Its radius is the column's
-               own bead size, so only the bead's centre comes from here; its
-               contents are measured and sprung, which is what lets it re-size
-               as it moves between beads.
+  description: renders an animated details panel with rotation size and team portraits.
 */
 
 import { DisplayImage } from '@/shared/ui/DisplayImage'
@@ -18,27 +8,27 @@ import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import type { MouseEvent as ReactMouseEvent } from 'react'
 import { withDefIconM } from '@/shared/lib/imageFallback.ts'
 import { type CssVars } from '@/modules/simulation/workspace/ui.tsx'
-import type { BuildRosterEntry } from './BuildRoster.tsx'
+import type { Entry } from './List.tsx'
 
-export interface CapsuleMate {
+export interface Teammate {
   id: string
   name: string
   profile: string
   accent: string
 }
 
-export interface CapsuleTarget {
-  entry: BuildRosterEntry
-  /** The context resonator: its face and its teammates open the console. */
+export interface Target {
+  entry: Entry
+  /** the context resonator: its face and its teammates open the console. */
   lead: boolean
-  /** Bead centre, in px against the column. */
+  /** item centre, in px against the column. */
   x: number
   y: number
 }
 
-// Long enough for the width to spring home before the capsule lets go of it.
+// allow the closing width transition to finish before unmounting.
 const LEAVE_MS = 420
-// How long an outgoing body stays under the incoming one while they cross.
+// overlap the outgoing and incoming details during a member change.
 const SWAP_MS = 180
 
 function reduced(): boolean {
@@ -46,20 +36,20 @@ function reduced(): boolean {
   return Boolean(root && (root.classList.contains('reduce-animation') || root.classList.contains('no-entrance-anim')))
 }
 
-function nodesNote(entry: BuildRosterEntry): string | null {
+function nodesNote(entry: Entry): string | null {
   if (entry.rotationNodes === 0) return null
   return `${entry.rotationNodes} ${entry.rotationNodes === 1 ? 'node' : 'nodes'}`
 }
 
-function CapsuleBody({
+function RosterDetailsContent({
   target,
   mates,
   enter,
   leaving,
   onMate,
 }: {
-  target: CapsuleTarget
-  mates: CapsuleMate[]
+  target: Target
+  mates: Teammate[]
   enter?: 'mount' | 'swap'
   leaving?: boolean
   onMate: (resonatorId: string) => void
@@ -67,23 +57,23 @@ function CapsuleBody({
   const note = nodesNote(target.entry)
   const withTeam = target.lead && mates.length > 0
   return (
-    <div className="blm-capsule-body"
+    <div className="build-roster-details-body"
       data-enter={leaving ? undefined : enter}
       data-leaving={leaving ? 'true' : undefined}
       aria-hidden={leaving || undefined}
     >
-      <span className="blm-capsule-text" style={{ '--i': 0 } as CssVars}>
-        <b className="blm-capsule-name">{target.entry.name}</b>
-        {note ? <span className="blm-capsule-note">{note}</span> : null}
+      <span className="build-roster-details-text" style={{ '--i': 0 } as CssVars}>
+        <b className="build-roster-details-name">{target.entry.name}</b>
+        {note ? <span className="build-roster-details-note">{note}</span> : null}
       </span>
       {withTeam ? (
         <>
-          <i className="blm-capsule-div" style={{ '--i': 1 } as CssVars} aria-hidden="true" />
-          <span className="blm-capsule-mates" style={{ '--i': 2 } as CssVars}>
+          <i className="build-roster-details-div" style={{ '--i': 1 } as CssVars} aria-hidden="true" />
+          <span className="build-roster-details-mates" style={{ '--i': 2 } as CssVars}>
             {mates.map((mate, index) => (
               <button
                 key={mate.id}
-                type="button" className="blm-mate"
+                type="button" className="build-roster-teammate"
                 style={{ '--mate': mate.accent, '--i': index } as CssVars}
                 aria-label={`Edit ${mate.name}`}
                 title={`Edit ${mate.name}`}
@@ -100,34 +90,30 @@ function CapsuleBody({
   )
 }
 
-export function RosterCapsule({
+export function Details({
   target,
   mates,
   onFace,
   onFaceMenu,
   onMate,
 }: {
-  target: CapsuleTarget | null
-  mates: CapsuleMate[]
-  onFace: (entry: BuildRosterEntry) => void
-  onFaceMenu: (entry: BuildRosterEntry, event: ReactMouseEvent<HTMLElement>) => void
+  target: Target | null
+  mates: Teammate[]
+  onFace: (entry: Entry) => void
+  onFaceMenu: (entry: Entry, event: ReactMouseEvent<HTMLElement>) => void
   onMate: (resonatorId: string) => void
 }) {
-  const [shown, setShown] = useState<CapsuleTarget | null>(target)
+  const [shown, setShown] = useState<Target | null>(target)
   const [phase, setPhase] = useState<'in' | 'out'>('in')
   const [mount, setMount] = useState(0)
   const [mountKey, setMountKey] = useState(target ? `${target.entry.id}:${target.lead}` : '')
-  const [leaving, setLeaving] = useState<CapsuleTarget | null>(null)
+  const [leaving, setLeaving] = useState<Target | null>(null)
   const capRef = useRef<HTMLDivElement | null>(null)
   const bodiesRef = useRef<HTMLDivElement | null>(null)
   const measuredMount = useRef(-1)
 
-  /*
-    Presence is adjusted during render so the capsule never paints a frame of
-    the wrong resonator. A new target over a capsule that is still standing is
-    a glide; a target after it has let go, or while it is letting go, is a new
-    capsule with its own entrance.
-  */
+  /* update the displayed member during render to avoid showing stale details;
+     animate a new entrance when the previous panel is closing or absent. */
   if (target && target !== shown) {
     const key = `${target.entry.id}:${target.lead}`
     if (!shown || phase === 'out') {
@@ -156,10 +142,8 @@ export function RosterCapsule({
     return () => window.clearTimeout(timer)
   }, [leaving])
 
-  // How far the capsule reaches past the bead is written straight onto the
-  // node rather than through React, so a re-render can never snap it back mid
-  // spring. A new capsule is committed at the bead's own size first, which is
-  // the point the spring leaves from and the point it returns to.
+  // set the panel width directly during the transition to preserve its current
+  // position across renders; new panels start at the roster item's width.
   useLayoutEffect(() => {
     const cap = capRef.current
     const bodies = bodiesRef.current
@@ -184,7 +168,7 @@ export function RosterCapsule({
   return (
     <div
       key={mount}
-      ref={capRef} className="blm-capsule"
+      ref={capRef} className="build-roster-details"
       data-phase={phase}
       data-lead={lead ? 'true' : undefined}
       style={{
@@ -194,7 +178,7 @@ export function RosterCapsule({
       } as CssVars}
     >
       <button
-        type="button" className="blm-capsule-face"
+        type="button" className="build-roster-details-face"
         aria-label={lead ? `Edit ${entry.name}` : `Switch to ${entry.name}`}
         title={lead ? `Edit ${entry.name}` : undefined}
         tabIndex={phase === 'out' ? -1 : 0}
@@ -203,9 +187,9 @@ export function RosterCapsule({
       >
         <DisplayImage key={entry.id} src={entry.profile} alt="" decoding="async" onError={withDefIconM} />
       </button>
-      <div className="blm-capsule-bodies" ref={bodiesRef}>
+      <div className="build-roster-details-bodies" ref={bodiesRef}>
         {leaving ? (
-          <CapsuleBody
+          <RosterDetailsContent
             key={`out:${leaving.entry.id}:${leaving.lead}`}
             target={leaving}
             mates={mates}
@@ -213,7 +197,7 @@ export function RosterCapsule({
             onMate={onMate}
           />
         ) : null}
-        <CapsuleBody
+        <RosterDetailsContent
           key={bodyKey}
           target={shown}
           mates={mates}

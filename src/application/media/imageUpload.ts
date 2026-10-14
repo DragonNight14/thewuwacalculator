@@ -1,9 +1,9 @@
 /*
   Author: Runor Ewhro
-  Description: stores an uploaded image under a chosen persistence mode and
-               resolves stored references back to a usable url. Session keeps the
+  description: stores an uploaded image under a chosen persistence mode and
+               resolves stored references back to a usable url. session keeps the
                image only for this load (object url); indexeddb stores the blob
-               locally; imgbb hosts it and keeps just the url. A pasted link or a
+               locally; imgbb hosts it and keeps just the url. a pasted link or a
                hosted url is already a persistable reference and needs no store.
 */
 
@@ -24,11 +24,11 @@ export interface ResolvedImage {
 
 const IMGBB_ENDPOINT = 'https://api.imgbb.com/1/upload'
 
-// Re-encodes an image so its longest edge is at most maxEdge px, keeping aspect
-// ratio. Returns the original file untouched when it's already within bounds, when
+// re-encodes an image so its longest edge is at most maxEdge px, keeping aspect
+// ratio. returns the original file untouched when it's already within bounds, when
 // maxEdge is null (keep original), or when decoding fails so the caller always
-// gets a usable file. PNGs stay PNG to preserve transparency for cut-out portraits;
-// anything else is re-encoded to JPEG.
+// gets a usable file. pngs stay png to preserve transparency for cut-out portraits;
+// anything else is re-encoded to jpeg.
 export async function downscaleImageFile(file: File, maxEdge: number | null): Promise<File> {
   if (maxEdge == null || !Number.isFinite(maxEdge) || maxEdge <= 0) return file
   let bitmap: ImageBitmap
@@ -75,7 +75,7 @@ export function fileToDataUrl(file: File): Promise<string | null> {
   })
 }
 
-// ImgBB wants the raw base64 payload, without the `data:image/...;base64,` prefix.
+// imgbb accepts the raw base64 payload without the `data:image/...;base64,` prefix.
 function dataUrlToBase64(dataUrl: string): string {
   const comma = dataUrl.indexOf(',')
   return comma >= 0 ? dataUrl.slice(comma + 1) : dataUrl
@@ -108,7 +108,7 @@ async function uploadToImgbb(file: File, apiKey: string): Promise<string | null>
   }
 }
 
-// Returns the persistable reference for a file under the chosen mode, or null if
+// returns the persistable reference for a file under the chosen mode, or null if
 // the file cannot be read. ImgBB without a key (or a failed upload) degrades to a
 // non-persisted object url so the image still appears without retaining base64.
 export async function storeUploadedImage(
@@ -136,7 +136,7 @@ export async function storeUploadedImage(
   return { ref: URL.createObjectURL(sized), persisted: false }
 }
 
-// Turns a stored reference into a usable url. IndexedDB refs resolve to an object
+// turns a stored reference into a usable url. IndexedDB refs resolve to an object
 // url that the caller must revoke; everything else is already a url.
 export async function resolveImageRef(ref: string): Promise<ResolvedImage | null> {
   if (!ref) return null

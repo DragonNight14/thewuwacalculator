@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: A recent unchanged resonator report is available before the
+  description: a recent unchanged resonator report is available before the
                worker restarts or deferred simulation prepares its payload.
 */
 

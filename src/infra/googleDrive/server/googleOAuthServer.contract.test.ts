@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: locks the server-side google oauth adapter contract for request
+  description: locks the server-side google oauth adapter contract for request
                validation, upstream error passthrough, and token exchange
                payload formatting.
 */
@@ -132,8 +132,8 @@ describe('google OAuth server contract', () => {
   })
 
   it('returns upstream exchange details when google rejects the code', async () => {
-    // preserve google's error payload in details so callers can distinguish bad
-    // codes from local validation or server configuration failures
+    // preserve google's error payload in details for callers to distinguish
+    // invalid codes from local validation or configuration failures.
     const fetchMock = vi.fn().mockResolvedValueOnce({
       ok: false,
       json: async () => ({ error: 'invalid_grant' }),

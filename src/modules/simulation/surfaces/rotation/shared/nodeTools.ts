@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Builds rotation-node edit menus, deduplicates visible runtime
+  description: builds rotation-node edit menus, deduplicates visible runtime
                states, and resolves feature and condition inspection metadata.
 */
 
@@ -180,7 +180,7 @@ export function enemyChoices(
         ))
 
     // per-enemy debuff states (toggles/stacks/selects authored in enemy source data); their
-    // `enemy.status.<field>` paths route to the enemy overlay just like Tune Strain.
+    // `enemy.status.<field>` paths route to the enemy overlay just like tune strain.
     const debuffStates = enemyId ? listStatesFor('enemy', enemyId) : []
 
     return [tuneStrain, ...negFfct, ...debuffStates].map((state) => buildConditionChoices(
@@ -241,8 +241,8 @@ function sumTotals(entries: SimResult['perSkill']): NodeTotals {
 }
 
 function getFrstTrtnE(entries: SimResult['perSkill']): SimResult['perSkill'] {
-    // repeated loop iterations are excluded from node totals so per-node damage
-    // stays tied to the first executed pass rather than cumulative repeats.
+    // per-node damage uses the first executed pass and excludes repeated loop
+    // iterations.
     return entries.filter((entry) => {
         const loopRuns = entry.loopRuns ? Object.values(entry.loopRuns) : []
         return loopRuns.length === 0 || loopRuns.every((run) => run === 1)

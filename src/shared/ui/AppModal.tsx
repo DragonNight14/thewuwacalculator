@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Adapts shared modal lifecycle state, sizing, tone, portal, and
+  description: adapts shared modal lifecycle state, sizing, tone, portal, and
                dismissal behavior to the lower-level dialog primitive.
 */
 

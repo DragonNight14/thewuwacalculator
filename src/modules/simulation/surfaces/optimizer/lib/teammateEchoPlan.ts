@@ -1,7 +1,7 @@
 /*
   Author: Runor Ewhro
-  Description: Materializes five-slot teammate Echo plans from selected sets
-               and a main Echo, validates constraints, and trims worker data.
+  description: materializes five-slot teammate echo plans from selected sets
+               and a main echo, validates constraints, and trims worker data.
 */
 
 import type { EchoInstance } from '@/domain/entities/runtime.ts'
@@ -206,8 +206,8 @@ function isMainEchoVl(
   preferences: TeammateSetPreference[],
   echoId: string,
 ): boolean {
-  // the selected main echo must be able to belong to at least one requested set, or the teammate card should surface it
-  // as invalid rather than silently changing the set plan.
+  // the selected main echo must fit a requested set. the teammate card marks
+  // incompatible choices invalid while preserving the set plan.
   const definition = getEchoById(echoId)
   if (!definition) {
     return false
@@ -347,8 +347,7 @@ export function resEchoPlan(
   )
 
   if (!isMainEchoVl(resolvedSets, rslvMainEcho)) {
-    // keep the plan intact and mark the echo invalid rather than auto-replacing it, because the user chose that main
-    // echo explicitly.
+    // preserve the plan and mark the explicitly selected main echo invalid.
     effectEchoes[0] = fllbMainEcho?.id.startsWith('optimizer-set:') ? fllbMainEcho : null
     return {
       plan: {

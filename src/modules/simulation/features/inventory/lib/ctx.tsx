@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Owns ctx behavior and state transitions for the lib module.
+  description: provides inventory context for simulation components.
 */
 
 import type { ReactNode } from 'react'

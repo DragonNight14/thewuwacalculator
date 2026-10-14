@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Defines one evaluation objective language shared by direct
+  description: defines one evaluation objective language shared by direct
                features, rotations, weighted plans, and composite searches.
 */
 

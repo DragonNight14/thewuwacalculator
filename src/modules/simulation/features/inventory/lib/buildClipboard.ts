@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Shared saved-build clipboard helpers for config and inventory surfaces.
+  description: shared saved-build clipboard helpers for config and inventory surfaces.
 */
 
 import { decShareText, encShareText } from '@/shared/lib/shareCodec.ts'
@@ -54,7 +54,7 @@ export function prsBuildClpbP(raw: string): BuildClipPayload | null {
     const wrapped =
       parsed.kind === BUILD_CLIP_KIND
       && parsed.version === BUILD_CLIP_VER
-    // Accept the current wrapped payload plus older ad hoc shapes used by local
+    // accept the current wrapped payload plus older ad hoc shapes used by local
     // copy/paste experiments: raw arrays, single entries, or wrapped aliases.
     const builds = wrapped
       ? parsed.builds ?? parsed.entries ?? parsed.items
@@ -97,7 +97,7 @@ export async function writeBuildClpb(payload: BuildClipPayload): Promise<boolean
   const nrmlPay = mkBuildClpbPa(payload.builds)
   cchdBuildClpb = nrmlPay
 
-  // The in-memory cache keeps same-session paste working when Clipboard API
+  // the in-memory cache keeps same-session paste working when clipboard api
   // access is unavailable or denied by the browser.
   if (typeof navigator === 'undefined' || !navigator.clipboard?.writeText) {
     return true

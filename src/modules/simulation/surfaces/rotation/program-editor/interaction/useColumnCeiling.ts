@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Keeps rotation column budgets in sync with the layout viewport.
+  description: keeps rotation column budgets in sync with the layout viewport.
 */
 
 import { useMediaQuery } from '@/shared/hooks/useMediaQuery'

@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Renders the overview build card as a PNG for downloads and the
+  description: renders the overview build card as a png for downloads and the
                system clipboard without adding capture code to the main bundle.
 */
 
@@ -17,7 +17,7 @@ function blobToDataUrl(blob: Blob): Promise<string> {
   })
 }
 
-// Inline reachable font assets so the exported image is self-contained.
+// inline reachable font assets so the exported image is self-contained.
 export function resolveFontAssetUrl(url: string, stylesheetHref: string | null, documentBase: string): string {
   return new URL(url, stylesheetHref || documentBase).href
 }
@@ -44,7 +44,7 @@ export function fontFaceUsed(css: string, usage: FontUsage, text: string): boole
     })
     if (![...text].some((char) => ranges.some(([min, max]) => char.codePointAt(0)! >= min && char.codePointAt(0)! <= max))) return false
   }
-  // Keep all declared weights of a used family: browser font matching may select
+  // keep all declared weights of a used family: browser font matching may select
   // a nearby weight or synthesize bold/italic when an exact face is absent.
   return true
 }
@@ -85,8 +85,8 @@ export async function embedCaptureUrls(css: string, load: (url: string) => Promi
       ? '#' + absolute.split('#')[1] : await load(absolute)
     replacements.set(url, `url("${embedded}")`)
   }
-  // Replace complete URL tokens. A relative URL may also be a substring of a
-  // computed absolute URL on the same node; replacing substrings corrupts both.
+  // replace complete url tokens. a relative url may also be a substring of a
+  // computed absolute url on the same node; replacing substrings corrupts both.
   return css.replace(pattern, (token, url: string) => replacements.get(url) ?? token)
 }
 
@@ -112,7 +112,7 @@ async function buildFontEmbedCss(usage: FontUsage, text: string, load: (url: str
       await rules(sheet.cssRules)
     } catch {
       if (sheet.href) {
-        try { await add(await (await fetch(sheet.href)).text(), sheet.href) } catch { /* Match browser font fallback if unavailable. */ }
+        try { await add(await (await fetch(sheet.href)).text(), sheet.href) } catch { /* match browser font fallback if unavailable. */ }
       }
     }
   }
@@ -123,10 +123,10 @@ async function buildFontEmbedCss(usage: FontUsage, text: string, load: (url: str
 const GLASS_BACKGROUND = ['image', 'color', 'size', 'position', 'repeat', 'origin', 'clip', 'attachment']
   .map((part) => `background-${part}`)
 
-// Chromium does not clip backdrop-filter to the border box inside an SVG image:
+// chromium does not clip backdrop-filter to the border box inside an svg image:
 // the blur spills out by its filter radius and frosts over neighbouring cards.
-// Paint each glass element's backdrop on its own clipped layer underneath the
-// content instead, so overflowing children (echo avatars) stay unclipped.
+// paint each glass backdrop on a clipped layer below the content. overflowing
+// children such as echo avatars remain visible.
 function clipCaptureGlass(element: HTMLElement, filter: string) {
   const style = element.style
   const layer = document.createElement('div')
@@ -147,8 +147,8 @@ function clipCaptureGlass(element: HTMLElement, filter: string) {
   element.insertBefore(layer, element.firstChild)
 }
 
-// Freeze the live composition on a disposable clone. Only the host is moved
-// offscreen: moving the card itself would put its contents outside the PNG.
+// freeze the live composition on a disposable clone. only the host is moved
+// offscreen: moving the card itself would put its contents outside the png.
 function createCaptureClone(source: HTMLElement): { card: HTMLElement; fonts: FontUsage; text: string; dispose: () => void } {
   const fonts: FontUsage = new Map()
   let text = source.textContent || ''
@@ -163,7 +163,7 @@ function createCaptureClone(source: HTMLElement): { card: HTMLElement; fonts: Fo
     if (!copy.style) continue
     const computed = getComputedStyle(original)
     recordFonts(fonts, computed)
-    // Computed declarations already resolve custom properties. Do not retain
+    // computed declarations already resolve custom properties. do not retain
     // another copy of the original variable payload on every captured element.
     copy.style.cssText = ''
     copy.setAttribute('data-capture-node', String(index))
@@ -197,7 +197,7 @@ function createCaptureClone(source: HTMLElement): { card: HTMLElement; fonts: Fo
       copy.replaceWith(image)
     }
   }
-  // The original custom stylesheet remains active. Duplicating style elements
+  // the original custom stylesheet remains active. duplicating style elements
   // here would reapply their rules to the live card while preparing the export.
   card.querySelectorAll('style, .spine-animated').forEach((node) => node.remove())
   for (const [element, filter] of glass) clipCaptureGlass(element, filter)
@@ -209,8 +209,8 @@ function createCaptureClone(source: HTMLElement): { card: HTMLElement; fonts: Fo
   card.querySelectorAll<HTMLElement>('.spine-setup, .stat-muted')
     .forEach((node) => { node.style.opacity = '1' })
 
-  // Keep the existing grade/score alignment protection, using live geometry
-  // but changing only the copy. Font embedding must not move this composition.
+  // use live geometry to align the grade and score in the copy. font embedding
+  // must preserve this composition.
   const figure = source.querySelector<HTMLElement>('.sc-verdict-figure')
   const figureCopy = card.querySelector<HTMLElement>('.sc-verdict-figure')
   if (figure && figureCopy) {
@@ -275,7 +275,7 @@ export async function loadCaptureArt(card: HTMLElement, loadResource?: (url: str
       const url = layer.dataset.captureBackground!
       const displayed = /url\(["']?([^)"']+)["']?\)/.exec(layer.dataset.displayBackground ?? '')?.[1]
       const displayUrl = new URL(displayed ?? url.replace('/setup/', '/setup/display/'), document.baseURI).href
-      // Custom CSS may override the default background without changing props.
+      // custom css may override the default background without changing props.
       if (!layer.style.backgroundImage.includes(displayUrl)) return
       layer.style.backgroundImage = layer.style.backgroundImage.replace(displayUrl, await load(url))
     }),
@@ -300,7 +300,7 @@ export async function renderBuildCardPng(source: HTMLElement): Promise<Blob> {
     const card = snapshot.card
     await loadCaptureArt(card, resources.load)
     const faces = await buildFontEmbedCss(snapshot.fonts, snapshot.text, resources.load)
-    // One frozen tree: inline its resources, then serialize it directly.
+    // one frozen tree: inline its resources, then serialize it directly.
     for (const node of [card, ...card.querySelectorAll<HTMLElement | SVGElement>('*')]) {
       if (node.style?.cssText?.includes('url(')) node.style.cssText = await embedCaptureUrls(node.style.cssText, resources.load)
       if (node instanceof HTMLImageElement) { node.src = await resources.load(node.src); await node.decode() }

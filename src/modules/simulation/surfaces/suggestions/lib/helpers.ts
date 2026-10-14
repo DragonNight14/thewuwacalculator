@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: contains small suggestion formatting helpers shared by random
+  description: contains small suggestion formatting helpers shared by random
                and deterministic suggestion runs.
 */
 
@@ -43,7 +43,7 @@ export function targetOpts(
   simulation: SimResult | null,
   options: DmgEligOpts = {},
 ): SuggTgtPtn[] {
-  // A pending simulation cannot establish whether a saved manual target is valid.
+  // a pending simulation cannot establish whether a saved manual target is valid.
   if (!simulation) return []
   const direct = (simulation?.allSkills ?? [])
     .filter((entry) => (
@@ -66,7 +66,7 @@ export function targetOpts(
   return [...defaults, ...direct]
 }
 
-// Preserve skill-tab ordering and place targets without a skill tab in Rotation.
+// preserve skill-tab ordering and place targets without a skill tab in rotation.
 export function targetGroups(options: SuggTgtPtn[]): SelectGroup<string>[] {
   const grouped = new Map<string, SelectOption<string>[]>()
   const extras: SelectOption<string>[] = []

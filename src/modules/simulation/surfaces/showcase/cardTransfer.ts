@@ -1,10 +1,7 @@
 /*
   Author: Runor Ewhro
-  Description: Export/import for showcase card customization. Each panel group can
-               be exported on its own (JSON, or a raw .css file for Custom CSS), the
-               whole card can be exported together (JSON, custom CSS inlined as a
-               string), and one importer ingests any of them by detecting the kind
-               from the file so the right slice is applied.
+  description: exports showcase card settings by panel or as a complete card.
+               imports json and css files by detecting their content type.
 */
 
 import { DEF_SHOWCASE_CARD_STYLE, DEF_SHOWCASE_HIDE } from '@/domain/entities/preferences'
@@ -17,7 +14,7 @@ export type CardExportTarget = 'show' | 'portrait' | 'backdrop' | 'color' | 'typ
 const STYLE_KEYS = Object.keys(DEF_SHOWCASE_CARD_STYLE) as (keyof ShowcaseCardStyle)[]
 const HIDDEN_KEYS = Object.keys(DEF_SHOWCASE_HIDE) as (keyof ShowcaseCardHidden)[]
 
-// The style fields each group owns. 'show' maps to the hidden flags instead.
+// each style group defines its fields. 'show' maps to the hidden flags.
 const GROUP_STYLE_KEYS: Record<'portrait' | 'backdrop' | 'color' | 'type' | 'text', (keyof ShowcaseCardStyle)[]> = {
   portrait: ['portraitX', 'portraitY', 'portraitScale', 'maskTop', 'maskRight', 'maskBottom', 'maskLeft', 'maskTopSharp', 'maskRightSharp', 'maskBottomSharp', 'maskLeftSharp', 'portraitImage', 'portraitCredit'],
   backdrop: ['backdropX', 'backdropY', 'backdropScale', 'backdropBlur', 'backdropOpacity', 'backdropImage', 'backdropCredit'],
@@ -74,8 +71,8 @@ export interface CardImportResult {
   label: string
 }
 
-// Detects a card file and returns the patch(es) to apply. A .css file (or any
-// non-JSON text) is treated as Custom CSS; JSON is matched by its `kind`/`group`.
+// detects a card file and returns the patch(es) to apply. a .css file (or any
+// non-json text) is treated as custom css; json is matched by its `kind`/`group`.
 export function parseCardImport(filename: string, raw: string): CardImportResult {
   const looksJson = raw.trimStart().startsWith('{')
   const isCss = filename.toLowerCase().endsWith('.css') || !looksJson

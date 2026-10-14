@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Checks loop passes out for isolated editing and merges them back into authored loop state.
+  description: checks loop passes out for isolated editing and merges them back into authored loop state.
 */
 
 import type {
@@ -18,7 +18,7 @@ import { resolveInheritedPassBody } from '@/domain/gameData/loopPasses.ts'
 
 export type EditorPassForks = Record<number, EditorNode[]>
 
-/** Bounded (non-wrap) loops own a single body list that can be checked out. */
+/** bounded (non-wrap) loops own a single body list that can be checked out. */
 export function isCheckoutableLoop(block: EditorBlock): boolean {
   return block.type === 'loop'
     && block.wrap == null
@@ -26,7 +26,7 @@ export function isCheckoutableLoop(block: EditorBlock): boolean {
 }
 
 /**
- * Deep-clone editor nodes while keeping ids (pass bodies are the same nodes
+ * deep-clone editor nodes while keeping ids (pass bodies are the same nodes
  * across storage, not paste copies).
  */
 function cloneEditorList(nodes: readonly EditorNode[]): EditorNode[] {
@@ -37,7 +37,7 @@ function cloneList(nodes: readonly EditorNode[]): EditorNode[] {
   return cloneEditorList(nodes)
 }
 
-/** Stable enough equality for COW compression of pass bodies. */
+/** stable enough equality for cow compression of pass bodies. */
 function editorBodiesEqual(
   left: readonly EditorNode[],
   right: readonly EditorNode[],
@@ -116,7 +116,7 @@ function stableNode(node: EditorNode): unknown {
 }
 
 /**
- * Resolve the body for a run. A private fork wins; otherwise the run inherits
+ * resolve the body for a run. a private fork wins; otherwise the run inherits
  * the nearest preceding fork, with the template as the initial body.
  */
 export function resolveEditorPassBody(
@@ -201,7 +201,7 @@ function sameForkMap(
   return leftKeys.every((key) => left[Number(key)] === right[Number(key)])
 }
 
-/** Seed template + checkout state the first time a loop is seen. */
+/** seed template + checkout state the first time a loop is seen. */
 function ensureLoopPassSeed(block: EditorBlock): EditorBlock {
   if (!isCheckoutableLoop(block)) {
     return block
@@ -218,7 +218,7 @@ function ensureLoopPassSeed(block: EditorBlock): EditorBlock {
 }
 
 /**
- * Persist the currently checked-out body into passForks when it has diverged
+ * persist the currently checked-out body into passForks when it has diverged
  * from the inherited resolve chain.
  */
 export function checkinLoopBlock(block: EditorBlock): EditorBlock {
@@ -255,7 +255,7 @@ export function checkinLoopBlock(block: EditorBlock): EditorBlock {
   }
 }
 
-/** Replace `children` with a clone of the resolved body for `run`. */
+/** replace `children` with a clone of the resolved body for `run`. */
 export function checkoutLoopBlock(block: EditorBlock, run: number): EditorBlock {
   if (!isCheckoutableLoop(block)) {
     return block
@@ -280,8 +280,8 @@ export function checkoutLoopBlock(block: EditorBlock, run: number): EditorBlock 
 }
 
 /**
- * Change a bounded loop's run count without retaining bodies for runs that
- * no longer exist. If the checked-out run is removed, the new last run is
+ * change a bounded loop's run count without retaining bodies for runs that
+ * no longer exist. if the checked-out run is removed, the new last run is
  * resolved from the surviving inheritance chain.
  */
 export function resizeLoopBlockRuns(block: EditorBlock, value: number): EditorBlock {
@@ -353,14 +353,14 @@ function mapCheckoutableLoops(
   return changed ? next : sections
 }
 
-/** Check in every checkoutable loop (before serialize or bulk switch). */
+/** check in every checkoutable loop (before serialize or bulk switch). */
 export function checkinAllLoopPasses(sections: EditorSection[]): EditorSection[] {
   return mapCheckoutableLoops(sections, checkinLoopBlock)
 }
 
 /**
- * Ensure a loop is seeded, then apply an immutable update to its checked-out
- * `children` only, then check in so the pass is forked. Never touches
+ * ensure a loop is seeded, then apply an immutable update to its checked-out
+ * `children` only, then check in so the pass is forked. never touches
  * `passTemplate` except to create it from the pre-edit body on first seed.
  */
 export function updateCheckedOutLoopChildren(
@@ -373,7 +373,7 @@ export function updateCheckedOutLoopChildren(
       return block
     }
     const seeded = ensureLoopPassSeed(block)
-    // Seed template from the pre-edit body before mutating children.
+    // seed template from the pre-edit body before mutating children.
     const template = seeded.passTemplate ?? cloneList(seeded.children)
     const children = update(seeded.children)
     if (children === seeded.children) {
@@ -408,7 +408,7 @@ function removeIdDeep(nodes: EditorNode[], nodeId: string): EditorNode[] {
   return changed ? next : nodes
 }
 
-/** Remove a node from the currently checked-out pass of its enclosing loop. */
+/** remove a node from the currently checked-out pass of its enclosing loop. */
 export function removeFromCheckedOutPass(
   sections: EditorSection[],
   loopId: string,
@@ -419,8 +419,8 @@ export function removeFromCheckedOutPass(
 }
 
 /**
- * Check in current passes, then check out each loop to the selected run
- * (default 1). Nested loops use their own selection keys.
+ * check in current passes, then check out each loop to the selected run
+ * (default 1). nested loops use their own selection keys.
  */
 export function checkoutAllLoopPasses(
   sections: EditorSection[],
@@ -434,7 +434,7 @@ export function checkoutAllLoopPasses(
   })
 }
 
-/** Switch one loop to another run, leaving other loops alone. */
+/** switch one loop to another run, leaving other loops alone. */
 export function checkoutLoopPassById(
   sections: EditorSection[],
   loopId: string,
@@ -449,7 +449,7 @@ export function checkoutLoopPassById(
 }
 
 /**
- * After engine projection, seed every bounded loop with a template and
+ * after engine projection, seed every bounded loop with a template and
  * optional forks (already as editor nodes), checked out to run 1 or selection.
  */
 export function seedLoopPassState(

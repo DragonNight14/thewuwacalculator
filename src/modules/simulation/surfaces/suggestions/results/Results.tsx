@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Projects ranked suggestion candidates and baseline deltas,
+  description: projects ranked suggestion candidates and baseline deltas,
                measures result connectors, and delegates candidate application.
 */
 
@@ -17,12 +17,12 @@ import { Select, type SelectGroup } from '@/application/ui/Select'
 import { getDiffLabel, getDiffTone } from '../lib/suggestions.ts'
 import { withDefIconM } from '@/shared/lib/imageFallback.ts'
 import {
-  CLIMB_KINDS,
-  CLIMB_KIND_NAME,
-  type ClimbKind,
-  type ClimbRow,
-  type ClimbTray,
-} from '@/modules/simulation/surfaces/suggestions/climb/model.ts'
+  KINDS,
+  KIND_NAME,
+  type Kind,
+  type Row,
+  type EchoSlot,
+} from '@/modules/simulation/surfaces/suggestions/results/model.ts'
 
 const pct = (value: number) =>
   `${value > 0 ? '+' : value < 0 ? '−' : ''}${getDiffLabel(value, false)}`
@@ -32,10 +32,10 @@ const tone = (value: number) => {
   return result === 'positive' ? 'up' : result === 'negative' ? 'dn' : 'zero'
 }
 
-/* The pane identifies current results by recipe, concrete set plan, or weapon. */
-const isBase = (row: ClimbRow) => row.now
+/* the pane identifies current results by recipe, concrete set plan, or weapon. */
+const isBase = (row: Row) => row.now
 
-interface Rope {
+interface Connector {
   index: number
   d: string
   gain: boolean
@@ -46,7 +46,7 @@ function maskStyle(icon: string | null): CssProps | undefined {
   return icon ? { maskImage: `url(${icon})`, WebkitMaskImage: `url(${icon})` } as CssProps : undefined
 }
 
-function Tray({ tray, ink }: { tray: ClimbTray, ink: string }) {
+function Tray({ tray, ink }: { tray: EchoSlot, ink: string }) {
   return (
     <div
       className={`spx-tray${tray.held ? ' is-held' : ''}`}
@@ -81,30 +81,30 @@ function Tray({ tray, ink }: { tray: ClimbTray, ink: string }) {
   )
 }
 
-function Build({ kind, row }: { kind: ClimbKind, row: ClimbRow }) {
+function Build({ kind, row }: { kind: Kind, row: Row }) {
   if (row.weapon) {
     const weapon = row.weapon
     return (
-      <span className="clb__build clb__build--wpn">
-        <span className="clb__wicon">
+      <span className="suggestion-results__build suggestion-results__build--wpn">
+        <span className="suggestion-results__wicon">
           <DisplayImage src={weapon.icon} alt="" loading="lazy" decoding="async" onError={withDefIconM} />
         </span>
-        <span className="clb__wtxt">
+        <span className="suggestion-results__wtxt">
           <b>{weapon.name}</b>
-          <span className="clb__wstats">
+          <span className="suggestion-results__wstats">
             <em>{weapon.rarity}★ R{weapon.rank}</em>
-            <span className="clb__wstat" title={`ATK ${Math.round(weapon.baseAtk)}`}>
+            <span className="suggestion-results__wstat" title={`ATK ${Math.round(weapon.baseAtk)}`}>
               <i className="sst-icon" style={maskStyle(statIconSrc('atk'))} />
               {Math.round(weapon.baseAtk)}
             </span>
             <span
-              className="clb__wstat"
+              className="suggestion-results__wstat"
               title={`${formatStatKeyLabel(weapon.statKey)} ${formatStatKeyValue(weapon.statKey, weapon.statValue)}`}
             >
               <i className="sst-icon" style={maskStyle(statIconSrc(weapon.statKey))} />
               {formatStatKeyValue(weapon.statKey, weapon.statValue)}
             </span>
-            {row.equipped ? <span className="clb__tag">Equipped</span> : null}
+            {row.equipped ? <span className="suggestion-results__tag">Equipped</span> : null}
           </span>
         </span>
       </span>
@@ -112,37 +112,37 @@ function Build({ kind, row }: { kind: ClimbKind, row: ClimbRow }) {
   }
 
   return (
-    <span className="clb__build">
-      <span className="spx-trays spx-trays--named clb__trays" data-mode={kind}>
+    <span className="suggestion-results__build">
+      <span className="spx-trays spx-trays--named suggestion-results__trays" data-mode={kind}>
         {row.trays.map((tray, index) => (
           <Tray key={`${tray.key}:${index}`} tray={tray} ink="var(--resonator-accent)" />
         ))}
       </span>
-      {row.equipped && !isBase(row) ? <span className="clb__tag">Worn</span> : null}
+      {row.equipped && !isBase(row) ? <span className="suggestion-results__tag">Worn</span> : null}
     </span>
   )
 }
 
-function Out({ row, index }: { row: ClimbRow, index: number }) {
+function Out({ row, index }: { row: Row, index: number }) {
   const alt = row.variants[1] ?? null
   return (
-    <span className="clb__out">
+    <span className="suggestion-results__out">
       <b>{formatCompactNum(row.damage)}</b>
-      <em className={`clb__d clb__tip ${tone(row.delta)}`} data-rope={index}>
+      <em className={`suggestion-results__d suggestion-results__tip ${tone(row.delta)}`} data-connector={index}>
         {isBase(row) ? 'base' : pct(row.delta)}
       </em>
       {alt ? (
         <small>
           {alt.mode === 'max' ? 'stacked' : 'resting'} {formatCompactNum(alt.damage)}{' '}
-          <span className={`clb__d ${tone(alt.delta)}`}>{pct(alt.delta)}</span>
+          <span className={`suggestion-results__d ${tone(alt.delta)}`}>{pct(alt.delta)}</span>
         </small>
       ) : null}
     </span>
   )
 }
 
-/* A plan can offer one set group twice; each piece takes a different set from it. */
-function platePieces(trays: ClimbTray[]) {
+/* a plan can offer one set group twice; each piece takes a different set from it. */
+function pickSetOptions(trays: EchoSlot[]) {
   const used = new Set<string>()
   return trays.map((tray) => {
     const options = tray.names.map((name, index) => ({ name, icon: tray.coins[index] ?? null }))
@@ -154,9 +154,9 @@ function platePieces(trays: ClimbTray[]) {
   })
 }
 
-const Spark = () => <i className="clb__spark" aria-hidden />
+const Star = () => <i className="suggestion-results__star" aria-hidden />
 
-function Plate({ row, leaf, onApply }: { row: ClimbRow, leaf: ReactNode, onApply: (row: ClimbRow) => void }) {
+function SelectedResult({ row, comparison, onApply }: { row: Row, comparison: ReactNode, onApply: (row: Row) => void }) {
   const weapon = row.weapon
   const detail = useAppPopup()
   const barRef = useRef<HTMLDivElement>(null)
@@ -177,35 +177,35 @@ function Plate({ row, leaf, onApply }: { row: ClimbRow, leaf: ReactNode, onApply
   if (weapon) {
     const alt = row.variants[1] ?? null
     art = (
-      <DisplayImage src={weapon.icon} alt="" className="clb__bar-wpn" decoding="async" onError={withDefIconM} />
+      <DisplayImage src={weapon.icon} alt="" className="suggestion-results__bar-wpn" decoding="async" onError={withDefIconM} />
     )
     name = weapon.name
     band = (
       <>
-        <span className="clb__bar-stars" title={`${weapon.rarity}★`}>
-          {Array.from({ length: weapon.rarity }, (_, index) => <Spark key={index} />)}
+        <span className="suggestion-results__bar-stars" title={`${weapon.rarity}★`}>
+          {Array.from({ length: weapon.rarity }, (_, index) => <Star key={index} />)}
         </span>
         <span>R{weapon.rank}</span>
         <span title={`ATK ${Math.round(weapon.baseAtk)}`}>
-          <i className="clb__bar-glyph" style={maskStyle(statIconSrc('atk'))} />
+          <i className="suggestion-results__bar-glyph" style={maskStyle(statIconSrc('atk'))} />
           {Math.round(weapon.baseAtk)}
         </span>
         <span title={formatStatKeyLabel(weapon.statKey)}>
-          <i className="clb__bar-glyph" style={maskStyle(statIconSrc(weapon.statKey))} />
+          <i className="suggestion-results__bar-glyph" style={maskStyle(statIconSrc(weapon.statKey))} />
           {formatStatKeyValue(weapon.statKey, weapon.statValue)}
         </span>
         {alt ? (
-          <span className="clb__bar-alt">
+          <span className="suggestion-results__bar-alt">
             {alt.mode === 'max' ? 'stacked' : 'resting'} {formatCompactNum(alt.damage)}
-            <span className={`clb__d ${tone(alt.delta)}`}>{pct(alt.delta)}</span>
+            <span className={`suggestion-results__d ${tone(alt.delta)}`}>{pct(alt.delta)}</span>
           </span>
         ) : null}
       </>
     )
   } else if (row.setPlan) {
-    const pieces = platePieces(row.trays)
+    const pieces = pickSetOptions(row.trays)
     art = (
-      <span className="clb__bar-sets">
+      <span className="suggestion-results__bar-sets">
         {pieces.map((piece, index) => (
           <DisplayImage key={index} src={piece.pick.icon ?? undefined} alt="" decoding="async" onError={withDefIconM} />
         ))}
@@ -217,10 +217,10 @@ function Plate({ row, leaf, onApply }: { row: ClimbRow, leaf: ReactNode, onApply
         key={`${tray.key}:${index}`}
         title={`${tray.lead}pc ${pick.name}${alts.length ? ` (or ${alts.map((entry) => entry.name).join(', ')})` : ''}`}
       >
-        <DisplayImage src={pick.icon ?? undefined} alt="" className="clb__bar-coin" decoding="async" onError={withDefIconM} />
+        <DisplayImage src={pick.icon ?? undefined} alt="" className="suggestion-results__bar-coin" decoding="async" onError={withDefIconM} />
         {tray.lead}pc
         {alts.length ? (
-          <span className="clb__bar-alts">
+          <span className="suggestion-results__bar-alts">
             <em>or</em>
             {alts.map((entry, at) => (
               <DisplayImage key={at} src={entry.icon ?? undefined} alt="" decoding="async" onError={withDefIconM} />
@@ -232,12 +232,12 @@ function Plate({ row, leaf, onApply }: { row: ClimbRow, leaf: ReactNode, onApply
   } else {
     const changed = row.trays.filter((tray) => !tray.held)
     const lead = changed[0] ?? row.trays[0]
-    art = <span className="clb__bar-glyph clb__bar-glyph--art" style={maskStyle(lead?.primary?.icon ?? null)} />
+    art = <span className="suggestion-results__bar-glyph suggestion-results__bar-glyph--art" style={maskStyle(lead?.primary?.icon ?? null)} />
     name = changed.length > 0 ? changed.map((tray) => tray.names[0]).join(', ') : 'Current'
     band = row.trays.map((tray, index) => (
-      <span key={`${tray.key}:${index}`} className={`clb__bar-slot${tray.held ? '' : ' is-new'}`} title={tray.title}>
+      <span key={`${tray.key}:${index}`} className={`suggestion-results__bar-slot${tray.held ? '' : ' is-new'}`} title={tray.title}>
         <small>{tray.lead}c</small>
-        <i className="clb__bar-glyph" style={maskStyle(tray.primary?.icon ?? null)} />
+        <i className="suggestion-results__bar-glyph" style={maskStyle(tray.primary?.icon ?? null)} />
         {tray.primary?.value}
       </span>
     ))
@@ -248,38 +248,38 @@ function Plate({ row, leaf, onApply }: { row: ClimbRow, leaf: ReactNode, onApply
   return (
     <div
       ref={barRef}
-      className={`clb__bar${detail.visible ? ' is-open' : ''}`}
+      className={`suggestion-results__bar${detail.visible ? ' is-open' : ''}`}
       data-kind={kind}
-      style={{ '--clb-result-ink': row.color ?? 'var(--clb-ink)' } as CssProps}
+      style={{ '--suggestion-results-result-ink': row.color ?? 'var(--suggestion-results-ink)' } as CssProps}
     >
       <button
         ref={openRef}
         type="button"
-        className="clb__bar-open"
+        className="suggestion-results__bar-open"
         aria-label={`Compare ${name} with what is equipped`}
         aria-haspopup="dialog"
         aria-expanded={detail.visible}
         onClick={detail.toggle}
       />
-      <div key={row.key} className="clb__bar-art">{art}</div>
-      <div ref={idRef} className="clb__bar-id">
-        <div className="clb__bar-name">
+      <div key={row.key} className="suggestion-results__bar-art">{art}</div>
+      <div ref={idRef} className="suggestion-results__bar-id">
+        <div className="suggestion-results__bar-name">
           <b title={name}>{name}</b>
           <small>No. {row.rank}</small>
         </div>
-        <div className="clb__bar-band">{band}</div>
+        <div className="suggestion-results__bar-band">{band}</div>
       </div>
-      <div className="clb__bar-fig">
-        <span className="clb__bar-n"><Spark /><b>{formatCompactNum(row.damage)}</b></span>
-        <span className={`clb__bar-tag ${isBase(row) ? 'zero' : tone(row.delta)}`}>{isBase(row) ? 'base' : pct(row.delta)}</span>
+      <div className="suggestion-results__bar-fig">
+        <span className="suggestion-results__bar-n"><Star /><b>{formatCompactNum(row.damage)}</b></span>
+        <span className={`suggestion-results__bar-tag ${isBase(row) ? 'zero' : tone(row.delta)}`}>{isBase(row) ? 'base' : pct(row.delta)}</span>
       </div>
       <button
         type="button"
-        className="clb__bar-go"
+        className="suggestion-results__bar-go"
         disabled={row.equipped}
         onClick={() => onApply(row)}
       >
-        <Spark />
+        <Star />
         {row.equipped ? (weapon ? 'Equipped' : 'Current') : (weapon ? 'Equip' : 'Apply')}
       </button>
 
@@ -292,17 +292,17 @@ function Plate({ row, leaf, onApply }: { row: ClimbRow, leaf: ReactNode, onApply
         preferredPlacement="up"
         maxHeight={620}
         offset={10}
-        className="lho-fx clb-leaf"
+        className="lho-fx suggestion-results-comparison"
         role="dialog"
         aria-label={`${name} compared with what is equipped`}
       >
-        {leaf}
+        {comparison}
       </AnchoredAppPopup>
     </div>
   )
 }
 
-export function Climb({
+export function Results({
   kind,
   onKind,
   counts,
@@ -311,7 +311,7 @@ export function Climb({
   held,
   onHeld,
   onApply,
-  leaf,
+  comparison,
   running,
   targetValue,
   targetGroups,
@@ -320,16 +320,16 @@ export function Climb({
   setConds,
   onOpenConfig,
 }: {
-  kind: ClimbKind
-  onKind: (kind: ClimbKind) => void
-  counts: Record<ClimbKind, number>
-  rows: ClimbRow[]
+  kind: Kind
+  onKind: (kind: Kind) => void
+  counts: Record<Kind, number>
+  rows: Row[]
   base: number
   held: number
   onHeld: (index: number) => void
-  onApply: (row: ClimbRow) => void
-  /** Materialized comparison for the currently held result. */
-  leaf: ReactNode
+  onApply: (row: Row) => void
+  /** materialized comparison for the currently held result. */
+  comparison: ReactNode
   running: boolean
   targetValue: string
   targetGroups: SelectGroup<string>[]
@@ -340,21 +340,21 @@ export function Climb({
 }) {
   const baseRef = useRef<HTMLElement | null>(null)
   const sheetRef = useRef<HTMLDivElement | null>(null)
-  const [ropes, setRopes] = useState<{ width: number, height: number, list: Rope[] }>({ width: 0, height: 0, list: [] })
+  const [connectors, setConnectors] = useState<{ width: number, height: number, list: Connector[] }>({ width: 0, height: 0, list: [] })
   const [lit, setLit] = useState<number | null>(null)
 
   const originIndex = rows.findIndex(isBase)
   const originRow = originIndex >= 0 ? rows[originIndex] : null
   const heldRow = rows[held] ?? null
 
-  // Derive connector endpoints from rendered rows after wrapping and layout.
+  // derive connector endpoints from rendered rows after wrapping and layout.
   useLayoutEffect(() => {
     const sheet = sheetRef.current
     if (!sheet) return
     let frame = 0
 
     const measure = () => {
-      // Convert viewport rectangles to content coordinates using both scroll offsets.
+      // convert viewport rectangles to content coordinates using both scroll offsets.
       const box = sheet.getBoundingClientRect()
       const at = (element: Element) => {
         const rect = element.getBoundingClientRect()
@@ -366,16 +366,16 @@ export function Climb({
         }
       }
 
-      const dot = sheet.querySelector('.clb__origin-dot') ?? baseRef.current
+      const dot = sheet.querySelector('.suggestion-results__origin-dot') ?? baseRef.current
       if (!dot) return
       const origin = at(dot)
       const ox = Math.max(8, origin.x + origin.w / 2)
       const oy = Math.max(0, origin.y + origin.h / 2)
       const most = Math.max(1, ...rows.map((row) => Math.abs(row.delta)))
 
-      const list: Rope[] = []
-      sheet.querySelectorAll<HTMLElement>('[data-rope]').forEach((tip) => {
-        const index = Number(tip.dataset.rope)
+      const list: Connector[] = []
+      sheet.querySelectorAll<HTMLElement>('[data-connector]').forEach((tip) => {
+        const index = Number(tip.dataset.connector)
         const row = rows[index]
         if (!row || index === originIndex) return
         const end = at(tip)
@@ -390,7 +390,7 @@ export function Climb({
         })
       })
 
-      // Exclude the SVG from height measurement: using scrollHeight would feed
+      // exclude the svg from height measurement: using scrollHeight would feed
       // the previous connector-layer height back into shorter result lists.
       let height = 0
       for (const child of sheet.children) {
@@ -400,7 +400,7 @@ export function Climb({
       }
 
       const width = sheet.clientWidth
-      setRopes((previous) => previous.width === width && previous.height === height
+      setConnectors((previous) => previous.width === width && previous.height === height
         && previous.list.length === list.length
         && previous.list.every((entry, index) => entry.index === list[index].index
           && entry.d === list[index].d && entry.gain === list[index].gain
@@ -469,11 +469,11 @@ export function Climb({
       <button
         key={row.key}
         type="button"
-        className={`clb__row${index === held ? ' is-on' : ''}${index === lit ? ' is-hi' : ''}`}
-        style={{ '--clb-result-ink': row.color ?? 'var(--clb-ink)' } as CssProps}
+        className={`suggestion-results__row${index === held ? ' is-on' : ''}${index === lit ? ' is-hi' : ''}`}
+        style={{ '--suggestion-results-result-ink': row.color ?? 'var(--suggestion-results-ink)' } as CssProps}
         {...rowProps(index)}
       >
-        <span className="clb__rk">{row.rank}</span>
+        <span className="suggestion-results__rk">{row.rank}</span>
         <Build kind={kind} row={row} />
         <Out row={row} index={index} />
       </button>
@@ -482,8 +482,8 @@ export function Climb({
 
   const originBody = (
     <>
-      <span className="clb__origin-dot" />
-      <span className="clb__origin-name">
+      <span className="suggestion-results__origin-dot" />
+      <span className="suggestion-results__origin-name">
         <em>Current</em>
         {originRow ? <Build kind={kind} row={originRow} /> : null}
       </span>
@@ -492,22 +492,22 @@ export function Climb({
   )
 
   return (
-    <div className="clb">
-      <div className="clb__chn">
-        {CLIMB_KINDS.map((entry) => {
+    <div className="suggestion-results">
+      <div className="suggestion-results__chn">
+        {KINDS.map((entry) => {
           const at = entry === kind
           return (
             <button
               key={entry}
               type="button"
-              className={`clb__ch${at ? ' is-at' : ''}`}
+              className={`suggestion-results__ch${at ? ' is-at' : ''}`}
               onClick={() => onKind(entry)}
             >
-              <i className="clb__ink" />
-              <span className="clb__chn-name">{CLIMB_KIND_NAME[entry]}</span>
-              <span className="clb__chn-n">{counts[entry]}</span>
+              <i className="suggestion-results__ink" />
+              <span className="suggestion-results__chn-name">{KIND_NAME[entry]}</span>
+              <span className="suggestion-results__chn-n">{counts[entry]}</span>
               {at ? (
-                <span className="clb__chn-base">
+                <span className="suggestion-results__chn-base">
                   measured from <b ref={baseRef}>{formatCompactNum(base)}</b>
                 </span>
               ) : null}
@@ -516,77 +516,77 @@ export function Climb({
         })}
       </div>
 
-      <div className="clb__main">
-        <div className="clb__head">
-          <Select<string> className="clb__tgt"
+      <div className="suggestion-results__main">
+        <div className="suggestion-results__head">
+          <Select<string> className="suggestion-results__tgt"
             value={targetValue}
             options={[]}
             groups={targetGroups}
             onChange={onTarget}
             ariaLabel="Suggestion target"
           />
-          <div className="clb__gates">
+          <div className="suggestion-results__gates">
             {configSummary.map((entry) => (
-              <span key={entry} className="clb__gate">{entry}</span>
+              <span key={entry} className="suggestion-results__gate">{entry}</span>
             ))}
             {kind === 'mainStats' ? null : (
-              <button type="button" className="clb__gate clb__gate--go" onClick={onOpenConfig}>
+              <button type="button" className="suggestion-results__gate suggestion-results__gate--go" onClick={onOpenConfig}>
                 Config
               </button>
             )}
           </div>
         </div>
 
-        <div className={`clb__results app-loader-host${running ? ' running' : ''}`}>
+        <div className={`suggestion-results__results app-loader-host${running ? ' running' : ''}`}>
           {running ? <AppLoaderOverlay text="Searching suggestions..." /> : null}
 
           {rows.length === 0 ? (
             running ? null : (
-              <p className="clb__empty">
-                Pick a target above to see what this build could reach. Make sure echoes are equipped.
+              <p className="suggestion-results__empty">
+                Pick a target above to see what this build could reach. Equip Echoes to calculate the result.
               </p>
             )
           ) : (
-            <div className="clb__ledger">
-              <div className="clb__cols" aria-hidden>
+            <div className="suggestion-results__ledger">
+              <div className="suggestion-results__cols" aria-hidden>
                 <span>#</span>
                 <span>{kind === 'weapons' ? 'Weapon' : 'Build'}</span>
                 <span>Damage</span>
               </div>
 
-              <div ref={sheetRef} className="clb__sheet" role="group" aria-label="Results" onKeyDown={onKeyDown}>
+              <div ref={sheetRef} className="suggestion-results__sheet" role="group" aria-label="Results" onKeyDown={onKeyDown}>
                 <svg
                   key={kind}
-                  className={`clb__ropes${lit != null ? ' is-lit' : ''}`}
-                  width={ropes.width}
-                  height={ropes.height}
-                  viewBox={`0 0 ${ropes.width || 1} ${ropes.height || 1}`}
+                  className={`suggestion-results__connectors${lit != null ? ' is-lit' : ''}`}
+                  width={connectors.width}
+                  height={connectors.height}
+                  viewBox={`0 0 ${connectors.width || 1} ${connectors.height || 1}`}
                   aria-hidden
                 >
-                  {ropes.list.map((rope, order) => (
+                  {connectors.list.map((connector, order) => (
                     <path
-                      key={rope.index}
-                      d={rope.d}
+                      key={connector.index}
+                      d={connector.d}
                       pathLength={1}
-                      strokeWidth={rope.width}
-                      className={`clb__rope ${rope.gain ? 'up' : 'dn'}`}
+                      strokeWidth={connector.width}
+                      className={`suggestion-results__connector ${connector.gain ? 'up' : 'dn'}`}
                       style={{ animationDelay: `${order * 26}ms` }}
                     />
                   ))}
                 </svg>
                 <svg
-                  className="clb__ropes clb__ropes--top"
-                  width={ropes.width}
-                  height={ropes.height}
-                  viewBox={`0 0 ${ropes.width || 1} ${ropes.height || 1}`}
+                  className="suggestion-results__connectors suggestion-results__connectors--top"
+                  width={connectors.width}
+                  height={connectors.height}
+                  viewBox={`0 0 ${connectors.width || 1} ${connectors.height || 1}`}
                   aria-hidden
                 >
-                  {ropes.list.filter((rope) => rope.index === held || rope.index === lit).map((rope) => (
+                  {connectors.list.filter((connector) => connector.index === held || connector.index === lit).map((connector) => (
                     <path
-                      key={rope.index}
-                      d={rope.d}
-                      strokeWidth={rope.width}
-                      className={`clb__rope ${rope.gain ? 'up' : 'dn'}${rope.index === held ? ' is-on' : ' is-hi'}`}
+                      key={connector.index}
+                      d={connector.d}
+                      strokeWidth={connector.width}
+                      className={`suggestion-results__connector ${connector.gain ? 'up' : 'dn'}${connector.index === held ? ' is-on' : ' is-hi'}`}
                     />
                   ))}
                 </svg>
@@ -595,7 +595,7 @@ export function Climb({
                   <button
                     key={row.key}
                     type="button"
-                    className={`clb__origin${originIndex === held ? ' is-on' : ''}`}
+                    className={`suggestion-results__origin${originIndex === held ? ' is-on' : ''}`}
                     {...rowProps(originIndex)}
                   >
                     {originBody}
@@ -607,7 +607,7 @@ export function Climb({
         </div>
       </div>
 
-      {rows.length > 0 && heldRow ? <Plate row={heldRow} leaf={leaf} onApply={onApply} /> : null}
+      {rows.length > 0 && heldRow ? <SelectedResult row={heldRow} comparison={comparison} onApply={onApply} /> : null}
     </div>
   )
 }

@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Resolves a resonance-mode identity to its icon or deterministic
+  description: resolves a resonance-mode identity to its icon or deterministic
                text fallback.
 */
 

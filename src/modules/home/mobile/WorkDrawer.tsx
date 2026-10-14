@@ -1,7 +1,7 @@
 /*
   Author: Runor Ewhro
-  Description: Maps application routes and active-resonator state into the
-               mobile Home work-page drawer.
+  description: maps application routes and active-resonator state into the
+               mobile home work-page drawer.
 */
 
 import { useEffect, useState } from 'react'

@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Defines appearance data contracts and state invariants.
+  description: defines appearance data contracts and state invariants.
 */
 
 export const SYSTEM_FONT_NAME = 'System UI'
@@ -42,7 +42,7 @@ export function makeFontStack(fontName: string): string {
   return `'${fontName}', sans-serif`
 }
 
-/** The stylesheet a preset font needs loaded, or '' for the bundled ones. */
+/** the stylesheet a preset font needs loaded, or '' for the bundled ones. */
 export function getPresetFontUrl(fontName: string): string {
   if (fontName === SYSTEM_FONT_NAME || fontName === WUWA_FONT_NAME) {
     return ''

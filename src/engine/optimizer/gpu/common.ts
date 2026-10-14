@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: provides shared gpu buffer helpers for upload, reuse,
+  description: provides shared gpu buffer helpers for upload, reuse,
                validated pipeline creation, and candidate readback.
 */
 
@@ -59,7 +59,7 @@ export function ensureGpuBuffer(
     return reuse.buffer
   }
 
-  // destroy the old buffer before replacing it to avoid leaks
+  // replacing a reusable buffer includes destruction of the old allocation.
   reuse.buffer?.destroy()
 
   reuse.buffer = device.createBuffer({
@@ -112,7 +112,7 @@ async function popValidRrr(device: GPUDevice, label: string): Promise<void> {
   }
 }
 
-// create a bind group layout under a validation scope so bad layouts fail early with context
+// validate bind group layout creation with scoped error context.
 export async function mkChckBindGr(
     device: GPUDevice,
     label: string,
@@ -133,13 +133,13 @@ export async function mkChckCmptPp(options: {
   layout: GPUBindGroupLayout
   code: string
   entryPoint?: string
-  // pipeline-override constant values (WGSL `override` declarations), e.g. to
+  // pipeline-override constant values (wgsl `override` declarations), e.g. to
   // compile a lower CYCLES_PER_INVOCATION variant of the same shader.
   constants?: Record<string, number>
 }): Promise<GPUComputePipeline> {
   const { device, label, layout, code, entryPoint = 'main', constants } = options
 
-  // create the shader module first so we can inspect compiler diagnostics
+  // create the shader module before reading compiler diagnostics.
   const module = device.createShaderModule({ label: `${label}:shader`, code })
 
   const info = await module.getCompilationInfo()
@@ -179,7 +179,7 @@ export async function readCandBffr(
   // float32 damage + uint32 rank/index
   const byteLength = candCnt * GPU_CAND_STRIDE
 
-  // keep a reusable readback buffer so repeated reads avoid new allocations
+  // reuse the readback buffer across reads.
   const readBuffer = ensureGpuBuffer(
       device,
       reuse,

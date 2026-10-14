@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Restores weapon metadata for non-Simulation routes while
+  description: restores weapon metadata for non-simulation routes while
                materializing a level table only if a saved weapon needs it.
 */
 

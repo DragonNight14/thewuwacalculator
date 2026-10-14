@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Verifies the compiler.test behavior and its compatibility invariants.
+  description: verifies the compiler.test behavior and its compatibility invariants.
 */
 
 import { describe, expect, it } from 'vitest'
@@ -77,7 +77,7 @@ describe('rotation numeric compiler', () => {
     expect([...plan.root.writeNumericValues]).toEqual([1])
   })
 
-  it('packs feature ownership, numeric literals, and condition values into aligned operands', () => {
+  it('packs feature resonator ids, numeric literals, and condition values into aligned operands', () => {
     const items: RotationNode[] = [
       {
         id: 'write',
@@ -105,7 +105,7 @@ describe('rotation numeric compiler', () => {
     ]
 
     const plan = compileRotationPlan(items)
-    // the intern table holds write targets; node ownership is read off the node
+    // the intern table stores write targets; the source node is identified from the node
     expect(plan.resonatorIds).toEqual(['owner'])
     expect([...plan.root.writeResonatorIndexes]).toEqual([0])
     expect(plan.featureIds).toEqual(['damage:skill'])

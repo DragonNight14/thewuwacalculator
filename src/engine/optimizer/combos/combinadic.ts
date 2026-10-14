@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: builds combinadic lookup data for optimizer combo ranking and
+  description: builds combinadic lookup data for optimizer combo ranking and
                unranking across both full and locked-main search modes.
 */
 
@@ -21,8 +21,8 @@ export interface ComboIndex {
   lockedIndex?: number
 }
 
-// build a flattened binomial table so hot search code can rank and unrank
-// combinations without recomputing coefficients repeatedly
+// a flattened binomial table lets the hot search path rank and unrank
+// combinations without recomputing coefficients.
 export function mkCmbnTbl(n: number, kMax = ECHOES_PER_SET): Uint32Array {
   const stride = kMax + 1
   const out = new Uint32Array((n + 1) * stride)

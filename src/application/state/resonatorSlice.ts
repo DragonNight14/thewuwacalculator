@@ -1,7 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Defines resonator, teammate, target, and profile mutations while
-               preserving canonical scenario ownership.
+  description: defines resonator, teammate, target, and profile mutations against canonical scenario state.
 */
 
 import type { AppStore } from './store'
@@ -434,8 +433,8 @@ export function createResonatorActions({ get, persistedSet, deferForData, scenar
 
   ensTeamRt: (seed) => {
     void seed
-    // Slot assignment now creates teammate runtimes; retain this no-op contract
-    // until callers no longer depend on the former eager-initialization API.
+    // slot assignment now creates teammate runtimes; retain this no-op contract
+    // until callers no longer depend on the former eager-initialization api.
   },
 
   updScenarioResRt: (scenarioId, resonatorId, updater) => {

@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Hosts nested context-menu state, keyboard navigation, dismissal, and submenu placement.
+  description: hosts nested context-menu state, keyboard navigation, dismissal, and submenu placement.
 */
 
 import { DisplayImage } from '@/shared/ui/DisplayImage'
@@ -32,7 +32,7 @@ const COLBDGTPX = 432
 const HVRARMMS = 90
 const RAILSTEPPX = 46
 
-// Rendering may scale the surface, but placement calculations stay in screen pixels.
+// rendering may scale the surface, but placement calculations stay in screen pixels.
 function phoneZoom(): number {
   return document.documentElement.classList.contains('mui') ? 1.3 : 1
 }
@@ -169,7 +169,7 @@ export function useCtxMenu<TData = unknown>(): CtxCtrl<TData> {
         event.stopPropagation()
       }
 
-      // Snapshot coordinates and target so handlers never retain SyntheticEvent.
+      // snapshot coordinates and target so handlers never retain SyntheticEvent.
       setState({
         clientX: event.clientX,
         clientY: event.clientY,
@@ -226,8 +226,8 @@ function mkEntGrps(entries: AnyEntry[]): AnyItem[][] {
   return groups
 }
 
-/* A rail sweeps as bare wells only when every entry can be told apart without a
-   word. Anything short of that shows labels, and stacks if it then runs long. */
+/* a rail sweeps as bare wells only when every entry can be told apart without a
+   word. anything short of that shows labels, and stacks if it then runs long. */
 function getRailKind(items: AnyItem[]): RailKind {
   if (items.length === 0) return 'text'
   if (items.every((item) => Boolean(item.art))) return 'art'
@@ -235,9 +235,8 @@ function getRailKind(items: AnyItem[]): RailKind {
   return 'text'
 }
 
-/* Roughly how wide this rail would be lying across, in px. Deciding from the
-   content rather than a measured pass means a rail is born in the right
-   orientation instead of being laid out twice. */
+/* estimate the horizontal rail width in px from its content. the first layout
+   can then choose the correct orientation. */
 function estRailWidth(items: AnyItem[], readPx: number): number {
   return items.reduce((total, item) => {
     const text = labelText(item.label) ?? ''
@@ -327,7 +326,7 @@ function CtxRail({
   const items = useMemo(() => onlyItems(entries), [entries])
   const kind = useMemo(() => getRailKind(items), [items])
 
-  /* Only a rail of bare words can outrun a sweep: art and icon wells stay
+  /* only a rail of bare words can outrun a sweep: art and icon wells stay
      compact however many there are, so they never stand up. */
   const col = useMemo(() => {
     if (preview || kind !== 'text') return false
@@ -340,7 +339,7 @@ function CtxRail({
     const element = railRef.current
     if (!element) return
 
-    // Top-left scaling preserves screen-space positions.
+    // top-left scaling preserves screen-space positions.
     const zoom = phoneZoom()
     element.style.scale = zoom === 1 ? '' : String(zoom)
     element.style.maxWidth = zoom === 1 ? '' : `calc((100vw - 1.5rem) / ${zoom})`
@@ -551,7 +550,7 @@ function CtxTree<TData>({
     [context, items],
   )
 
-  // Each open id resolves the next rail by walking the chosen path from the root.
+  // each open id resolves the next rail by walking the chosen path from the root.
   const levels = useMemo<CtxLevel[]>(() => {
     const chain: CtxLevel[] = [
       { entries: rootEntries, label: ariaLabel, preview: null },
@@ -621,7 +620,7 @@ function CtxTree<TData>({
     colsRef.current[level] = col
 
     const pad = vwprPddn
-    // Convert layout width to screen pixels before boundary checks.
+    // convert layout width to screen pixels before boundary checks.
     const w = element.offsetWidth * phoneZoom()
     const h = element.offsetHeight * phoneZoom()
     const maxLeft = window.innerWidth - pad - w
@@ -733,7 +732,7 @@ function CtxTree<TData>({
   const onSelectItem = useCallback((item: AnyItem) => {
     if (isItemDsbld(item)) return
 
-    // Touch has no hover, so tapping a branch opens it instead of committing.
+    // on touch, tapping a branch opens its submenu.
     if (isItemBrnch(item)) {
       hvrRmdRef.current = true
       return
@@ -777,7 +776,7 @@ function CtxTree<TData>({
 
     hvrRmdRef.current = true
 
-    // Along the rail steps between wells; across it enters or leaves a level.
+    // along the rail steps between wells; across it enters or leaves a level.
     const alongNext = col ? 'ArrowDown' : 'ArrowRight'
     const alongPrev = col ? 'ArrowUp' : 'ArrowLeft'
     const intoKey = col ? 'ArrowRight' : (growRef.current === 'up' ? 'ArrowUp' : 'ArrowDown')
@@ -845,7 +844,7 @@ function CtxTree<TData>({
       return
     }
 
-    // A deep menu opened low on the screen climbs instead of running off it.
+    // deep menus opened low on the screen shift upward to remain visible.
     const need = Math.max(0, maxTreeDepth(rootEntries) - 1) * RAILSTEPPX
     growRef.current =
       controller.clientY + RAILSTEPPX + need + vwprPddn > window.innerHeight ? 'up' : 'down'
@@ -925,7 +924,7 @@ export function ContextMenu<TData = unknown>(props: CtxProps<TData>) {
     return null
   }
 
-  // Keying by the open position remounts the tree for every fresh open, so a
+  // keying by the open position remounts the tree for every fresh open, so a
   // reopen never inherits the previous trail or its measurements.
   return (
     <CtxTree

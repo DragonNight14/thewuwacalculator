@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Converts legacy echo inventory data into the current persisted
+  description: converts legacy echo inventory data into the current persisted
                calculator inventory shape.
 */
 
@@ -245,8 +245,8 @@ export function cnvrLegEchoL(
     })
 
     if ('reason' in converted) {
-      // batch imports collect issues instead of throwing so one invalid echo
-      // does not prevent the rest of the bag or loadout from importing.
+      // batch imports collect per-echo issues and continue importing the bag
+      // or loadout after an invalid entry.
       if (options?.issues) {
         pushIssue(options.issues, {
           scope: options.issueScope ?? 'inventory',

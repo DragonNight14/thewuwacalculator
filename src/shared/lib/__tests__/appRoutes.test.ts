@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Protects the Home, Read, and Simulation hierarchy together with
+  description: protects the home, read, and simulation hierarchy together with
                the redirects for retired routes.
 */
 

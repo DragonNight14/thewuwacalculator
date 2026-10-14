@@ -1,10 +1,10 @@
 /*
   Author: Runor Ewhro
-  Description: Coordinates suggestion search state, candidate previews, and
-               application of selected Echo, set-plan, or weapon results.
+  description: coordinates suggestion search state, candidate previews, and
+               application of selected echo, set-plan, or weapon results.
 */
 
-import '@/styles/surfaces/suggestions/climb.css'
+import '@/styles/surfaces/suggestions/results.css'
 import { selectSuggestionTarget } from '@/modules/simulation/surfaces/suggestions/lib/helpers.ts'
 
 import { lazy, Suspense, useCallback, useEffect, useMemo, useState } from 'react'
@@ -23,17 +23,17 @@ import { getResonator, WPNTYPETOKEY } from '@/modules/simulation/features/resona
 import { OptimizerEchoPreview } from '@/modules/simulation/surfaces/optimizer/transport/OptimizerEchoPreview.tsx'
 import { useSuggRuns } from '@/modules/simulation/surfaces/suggestions/lib/useSuggRuns.ts'
 import { smmrCurSetPl } from '@/modules/simulation/surfaces/suggestions/lib/suggestions.ts'
-import { Climb } from '@/modules/simulation/surfaces/suggestions/climb/Climb.tsx'
-import { ResultLeaf } from '@/modules/simulation/surfaces/suggestions/climb/ResultLeaf.tsx'
+import { Results } from '@/modules/simulation/surfaces/suggestions/results/Results.tsx'
+import { Comparison } from '@/modules/simulation/surfaces/suggestions/results/Comparison.tsx'
 import {
-  climbRows,
-  isClimbKind,
+  buildRows,
+  isKind,
   materializeRowEchoes,
   materializeWeaponSuggestion,
   wornMainStats,
-  type ClimbKind,
-  type ClimbRow,
-} from '@/modules/simulation/surfaces/suggestions/climb/model.ts'
+  type Kind,
+  type Row,
+} from '@/modules/simulation/surfaces/suggestions/results/model.ts'
 import { SetCond } from '@/modules/simulation/features/controls/SetConditional.tsx'
 import { useAppModal } from '@/shared/ui/useAppModal.ts'
 import { mainPortal } from '@/shared/lib/portalTarget.ts'
@@ -41,7 +41,7 @@ import { mainPortal } from '@/shared/lib/portalTarget.ts'
 const EMPTY_ECHOES: Array<EchoInstance | null> = []
 const WpnCfgMdl = lazy(() => import('@/modules/simulation/surfaces/suggestions/WeaponConfig.tsx').then((module) => ({ default: module.WpnCfgMdl })))
 
-export function SuggestionsLab() {
+export function Page() {
   const enemyProfile = useAppStore(selEnemyProf)
   const { prepWork } = useAppStore(useShallow(selWorkDrvd))
   const { actRt: runtime, partRtsById } = useAppStore(useShallow(selVrvwDrvd))
@@ -57,7 +57,7 @@ export function SuggestionsLab() {
   const bumpPickerFreq = useAppStore((state) => state.bumpPickFr)
   const storedMode = useAppStore((state) => state.ui.suggsViewMode)
   const setSugView = useAppStore((state) => state.setSugView)
-  const kind: ClimbKind = isClimbKind(storedMode) ? storedMode : 'mainStats'
+  const kind: Kind = isKind(storedMode) ? storedMode : 'mainStats'
 
   const [held, setHeld] = useState(0)
   const setCondsMdl = useAppModal()
@@ -87,7 +87,7 @@ export function SuggestionsLab() {
   const wornSetPlan = useMemo(() => smmrCurSetPl(echoes), [echoes])
   const activeResults = kind === 'mainStats' ? search.mainStatRslt
     : kind === 'setPlans' ? search.setPlanRslt : search.wpnRslt
-  const rows = useMemo<ClimbRow[]>(() => climbRows({
+  const rows = useMemo<Row[]>(() => buildRows({
     kind,
     mainStatRslt: kind === 'mainStats' ? activeResults as MainStatSugg[] : [],
     setPlanRslt: kind === 'setPlans' ? activeResults as CompactSetPlanSuggest[] : [],
@@ -113,7 +113,7 @@ export function SuggestionsLab() {
     [echoes, heldRow],
   )
 
-  const applyRow = useCallback((row: ClimbRow) => {
+  const applyRow = useCallback((row: Row) => {
     if (row.weapon) {
       const plan = row.weapon
       const wpnKey = (
@@ -164,7 +164,7 @@ export function SuggestionsLab() {
       />
 
       <section className="wk-section wk-span wk-ink sgl-run">
-        <Climb
+        <Results
           kind={kind}
           onKind={(next) => {
             setHeld(0)
@@ -180,8 +180,8 @@ export function SuggestionsLab() {
           held={held}
           onHeld={setHeld}
           onApply={applyRow}
-          leaf={heldRow ? (
-            <ResultLeaf kind={kind} row={heldRow} weapon={runtime.build.weapon} echoes={echoes} preview={preview} />
+          comparison={heldRow ? (
+            <Comparison kind={kind} row={heldRow} weapon={runtime.build.weapon} echoes={echoes} preview={preview} />
           ) : null}
           running={
             kind === 'mainStats' ? search.rnnnMainStat

@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: shared pipeline type definitions for combat-context construction
+  description: shared pipeline type definitions for combat-context construction
                and simulation results, including grouped rotation totals and
                per-aggregation summaries.
 */
@@ -52,7 +52,7 @@ export interface CombatContext {
   // slot this context represents inside the graph
   targetSlotId: SlotId
 
-  /** Packed Simulation kernel backing this compatibility projection. */
+  /** packed simulation kernel backing this compatibility projection. */
   numericTeam: NumericTeamState
   numericLane: number
 }
@@ -71,11 +71,11 @@ export interface RotationSimulationResult {
   // top-level damage total for the group
   total: DamageTotals
 
-  /** Kept separate so healing/shield output can be displayed, never scored as damage. */
+  /** kept separate so healing/shield output can be displayed, never scored as damage. */
   totalsByGroup: Record<SkillAggType, DamageTotals>
 }
 
-/** Feature rows consumed when building rotation scoring targets. */
+/** feature rows consumed when building rotation scoring targets. */
 export interface RotationTargetSimulation {
   rotation: {
     sequence: Pick<RotationSimulationResult, 'entries'>
@@ -96,7 +96,7 @@ export interface SimResult {
     program: RotationSimulationResult
   }
 
-  // flattened non-subhit skill rows exposed for general UI use
+  // flattened non-subhit skill rows exposed for general ui use
   allSkills: FeatureResult[]
 
   // flattened rotation rows retained for general result consumers

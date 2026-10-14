@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Explores valid echo set plans, evaluates each plan against
+  description: explores valid echo set plans, evaluates each plan against
                the current suggestion context, and returns the strongest
                feasible set-plan recommendations.
 */
@@ -226,14 +226,14 @@ export function sggsSetPlns({
   const results: SetPlanSuggest[] = []
   const isRotMode = rotationCtx != null
 
-  // remove all current set assignments so every candidate plan starts
-  // from a neutral baseline rather than inheriting existing set bonuses
+  // clear current set assignments. every candidate starts from a neutral
+  // baseline with no existing set bonuses.
   const baseEchoes: Array<EchoInstance | null> = qppdChs.map(
       (echo) => (echo ? { ...echo, set: 0 } : null),
   )
 
-  // Useful-piece comparisons isolate set bonuses on a neutral loadout.
-  // Full candidate simulation can also change Echo bodies and inherit worn
+  // useful-piece comparisons isolate set bonuses on a neutral loadout.
+  // full candidate simulation can also change echo bodies and inherit worn
   // filler sets, which must not make an otherwise useless piece contribute.
   const cmptDmg = isRotMode
       ? (setPlan: SetPlanEntry[]) =>
@@ -248,14 +248,14 @@ export function sggsSetPlns({
   // numeric tolerance for equality comparisons
   const eps = Math.max(1e-6, Math.abs(baseAvg) * 1e-6)
 
-  // flatten the selectable set list into a DFS-friendly array
+  // flatten the selectable set list into a dfs-friendly array
   const allSets = [
     ...fivePcSets.map((id) => ({ id, type: '5pc' as const })),
     ...thrPcSets.map((id) => ({ id, type: '3pc' as const })),
     ...ECHO_SET_DEFS.filter((entry) => entry.setMax === 1).map((entry) => ({ id: entry.id, type: '1pc' as const })),
   ]
 
-  // cache partial-piece baselines like 2pc or 3pc so we can later suppress
+  // cache partial-piece baselines such as 2pc and 3pc for suppression of
   // redundant mixed plans that are effectively identical to a standalone partial set
   const pcBsln = new Map<string, number>()
 
@@ -324,7 +324,7 @@ export function sggsSetPlns({
       echoes: qppdChs,
     })
 
-    // in non-exhaustive mode, keep only the current top K as we go
+    // in non-exhaustive mode, keep only the current top k as we go
     if (!exhaustive && topK > 0) {
       results.sort((a, b) => b.avgDamage - a.avgDamage)
       if (results.length > topK) {
@@ -423,8 +423,8 @@ export function runPrepSetSg(input: PrepSetPlanS): SetPlanSugoi {
   return scorePreparedSetPlans(input)
 }
 
-// Score concrete, feasible plans before grouping. Changing a set may also
-// replace the main Echo, so a fixed packed context cannot own candidate totals.
+// score concrete, feasible plans before grouping. changing a set may also
+// replace the main echo, so a fixed packed context cannot own candidate totals.
 function scorePreparedSetPlans(
     input: PrepSetPlanS,
     options: { fivePcSets?: number[], thrPcSets?: number[], topK?: number } = {},
@@ -448,8 +448,8 @@ function scorePreparedSetPlans(
     const cached = scores.get(key)
     if (cached) return cached
     const echoes = applySetPlan(setPlan, currentEchoes)
-    // Different concrete plans can produce the same slot bodies and active
-    // sets. UID changes on cloning, but never participates in damage scoring.
+    // different concrete plans can produce the same slot bodies and active
+    // sets. uid changes on cloning, but never participates in damage scoring.
     const keyForEchoes = candidateKey(echoes)
     const equivalent = materializedScores.get(keyForEchoes)
     if (equivalent) {

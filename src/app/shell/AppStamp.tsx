@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Projects canonical application health into the chrome and delegates full status inspection.
+  description: projects canonical application health into the chrome and delegates full status inspection.
 */
 
 import { useRtChrmMen } from '@/application/context-menu/routeMenuContext'

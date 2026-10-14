@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Retains the last workspace clipboard payload as a same-session
+  description: retains the last workspace clipboard payload as a same-session
                fallback when system clipboard reads are unavailable.
 */
 

@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: verifies rotation execution semantics for conditions, repeats,
+  description: verifies rotation execution semantics for conditions, repeats,
                uptime blocks, formula-stat changes, loop iteration metadata,
                and loop edge cases.
 */
@@ -164,7 +164,7 @@ const seed: ResSeed = {
 }
 
 describe('rotation execution invariants', () => {
-  it('scales packet and skill Off-Tune by buildup rate, adds direct Off-Tune unscaled, resets on Tune Break, and holds the gauge until counting resumes', () => {
+  it('scales packet and skill Off-Tune, applies direct Off-Tune, resets on Tune Break, and pauses the gauge until counting resumes', () => {
     const offTuneSeed: ResSeed = {
       ...seed,
       skills: [
@@ -269,7 +269,7 @@ describe('rotation execution invariants', () => {
 
     const result = runDetailedResRotation(runtime, offTuneSeed, makeEnemy(), {}, {}, { items })
 
-    /* unmarked, the break holds three features after it and the fourth counts */
+    /* unmarked, three features follow the break and the fourth counts */
     expect(result.entries.map((entry) => entry.effectiveStats?.offTune)).toEqual([
       '930/39.2',
       '0/39.2',
@@ -1224,9 +1224,8 @@ describe('rotation execution invariants', () => {
   })
 
   it('scales uptime setup condition effects for body feature rows', () => {
-    // uptime setup is an averaged precondition: numeric `set` changes scale the
-    // delta from the current value before body features run, rather than
-    // multiplying the body damage result itself.
+    // uptime setup is an averaged precondition. numeric `set` changes scale
+    // the delta from the current value before body features run.
     const runtime = makeResRuntime(seed)
     runtime.rotation.sequence = [
       {
@@ -1858,8 +1857,8 @@ describe('rotation execution invariants', () => {
   })
 
   it('wraps to a linked end that appears before the loop start', () => {
-    // users can place loop markers around existing nodes, so a start may link
-    // to an earlier end and intentionally replay the wrapped segment
+    // a start can link to an earlier end and replay the wrapped segment after
+    // loop markers are placed around existing nodes.
     const runtime = makeResRuntime(seed)
     runtime.rotation.sequence = [
       {
@@ -1986,9 +1985,8 @@ describe('rotation execution invariants', () => {
 
     const result = runResSmlt(runtime, seed, makeEnemy())
 
-    // every loop runs once, so each body is entered exactly once and the
-    // enclosing loop resumes after the nested end marker rather than back
-    // inside the nested body
+    // each loop runs once. the enclosing loop resumes after the nested end
+    // marker, with each body entered exactly once.
     expect(result.perSkill.map((entry) => entry.nodeId)).toEqual([
       'a-before-b',
       'b-before-c',
@@ -2005,8 +2003,8 @@ describe('rotation execution invariants', () => {
 
   it('lets a nested loop own rows past the parent end marker without replaying them', () => {
     /*
-      A loop is a call, so the child owns everything up to its own end marker
-      even when that reaches past the parent's. The parent resumes after the
+      a loop is a call, so the child processes nodes through its end marker
+      even when that reaches past the parent's. the parent resumes after the
       child's end, which here is the end of the list, so each row runs once.
     */
     const runtime = makeResRuntime(seed)
@@ -2071,7 +2069,7 @@ describe('rotation execution invariants', () => {
     ])
     expect(result.perSkill[0]?.loopRuns).toEqual({ 'loop-a': 1 })
     expect(result.perSkill[1]?.loopRuns).toEqual({ 'loop-a': 1, 'loop-b': 1 })
-    // still inside loop-b even though it sits past loop-a's end marker
+    // still inside loop-b after loop-a's end marker.
     expect(result.perSkill[2]?.loopRuns).toEqual({ 'loop-a': 1, 'loop-b': 1 })
   })
 
@@ -2169,9 +2167,9 @@ describe('rotation execution invariants', () => {
   })
 
   it('supports enemy status changes inside rotation condition steps', () => {
-    // Mornye's Decoupling is a shipped post-stat effect whose value reads the
-    // enemy Tune Strain register. This observes the write through production
-    // effect math instead of a synthetic catalog feature gate.
+    // mornye's decoupling is a shipped post-stat effect whose value reads the
+    // enemy tune strain register. this observes the write through production
+    // production effect math with the shipped catalog feature.
     const conditionalSeed = getResSeedBy('1209')
     const feature = listResFeats('1209').find((entry) => entry.variant !== 'subHit')
     expect(conditionalSeed).toBeTruthy()

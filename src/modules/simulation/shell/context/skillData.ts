@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Resolves skill-data modal targets and preferred tabs from the
+  description: resolves skill-data modal targets and preferred tabs from the
                current resonator or feature-selection context.
 */
 

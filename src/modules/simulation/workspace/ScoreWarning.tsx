@@ -1,7 +1,7 @@
 /*
   Author: Runor Ewhro
-  Description: Coordinates versioned acknowledgement, visible-time gating,
-               focus containment, and reopening for the Build Score warning.
+  description: coordinates versioned acknowledgement, visible-time gating,
+               focus containment, and reopening for the build score warning.
 */
 
 import { useCallback, useEffect, useRef, useState } from 'react'
@@ -59,7 +59,7 @@ function WarningBand({ held, closing, onDismiss }: { held: boolean; closing: boo
   const [secondsLeft, setSecondsLeft] = useState(held ? HOLD_MS / 1000 : 0)
   const ready = secondsLeft === 0
 
-  // Clamping each frame delta prevents hidden-tab suspension from satisfying the hold.
+  // clamping each frame delta prevents hidden-tab suspension from satisfying the hold.
   useEffect(() => {
     if (!held) return
     let spent = 0
@@ -86,7 +86,7 @@ function WarningBand({ held, closing, onDismiss }: { held: boolean; closing: boo
     if (ready) capRef.current?.focus({ preventScroll: true })
   }, [ready])
 
-  // Only explicit acknowledgement may dismiss the warning; focus remains contained.
+  // only explicit acknowledgement may dismiss the warning; focus remains contained.
   useEffect(() => {
     const onKey = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
@@ -154,7 +154,7 @@ function WarningBand({ held, closing, onDismiss }: { held: boolean; closing: boo
                 <span className="scw-cap-ink" />
                 <span>{ready ? 'Understood, hide warning' : `Understood (${secondsLeft})`}</span>
               </button>
-              {/* Documentation navigation must not persist acknowledgement. */}
+              {/* documentation navigation must not persist acknowledgement. */}
               <a className="scw-lnk" href={DOCS_HREF} target="_blank" rel="noopener">How the score works</a>
             </div>
           </div>

@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Encodes target-selection owner keys with a source runtime id so
+  description: encodes target-selection owner keys with a source runtime id so
                multiple teammates can route the same effect owner independently.
 */
 
@@ -48,7 +48,7 @@ export function getScopedTargetSelection(
     return { key: scopedKey, value: selectedTargets[scopedKey] ?? null }
   }
 
-  // Legacy saves stored active-target routing by ownerKey only, so scoped
+  // legacy saves stored active-target routing by ownerKey only, so scoped
   // lookups must fall back before treating a missing scoped key as unset.
   if (Object.prototype.hasOwnProperty.call(selectedTargets, ownerKey)) {
     return { key: ownerKey, value: selectedTargets[ownerKey] ?? null }

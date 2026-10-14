@@ -1,7 +1,7 @@
 /*
   Author: Runor Ewhro
-  Description: Drafts optimizer inventory include/exclude membership and derives
-               effective search-pool counts from saved Echoes and usage filters.
+  description: drafts optimizer inventory include/exclude membership and derives
+               effective search-pool counts from saved echoes and usage filters.
 */
 
 import { DisplayImage } from '@/shared/ui/DisplayImage'
@@ -78,7 +78,7 @@ function applyEffectiveState(
   included: boolean,
 ): OptInventorySelection {
   const echoUids = new Set(selection.echoUids)
-  // Bulk actions speak in effective inventory state. Convert that request into
+  // bulk actions speak in effective inventory state. convert that request into
   // the sparse list representation used by the active include/exclude mode.
   const shouldTrack = selection.mode === 'include' ? included : !included
 
@@ -360,7 +360,7 @@ export function OptimizerInventoryModal({
         }
 
         const usage = entry.echo.uid ? echoSgByUid[entry.echo.uid] ?? [] : []
-        // Include usage names so an echo can be found by the resonator that is
+        // include usage names so an echo can be found by the resonator that is
         // currently holding it, not only by echo identity.
         const matchesSearch = mtchSrchTkns(echoSearchTokens, [
           definition.name,
@@ -383,7 +383,7 @@ export function OptimizerInventoryModal({
       (left, right) => getSntSetNam(left[0]).localeCompare(getSntSetNam(right[0])),
     )
   }, [validInvChs])
-  // Count saved and effectively included Echoes independently for each cost class.
+  // count saved and effectively included echoes independently for each cost class.
   const poolRows = useMemo(() => {
     const rows = POOL_COSTS.map((cost) => ({ cost, held: 0, inPool: 0 }))
     const byCost = new Map(rows.map((row) => [row.cost, row]))

@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Contracts shared by rotation catalogs, authoring controls, and
+  description: contracts shared by rotation catalogs, authoring controls, and
                immutable node-tree operations.
 */
 
@@ -117,7 +117,7 @@ export interface EditConfig {
     onSelect?: () => void
     submenu?: MenuEntry[]
   }
-  /* only offered where a surface asks for it, so menus that have no notion of
+  /* only offered where a surface enables it, so menus that have no notion of
      duplicating a thing are left as they were */
   duplicate?: {
     disabled?: boolean

@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Simulation-level hook for default-rotation evaluation reports.
+  description: simulation-level hook for default-rotation evaluation reports.
 */
 
 import { runEvaluationSummary } from '@/engine/evaluation/buildEvaluationClient'
@@ -31,8 +31,8 @@ export const FULL_EVALUATION_REPORT_OPTIONS: EvaluationReportOpts = Object.freez
   }),
 })
 
-// Modulation renders the comparison stat sheet before its report drawer opens.
-// Keep exactly those target snapshots, while deferring feature charts and the
+// modulation renders the comparison stat sheet before its report drawer opens.
+// keep exactly those target snapshots, while deferring feature charts and the
 // alternative search until the user requests the report.
 export const MODULATION_SUMMARY_REPORT_OPTIONS: EvaluationReportOpts = Object.freeze({
   alternativesLimit: 0,
@@ -63,7 +63,7 @@ function compactEvaluationSimulation(
 ): DefRotEvaluationIn['simulation'] {
   if (!simulation) return null
 
-  // Rotation scoring reads only sequence entries. Do not copy the live result's
+  // rotation scoring reads only sequence entries. do not copy the live result's
   // final stats, flattened rows, program, or totals across the worker boundary.
   return {
     rotation: {
@@ -142,8 +142,8 @@ export function useEvaluationReport({
     includeRotationFeatures,
     includeUpgradePaths,
   ])
-  // A reduced Showcase report and a complete Modulation report can otherwise
-  // share the same scenario/runtime identity. Include the requested report
+  // a reduced showcase report and a complete modulation report can otherwise
+  // share the same scenario/runtime identity. include the requested report
   // shape so switching surfaces invalidates the old result and schedules the
   // missing sections without treating equivalent default options as different.
   const resolvedReportIdentityKey = resolvedIdentityKey == null
@@ -192,8 +192,8 @@ export function useEvaluationReport({
     }
 
     if (!enabled || !runtime || !simulation) {
-      // Deferred preparation temporarily removes the simulation on every edit.
-      // Keep the last completed report for this identity until its replacement
+      // deferred preparation temporarily removes the simulation on every edit.
+      // keep the last completed report for this identity until its replacement
       // arrives; only a missing runtime means there is no result to display.
       if ((enabled && !runtime) || (!enabled && clearOnDisable)) {
         setReport(null)

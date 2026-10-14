@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Derives the active main-Echo skill and ordered Sonata tier states
+  description: derives the active main-echo skill and ordered sonata tier states
                for one loadout.
 */
 
@@ -30,7 +30,7 @@ interface SetReadout {
   tiers: Array<{ pieces: number; desc: string }>
 }
 
-/** One set's name, icon and every tier it defines, lowest threshold first. */
+/** one set's name, icon and every tier it defines, lowest threshold first. */
 export function readSetTiers(id: number): Omit<SetReadout, 'count'> | null {
   const def = getEchoSetDe(id)
   if (!def) return null
@@ -41,7 +41,7 @@ export function readSetTiers(id: number): Omit<SetReadout, 'count'> | null {
   return tiers.length ? { id: def.id, name: def.name, icon: getSntSetIco(def.id), tiers } : null
 }
 
-// Retain later thresholds once a set activates so callers can distinguish met
+// retain later thresholds once a set activates so callers can distinguish met
 // and unmet tiers within the same set.
 function readSets(echoes: Array<EchoInstance | null>): SetReadout[] {
   return Object.entries(cmptSetCnts(echoes))

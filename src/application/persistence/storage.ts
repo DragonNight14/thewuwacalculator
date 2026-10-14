@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Handles persisted app-state loading, validation, granular
+  description: handles persisted app-state loading, validation, granular
                domain writes, and recovery cleanup.
 */
 
@@ -430,7 +430,7 @@ function readPrssDmn<K extends PersistKey>(
   try {
     const json = decodePersistedDomain(key, raw)
     const slice = readVldtStor<PrssDmnSlc<K>>(json, spec.schema, spec.label)
-    // Plain rotations still need their one-time compression migration. Retain
+    // plain rotations still need their one-time compression migration. retain
     // other decoded payloads only for this load, to detect real repair writes.
     if (key !== 'library.rotations' || raw.startsWith(COMPRESSED_ROTATIONS_PREFIX)) {
       loadedJson?.set(key, json)
@@ -561,7 +561,7 @@ export function parsePersisted(raw: string): HydratedAppState {
   return normPrssAppS(parsed)
 }
 
-// Gear supports equipped-status checks throughout the app; saved snapshots are opt-in.
+// gear supports equipped-status checks throughout the app; saved snapshots are opt-in.
 export function loadPrssAppS(
   options: { includeInventory?: boolean | 'gear' } = {},
 ): HydratedAppState | null {
@@ -571,7 +571,7 @@ export function loadPrssAppS(
     ? ssmbPrssAppS(includeInventory)
     : readMonolithicState({ parsePersisted, saveAppState, quarantine: qrntStoreKey }) ?? readLegacyState({ parsePersisted, saveAppState, quarantine: qrntStoreKey })
   if (!loaded || includeInventory === true) return loaded
-  // Legacy migration persists the complete library before trimming resident data.
+  // legacy migration persists the complete library before trimming resident data.
   return {
     ...loaded,
     library: {
@@ -610,9 +610,9 @@ export function loadPrssInvS(scope: 'gear' | 'saved' | 'all' = 'all'): Persisted
   }
 
   const normalState = normalizeAppState(state)
-  // Hydration runs again after inventory eviction. Recompressing and rewriting
+  // hydration runs again after inventory eviction. recompressing and rewriting
   // every unchanged rotation here used to block the next modal's open handler.
-  // Compare the same validated shape that persistence writes; catalog repairs
+  // compare the same validated shape that persistence writes; catalog repairs
   // and encoding migrations still reach storage, once, through the usual path.
   const changedDomains = domains.filter((key) => {
     const spec = DOMAIN_SPECS[key]
@@ -631,9 +631,9 @@ export function saveAppState(
   state: PersistedState,
   options: { domains?: PersistKey[] } = {},
 ): boolean {
-  // Ordinary store writes already pass canonical state. Normalizing the whole
+  // ordinary store writes already pass canonical state. normalizing the whole
   // application here used to clone/rebuild every scenario and inventory domain
-  // even when one small domain was dirty. Keep full normalization for the
+  // even when one small domain was dirty. keep full normalization for the
   // migration/recovery path (no explicit domains), and validate only the
   // requested slices for routine writes.
   let persistedState: PersistedState = state
@@ -648,7 +648,7 @@ export function saveAppState(
 
   let succeeded = true
   const domains = new Set(options.domains ?? ALL_DOMAIN_KEYS)
-  // Always migrate cards before a layout write can remove their legacy copy.
+  // always migrate cards before a layout write can remove their legacy copy.
   if (domains.has('ui.layout') || domains.has('ui.showcaseCards')) {
     try { writeShowcaseCards(persistedState.ui.preferences.showcaseCards) }
     catch (error) {

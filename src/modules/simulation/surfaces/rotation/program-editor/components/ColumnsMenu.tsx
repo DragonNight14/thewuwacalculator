@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Drafts register stat-column selection and group ordering within
+  description: drafts register stat-column selection and group ordering within
                a column budget, committing changes when the popup closes.
 */
 

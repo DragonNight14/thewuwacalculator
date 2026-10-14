@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Filters catalog echoes by name, cost, sonata, and usage recency
+  description: filters catalog echoes by name, cost, sonata, and usage recency
                before handing the selected echo id back to the caller.
 */
 

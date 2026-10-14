@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Prepares editor and saved-scenario execution inputs, projects
+  description: prepares editor and saved-scenario execution inputs, projects
                member data, and caches exact saved-rotation comparison results.
 */
 
@@ -133,7 +133,7 @@ export function runStoredRotation({
   enemy: EnemyProfile
   members: Parameters<typeof buildRun>[0]['members']
   prepWork?: PrepWork | null
-  /** Standing last-run document; defaults to the runtime's persisted program. */
+  /** standing last-run document; defaults to the runtime's persisted program. */
   items?: RotationNode[]
 }): RunResult | null {
   return runRuntimeRotation({
@@ -148,7 +148,7 @@ export function runStoredRotation({
   })
 }
 
-/** Rebuild a saved rotation from its persisted scenario snapshot. */
+/** rebuild a saved rotation from its persisted scenario snapshot. */
 export function runSavedRotation({
   entry,
   detail = 'full',
@@ -187,7 +187,7 @@ function rebuildSavedRotation(entry: SavedRotation | null | undefined) {
 }
 
 /**
- * Rebuilds member data directly from a saved scenario without executing it.
+ * rebuilds member data directly from a saved scenario without executing it.
  */
 export function savedRotationMembers(
   entry: SavedRotation | null | undefined,
@@ -197,7 +197,7 @@ export function savedRotationMembers(
     return []
   }
 
-  // Member builds can be projected without executing damage-share calculations.
+  // member builds can be projected without executing damage-share calculations.
   return rebuilt.members.map((member) => memberToReg(member, 0))
 }
 
@@ -231,7 +231,7 @@ function comparisonSummary(
   }
 }
 
-/** Exact saved-rotation comparison without editor rows, histories, or snapshots. */
+/** exact saved-rotation comparison without editor rows, histories, or snapshots. */
 export function runSavedRotationComparison({
   entry,
 }: {
@@ -281,7 +281,7 @@ export function savedRotationSimulationKey(entry: SavedRotation): string {
   const cached = savedSimulationKeyCache.get(entry)
   if (cached) return cached
   /*
-    Store updates replace the immutable saved artifact. Identity therefore
+    store updates replace the immutable saved artifact. identity therefore
     invalidates on every metadata or scenario edit without recursively hashing
     the complete scenario for every saved entry.
   */
@@ -339,8 +339,8 @@ export function runSavedRotationJob(job: SavedRotationJob) {
 function executeSavedRotationJob(
   job: SavedRotationJob,
 ): Promise<RunResult | SavedRotationComparisonResult | null> {
-  // Detail projections contain a lazy flat trace and a feature-label reader.
-  // Structured cloning loses the former and rejects the latter. Only the
+  // detail projections contain a lazy flat trace and a feature-label reader.
+  // structured cloning loses the former and rejects the latter. only the
   // compact comparison result crosses the worker boundary.
   if (job.mode === 'detail') {
     return Promise.resolve(runSavedRotationJob(job))
@@ -428,8 +428,8 @@ async function runWithSavedRotationData<T>(
   entries: readonly SavedRotation[],
   run: () => Promise<T>,
 ): Promise<T> {
-  // A saved scenario can name resonators outside the currently open team.
-  // Keep those kits resident through the run so a partial score is never cached.
+  // a saved scenario can name resonators outside the currently open team.
+  // keep kits resident through the run and cache only complete scores.
   const ids = collectResonatorIds(entries)
   if (ids.length === 0) return run()
 
@@ -457,7 +457,7 @@ export function runSavedRotationBatch(
   return runPreparedSavedRotationBatch(prepareSavedRotationBatch(entries), options)
 }
 
-/** Live projections already have an editor run; only inventory entries need detail jobs. */
+/** live projections already have an editor run; only inventory entries need detail jobs. */
 export function pendingSavedRotationDetails(
   entries: readonly SavedRotation[],
   requestedIds: readonly string[],
@@ -467,7 +467,7 @@ export function pendingSavedRotationDetails(
   return entries.filter((entry) => wanted.has(entry.id) && !completed.has(entry.id))
 }
 
-/** Build rich editor projections only for saved rotations currently being inspected. */
+/** build rich editor projections only for saved rotations currently being inspected. */
 export function runSavedRotationDetailBatch(
   entries: readonly SavedRotation[],
   options: { signal?: AbortSignal } = {},
@@ -541,7 +541,7 @@ function collectNodeIds(items: readonly RotationNode[], into = new Set<string>()
   return into
 }
 
-/** Run the exact standing program, retaining only inserted execution rows. */
+/** run the exact standing program, retaining only inserted execution rows. */
 export function projectAppendedRotation({
   runtime,
   runtimesById,

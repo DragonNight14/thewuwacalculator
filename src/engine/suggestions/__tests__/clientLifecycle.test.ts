@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Verifies concurrent suggestion requests are correlated and all
+  description: verifies concurrent suggestion requests are correlated and all
                pending work is rejected during transport teardown.
 */
 

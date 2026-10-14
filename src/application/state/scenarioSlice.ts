@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Defines canonical scenario mutations for members, routing,
+  description: defines canonical scenario mutations for members, routing,
                targets, combat state, and environment effects.
 */
 

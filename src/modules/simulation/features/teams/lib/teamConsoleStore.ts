@@ -1,7 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: holds the open teammate console request so the team pane and the
-               toolbar summary open the same modal from anywhere in the shell.
+  description: stores the open teammate-console request for the shared modal.
 */
 
 import { create } from 'zustand'

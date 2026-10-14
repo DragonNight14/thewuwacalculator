@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Protects path-level history diffs, compressed transaction replay,
+  description: protects path-level history diffs, compressed transaction replay,
                capacity limits, and immutable-branch preservation across undo and redo.
 */
 

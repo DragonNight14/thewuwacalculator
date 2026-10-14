@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Measures a selection marker once per resize frame, completing
+  description: measures a selection marker once per resize frame, completing
                all layout/style reads before applying changed coordinates.
 */
 export function observeSelectionPip(wrap: HTMLElement, rows: HTMLElement, mark: HTMLElement, key: string | null): () => void {

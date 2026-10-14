@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Exposes resonator seed collections through the Simulation feature boundary.
+  description: exposes resonator seed collections through the simulation feature boundary.
 */
 
 import { listResSds, resSdsById } from '@/data/catalog/resonatorSeedService.ts'

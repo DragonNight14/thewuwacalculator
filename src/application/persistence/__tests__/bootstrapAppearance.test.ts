@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Protects pre-app appearance restoration when startup fails.
+  description: protects pre-app appearance restoration when startup fails.
 */
 
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'

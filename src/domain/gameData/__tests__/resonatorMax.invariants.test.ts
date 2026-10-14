@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Protects resonator Max behavior across sequence-gated state
+  description: protects resonator max behavior across sequence-gated state
                controls and dependency chains.
 */
 

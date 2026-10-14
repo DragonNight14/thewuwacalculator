@@ -1,11 +1,11 @@
 /*
   Author: Runor Ewhro
-  Description: Defines and validates packed numeric rotation buffers shared by compiler and executor.
+  description: defines and validates packed numeric rotation buffers shared by compiler and executor.
 */
 
 /*
-  Dense numeric layouts shared by the rotation dataflow compiler and executor.
-  Authored names are resolved once during preparation; execution addresses only
+  dense numeric layouts shared by the rotation dataflow compiler and executor.
+  authored names are resolved once during preparation; execution addresses only
   numeric cells in these arrays.
 */
 
@@ -141,7 +141,7 @@ export function packBuffPool(pool: UnifiedBuffPool, output: Float64Array = new F
   return output
 }
 
-/** Recalculate one participant's final numeric plane without allocating objects. */
+/** recalculate one participant's final numeric plane without allocating objects. */
 export function deriveFinalPlane(
     base: ResBaseStats,
     weaponAttack: number,
@@ -184,7 +184,7 @@ export function deriveFinalPlane(
   return output
 }
 
-/** Cold parity helper used only by tests and captured-result materialization. */
+/** cold parity helper used only by tests and captured-result materialization. */
 export function packFinalStats(finalStats: FinalStats): Float64Array {
   const output = new Float64Array(NUMERIC_FINAL_CELL_COUNT)
   const cores = [finalStats.atk, finalStats.hp, finalStats.def]
@@ -267,7 +267,7 @@ export function finalNegativeCell(
     (negativeFieldIndexes.get(field) ?? 0)
 }
 
-/** Cold object facade for existing UI and persistence consumers. */
+/** cold object facade for existing ui and persistence consumers. */
 export function unpackBuffPool(
     cells: Float64Array,
     immunities: UnifiedBuffPool['immunities'],
@@ -299,7 +299,7 @@ export function unpackBuffPool(
   return pool
 }
 
-/** Cold object facade for existing UI and result consumers. */
+/** cold object facade for existing ui and result consumers. */
 export function unpackFinalStats(
     cells: Float64Array,
     pool: UnifiedBuffPool,
@@ -329,7 +329,7 @@ export function unpackFinalStats(
   }
 }
 
-/** Cold boundary for consumers that need an object view of an exact VM plane. */
+/** cold boundary for consumers that need an object view of an exact vm plane. */
 export function materializeFinalPlane(
     cells: Float64Array,
     offset = 0,

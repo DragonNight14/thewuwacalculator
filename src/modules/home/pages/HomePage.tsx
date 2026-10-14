@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Coordinates the home route's section model, catalog coverage,
+  description: coordinates the home route's section model, catalog coverage,
                remote arrivals, stable artwork selection, deep links, and
                application-shell portal.
 */
@@ -26,7 +26,7 @@ import type { Arrivals } from '@/modules/home/model/arrivals'
 import { useCoverage } from '@/modules/home/model/useCoverage'
 import { ABOUT_ART, ARRIVAL_ART, RELEASE_ART, REPORT_ART, WORK_ART } from '@/modules/home/model/homeArt'
 
-// Debounce artwork selection so transient sections crossed during scrolling do not trigger swaps.
+// debounce artwork selection so transient sections crossed during scrolling do not trigger swaps.
 const ROOM_WAIT = 420
 
 type ActId = 'condition' | 'arrivals' | 'work' | 'whatsnew' | 'about'
@@ -38,13 +38,13 @@ interface Act {
   wide?: boolean
 }
 
-// Reduced-motion preference overrides persisted animation state before document classes exist.
+// reduced-motion preference overrides persisted animation state before document classes exist.
 function osPrefersStill() {
   if (typeof window === 'undefined') return true
   return Boolean(window.matchMedia?.('(prefers-reduced-motion: reduce)').matches)
 }
 
-// Return a value only after it remains unchanged for the requested interval.
+// return a value only after it remains unchanged for the requested interval.
 function useRested<T>(value: T, ms: number): T {
   const [rested, setRested] = useState(value)
 
@@ -65,7 +65,7 @@ function Credit({ credit }: { credit: ArtCredit }) {
 }
 
 const HAS_RELEASES = getWhatsNewEntries().length > 0
-// A missing entry selects the changelog fallback instead of an empty release target.
+// a missing release entry selects the changelog fallback.
 const LATEST_RELEASE = getLatestWhatsNew()
 
 export function HomePage() {
@@ -75,12 +75,12 @@ export function HomePage() {
   const still = !entrances || osPrefersStill()
   const { hash } = useLocation()
   const wanted = decodeURIComponent(hash.replace(/^#/, ''))
-  // Deep links encode a release id after the whatsnew section prefix.
+  // deep links encode a release id after the whatsnew section prefix.
   const wantedRelease = wanted.startsWith(`${WHATS_NEW_ACT}-`) ? wanted.slice(WHATS_NEW_ACT.length + 1) : null
 
   const page = useRef<HTMLDivElement | null>(null)
-  /* Resolve the portal host during render so route-transition capture includes
-     the backdrop. The ref fallback handles a cold render before shell attachment. */
+  /* resolve the portal host during render for route-transition capture of the
+     backdrop. the ref fallback handles a cold render before shell attachment. */
   const [shell, setShell] = useState<HTMLElement | null>(() => mainPortal())
   const holdPage = useCallback((node: HTMLDivElement | null) => {
     page.current = node
@@ -88,18 +88,18 @@ export function HomePage() {
     setShell((known) => known ?? (node.closest('.app-shell') as HTMLElement | null))
   }, [])
 
-  // Arm later artwork transitions one frame after initial mount.
+  // arm later artwork transitions one frame after initial mount.
   const [roomLive, setRoomLive] = useState(false)
   useEffect(() => {
     if (roomLive) return
     const frame = requestAnimationFrame(() => setRoomLive(true))
     return () => cancelAnimationFrame(frame)
   }, [roomLive])
-  // Undefined means pending; null means unavailable. Neither changes section structure.
+  // undefined means pending; null means unavailable. neither changes section structure.
   const [arrivals, setArrivals] = useState<Arrivals | null | undefined>(undefined)
   const [reading, setReading] = useState(0)
   const [covOpen, setCovOpen] = useState(false)
-  // The active resonator coordinates the plate and associated signature entry.
+  // the active resonator coordinates the plate and associated signature entry.
   const [litArrival, setLitArrival] = useState<string | null>(null)
 
   useEffect(() => {
@@ -108,7 +108,7 @@ export function HomePage() {
     return () => { live = false }
   }, [])
 
-  // Keep section offsets and deep-link targets independent of remote arrival resolution.
+  // keep section offsets and deep-link targets independent of remote arrival resolution.
   const acts = useMemo<Act[]>(() => [
     { id: 'condition', label: 'From the dev', art: REPORT_ART },
     { id: 'arrivals', label: 'Just arrived', art: ARRIVAL_ART, wide: true },
@@ -118,18 +118,18 @@ export function HomePage() {
   ], [])
 
   const arts = useMemo(() => [...new Set(acts.map((act) => act.art))], [acts])
-  // Section state updates immediately; artwork selection uses the debounced index.
+  // section state updates immediately; artwork selection uses the debounced index.
   const resting = useRested(reading, ROOM_WAIT)
   const backdrop = acts[Math.min(resting, acts.length - 1)]?.art ?? REPORT_ART
   const credit = creditFor(backdrop)
 
-  // Select the last section whose top has crossed the scroll viewport midpoint.
+  // select the last section whose top has crossed the scroll viewport midpoint.
   const scan = useCallback(() => {
     const root = page.current
-    const aperture = root?.closest('.main-content') as HTMLElement | null
-    if (!root || !aperture) return
+    const scrollContainer = root?.closest('.main-content') as HTMLElement | null
+    if (!root || !scrollContainer) return
 
-    const middle = aperture.scrollTop + aperture.clientHeight * 0.5
+    const middle = scrollContainer.scrollTop + scrollContainer.clientHeight * 0.5
     const sections = Array.from(root.querySelectorAll<HTMLElement>('.hm-act'))
     let at = 0
     sections.forEach((section, index) => { if (section.offsetTop <= middle) at = index })
@@ -138,16 +138,16 @@ export function HomePage() {
 
   useEffect(() => {
     const root = page.current
-    const aperture = root?.closest('.main-content') as HTMLElement | null
-    if (!root || !aperture) return
+    const scrollContainer = root?.closest('.main-content') as HTMLElement | null
+    if (!root || !scrollContainer) return
 
-    /* Section height follows the actual scroll aperture instead of viewport
-       height. Debounce resize updates during header animation, then correct once
-       active header animations settle to avoid reflow on every transition frame. */
+    /* section height follows the actual scroll container. debounce
+       resize updates during header animation, then correct once
+       active header animations settle. transition frames skip repeated reflow. */
     let live = true
     let settle = 0
     const fit = () => {
-      if (live) root.style.setProperty('--hm-act-h', `${aperture.clientHeight}px`)
+      if (live) root.style.setProperty('--hm-act-h', `${scrollContainer.clientHeight}px`)
     }
     fit()
 
@@ -161,7 +161,7 @@ export function HomePage() {
       window.clearTimeout(settle)
       settle = window.setTimeout(fit, 180)
     })
-    resize.observe(aperture)
+    resize.observe(scrollContainer)
 
     let frame = 0
     const onScroll = () => {
@@ -170,23 +170,23 @@ export function HomePage() {
     }
 
     frame = requestAnimationFrame(() => { frame = 0; scan() })
-    aperture.addEventListener('scroll', onScroll, { passive: true })
+    scrollContainer.addEventListener('scroll', onScroll, { passive: true })
     return () => {
       live = false
       window.clearTimeout(settle)
       resize.disconnect()
-      aperture.removeEventListener('scroll', onScroll)
+      scrollContainer.removeEventListener('scroll', onScroll)
       if (frame) cancelAnimationFrame(frame)
     }
   }, [acts.length, scan])
 
   const goTo = useCallback((index: number) => {
     const root = page.current
-    const aperture = root?.closest('.main-content') as HTMLElement | null
+    const scrollContainer = root?.closest('.main-content') as HTMLElement | null
     const section = root?.querySelectorAll<HTMLElement>('.hm-act')[index]
-    if (!aperture || !section) return
-    aperture.scrollTo({ top: section.offsetTop, behavior: still ? 'auto' : 'smooth' })
-    // Synchronize section state because smooth-scroll reporting can lag behind the jump.
+    if (!scrollContainer || !section) return
+    scrollContainer.scrollTo({ top: section.offsetTop, behavior: still ? 'auto' : 'smooth' })
+    // synchronize section state because smooth-scroll reporting can lag behind the jump.
     requestAnimationFrame(scan)
   }, [scan, still])
 
@@ -195,14 +195,14 @@ export function HomePage() {
     if (index >= 0) goTo(index)
   }, [acts, goTo])
 
-  // Redirect the global status stamp to the inline section and restore it on unmount.
+  // redirect the global status stamp to the inline section and restore it on unmount.
   const { setStamp } = useChromeIndex()
   useEffect(() => {
     setStamp(() => goToAct('condition'))
     return () => setStamp(null)
   }, [goToAct, setStamp])
 
-  // Resolve section and release hashes after the stable section model exists.
+  // resolve section and release hashes after the stable section model exists.
   useEffect(() => {
     const id = (wanted.startsWith(WHATS_NEW_ACT) ? WHATS_NEW_ACT : wanted) as ActId
     const index = acts.findIndex((act) => act.id === id)
@@ -439,7 +439,7 @@ export function HomePage() {
               <h4>Who builds it</h4>
               <p>
                 Designed, coded and maintained by{' '}
-                <a href="https://ko-fi.com/ssjrunor" target="_blank" rel="noopener noreferrer">ssjrunor</a>.
+                <a href="https://whoami.ssjrunor.com/" target="_blank" rel="noopener noreferrer">ssjrunor</a>.
                 Unofficial, and not affiliated with Kuro Games.
               </p>
             </div>

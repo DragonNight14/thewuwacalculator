@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Verifies loop meta logic and compatibility invariants.
+  description: verifies loop meta logic and compatibility invariants.
 */
 
 import { describe, expect, it } from 'vitest'

@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: protects authored enemy mechanics that are not represented by
+  description: protects authored enemy mechanics that are not represented by
                resistance rows in the generated enemy catalog.
 */
 

@@ -1,10 +1,8 @@
 /*
   Author: Runor Ewhro
-  Description: A self-contained, data-free Build Lab rail used as a decorative
-               preview (the home page's What's new act). It reuses the real
-               evaluation-mode rail (RailCard with isShowcase=false): the Spine
-               portrait plus the setup-image backdrop for one resonator, with no
-               build data. Carries its own Live2D on/off toggle.
+  description: renders a build-rail preview on Home using the evaluation rail,
+               a resonator portrait, and setup art without build data. it
+               includes a Live2D toggle.
 */
 
 import { getResSeedBy } from '@/data/catalog/resonatorSeedService'

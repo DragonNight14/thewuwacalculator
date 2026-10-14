@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: scores rotation optimizer candidates on the gpu by rebuilding
+  description: scores rotation optimizer candidates on the gpu by rebuilding
                candidate echo stats once, projecting them across packed rotation
                contexts, and reducing the best weighted total.
 */
@@ -27,7 +27,7 @@
 // per-echo main-echo bonus rows
 @group(0) @binding(6) var<storage, read> mainEchoBuffs: array<f32>;
 
-// kind id per echo, used to avoid counting duplicate echo kinds twice for sets
+// one kind id per echo keeps duplicate kinds out of set counts.
 @group(0) @binding(8) var<storage, read> echoKindIds: array<i32>;
 
 // combinadic binomial table used for rank/unrank math
@@ -587,7 +587,7 @@ struct SetApplied {
     erSetBonus: f32,
 };
 
-// apply only unconditional/max set rows from the LUT
+// apply only unconditional/max set rows from the lut
 fn applySetEffectsBase(base: EchoBase) -> SetApplied {
     var s: SetApplied;
 
@@ -618,7 +618,7 @@ fn applySetEffectsBase(base: EchoBase) -> SetApplied {
     s.bonusBase  = 0.0;
     s.erSetBonus = 0.0;
 
-    // apply the correct LUT bucket for each active set
+    // apply the correct lut bucket for each active set
     for (var setId: u32 = 0u; setId < SET_SLOTS; setId = setId + 1u) {
         let count = base.setCount[setId];
         if (count < 1u) { continue; }
@@ -910,7 +910,7 @@ fn evalMainPos(
     var critDmgForDmg = pre.critDmgTotal + mainCD * INV_100;
     let baseMul = pre.resDefAmp * pre.dmgReductionTotal;
 
-    // character-specific 1505 team crit from Shorekeeper's own er
+    // character-specific 1505 team crit from shorekeeper's own er
     if (pre.charId == 1505.0) {
         critRateForDmg = critRateForDmg + min(max(finalER * 0.05, 0.0), 12.5) * INV_100 * toggleValue(pre.toggles, 1u);
         critDmgForDmg = critDmgForDmg + min(max(finalER * 0.1, 0.0), 25.0) * INV_100 * toggleValue(pre.toggles, 1u) * toggleValue(pre.toggles, 2u);

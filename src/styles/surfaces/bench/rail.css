@@ -3,6 +3,7 @@
   top: 0;
   display: flex;
   flex-shrink: 0;
+  padding: 1rem;
   overflow-y: auto;
   place-content: center;
 }

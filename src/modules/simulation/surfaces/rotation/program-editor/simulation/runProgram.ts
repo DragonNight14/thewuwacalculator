@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Executes an authored rotation and projects trace, history,
+  description: executes an authored rotation and projects trace, history,
                nested loop, register, summary, and inspection data for editors.
 */
 
@@ -208,15 +208,14 @@ interface LazyFlatProjection {
   conditionMeta: ReadonlyMap<string, ConditionHistoryMeta>
 }
 
-/* Tree reads are the normal editor path. Retain the exact projection inputs
+/* tree reads are the normal editor path. retain the exact projection inputs
    without allocating flat rows until the flat surface actually needs them. */
 const lazyFlatProjectionByRun = new WeakMap<RunResult, LazyFlatProjection>()
 const lazyFlatRowsByRun = new WeakMap<RunResult, FlatRow[]>()
 
 /**
- * Change display metadata without detaching a run from its lazy flat trace.
- * Object spread alone cannot carry WeakMap-owned projection state to the new
- * result identity.
+ * change display metadata while retaining the lazy flat trace. object spread
+ * does not transfer WeakMap projection state to the new result object.
  */
 export function withRunMetadata(
   result: RunResult,
@@ -244,13 +243,13 @@ export function getRunFlatRows(result: RunResult | null | undefined): FlatRow[] 
     source.conditionMeta,
   )
   lazyFlatRowsByRun.set(result, rows)
-  // Once the flat projection exists, keeping its source trace doubles the
+  // once the flat projection exists, keeping its source trace doubles the
   // lifetime of the largest execution arrays without helping another view.
   lazyFlatProjectionByRun.delete(result)
   return rows
 }
 
-/** Canonical phase timing for one invocation of the advanced simulation. */
+/** canonical phase timing for one invocation of the advanced simulation. */
 export interface ProgramRunTiming {
   /** section ordering, context/environment construction and program compilation */
   prepareMs: number
@@ -264,7 +263,7 @@ export interface ProgramRunTiming {
   cacheHit: boolean
 }
 
-/** One shared integer readout for every user-visible runtime label. */
+/** one shared integer readout for every user-visible runtime label. */
 export function displayedRunMs(
   result: Pick<RunResult, 'timing'> | null | undefined,
 ): number {
@@ -277,7 +276,7 @@ export function memberToReg(member: RotationMember, sharePct: number): EditorMem
   const weaponId = build.weapon?.id ?? ''
   const weaponDef = weaponId ? getWpnById(weaponId) : null
   const weaponLevel = build.weapon?.level ?? 1
-  // Resolve level-scaled weapon stats once for all consumers of this projection.
+  // resolve level-scaled weapon stats once for all consumers of this projection.
   const weaponStats = weaponDef ? weaponStatsAt(weaponDef, weaponLevel) : null
 
   return {
@@ -301,9 +300,8 @@ export function memberToReg(member: RotationMember, sharePct: number): EditorMem
     level: member.runtime.base.level,
     sequence: member.runtime.base.sequence,
     skillLevels: '',
-    /* the worn loadout, slot for slot. a teammate's level and weapon level are
-       materialized at max rather than stored, so those two read max for
-       everyone but the active resonator. */
+    /* the equipped loadout by slot. teammate and weapon levels are materialized
+       at max; the active resonator retains stored progression. */
     echoes: build.echoes.map((echo) => {
       if (!echo) return null
       const def = getEchoById(echo.id)
@@ -353,9 +351,8 @@ interface WalkCtx {
   loopId: string | null
   section: WalkSection
   /**
-   * label and colour per loop, resolved the way the rotation pane resolves
-   * them: an unnamed loop is generated a distinct name rather than every one
-   * of them reading "Loop".
+   * label and colour per loop, using the rotation pane's resolver. unnamed
+   * loops receive distinct generated names.
   */
   loopMeta: Map<string, {
     label: string
@@ -379,8 +376,8 @@ function scopeOf(
   loopRuns: Readonly<Record<string, number>>,
 ): EditorExecutionScope {
   /*
-    An inspection entry can revisit a textually nested node after its nearest
-    visual loop has returned. Its last active engine loop is therefore the
+    an inspection entry can revisit a textually nested node after its nearest
+    visual loop has returned. its last active engine loop is therefore the
     execution scope, independent of where the authored node is drawn.
   */
   const loopId = Object.keys(loopRuns).at(-1) ?? null
@@ -417,8 +414,8 @@ function buildConditionHistory(
   const history = new Map<string, WriteRecord[]>()
 
   /*
-    The interpreter records a pre-write value only when it can read the path.
-    Do not reconstruct one from neighboring entries: that would skip writes
+    the interpreter records a pre-write value only when it can read the path.
+    do not reconstruct one from neighboring entries: that would skip writes
     performed by another node kind and fabricate a state for unknown paths.
   */
   for (const entry of entries) {
@@ -671,8 +668,8 @@ function collectRotationNodes(
       */
       collectRotationNodes(item.attached?.conditions ?? [], out)
       if (includeFeatureAttachments) {
-        // The interpreter accepts one direct feature-attachment level. Index
-        // those child hits, but do not give malformed nested data a second
+        // the interpreter accepts one direct feature-attachment level. index
+        // direct child hits are indexed. malformed nested data has no second
         // display-only execution model.
         collectRotationNodes(item.attached?.features ?? [], out, false)
       }
@@ -1032,7 +1029,7 @@ function buildStep(
   const effectiveMultiplierByRun: Record<number, number> = {}
   const writesByRun: Record<number, StateWrite[]> = {}
   const attachedChangesByRun: Record<number, RtChng[]> = {}
-  // The engine deliberately ignores nested child attachments. Keep the page
+  // the engine deliberately ignores nested child attachments. keep the page
   // projection on that same one-level contract when malformed older data is
   // encountered.
   const baseChanges = asAttachment ? [] : attachedConditionChanges(node)
@@ -1047,8 +1044,8 @@ function buildStep(
     damageByRun[run] = (damageByRun[run] ?? 0) + row.value.avg / divisor
     normalDamageByRun[run] = (normalDamageByRun[run] ?? 0) + row.value.normal / divisor
     critDamageByRun[run] = (critDamageByRun[run] ?? 0) + row.value.crit / divisor
-    // Effective stats belong to this executed skill and loop pass; use the
-    // result snapshot rather than recomputing them from a generic context.
+    // effective stats belong to this executed skill and loop pass. read the
+    // result snapshot for that exact execution.
     if (row.value.effectiveStats) {
       statsByRun[run] = row.value.effectiveStats
     }
@@ -1163,8 +1160,8 @@ function buildStep(
 }
 
 /**
- * What the last run made of a state write, which is what the cleanup sweep
- * reads. The engine records a prior only for a node's first write and only
+ * what the last run made of a state write, which is what the cleanup sweep
+ * reads. the engine records a prior only for a node's first write and only
  * when it could read that path, so a node writing several paths can never be
  * shown to be inert from the trace and is left alone.
  */
@@ -1207,7 +1204,7 @@ function conditionGatesByRun(
 }
 
 /**
- * A condition node writes one or more paths. The editor names the first and
+ * a condition node writes one or more paths. the editor names the first and
  * folds the rest into a count, and a write to the active-resonator path is not
  * a condition at all: it is the handoff row.
  */
@@ -1253,7 +1250,7 @@ function buildCondition(
     const runs = Object.keys(byRun).map(Number).sort((left, right) => left - right)
     const firstRun = runs[0] === undefined ? undefined : byRun[runs[0]]
     const from = firstRun?.from ?? ctx.activeId
-    // Projection state follows what execution really left behind. Invalid
+    // projection state follows what execution really left behind. invalid
     // authored member ids are normalized by the engine to the context owner.
     if (lastExecutedTo !== undefined) ctx.activeId = lastExecutedTo
 
@@ -1278,10 +1275,9 @@ function buildCondition(
       id: node.id,
       from: from as EditorMember['id'],
       /*
-        Keep the authored destination on the structural row. A stale imported
-        member must remain stale (and therefore removable by cleanup), rather
-        than being redrawn as an additional valid handoff when the engine
-        normalizes its write. Evaluated state lives in byRun/ctx.activeId.
+        keep the authored destination on the structural row. a stale imported
+        member remains available for cleanup after the engine normalizes its
+        write. evaluated state is stored in byRun/ctx.activeId.
       */
       to: authoredTo as EditorMember['id'],
       disabled: node.enabled === false,
@@ -1296,7 +1292,7 @@ function buildCondition(
   const first = changes[0]
   const path = first.path
 
-  // The engine supplies a prior only when it could read that path.
+  // the engine supplies a prior only when it could read that path.
   const byRun: NonNullable<EditorCondition['byRun']> = {}
   for (const row of rows) {
     if (!row.executed || row.value?.kind !== 'condition') {
@@ -1368,8 +1364,8 @@ function buildCondition(
 }
 
 /**
- * After the full tree exists (including free-marker placement), seed bounded
- * loops with COW pass state. Must not run mid-walk or wrap geometry is frozen
+ * after the full tree exists (including free-marker placement), seed bounded
+ * loops with cow pass state. must not run mid-walk or wrap geometry is frozen
  * before the crossing pass finishes.
  */
 function seedCheckoutableLoopsInTree(
@@ -1454,7 +1450,7 @@ function walk(items: RotationNode[], ctx: WalkCtx, depth = 0): EditorNode[] {
         }
         push(block)
         open.push({ block, previousLoopId: ctx.loopId })
-        // Display values bind to the nearest loop's selected run.
+        // display values bind to the nearest loop's selected run.
         ctx.loopId = item.loopId
       } else {
         let openIndex = -1
@@ -1465,17 +1461,10 @@ function walk(items: RotationNode[], ctx: WalkCtx, depth = 0): EditorNode[] {
           }
         }
         /*
-          Only the innermost loop can be closed by nesting. A marker that
-          closes a loop with others still open inside it is a crossing, and
-          taking it here would drop those loops off the stack along with it:
-          their own ends would then find nothing open and the rows after them
-          would land outside the loop that still holds them.
-
-          So the marker is left for the cross-list pass, which places it as an
-          extent once the tree exists. The loop stays open meanwhile and holds
-          the loops it crosses in the ordinary way, which is what that pass
-          expects to find. A marker sitting in a block's own list takes the
-          same route, because this walk never sees it either.
+          close only the innermost loop here. a crossing end marker remains for
+          the cross-list pass, which attaches it as an extent after the tree is
+          built and preserves the nested loop stack. end markers in a block's
+          own list follow the same path.
         */
         if (openIndex >= 0 && openIndex === open.length - 1) {
           const closing = open[openIndex]
@@ -1532,8 +1521,8 @@ function walk(items: RotationNode[], ctx: WalkCtx, depth = 0): EditorNode[] {
     if (item.type === 'uptime') {
       const ratioByRun = readBlockValues(ctx, item.id, 'uptime')
       /*
-        the setup runs in full to open the window, so it is walked first and
-        kept as a block of its own inside the uptime block. that makes it a
+        the setup runs in full before the window opens. walk it first as its
+        own block inside the uptime block. it is a
         real branch: it folds, it stacks, and a node can be dropped into it,
         without the tree needing a second kind of child list.
       */
@@ -1601,7 +1590,7 @@ function walk(items: RotationNode[], ctx: WalkCtx, depth = 0): EditorNode[] {
   return out
 }
 
-// Project one wrap-around loop as continuation, outside segment, then headed
+// project one wrap-around loop as continuation, outside segment, then headed
 // start segment while preserving their document execution order.
 function walkWrapped(
   items: RotationNode[],
@@ -1635,7 +1624,7 @@ function walkWrapped(
     totals: meta?.totals,
     damageByRun: meta?.damageByRun,
     disabled: start.enabled === false,
-    // written with no end at all, rather than with one standing above its start
+    // preserve an authored loop with no end marker.
     ...(wrap.endIndex == null ? { noEnd: true } : {}),
     ...(kind ? { wrap: kind } : {}),
     ...(kind === 'head' ? { wrapOf: start.id } : {}),
@@ -1643,7 +1632,7 @@ function walkWrapped(
     children,
   })
 
-  // Walk authored order for display ownership; execution history comes from
+  // walk authored order for display source assignment; execution history comes from
   // the interpreter's ordered inspection entries after the tree is projected.
   const previousLoopId = ctx.loopId
   const inLoop = start.loopId
@@ -1652,7 +1641,7 @@ function walkWrapped(
   ctx.loopId = inLoop
   const headChildren = walk(items.slice(0, stop), ctx, depth)
 
-  // whatever sits between the stopping point and the marker is outside the loop
+  // items between the stopping point and marker are outside the loop.
   ctx.loopId = previousLoopId
   const between = wrap.endIndex == null
     ? []
@@ -1801,7 +1790,7 @@ export interface RunInput {
   includeSnapshots?: boolean
   /** retain the ordered rows for the live flattened execution surface */
   includeFlatRows?: boolean
-  /** Background/editor runs may release the raw prepared trace after projection. */
+  /** background/editor runs may release the raw prepared trace after projection. */
   cacheDetailed?: boolean
 }
 
@@ -1909,7 +1898,7 @@ function flatScopesFor(
     if (block.type === 'loop') {
       const id = block.loopId ?? block.id
       const exactRun = entry.loopRuns?.[id]
-      // Wrapped bodies can execute once outside their visual loop. The engine
+      // wrapped bodies can execute once outside their visual loop. the engine
       // context, not the tree position, decides whether the delimiter applies.
       if (exactRun === undefined) continue
       run = exactRun
@@ -2092,7 +2081,7 @@ function buildExactFlatRows(
   return out
 }
 
-/** Execute the engine once and retain only the trace needed by projection. */
+/** execute the engine once and retain only the trace needed by projection. */
 export function executeRunTrace(input: RunInput): RunTrace {
   const startedAt = performance.now()
   const {
@@ -2251,8 +2240,8 @@ export function projectRun({
 
   /*
     what a feature can be swapped for. the same maps the rotation pane uses for
-    its previous- and adjacent-skill actions, so both surfaces offer the same
-    swaps rather than each deciding for itself.
+    its previous- and adjacent-skill actions. both surfaces share the same
+    available swaps.
   */
   const labels = new Map<string, string>()
   const skillById = new Map<string, string>()
@@ -2289,14 +2278,14 @@ export function projectRun({
     }
   })
   const builtSections = restoreCrossListLoopEnds(projectedSections, itemSections)
-  // Free-marker placement is done; seed bounded loops for pass checkout.
+  // free-marker placement is done; seed bounded loops for pass checkout.
   for (const section of builtSections) {
     seedCheckoutableLoopsInTree(section.children, ctx)
   }
   const history = buildConditionHistory(inspectionEntries, ctx)
   hydrateConditionHistory(builtSections, history)
-  // Background saved-rotation detail runs explicitly omit snapshots and never
-  // open the live flat surface. Do not make every comparison carry another
+  // background saved-rotation detail runs explicitly omit snapshots and never
+  // open the live flat surface. do not make every comparison carry another
   // full per-event projection it cannot display.
   const flatRows = includeFlatRows
     ? buildExactFlatRows(
@@ -2366,7 +2355,7 @@ export function projectRun({
   return result
 }
 
-/** Canonical convenience path: execute once, then project the resulting trace. */
+/** canonical convenience path: execute once, then project the resulting trace. */
 export function buildRun(
   input: RunInput,
 ): RunResult {

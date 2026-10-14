@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Defines the canonical Echo cost layouts used by evaluation and
+  description: defines the canonical echo cost layouts used by evaluation and
                filters them when an objective requires a particular main cost.
 */
 

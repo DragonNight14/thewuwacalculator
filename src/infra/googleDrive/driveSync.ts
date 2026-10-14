@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Uploads and restores persisted app snapshots through google
+  description: uploads and restores persisted app snapshots through google
                drive appdata storage, including backup pruning.
 */
 

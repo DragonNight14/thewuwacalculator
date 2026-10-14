@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: builds the compact target-search payload used by cpu and gpu
+  description: builds the compact target-search payload used by cpu and gpu
                optimizer runners, including packed target context data.
 */
 
@@ -93,7 +93,7 @@ export function shrPckdTgtSk(
   }
 
   // copy just the context into shared memory so worker threads can reuse it
-  // without transferring ownership or duplicating fresh buffers repeatedly
+  // without transferring the buffers or duplicating fresh buffers repeatedly
   const shrdCtx = new Float32Array(new SharedArrayBuffer(payload.context.byteLength))
   shrdCtx.set(payload.context)
 

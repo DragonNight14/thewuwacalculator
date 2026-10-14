@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Applies the active application theme to the document and
+  description: applies the active application theme to the document and
                resolves the persistent shell class list.
 */
 

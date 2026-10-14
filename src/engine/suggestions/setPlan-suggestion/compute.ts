@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Applies set-plan assignments onto the current echo loadout
+  description: applies set-plan assignments onto the current echo loadout
                and evaluates the resulting damage for direct or rotation
                suggestion contexts.
 */

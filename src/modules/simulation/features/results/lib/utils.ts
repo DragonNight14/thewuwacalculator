@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Owns utils behavior and state transitions for the lib module.
+  description: provides result helpers for simulation features.
 */
 
 import type { SkillDef, SkillSubHit } from '@/domain/entities/stats.ts'

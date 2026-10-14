@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Exposes the latest release summary without importing the complete
+  description: exposes the latest release summary without importing the complete
                changelog dataset into persistent application code.
 */
 

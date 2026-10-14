@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: shared echo clipboard helpers for serializing equipped or
+  description: shared echo clipboard helpers for serializing equipped or
                inventory echoes, reading/writing clipboard contents, and
                applying pasted echoes to loadout slots in a predictable order.
 */
@@ -137,8 +137,8 @@ export async function writeEchoClip(payload: EchoClipPayload): Promise<boolean> 
     echoes: cloneClipEchoes(payload.echoes),
   }
 
-  // cache first so same-session paste still works when browser permissions
-  // reject the system clipboard write.
+  // cache before writing to the system clipboard. same-session paste can use
+  // this value if browser permissions reject the write.
   cachedEchoClip = nrmlPay
   const text = serializeEchoClip(nrmlPay)
   rememberWorkspaceClipboardText(text)
@@ -165,8 +165,7 @@ export async function readEchoClip(): Promise<EchoClipPayload | null> {
   try {
     const text = await navigator.clipboard.readText()
     const parsed = parseEchoClip(text)
-    // cache parsed system clipboard data so later read failures fall back to
-    // the most recent valid echo payload, not stale pre-read data.
+    // cache the latest valid echo payload for fallback after clipboard reads fail.
     cachedEchoClip = parsed
       ? { ...parsed, echoes: cloneClipEchoes(parsed.echoes) }
       : null
@@ -192,7 +191,7 @@ export function pasteEchoes(
   let slotIndex = startSlot
 
   // paste sequentially from the requested slot and count over-budget or
-  // overflow echoes as skipped instead of partially reshuffling the loadout.
+  // skip overflow echoes and preserve the existing loadout order.
   for (const echo of payload.echoes) {
     if (slotIndex >= nextEchoes.length) {
       skippedCount += 1

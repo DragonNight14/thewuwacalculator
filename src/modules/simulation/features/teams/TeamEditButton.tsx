@@ -1,7 +1,7 @@
 /*
   Author: Runor Ewhro
-  Description: Coordinates team-picker lifecycle and commits team selection to
-               its owning combat scenario.
+  description: manages the team picker and saves team selection to the active
+               combat scenario.
 */
 
 import { flushSync } from 'react-dom'
@@ -19,7 +19,7 @@ export function TeamEditButton({
   hidden = false,
 }: {
   scenarioId: CombatScenarioId | null
-  /** Removes an inactive duplicate from focus order and the accessibility tree. */
+  /** removes an inactive duplicate from focus order and the accessibility tree. */
   hidden?: boolean
 }) {
   const scenario = useAppStore((state) => (
@@ -53,7 +53,7 @@ export function TeamEditButton({
           team={scenario.team.members.map((member) => member.resonatorId)}
           onClose={() => picker.hide()}
           onCommit={(supports) => {
-            // The store write renders synchronously, so commit the closing
+            // the store write renders synchronously, so commit the closing
             // phase first or the new team remounts an open picker.
             flushSync(() => picker.hide())
             setTeam(supports)

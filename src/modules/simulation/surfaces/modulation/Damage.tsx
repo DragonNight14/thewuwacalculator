@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Groups the selected member's skill and hit damage and coordinates formula inspection.
+  description: groups the selected member's skill and hit damage and coordinates formula inspection.
 */
 
 import { observeSelectionPip } from '@/shared/lib/observeSelectionPip'
@@ -46,8 +46,8 @@ function tabGlyph(resonatorId: string, tab: string): string {
 }
 
 /*
-  the column is titled Damage and its three number columns are named, so the
-  trailing "DMG" every feature label carries is said four times over. it is
+  the column is titled damage and its three number columns are named, so the
+  trailing "DMG" present in every feature label is said four times over. it is
   dropped for display only: the formula still titles itself with the real label.
 */
 function trimLabel(label: string): string {
@@ -66,8 +66,7 @@ function DamageRow({ entry, at, open, onPick, onOpen }: RowProps) {
   const support = supportSkillStyle(entry.aggregationType)
   const hasSubHits = shldViewSubH(entry.subHits)
   const rowStyle = { '--el': skillDisplayColor(entry.skill) } as CssVars
-  /* a sub-hit can stand for a flurry, so the pill counts landings rather than
-     rows: one sub-hit of thirty reads as thirty */
+  /* count landings in the pill; one sub-hit can represent a flurry of thirty. */
   const landings = entry.subHits.reduce((total, hit) => total + Math.max(1, hit.count), 0)
 
   return (
@@ -136,8 +135,7 @@ function DamageRow({ entry, at, open, onPick, onOpen }: RowProps) {
       </div>
       </ContextTrigger>
 
-      {/* the drawer is the app's own disclosure, which measures the height it
-          opens to rather than inferring it from a track */}
+      {/* the disclosure measures the drawer's expanded height. */}
       <Expandable
         as="div" className="pgd-sub"
         contentOnly
@@ -163,11 +161,8 @@ function DamageRow({ entry, at, open, onPick, onOpen }: RowProps) {
 }
 
 /*
-  The formula, set as a worksheet rather than as a line of code: one factor to a
-  row, the operator in a gutter, the values on a column, and the total ruled off
-  underneath the way a column of figures is closed. A factor that is a sum of
-  named contributions carries a split bar showing the shares, which is the one
-  thing the joined-up string could never say.
+  render each factor, operator, and value in separate worksheet columns with
+  the total below. split bars show the contributions within summed factors.
 */
 function Worksheet({ breakdown }: { breakdown: DmgBreakdown }) {
   const { chain, after } = breakdown
@@ -232,7 +227,7 @@ function Worksheet({ breakdown }: { breakdown: DmgBreakdown }) {
   )
 }
 
-/* the formula, standing beside the list rather than inside it */
+/* render the formula panel beside the list. */
 function FormulaCard({
   entry,
   simulation,
@@ -331,7 +326,7 @@ export function ModulationDamage({
   /*
     the leader: a pip standing beside the hit the formula is reading, in the
     channel between the list and the card, so the two are visibly one reading.
-    it travels when the pick moves rather than appearing at the new place, and
+    it travels with the pick, and
     it follows the list's own height, since a skill put away or a drawer opened
     moves the row under it.
   */
@@ -370,10 +365,8 @@ export function ModulationDamage({
 
           return (
             <section className="pgd-grp" key={tab} data-shut={isShut ? 'true' : 'false'} style={{ '--el': element } as CssVars}>
-              {/* the sticky head is also the column key: the three names are
-                  said once per skill rather than once per view. the well is the
-                  skill's own art, so it is also the thing that puts the skill
-                  away. */}
+              {/* the sticky head keys the column and names each skill once.
+                  its art well also folds the skill section. */}
               <header className="pgd-ghead">
                 <button
                   type="button" className="pgd-gwell"
@@ -389,8 +382,7 @@ export function ModulationDamage({
                   <b>{title}</b>
                 </span>
 
-                {/* with the hits away the column names describe nothing, so the
-                    head says what is being held instead */}
+                {/* a folded section shows the retained hit count in its head. */}
                 {isShut ? (
                   <span className="pgd-gcount">
                     {entries.length} hit{entries.length > 1 ? 's' : ''}

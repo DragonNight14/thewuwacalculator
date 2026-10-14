@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Locks catalog-missing echo repair across persisted calculator
+  description: locks catalog-missing echo repair across persisted calculator
                containers and loadout uniqueness rules.
 */
 

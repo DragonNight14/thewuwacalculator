@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Reads the persisted game-data mode before the app bootstraps the
+  description: reads the persisted game-data mode before the app bootstraps the
                game-data registry.
 */
 

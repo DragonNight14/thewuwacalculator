@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Hosts inventory and saved-Echo editing sessions, resolves equip
+  description: hosts inventory and saved-echo editing sessions, resolves equip
                targets, and commits draft loadout changes to scenario state.
 */
 
@@ -236,7 +236,7 @@ function MntdInvLyr(props: {
       return undefined
     }
 
-    // Chunk resolution precedes the modal commit; one frame keeps the loader
+    // chunk resolution precedes the modal commit; one frame keeps the loader
     // active until the opened dialog is eligible to paint.
     const frame = window.requestAnimationFrame(props.onReady)
     return () => window.cancelAnimationFrame(frame)

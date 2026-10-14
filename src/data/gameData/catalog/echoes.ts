@@ -1,7 +1,7 @@
 /*
   Author: Runor Ewhro
-  Description: Module-level cache for the echo catalog, populated from
-               public JSON before Simulation consumers are imported.
+  description: module-level cache for the echo catalog, populated from
+               public json before simulation consumers are imported.
 */
 
 import type { EchoDef } from '@/domain/entities/catalog'

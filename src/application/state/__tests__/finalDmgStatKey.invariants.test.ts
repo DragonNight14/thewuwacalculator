@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Verifies legacy special-damage keys migrate to the canonical final-damage stat contract.
+  description: verifies legacy special-damage keys migrate to the canonical final-damage stat contract.
 */
 
 import { describe, expect, it } from 'vitest'

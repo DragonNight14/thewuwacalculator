@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Exposes the durable suggestion runners for main-stat,
+  description: exposes the durable suggestion runners for main-stat,
                set-plan, and weapon workflows.
 */
 

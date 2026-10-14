@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Presents game-data buff presets and converts selected entries
+  description: presents game-data buff presets and converts selected entries
                into editable manual buff modifiers.
 */
 
@@ -433,7 +433,7 @@ export function BuffPresetModal({
     [buffType, catalog, normalizedQuery, sourceKind],
   )
 
-  // Each group count applies the opposite group and search predicates first.
+  // each group count applies the opposite group and search predicates first.
   const railCounts = useMemo(() => {
     const source = { all: 0, echo: 0, echoSet: 0, weapon: 0 } satisfies Record<SourceFilter, number>
     const type = { all: 0, self: 0, active: 0, team: 0 } satisfies Record<BuffTypeFilter, number>

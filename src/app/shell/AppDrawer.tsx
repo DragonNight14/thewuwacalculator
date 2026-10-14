@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Holds reference and legal navigation on every route.
+  description: renders reference and legal navigation on every route.
 */
 
 import { useRef } from 'react'

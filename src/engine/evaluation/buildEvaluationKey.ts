@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: produces compact deterministic keys for evaluation worker jobs.
+  description: produces compact deterministic keys for evaluation worker jobs.
 */
 
 interface KeyHasher {
@@ -21,8 +21,8 @@ function pushText(hasher: KeyHasher, value: string): void {
 }
 
 function pushJsonString(hasher: KeyHasher, value: string): void {
-  // JSON quoting preserves the old key semantics for strings without building
-  // the complete request JSON in memory.
+  // json quoting preserves the old key semantics for strings without building
+  // the complete request json in memory.
   pushText(hasher, JSON.stringify(value))
 }
 
@@ -46,12 +46,12 @@ function visitValue(value: unknown, hasher: KeyHasher, seen: WeakSet<object>, in
     case 'undefined':
     case 'function':
     case 'symbol':
-      // Match JSON.stringify: undefined-like object properties disappear while
+      // match json.stringify: undefined-like object properties disappear while
       // array entries become null so positional identity is retained.
       pushText(hasher, inArray ? 'null' : '')
       return
     case 'bigint':
-      // Evaluation payloads never contain bigint values. Stringifying one is
+      // evaluation payloads never contain bigint values. stringifying one is
       // still preferable to throwing while constructing a cache key.
       pushText(hasher, `bi${String(value)}`)
       return

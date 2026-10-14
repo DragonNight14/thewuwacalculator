@@ -1104,8 +1104,7 @@
   cursor: not-allowed;
 }
 
-:is(.mcc-modal .mcc-cell, .pgs-cell) input[type='number'],
-input[type='text'].wk-tune-input {
+:is(.mcc-modal .mcc-cell, .pgs-cell) input[type='number'] {
   width: 3.4rem;
   padding: 0.1rem 0.15rem;
   border: none;
@@ -1127,8 +1126,7 @@ input[type='text'].wk-tune-input {
   margin: 0;
 }
 
-:is(.mcc-modal .mcc-cell, .pgs-cell) input[type='number']:focus-visible,
-input[type='text'].wk-tune-input:focus-visible {
+:is(.mcc-modal .mcc-cell, .pgs-cell) input[type='number']:focus-visible {
   outline: none;
   border-bottom-color: var(--mcc-accent);
   box-shadow: 0 1px 0 0 var(--mcc-accent);

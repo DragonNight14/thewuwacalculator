@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Protects selected-font loading and capture's stylesheet barrier.
+  description: protects selected-font loading and capture's stylesheet barrier.
 */
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 

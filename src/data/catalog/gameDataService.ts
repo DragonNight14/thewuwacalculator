@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Provides convenient game data service helpers for listing
+  description: provides convenient game data service helpers for listing
                skills, effects, states, owners, features, rotations, and sources.
 */
 

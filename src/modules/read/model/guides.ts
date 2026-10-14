@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Shared guide-page helpers for resolving category targets and
+  description: shared guide-page helpers for resolving category targets and
                building stable lookup keys for authored guide content.
 */
 

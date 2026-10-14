@@ -1,7 +1,7 @@
 /*
   Author: Runor Ewhro
-  Description: Protects Showcase evaluation cancellation, progress replay, cache
-               reuse, and replacement ownership without a browser worker.
+  description: protects showcase evaluation cancellation, progress replay, cache
+               reuse, and request replacement without a browser worker.
 */
 
 import { afterEach, expect, it, vi } from 'vitest'
@@ -9,7 +9,7 @@ import type { ShowcaseAnalysisInput, ShowcaseAnalysisResult } from '../showcaseA
 
 afterEach(() => { vi.unstubAllGlobals(); vi.useRealTimers() })
 
-it('terminates superseded work without SharedArrayBuffer and preserves replacement ownership', async () => {
+it('terminates superseded work without SharedArrayBuffer and keeps the replacement request active', async () => {
   vi.resetModules()
   vi.useFakeTimers()
   vi.stubGlobal('SharedArrayBuffer', undefined)
@@ -39,7 +39,7 @@ it('terminates superseded work without SharedArrayBuffer and preserves replaceme
   expect(readings).toHaveBeenLastCalledWith(damage)
   vi.advanceTimersByTime(1200)
   expect(workers[1].terminate).not.toHaveBeenCalled()
-  // The first request's finally must not delete a replacement with the same key.
+  // the first request's finally must not delete a replacement with the same key.
   const lateReadings = vi.fn()
   const shared = runShowcaseAnalysis(payload, lateReadings)
   expect(lateReadings).toHaveBeenCalledExactlyOnceWith(damage)

@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Verifies optimizer pool cleanup remains lazy and invalidates jobs
+  description: verifies optimizer pool cleanup remains lazy and invalidates jobs
                cancelled while the search engine is loading.
 */
 

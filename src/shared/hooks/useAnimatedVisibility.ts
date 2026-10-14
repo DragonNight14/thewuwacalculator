@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Coordinates visible, open, and closing states with delayed
+  description: coordinates visible, open, and closing states with delayed
                unmounts for boolean and payload-backed transient surfaces.
 */
 
@@ -95,7 +95,7 @@ export function useAnimatedVisibility(exitDurMs = 300, openDlyFrms = 1) {
   }), [closing, hide, open, show, visible])
 }
 
-// animated visibility helper that also carries a typed modal payload
+// animated visibility helper that also stores a typed modal payload
 export function useAnimatedModalValue<T>(exitDurMs = 320, openDlyFrms = 1) {
   const [value, setValue] = useState<T | null>(null)
   const [open, setOpen] = useState(false)

@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Defines the public application-state exports available to UI and use-case consumers.
+  description: defines the public application-state exports available to ui and use-case consumers.
 */
 
 export { useAppStore } from './store'

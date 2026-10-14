@@ -1,41 +1,30 @@
 /*
   Author: Runor Ewhro
-  Description: The travelling cursor a reading panel keeps beside its rows.
-
-               It belongs to the row it is on rather than to the hand: it eases
-               toward that row's middle, leans a fifth of the way toward the
-               pointer and no further, and once the pointer has rested it grows
-               to the row's own height. Movement drives the squash: the faster
-               it travels the taller and narrower it goes, with a little blur
-               behind it, and a pick punches it wide for a beat.
-
-               A row scrolled out of the panel does not take the cursor with it.
-               It parks at the edge it left by, the way a scrollbar thumb does.
-
-               Written once here because it is behaviour rather than skin: the
-               saved rotation list and the damage view's formula both stand it,
-               and each brings its own selectors, custom properties and ink.
+  description: positions an animated cursor beside selected or hovered rows.
+               movement changes its size and blur, and offscreen rows clamp its
+               position to the panel edge. saved rotations and damage formulas
+               configure their row selectors, css properties, and colors.
 */
 
 export interface LeadCursorOptions {
-  /** the element the rows live in, and whose scroll the cursor follows */
+  /** scroll container for the cursor rows */
   body: HTMLElement
   /** the overlay the cursor is positioned inside, sized to the body */
   rail: HTMLElement
   cursor: HTMLElement
-  /** which descendants of the body the cursor can sit on */
+  /** selector for cursor rows within the body */
   rowSelector: string
-  /** the row it rests on with the pointer away; away entirely when absent */
+  /** selected row used when the pointer is outside the body */
   findSelected?: () => HTMLElement | null
   /** the custom property stem, so `--rsl-cursor` writes `--rsl-cursor-y` */
   prefix: string
-  /** a property each row declares that the cursor takes its ink from */
+  /** row property used for the cursor color */
   inkVar?: string
-  /** the height it holds when it is not docked on a row */
+  /** cursor height when it is not expanded to a row */
   restHeight?: number
-  /** how close to the rail's ends it may park */
+  /** minimum distance from the rail edges */
   edge?: number
-  /** how long the pointer rests before the cursor grows to the row */
+  /** pointer dwell time before the cursor expands to row height */
   dockMs?: number
 }
 
@@ -90,10 +79,7 @@ export function makeLeadCursor({
     if (Math.abs(want - at) > 0.25 || speed > 0.004 || punch) run()
   }
 
-  /*
-    where the row it is on sits inside the panel, and how far it may lean out
-    of that row's middle toward the pointer. a fifth, and never further.
-  */
+  /* position the cursor at the row center with at most 22% pointer offset. */
   const aim = () => {
     const row = held ?? findSelected?.() ?? null
     if (!row) {

@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: creates and caches the WebGPU bind group layout and compute
+  description: creates and caches the WebGPU bind group layout and compute
                pipeline used by the rotation-mode optimizer shader.
 */
 
@@ -11,7 +11,7 @@ import {
   mkChckCmptPp,
 } from '@/engine/optimizer/gpu/common.ts'
 
-// cache the layout/pipeline so shader setup only happens once per session
+// cache the layout and pipeline for one shader setup per session.
 let cchdRotLyt: GPUBindGroupLayout | null = null
 let cchdRotPpln: GPUComputePipeline | null = null
 let cchdRotBatchPpln: GPUComputePipeline | null = null

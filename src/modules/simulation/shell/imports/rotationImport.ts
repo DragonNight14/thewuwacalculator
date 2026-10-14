@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Recognizes rotation payloads and applies compatible imports to canonical scenario state.
+  description: recognizes rotation payloads and applies compatible imports to canonical scenario state.
 */
 
 import { useMemo } from 'react'

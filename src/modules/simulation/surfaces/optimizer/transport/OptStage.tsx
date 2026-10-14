@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Projects optimizer lifecycle, progress, candidate counts, and throughput from run state.
+  description: projects optimizer lifecycle, progress, candidate counts, and throughput from run state.
 */
 
 import { useOptimizerProgress, type OptimizerProgressSource } from '../lib/progressStore'
@@ -13,7 +13,7 @@ export function OptStage({
   cancelled,
   success,
   // theory mode has no permutation count of its own until the worker reports
-  // one, so the headline slot stays empty rather than inventing a number.
+  // one; leave the headline slot empty until a value is available.
   permutations: inventoryPermutations,
   batchSize,
   isTheory,

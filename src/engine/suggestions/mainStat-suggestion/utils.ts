@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: utility helpers.
+  description: utility helpers.
 */
 
 import type { EchoDef } from '@/domain/entities/catalog'

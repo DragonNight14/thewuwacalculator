@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Updates picker-frequency state used for recent and frequent
+  description: updates picker-frequency state used for recent and frequent
                menu recommendations across pickers.
 */
 
@@ -293,8 +293,8 @@ function mrgBktStt(
   }
 
   const usedAt = new Date().toISOString()
-  // New picks move to the front while older picks keep their relative order.
-  // Unlike the old structure, this list is intentionally uncapped.
+  // new picks move to the front while older picks keep their relative order.
+  // unlike the old structure, this list is intentionally uncapped.
   const nextOrder = [
     ...rdrdNcmn,
     ...current.order.filter((value) => !rdrdNcmn.includes(value)),
@@ -349,8 +349,8 @@ export function applyPckrFre(
 ): PckrFreqStt {
   let nextState = state
 
-  // preserve object identity for buckets that do not change so store selectors
-  // avoid rerendering picker surfaces on unrelated runtime edits.
+  // preserve unchanged bucket identities across unrelated runtime edits to
+  // keep picker selectors stable.
   for (const update of updates) {
     switch (update.bucket) {
       case 'resonator': {

@@ -1,11 +1,11 @@
 /*
   Author: Runor Ewhro
-  Description: Builds the compact per-weapon stat overlays used by theory weapon
-               search. Each visible weapon (max-passive mode) is swapped into the
-               echo-stripped runtime and run through the SAME context compile
+  description: builds the compact per-weapon stat overlays used by theory weapon
+               search. each visible weapon (max-passive mode) is swapped into the
+               echo-stripped runtime and run through the same context compile
                that produces the base context, then only the weapon-varying
-               packed slots (WEAPON_OVERLAY_SLOTS) are extracted. The combo space
-               is weapon-independent, so this is a one-time setup cost; evaluation
+               packed slots (WEAPON_OVERLAY_SLOTS) are extracted. the combo space
+               is weapon-independent. setup runs once; evaluation
                then scores each combo against every overlay and keeps the best.
 */
 
@@ -33,9 +33,9 @@ import {
 } from '@/engine/optimizer/config/constants.ts'
 
 export interface WeaponOverlays {
-  // W × WEAPON_OVERLAY_STRIDE floats, row-major; row w holds the weapon-varying
+  // w × WEAPON_OVERLAY_STRIDE floats, row-major; row w stores the weapon-varying
   // packed-context slots (CTX_FLOATS layout, in WEAPON_OVERLAY_SLOTS order) for
-  // weapon w. both CPU and GPU evaluators compose a full context as
+  // weapon w. both cpu and gpu evaluators compose a full context as
   // base ⊕ overlay[w]; only these slots change per weapon.
   overlays: Float32Array
 
@@ -77,7 +77,7 @@ function clampControlValue(state: SourceState, value: boolean | number | string)
 // the passive controls a weapon is searched with. each state is enabled at its
 // max value, except those the plan turns off (skipped -> defaults to inactive)
 // or overrides (clamped). mirrors mkCtrls(id,'max',plan) in the suggestion
-// engine, so the optimizer honors the Passives tab the same way.
+// engine, so the optimizer honors the passives tab the same way.
 function maxControls(
     weaponId: string,
     plan?: WeaponPlanSet,
@@ -207,7 +207,7 @@ export function withCandidateWeapon(
 }
 
 // build the per-weapon overlays for the current theory target. returns null when
-// the resonator has no searchable weapons (caller then runs the W=1 path).
+// the resonator has no searchable weapons (caller then runs the w=1 path).
 export function buildWeaponOverlays(input: OptStartPay): WeaponOverlays | null {
   const skillId = input.settings.targetSkillId
   if (!skillId) {
@@ -260,7 +260,7 @@ export function buildWeaponOverlays(input: OptStartPay): WeaponOverlays | null {
       selectedTargets: input.selectedTargets,
     })
 
-    // GPU: compact overlay extracted from the packed (CTX_FLOATS) context
+    // gpu: compact overlay extracted from the packed (CTX_FLOATS) context
     const packed = packTargetCtx({
       compiled: target.compiled,
       skill: target.skill,

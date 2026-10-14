@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Builds mobile Home entries from catalog, release, status, and
+  description: builds mobile home entries from catalog, release, status, and
                resonator-selection state.
 */
 

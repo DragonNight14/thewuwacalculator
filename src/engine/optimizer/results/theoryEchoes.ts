@@ -1,7 +1,7 @@
 /*
   Author: Runor Ewhro
-  Description: Validates compact theory rows and materializes their catalog,
-               set, main-stat, and slot-locked substat choices as Echoes.
+  description: validates compact theory rows and materializes their catalog,
+               set, main-stat, and slot-locked substat choices as echoes.
 */
 
 import type { EchoInstance } from '@/domain/entities/runtime.ts'
@@ -145,7 +145,7 @@ export function compactTheoryEchoes(result: CompactTheoryResult): EchoInstance[]
   })
 }
 
-/** Resolves identity/legality without allocating a loadout per retained result. */
+/** resolves identity/legality without allocating a loadout per retained result. */
 export function theoryResultCompactor(payload: ThryPay) {
   const theory: CompactTheoryResult['theory'] = { candidates: [] }
   const byUid = new Map<string, number>()

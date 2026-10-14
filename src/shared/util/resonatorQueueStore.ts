@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Defines the resonator queue store used for recent entries
+  description: defines the resonator queue store used for recent entries
                and queue panel snap-position preferences.
 */
 

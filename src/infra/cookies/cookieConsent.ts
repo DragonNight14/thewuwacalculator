@@ -1,8 +1,8 @@
 /*
   Author: Runor Ewhro
-  Description: Stores cookie-consent acknowledgement, migrates the legacy
+  description: stores cookie-consent acknowledgement, migrates the legacy
                notice-dismissal flag, and keeps a lightweight browser cookie
-               in sync for future server-side or UI integrations.
+               in sync for future server-side or ui integrations.
 */
 
 export const CONSENT_STORE = 'wwcalc.cookie-consent.v1'

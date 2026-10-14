@@ -1,7 +1,7 @@
 /*
   Author: Runor Ewhro
-  Description: Verifies full-quality capture resource replacement, decode ordering,
-               clone ownership, and cleanup across successful and failed rasterization.
+  description: verifies full-quality capture resource replacement, decode ordering,
+               clone independence, and cleanup across successful and failed rasterization.
 */
 
 import { afterEach, describe, expect, it, vi } from 'vitest'
@@ -76,7 +76,7 @@ describe('capture art loading', () => {
       .toBe('linear-gradient(red, blue), url("data:image/webp;base64,full-quality")')
   })
 
-  it('fails capture rather than silently exporting a preview when the master is missing', async () => {
+  it('fails capture when the master image is missing', async () => {
     const { card } = fixture()
     vi.stubGlobal('fetch', vi.fn(async () => new Response(null, { status: 404 })))
     await expect(loadCaptureArt(card)).rejects.toThrow('full-quality portrait could not be loaded')
@@ -98,9 +98,9 @@ describe('capture art loading', () => {
   })
 })
 
-describe('capture DOM ownership', () => {
+describe('capture DOM references', () => {
   it.each([false, true])('uses a disposable copy and cleans up (render failure: %s)', async (fail) => {
-    // No layout simulation: this protects the source/copy ownership contract
+    // no layout simulation: this protects the source/copy independence contract
     // across the asynchronous renderer, including its failure cleanup.
     const card = {
       style: { setProperty: vi.fn() }, dataset: {}, setAttribute: vi.fn(), appendChild: vi.fn(), insertBefore: vi.fn(),

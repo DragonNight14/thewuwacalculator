@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: manages target-skill gpu execution for the optimizer.
+  description: manages target-skill gpu execution for the optimizer.
                this file initializes persistent gpu resources, runs one or
                more target-search gpu subjobs, optionally reduces candidate
                buffers, and decodes packed gpu output back into combo refs.
@@ -112,7 +112,7 @@ interface TgtGpuSttcSt {
     params: ReusableBuffer
   }
 
-  // cached bind group so it is only recreated when one of the bound buffers changes
+  // recreate the cached bind group only when a bound buffer changes.
   bindGroup: GPUBindGroup | null
   bindGroupBuffer: {
     context: GPUBuffer | null
@@ -125,7 +125,7 @@ interface TgtGpuSttcSt {
   // tracks which locked-main mapping is currently uploaded to comboIndexMapBuffer
   actLockMaiok: number
 
-  // weapon search state (only set when the static payload carries overlays).
+  // weapon search state (only set when the static payload includes overlays).
   // weaponMode swaps in the weapon pipeline + a 14-binding bind group that adds
   // the overlay storage buffer and the weapon-meta uniform.
   weaponMode: boolean
@@ -167,9 +167,9 @@ let cachedLayout: GPUBindGroupLayout | null = null
 let cachedWpnPipeline: GPUComputePipeline | null = null
 let cachedWpnLayout: GPUBindGroupLayout | null = null
 
-// theory (explicit-batch) pipeline variants: one combo per thread instead of
-// CYCLES_PER_CALL. theory emits combos in damage-clustered producer order, so
-// the default mini-batch reduction (best of 32 contiguous combos per thread)
+// theory explicit-batch variants assign one combo per thread. theory emits
+// combos in damage-clustered producer order. the default mini-batch reduction
+// (best of 32 contiguous combos per thread)
 // silently drops most of a cluster's top builds before they ever reach the
 // collector; one combo per thread surfaces every combo as its own candidate,
 // matching the cpu path. inventory keeps CYCLES_PER_CALL (its combo space is
@@ -246,7 +246,7 @@ async function getWeaponPipeline(device: GPUDevice): Promise<{ layout: GPUBindGr
   return { layout: cachedWpnLayout, pipeline: cachedWpnPipeline }
 }
 
-// Each worker keeps the buffers for one initialized target payload.
+// each worker keeps the buffers for one initialized target payload.
 const targetGpuSession = new GpuResourceSession<TgtGpuSttcSt>((state) => {
   destroyBuffer(state.contextReuse)
   destroyBuffer(state.candRs)
@@ -429,7 +429,7 @@ export async function initTgtGpu(payload: TargetGpuState): Promise<void> {
   const device = await getGpuDevice()
 
   // weapon search swaps in the weapon pipeline + overlay/meta buffers when the
-  // static payload carries overlays; otherwise the plain target pipeline runs.
+  // static payload includes overlays; otherwise the plain target pipeline runs.
   const weaponCount = payload.weaponOverlays && (payload.weaponCount ?? 0) > 0
       ? (payload.weaponCount ?? 0)
       : 0
@@ -685,8 +685,8 @@ export async function runTgtGpuJob(
 }
 
 // run one explicit combo batch on the target gpu evaluator.
-// theory mode already prunes legal combos in its producer, so this path only
-// changes the combo source from combinadic ranks to a transferred row buffer.
+// the theory producer prunes legal combos. this path reads them from a
+// transferred row buffer.
 export async function runTgtGpuBtc(
     job: TgtGpuBtcPay,
     hooks: TgtGpuRunHks = {},

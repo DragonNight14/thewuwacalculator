@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: resolves raw Echo set counts into activated Sonata set plans.
+  description: resolves raw echo set counts into activated sonata set plans.
 */
 
 import { getEchoSetDe } from '@/data/gameData/echoSets/effects'

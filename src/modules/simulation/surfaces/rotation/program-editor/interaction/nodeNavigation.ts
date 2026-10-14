@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Resolves ordered node navigation and focus movement across nested authored structures.
+  description: resolves ordered node navigation and focus movement across nested authored structures.
 */
 
 import type {
@@ -68,7 +68,7 @@ interface RotationNodeFindResult {
   sectionId: string
   sectionLabel: string
   scopeLabel: string
-  /** Lower scores are stronger matches; document order breaks ties. */
+  /** lower scores are stronger matches; document order breaks ties. */
   score: number
 }
 
@@ -146,9 +146,9 @@ function occurrenceScopeLabel(
 }
 
 /**
- * Every viewable occurrence of an authored feature in the current editor
- * document. This is deliberately tree-derived rather than simulation history,
- * so local edits and disabled passes remain represented.
+ * every viewable occurrence of an authored feature in the current editor
+ * document. derive occurrences from the editor tree to include local edits
+ * and disabled passes.
  */
 export function findFeatureOccurrences(
   sections: EditorSection[],
@@ -238,7 +238,7 @@ export function findRotationNodeLocation(
         return found
       }
 
-      // Nodes that only exist on another pass live in the template/forks.
+      // nodes that only exist on another pass live in the template/forks.
       if (node.type === 'loop') {
         if (node.passTemplate) {
           const inTemplate = visit(section, node.passTemplate, nestedBlocks)
@@ -328,9 +328,9 @@ function finderScore(node: EditorNode, query: string): number | null {
 }
 
 /**
- * Every searchable row occurrence in the authored document. Loop bodies are
- * resolved per pass, so nodes that only exist in one fork carry that exact
- * tuple and shared nodes remain reachable on each view where they occur.
+ * every searchable row occurrence in the authored document. resolve loop
+ * bodies per pass; fork-only nodes carry their pass tuple and shared nodes
+ * remain reachable in every applicable view.
  */
 function rotationNodeFinderCandidates(sections: EditorSection[]): FinderCandidate[] {
   const candidates: FinderCandidate[] = []
@@ -381,8 +381,8 @@ function rotationNodeFinderCandidates(sections: EditorSection[]): FinderCandidat
 }
 
 /**
- * Find rows by label, id, node kind, and useful node metadata. Results are
- * ranked but otherwise stay in authored execution order. No UI state is
+ * find rows by label, id, node kind, and useful node metadata. results are
+ * ranked but otherwise stay in authored execution order. no ui state is
  * changed; each result is a target for `prepareRotationNodeNavigation`.
  */
 export function findRotationNodes(
@@ -418,7 +418,7 @@ export function findRotationNodes(
     }))
 }
 
-/** The strongest finder match, preferring the loop views already selected. */
+/** the strongest finder match, preferring the loop views already selected. */
 export function findRotationNode(
   sections: EditorSection[],
   query: string,
@@ -439,7 +439,7 @@ export function findRotationNode(
 }
 
 /**
- * Apply only the execution tuple relevant to the target. Selections for
+ * apply only the execution tuple relevant to the target. selections for
  * unrelated sibling loops remain where the user left them.
  */
 export function loopRunsForRotationNodeTarget(
@@ -482,9 +482,9 @@ export function openRotationNodeLocation(
 }
 
 /**
- * Resolve the same state transition used by Current/history navigation. The
+ * resolve the same state transition used by Current/history navigation. the
  * returned state checks out nested passes before locating folds, then selects
- * and requests reveal of the row. Callers decide how to commit that state.
+ * and requests reveal of the row. callers decide how to commit that state.
  */
 export function prepareRotationNodeNavigation({
   sections,

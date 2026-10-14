@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Measures rotation execution throughput and allocation costs.
+  description: measures rotation execution throughput and allocation costs.
 */
 
 import { bench, describe } from 'vitest'

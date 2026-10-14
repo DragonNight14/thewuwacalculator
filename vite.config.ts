@@ -1,7 +1,7 @@
 /*
   Author: Runor Ewhro
-  Description: Configures vite, local google auth parity routes, test setup,
-               worker output, and chunk boundaries for the Simulation app.
+  description: configures vite, local google auth parity routes, test setup,
+               worker output, and chunk boundaries for the simulation app.
 */
 
 import path from 'node:path'
@@ -22,13 +22,13 @@ const crossOriginIsolationHeaders = {
   'Cross-Origin-Opener-Policy': 'same-origin-allow-popups',
   // `credentialless` keeps cross-origin isolation (SharedArrayBuffer) while
   // allowing cross-origin images/backgrounds (e.g. imgbb uploads) to load
-  // without the host sending CORP headers, which `require-corp` would block.
+  // without the host sending corp headers, which `require-corp` would block.
   'Cross-Origin-Embedder-Policy': 'credentialless',
 }
 
 function buildGoogleAuthEnv(mode: string): GglAuthEnv {
-  // dev and preview use the same handler code as the server route, so load the
-  // unprefixed server env keys instead of vite's client-exposed env subset.
+  // dev and preview use the server route handler and need unprefixed server
+  // environment keys.
   const env = loadEnv(mode, process.cwd(), '')
   return {
     GOOGLE_CLIENT_ID: env.GOOGLE_CLIENT_ID,
@@ -150,7 +150,7 @@ export default defineConfig(({ mode }) => ({
       output: {
         manualChunks(id) {
           if (id.includes('node_modules')) {
-            // stable vendor groups keep high-churn Simulation code from
+            // stable vendor groups keep high-churn simulation code from
             // invalidating framework and icon chunks on every feature edit.
             if (
               id.includes('/react/') ||

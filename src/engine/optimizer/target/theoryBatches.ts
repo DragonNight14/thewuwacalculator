@@ -1,7 +1,7 @@
 /*
   Author: Runor Ewhro
-  Description: Generates explicit optimizer combo batches for theory mode by
-               walking synthetic packed rows. The search no longer enforces
+  description: generates explicit optimizer combo batches for theory mode by
+               walking synthetic packed rows. the search no longer enforces
                cross-row catalog id uniqueness or scoring-equivalence dedupe;
                the count of emitted combos is therefore a pure function of
                cost feasibility + set-plan satisfaction, and is computable
@@ -35,11 +35,11 @@ interface ThryBtc extends TgtCpuCmbBtc {
 // pure function of its *aggregate* stats: every contribution (a slot's locked
 // substats, the chosen main stat, set bonuses) is summed, and every build fills
 // all slots, so the slot-locked substat total is a constant offset shared by
-// every build. permuting which slot holds which (set, cost, main, id) spec
+// every build. permuting which slot contains each (set, cost, main, id) spec
 // therefore leaves the totals, and the damage, bit-identical (verified: every
 // permutation of a spec-multiset scores exactly equal). the producer pins the
 // main to slot 0 and forces non-decreasing filler positions, emitting one
-// canonical arrangement per distinct build instead of all 5!/dup permutations.
+// canonical arrangement per distinct build.
 //
 // (profs is in the signature so the rep array is sized to the live slot count;
 // its substat contents do not affect equivalence.)
@@ -76,10 +76,10 @@ function occ5(x: number, a: number, b: number, c: number, d: number, e: number):
 // the canonical 1pc set for a build: the lowest-id set that is 1pc-eligible and
 // appears exactly once across the five echoes (-1 if none). a build matches
 // several set-plans that differ only in whether (and which) such a singleton
-// 1pc set is promoted from off-plan filler to a plan requirement (e.g. {2pc A}
-// vs {1pc B + 2pc A}). all those plans share the same forced requirements (any
-// set appearing >=2 times must be required) and the same off-plan remainder, so
-// they emit bit-identical combos. pinning the promotion to the lowest-id 1pc
+// 1pc set is promoted from off-plan filler to a plan requirement (e.g. {2pc a}
+// vs {1pc b + 2pc a}). all those plans share the same forced requirements (any
+// set appearing >=2 times must be required) and the same off-plan remainder.
+// they emit bit-identical combos. pinning promotion to the lowest-id 1pc
 // singleton selects one canonical plan per build, dropping the rest.
 function canonOnePc(a: number, b: number, c: number, d: number, e: number): number {
   let best = -1
@@ -302,7 +302,7 @@ export function* gnrtThryCpuCm(options: {
 
   // cumulative count of (i1,i2,i3) row combinations whose summed cost is <= b,
   // indexed by remaining budget b; rebuilt per main from the three filler slots
-  // via histogram convolution (O(slots * maxCost^2), no inner-product walk).
+  // via histogram convolution (o(slots * maxCost^2), no inner-product walk).
   const innerFeas = shardLoads ? new Float64Array(MAX_ECHO_COST + 1) : null
   function buildInnerFeas(f1: number[], f2: number[], f3: number[]): void {
     if (!innerFeas) {
@@ -353,7 +353,7 @@ export function* gnrtThryCpuCm(options: {
       // canonical main: pin the main echo to the lowest-index slot of its
       // substat-equivalence class. main rows on a non-representative slot are
       // permutation duplicates (the equivalent build with the main on the rep
-      // slot is generated instead).
+      // slot is generated).
       if (slotReps && slotReps[main.slot] !== main.slot) {
         continue
       }

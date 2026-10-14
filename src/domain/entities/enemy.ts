@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Defines enemy catalog types, default profiles, resistance
+  description: defines enemy catalog types, default profiles, resistance
                helpers, and preset enemy profile builders.
 */
 

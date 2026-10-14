@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Provides helpers for creating and merging unified buff pool
+  description: provides helpers for creating and merging unified buff pool
                structures, including base stat, attribute, and skill-type buffs.
 */
 

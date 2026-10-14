@@ -1,7 +1,7 @@
 /*
   Author: Runor Ewhro
-  Description: Resolves current and legacy app-data imports from text or file
-               bytes without depending on the settings-page UI.
+  description: resolves current and legacy app-data imports from text or file
+               bytes without depending on the settings-page ui.
 */
 
 import type { PersistedState } from '@/domain/entities/appState'
@@ -37,7 +37,7 @@ async function readImportSource(source: DataImportSource): Promise<string> {
 
 export async function runDataImportJob(job: DataImportJob): Promise<DataImportResult> {
   const raw = await readImportSource(job.source)
-  // Snapshot imports merge against current persisted domains; legacy imports
+  // snapshot imports merge against current persisted domains; legacy imports
   // first convert their retired shape through the dedicated migration path.
   return job.kind === 'snapshot'
     ? { kind: 'snapshot', result: resMprtData(raw, job.currentState) }

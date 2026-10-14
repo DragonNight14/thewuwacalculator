@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: message contracts for build evaluation worker jobs.
+  description: message contracts for build evaluation worker jobs.
 */
 
 import type { BuildEvaluationReport, EvaluationReportOpts, DefRotEvaluationIn } from '@/engine/evaluation/buildEvaluation'

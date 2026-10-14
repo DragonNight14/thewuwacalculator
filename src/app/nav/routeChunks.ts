@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Caches route-module promises and resolved components, preloads
+  description: caches route-module promises and resolved components, preloads
                page dependencies, and retries rejected chunk requests.
 */
 
@@ -78,7 +78,7 @@ function chunksFor(pathname: string): Warmable[] {
   return entry ? entry[1] : [notFoundChunk]
 }
 
-// Repeated preload requests reuse resolved modules and in-flight promises.
+// repeated preload requests reuse resolved modules and in-flight promises.
 export function warmPath(pathname: string): Promise<void> {
   return Promise.all(chunksFor(pathname).map((page) => page.warm())).then(() => undefined)
 }

@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Pure transition/derivation logic for manual buff modifiers,
+  description: pure transition/derivation logic for manual buff modifiers,
                shared by every renderer (buffs pane + teammate modal) so the
                well-structured backend has one source of truth for how a
                modifier's scope, fields, value bounds, and summary resolve.

@@ -1,7 +1,7 @@
 /*
   Author: Runor Ewhro
-  Description: Keeps unqualified Amplify in the global top-stat lane instead
-               of encoding it as a synthetic all-attribute or all-skill scope.
+  description: keeps unqualified amplify in the global top-stat lane with no
+               synthetic all-attribute or all-skill scope.
 */
 
 import { describe, expect, it } from 'vitest'

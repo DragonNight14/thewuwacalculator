@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Defines stable build-evaluation entry points over the internal scoring implementation.
+  description: defines stable build-evaluation entry points over the internal scoring implementation.
 */
 
 export * from './evaluation/types.ts'

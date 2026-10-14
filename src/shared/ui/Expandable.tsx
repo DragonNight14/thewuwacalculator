@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Owns expandable behavior and state transitions for the ui module.
+  description: renders expandable content and tracks disclosure state.
 */
 
 import * as Collapsible from '@radix-ui/react-collapsible'
@@ -9,25 +9,25 @@ import { useCallback, useMemo, useState } from 'react'
 import type { CSSProperties as CssProps, ElementType, HTMLAttributes as HtmlAttrs, ReactNode } from 'react'
 
 export interface ExpandableCollection<Id extends string> {
-  /** IDs whose controlled disclosure is currently closed. */
+  /** ids whose controlled disclosure is currently closed. */
   closedIds: ReadonlySet<Id>
   isOpen: (id: Id) => boolean
   setOpen: (id: Id, open: boolean) => void
   toggle: (id: Id) => void
   collapse: (id: Id) => void
   expand: (id: Id) => void
-  /** Close every supplied ID without reopening closed IDs outside that set. */
+  /** close every supplied id without reopening closed ids outside that set. */
   collapseAll: (ids: Iterable<Id>) => void
-  /** Open every supplied ID without changing IDs outside that set. */
+  /** open every supplied id without changing ids outside that set. */
   expandAll: (ids: Iterable<Id>) => void
-  /** Replace the complete controlled collection, used when restoring view state. */
+  /** replace the complete controlled collection, used when restoring view state. */
   replaceClosed: (ids: Iterable<Id>) => void
 }
 
 /**
- * ID-based disclosure state shared by Expandable and lower-level Collapsible
- * structures. The collection owns no component registry: surfaces declare the
- * IDs a bulk command concerns and React applies the result in one state update.
+ * id-based disclosure state shared by expandable and lower-level collapsible
+ * structures. the collection has no component registry: surfaces declare the
+ * ids a bulk command concerns and react applies the result in one state update.
  */
 export function useExpandableCollection<Id extends string = string>(
   initiallyClosed?: Iterable<Id>,

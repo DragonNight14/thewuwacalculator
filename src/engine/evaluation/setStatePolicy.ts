@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: compiles compact resonator set-state rules into the conditional
+  description: compiles compact resonator set-state rules into the conditional
                format consumed by build evaluation.
 */
 
@@ -28,70 +28,70 @@ export type EvaluationSetConditionOptions = {
 }
 
 export const SET_RULES: Partial<Record<string, SetRule>> = {
-  '1102': { type: 'include', sets: [1, 9] }, // Sanhua
-  '1103': { type: 'include', sets: [1] }, // Baizhi
-  '1104': { type: 'include', sets: [1, 9] }, // Lingyang
-  '1105': { type: 'include', sets: [1, 9, 13] }, // Zhezhi
-  '1106': { type: 'include', sets: [1, 9] }, // Youhu
-  '1107': { type: 'include', sets: [1, 9, 10] }, // Carlotta
-  '1108': { type: 'include', sets: [1, 9, 30] }, // Hiyuki
-  '1109': { type: 'include', sets: [1, 9, 30, 19] }, // Lucilla
-  '1110': { type: 'include', sets: [1] }, // Suisui
-  '1202': { type: 'include', sets: [2, 9] }, // Chixia
-  '1203': { type: 'include', sets: [2, 9] }, // Encore
-  '1204': { type: 'include', sets: [2, 9, 13] }, // Mortefi
-  '1205': { type: 'include', sets: [2, 9] }, // Changli
-  '1206': { type: 'include', sets: [2, 9] }, // Brant
-  '1207': { type: 'include', sets: [2, 9, 18] }, // Lupa
-  '1208': { type: 'include', sets: [2, 9, 22] }, // Galbrena
-  '1209': { type: 'include', sets: [2] }, // Mornye
-  '1210': { type: 'include', sets: [2, 9, 27] }, // Aemeath
-  '1211': { type: 'include', sets: [2, 9, 27, 28] }, // Denia
-  '1301': { type: 'include', sets: [3, 9] }, // Calcharo
-  '1302': { type: 'include', sets: [3, 9, 13] }, // Yinlin
-  '1303': { type: 'include', sets: [3, 13] }, // Yuanwu
-  '1304': { type: 'include', sets: [5, 9] }, // Jinhsi
-  '1305': { type: 'include', sets: [3, 9] }, // Xiangli Yao
-  '1306': { type: 'include', sets: [3, 9, 20] }, // Augusta
-  '1307': { type: 'include', sets: [3, 9] }, // Buling
-  '1308': { type: 'include', sets: [3, 9, 32] }, // Rebecca
-  '1309': { type: 'include', sets: [3, 9, 36] }, // Rover: Electro
-  '1310': { type: 'include', sets: [3, 9, 36] }, // Rover: Electro
+  '1102': { type: 'include', sets: [1, 9] }, // sanhua
+  '1103': { type: 'include', sets: [1] }, // baizhi
+  '1104': { type: 'include', sets: [1, 9] }, // lingyang
+  '1105': { type: 'include', sets: [1, 9, 13] }, // zhezhi
+  '1106': { type: 'include', sets: [1, 9] }, // youhu
+  '1107': { type: 'include', sets: [1, 9, 10] }, // carlotta
+  '1108': { type: 'include', sets: [1, 9, 30] }, // hiyuki
+  '1109': { type: 'include', sets: [1, 9, 30, 19] }, // lucilla
+  '1110': { type: 'include', sets: [1] }, // suisui
+  '1202': { type: 'include', sets: [2, 9] }, // chixia
+  '1203': { type: 'include', sets: [2, 9] }, // encore
+  '1204': { type: 'include', sets: [2, 9, 13] }, // mortefi
+  '1205': { type: 'include', sets: [2, 9] }, // changli
+  '1206': { type: 'include', sets: [2, 9] }, // brant
+  '1207': { type: 'include', sets: [2, 9, 18] }, // lupa
+  '1208': { type: 'include', sets: [2, 9, 22] }, // galbrena
+  '1209': { type: 'include', sets: [2] }, // mornye
+  '1210': { type: 'include', sets: [2, 9, 27] }, // aemeath
+  '1211': { type: 'include', sets: [2, 9, 27, 28] }, // denia
+  '1301': { type: 'include', sets: [3, 9] }, // calcharo
+  '1302': { type: 'include', sets: [3, 9, 13] }, // yinlin
+  '1303': { type: 'include', sets: [3, 13] }, // yuanwu
+  '1304': { type: 'include', sets: [5, 9] }, // jinhsi
+  '1305': { type: 'include', sets: [3, 9] }, // xiangli yao
+  '1306': { type: 'include', sets: [3, 9, 20] }, // augusta
+  '1307': { type: 'include', sets: [3, 9] }, // buling
+  '1308': { type: 'include', sets: [3, 9, 32] }, // rebecca
+  '1309': { type: 'include', sets: [3, 9, 36] }, // rover: electro
+  '1310': { type: 'include', sets: [3, 9, 36] }, // rover: electro
   '1311': { type: 'include', sets: [3, 9, 36] }, // hsin
   '1312': { type: 'include', sets: [3, 9, 36] }, // suoming
-  '1402': { type: 'include', sets: [4, 9] }, // Yangyang
-  '1403': { type: 'include', sets: [4, 9] }, // Aalto
-  '1404': { type: 'include', sets: [4, 9] }, // Jiyan
-  '1405': { type: 'include', sets: [4, 9] }, // Jianxin
-  '1406': { type: 'include', sets: [4, 9, 17] }, // Rover: Aero
-  '1407': { type: 'include', sets: [4, 17, 16] }, // Ciaccona
-  '1408': { type: 'include', sets: [4, 9, 17] }, // Rover: Aero
-  '1409': { type: 'include', sets: [4, 17, 16] }, // Cartethyia
-  '1410': { type: 'include', sets: [4, 9, 20] }, // Iuno
-  '1411': { type: 'include', sets: [4, 9, 22, 29] }, // Qiuyuan
-  '1412': { type: 'include', sets: [4, 9, 29] }, // Sigrika
-  '1501': { type: 'include', sets: [5, 9, 11] }, // Rover: Spectro
-  '1502': { type: 'include', sets: [5, 9, 11] }, // Rover: Spectro
-  '1503': { type: 'include', sets: [5, 9] }, // Verina
-  '1504': { type: 'include', sets: [3, 9] }, // Lumi
-  '1505': { type: 'include', sets: [5] }, // Shorekeeper
-  '1506': { type: 'include', sets: [5, 9, 11] }, // Phoebe
-  '1507': { type: 'include', sets: [5, 9, 11] }, // Zani
-  '1508': { type: 'include', sets: [6, 9, 23] }, // Chisa
-  '1509': { type: 'include', sets: [5, 9, 26] }, // Lynae
-  '1510': { type: 'include', sets: [5, 9, 26] }, // Luuk Herssen
-  '1511': { type: 'include', sets: [5, 9, 32] }, // Lucy
-  '1601': { type: 'include', sets: [6] }, // Taoqi
-  '1602': { type: 'include', sets: [6, 9] }, // Danjin
-  '1603': { type: 'include', sets: [6, 9] }, // Camellya
-  '1604': { type: 'include', sets: [6, 9] }, // Rover: Havoc
-  '1605': { type: 'include', sets: [6, 9] }, // Rover: Havoc
-  '1606': { type: 'include', sets: [6, 9] }, // Roccia
-  '1607': { type: 'include', sets: [6, 9] }, // Cantarella
-  '1608': { type: 'include', sets: [6, 9, 19] }, // Phrolova
-  '1610': { type: 'include', sets: [6, 9, 33] }, // Yangyang: Xuanling
-  '1212': { type: 'include', sets: [2, 9, 18, 20, 35] }, // Jingran
-  '1413': { type: 'include', sets: [4, 34] }, // Jingran
+  '1402': { type: 'include', sets: [4, 9] }, // yangyang
+  '1403': { type: 'include', sets: [4, 9] }, // aalto
+  '1404': { type: 'include', sets: [4, 9] }, // jiyan
+  '1405': { type: 'include', sets: [4, 9] }, // jianxin
+  '1406': { type: 'include', sets: [4, 9, 17] }, // rover: aero
+  '1407': { type: 'include', sets: [4, 17, 16] }, // ciaccona
+  '1408': { type: 'include', sets: [4, 9, 17] }, // rover: aero
+  '1409': { type: 'include', sets: [4, 17, 16] }, // cartethyia
+  '1410': { type: 'include', sets: [4, 9, 20] }, // iuno
+  '1411': { type: 'include', sets: [4, 9, 22, 29] }, // qiuyuan
+  '1412': { type: 'include', sets: [4, 9, 29] }, // sigrika
+  '1501': { type: 'include', sets: [5, 9, 11] }, // rover: spectro
+  '1502': { type: 'include', sets: [5, 9, 11] }, // rover: spectro
+  '1503': { type: 'include', sets: [5, 9] }, // verina
+  '1504': { type: 'include', sets: [3, 9] }, // lumi
+  '1505': { type: 'include', sets: [5] }, // shorekeeper
+  '1506': { type: 'include', sets: [5, 9, 11] }, // phoebe
+  '1507': { type: 'include', sets: [5, 9, 11] }, // zani
+  '1508': { type: 'include', sets: [6, 9, 23] }, // chisa
+  '1509': { type: 'include', sets: [5, 9, 26] }, // lynae
+  '1510': { type: 'include', sets: [5, 9, 26] }, // luuk herssen
+  '1511': { type: 'include', sets: [5, 9, 32] }, // lucy
+  '1601': { type: 'include', sets: [6] }, // taoqi
+  '1602': { type: 'include', sets: [6, 9] }, // danjin
+  '1603': { type: 'include', sets: [6, 9] }, // camellya
+  '1604': { type: 'include', sets: [6, 9] }, // rover: havoc
+  '1605': { type: 'include', sets: [6, 9] }, // rover: havoc
+  '1606': { type: 'include', sets: [6, 9] }, // roccia
+  '1607': { type: 'include', sets: [6, 9] }, // cantarella
+  '1608': { type: 'include', sets: [6, 9, 19] }, // phrolova
+  '1610': { type: 'include', sets: [6, 9, 33] }, // yangyang: xuanling
+  '1212': { type: 'include', sets: [2, 9, 18, 20, 35] }, // jingran
+  '1413': { type: 'include', sets: [4, 34] }, // jingran
 }
 
 type StateRef = { setId: number; key: string }

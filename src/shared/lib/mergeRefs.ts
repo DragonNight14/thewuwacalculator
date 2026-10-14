@@ -1,7 +1,7 @@
 /*
   Author: Runor Ewhro
-  Description: Combines multiple refs targeting the same element into one
-               callback ref, for spots where a DOM node needs to satisfy an
+  description: combines multiple refs targeting the same element into one
+               callback ref, for spots where a dom node needs to satisfy an
                existing ref (e.g. selection scoping) alongside a local one.
 */
 

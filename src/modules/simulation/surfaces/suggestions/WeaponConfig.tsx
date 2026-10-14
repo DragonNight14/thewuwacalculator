@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Normalizes weapon-search rarity, rank, and passive preferences
+  description: normalizes weapon-search rarity, rank, and passive preferences
                and drafts configuration shared by suggestion and optimizer runs.
 */
 
@@ -123,7 +123,7 @@ function useWpnCfg({
     [seed],
   )
 
-  // Rarity counts include all weapons of the type, not just configurable passives.
+  // rarity counts include all weapons of the type, not just configurable passives.
   const poolByRar = useMemo(() => {
     const pool: Record<string, GenWpn[]> = {}
     if (!seed) return pool

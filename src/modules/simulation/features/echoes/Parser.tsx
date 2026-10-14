@@ -1,7 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Owns build-card import state, hosting the import strip and
-               converting parsed candidates into preview rows.
+  description: renders build-card import controls and converts parsed candidates into preview rows.
 */
 
 import { cloneElement, isValidElement as isVldElem, useEffect, useMemo, useRef, useState } from 'react'
@@ -139,7 +138,7 @@ export function Parser({
     setView('preview')
   }
 
-  // Resolve parsed holder identity separately before accepting the Echo preview.
+  // resolve parsed holder identity separately before accepting the echo preview.
   const savedIdentity = identitySession.draft
   const cardIdentity = read ? readIdentity(read.player) : null
   const identityAsk = cardIdentity ? askForIdntty(savedIdentity, cardIdentity) : null
@@ -221,7 +220,7 @@ export function Parser({
     }
   }
 
-  // Register paste handling only while this parser instance is mounted.
+  // register paste handling only while this parser instance is mounted.
   useEffect(() => {
     const handlePaste = (e: ClipboardEvent) => {
       const items = e.clipboardData?.items

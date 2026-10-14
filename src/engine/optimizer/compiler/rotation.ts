@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: compiles an optimizer payload for rotation mode by building
+  description: compiles an optimizer payload for rotation mode by building
                combat contexts for all relevant rotation targets, packing
                per-target execution contexts, and attaching the shared
                encoded echo/set data required by the optimizer runtime.
@@ -66,7 +66,7 @@ function rotTargetSig(target: RotationTargetContext): string {
   return `${target.resonatorId}|${target.skill.id}|${target.weight ?? 1}|${target.nodeMultiplier ?? 1}`
 }
 
-// Fallback synthetic target used only when the rotation simulation
+// fallback synthetic target used only when the rotation simulation
 // produces no eligible target entries for the active resonator.
 function mkFllbTgt(seedId: string): OptTargetSkill {
   return {
@@ -79,8 +79,8 @@ function mkFllbTgt(seedId: string): OptTargetSkill {
   }
 }
 
-// Weapon search recompiles the full rotation context set per candidate weapon.
-// The echo combo space is weapon-independent, but simulated skill rows are not:
+// weapon search recompiles the full rotation context set per candidate weapon.
+// echo combo space is weapon-independent. simulated skill rows depend on weapon:
 // some effects bake runtime stats into per-node multipliers, so a compact weapon
 // overlay would miss context-specific damage changes.
 export function buildRotWeaponContexts(options: {
@@ -174,15 +174,15 @@ export function buildRotWeaponContexts(options: {
   }
 }
 
-// Main rotation compiler entrypoint.
-// This prepares everything needed for optimizer execution in rotation mode:
+// main rotation compiler entrypoint.
+// this prepares everything needed for optimizer execution in rotation mode:
 // - stripped runtime
 // - rotation-applied runtime
 // - team combat graph
 // - target list
 // - packed target contexts
 // - encoded inventory echo rows
-// - set LUT and main-echo buff rows
+// - set lut and main-echo buff rows
 export function compRotRun(
     input: OptStartPay,
     opts: { weaponSearch?: boolean; baseline?: boolean } = {},
@@ -192,11 +192,11 @@ export function compRotRun(
     throw new Error(`Missing resonator seed for optimizer id ${input.resonatorId}`)
   }
 
-  // The optimizer should evaluate inventory echoes independently of any currently
+  // the optimizer should evaluate inventory echoes independently of any currently
   // equipped echoes, so we strip echoes from the runtime before building contexts.
   const runtime = stripEchoes(input.runtime)
 
-  // Apply rotation setup items so the runtime reflects the actual program.
+  // apply rotation setup items to the program runtime.
   const rotationItems = stripRotLoops(input.rotTms ?? runtime.rotation.sequence)
   const rotRt: ResRuntime = runtime
 
@@ -215,18 +215,18 @@ export function compRotRun(
   })
   const { graph, context: activeContext } = materialized
 
-  // Simulation is the source of optimizer targets because authored rotation
+  // simulation is the source of optimizer targets because authored rotation
   // nodes can expand, skip, or reroute before producing damage rows.
   const constraints = opts.baseline ? new Float32Array(0) : encStatCstrs(input.settings)
 
-  // Use the first real target if available. Otherwise synthesize a fallback
+  // use the first real target if available. otherwise synthesize a fallback
   // target so the generic echo encoders still have a stable skill shape to use.
   const fllbTgt = targets[0]
       ? selOptTgtSkl(targets[0].skill)
       : mkFllbTgt(seed.id)
 
-  // Encode all inventory echoes once using the fallback target shape.
-  // The actual per-target differences are handled later in packed contexts.
+  // encode all inventory echoes once using the fallback target shape.
+  // the actual per-target differences are handled later in packed contexts.
   const encoded = encEchoRows(input.invChs, fllbTgt, 'self')
 
   const shared = mkShrdPay(encoded, input, constraints, opts.baseline)
@@ -235,8 +235,8 @@ export function compRotRun(
 
   const setConstLut = buildSetRows(rotRt, input.setConds)
 
-  // Precompute generic main-echo buff rows for all inventory echoes.
-  // In rotation mode these are not tied to one single selected skill shape.
+  // precompute generic main-echo buff rows for all inventory echoes.
+  // in rotation mode these are not tied to one single selected skill shape.
   const mainEchoBuffs = mkGnrcMainEc({
     echoes: input.invChs,
     runtime: rotRt,
@@ -245,7 +245,7 @@ export function compRotRun(
     mode: 'self',
   })
 
-  // If there are no optimizer targets, return a structurally valid empty rotation run.
+  // if there are no optimizer targets, return a structurally valid empty rotation run.
   if (targets.length === 0) {
     return {
       mode: 'rotation',
@@ -264,8 +264,8 @@ export function compRotRun(
     }
   }
 
-  // Cache combat contexts by resonator id so each teammate's combat context
-  // is only built once even if multiple rotation entries belong to them.
+  // cache combat contexts by resonator id across that teammate's rotation
+  // entries.
   const cmbtByResId = buildRotationCombatContexts(
     graph,
     activeContext,
@@ -289,7 +289,7 @@ export function compRotRun(
     shape,
   })
 
-  // Weapon search (theory rotation only): recompile the whole context set once
+  // weapon search (theory rotation only): recompile the whole context set once
   // per searchable weapon so evaluation can pick the best weapon per build.
   const weapons = opts.weaponSearch && input.settings.includeWeapons
       ? buildRotWeaponContexts({ input, seed, rotRt, targets, rotationItems, shape })

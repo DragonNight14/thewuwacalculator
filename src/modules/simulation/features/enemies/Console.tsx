@@ -1,7 +1,7 @@
 /*
   Author: Runor Ewhro
-  Description: States the target: what it resists, whatever rules it or the team
-               brings, and the level behind it. Only the resistance reading is
+  description: states the target: what it resists, whatever rules it or the team
+               brings, and the level behind it. only the resistance reading is
                always present; every other row exists because the data gave it
                one, so an unauthored target renders a short panel.
 */
@@ -76,7 +76,7 @@ interface DragNumProps {
   onChange: (value: number) => void
 }
 
-// Pointer movement maps every six pixels to one integer step. A click without
+// pointer movement maps every six pixels to one integer step. a click without
 // movement advances once and wraps at the authored bounds.
 function DragNum({ value, min, max, label, onChange }: DragNumProps) {
   const onPointerDown = (event: React.PointerEvent<HTMLButtonElement>) => {
@@ -236,7 +236,7 @@ export function EnemyConsole({
   const [byElem, setByElem] = useState<EnemyElemId | null>(null)
   const [byClass, setByClass] = useState<EnemyClassId | null>(null)
   const [focus, setFocus] = useState<EnemyElemId>(2)
-  // Store only expanded ids; all other descriptions remain collapsed.
+  // store only expanded ids; all other descriptions remain collapsed.
   const [opened, setOpened] = useState<ReadonlySet<string>>(() => new Set())
   const isOpen = (id: string) => opened.has(id)
   const toggleOpen = (id: string) => setOpened((current) => {
@@ -258,7 +258,7 @@ export function EnemyConsole({
   const tune = getEnemyTune(enemyProfile)
   const tuneMax = useMemo(() => (runtime ? getTuneStrainMaxForTeam(runtime) : 0), [runtime])
 
-  // Include fixed-max negative effects even though they expose no control state.
+  // include fixed-max negative effects even though they expose no control state.
   const loads = useMemo(
     () => (runtime ? negEffectsFor(runtime, runtimesById) : []),
     [runtime, runtimesById],
@@ -281,8 +281,8 @@ export function EnemyConsole({
 
   const enemyStates = useMemo(() => listStatesFor('enemy', enemyProfile.id), [enemyProfile.id])
 
-  // Combat-state responders currently modify Tune Strain, so keep them with
-  // negative-effect sources rather than the general vulnerability collection.
+  // combat-state responders modify tune strain and belong with negative-effect
+  // sources.
   const responders = useMemo(() => {
     if (!runtime) return []
     const details = getResDtlsBy()[runtime.id]

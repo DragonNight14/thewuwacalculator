@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: dispatches a compute pipeline in batches so total workgroup
+  description: dispatches a compute pipeline in batches so total workgroup
                count can exceed the single-dispatch WebGPU limit.
 */
 
@@ -22,8 +22,8 @@ export async function dispCmptPass(options: {
     bfrDsptBtch: bfrDsptBtch,
   } = options
 
-  // WebGPU only allows a limited number of workgroups in one dispatch call.
-  // So if the caller requests more than that, split it into multiple dispatches.
+  // webgpu only allows a limited number of workgroups in one dispatch call.
+  // so if the caller requests more than that, split it into multiple dispatches.
   let remaining = wrkgCnt
   let dispatched = 0
   const maxWgPerBatch = Math.max(

@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Verifies worker request correlation, progress delivery,
+  description: verifies worker request correlation, progress delivery,
                transferable payloads, idle release, and failure teardown.
 */
 

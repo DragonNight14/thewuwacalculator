@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Hosts the persistent scenario roster and profile add, select, copy, paste, and removal actions.
+  description: hosts the persistent scenario roster and profile add, select, copy, paste, and removal actions.
 */
 
 import { getResSeedBy } from '@/data/catalog/resonatorSeedService'
@@ -17,30 +17,30 @@ import { ATTR_COLORS } from '@/modules/simulation/model/display'
 import { openTeamCnsl } from '@/modules/simulation/features/teams/lib/teamConsoleStore.ts'
 import { toTitle } from '@/shared/lib/format'
 import { useSel } from '@/modules/simulation/lib/sel.tsx'
+import { useConfirm } from '@/shared/hooks/useConfirmation.ts'
+import { ConfirmHost } from '@/shared/ui/ConfirmationModal.tsx'
+import { mainPortal } from '@/shared/lib/portalTarget'
 import { getEvaluationTargetCtx } from '@/modules/simulation/workspace/context.tsx'
-import { BuildRoster, type RosterReads } from './BuildRoster.tsx'
-import type { CapsuleMate } from './RosterCapsule.tsx'
-import { makeAttrGroups, makeRosterEntries } from './rosterModel.ts'
-import { useResonatorProfileOps } from './useResonatorProfileOps.ts'
-import { useRosterAdd } from './useRosterAdd.tsx'
+import { List, type View } from './List.tsx'
+import type { Teammate } from './Details.tsx'
+import { groupByAttribute, makeEntries } from './model.ts'
+import { useResonatorProfileOps } from '../useResonatorProfileOps.ts'
+import { useAdd } from './useAdd.tsx'
 
-export function RosterColumn() {
+export function Column() {
   const { pathname } = useLocation()
-  /* the only thing the surface gets to say about the column: what it wants read
-     off it. it is a prop and not a mount, so the page can change its mind
-     without the column being taken down. */
-  const reads: RosterReads = isSimulationSurfaceRoute(pathname, 'rotation') ? 'rotation' : 'build'
+  /* the route selects roster data through a prop without remounting the column. */
+  const view: View = isSimulationSurfaceRoute(pathname, 'rotation') ? 'rotation' : 'build'
   const scenarioLibrary = useAppStore((state) => state.combat)
   const contextResId = useAppStore(selContextResonatorId)
   const selectContextResonator = useAppStore((state) => state.selectContextResonator)
 
-  const roster = useMemo(() => makeRosterEntries(scenarioLibrary), [scenarioLibrary])
+  const roster = useMemo(() => makeEntries(scenarioLibrary), [scenarioLibrary])
   const scenario = useMemo(() => selectedCombatScenario(scenarioLibrary), [scenarioLibrary])
 
-  /* the lead's two teammates, for its capsule. the console they open is the
-     same one the team pane and the toolbar open, scoped to the lead's own
-     scenario so it never edits somebody else's copy of a member. */
-  const mates = useMemo<CapsuleMate[]>(() => {
+  /* the selected roster details and the team pane open the same console, scoped to
+     the lead's scenario and its member copies. */
+  const mates = useMemo<Teammate[]>(() => {
     const lead = contextScenarioMember(scenario)
     return scenario.team.members
       .filter((member) => member.id !== lead.id)
@@ -57,9 +57,10 @@ export function RosterColumn() {
   const openMember = useCallback((resonatorId: string) => {
     openTeamCnsl(resonatorId, 'loadout', scenario.id)
   }, [scenario.id])
-  const groups = useMemo(() => makeAttrGroups(roster), [roster])
-  const ops = useResonatorProfileOps(roster)
-  const rosterAdd = useRosterAdd()
+  const groups = useMemo(() => groupByAttribute(roster), [roster])
+  const confirmation = useConfirm()
+  const ops = useResonatorProfileOps(roster, confirmation)
+  const rosterAdd = useAdd()
 
   const selectionItems = useMemo(() => roster.map(({ id }) => ({ id })), [roster])
 
@@ -167,13 +168,15 @@ export function RosterColumn() {
 
   return (
     <>
-      <BuildRoster
+      <List
         roster={roster}
         groups={groups}
         contextResId={contextResId}
-        reads={reads}
+        view={view}
         mates={mates}
         onOpenMember={openMember}
+        onRemove={ops.removeByDrag}
+        confirmRemoval={!ops.canUndoRemoval}
         onContextChange={selectContextResonator}
         onAddResonator={rosterAdd.open}
         backgroundItems={backgroundItems}
@@ -186,6 +189,7 @@ export function RosterColumn() {
         }}
       />
       {rosterAdd.portal}
+      <ConfirmHost control={confirmation} portalTarget={mainPortal()} />
     </>
   )
 }

@@ -1,7 +1,7 @@
 /*
   Author: Runor Ewhro
-  Description: Samples legal substats and roll values using objective weights,
-               configurable bias, and optional Energy Regen inclusion.
+  description: samples legal substats and roll values using objective weights,
+               configurable bias, and optional energy regen inclusion.
 */
 
 import { SUBSTAT_KEYS, getSbstStepP } from '@/data/gameData/catalog/echoStats'
@@ -15,7 +15,7 @@ export function randSubVl(statKey: string, rollQuality = 0): number {
 
   const targetIndex = Math.round(rollQuality * (options.length - 1))
 
-  // Keep variance local to the requested quality while retaining legal roll values.
+  // keep variance local to the requested quality while retaining legal roll values.
   const windowStart = Math.max(0, targetIndex - 1)
   const windowEnd = Math.min(options.length - 1, targetIndex + 1)
 
@@ -40,7 +40,7 @@ export function getRandSbst(
   const nonZeroKeys = filteredKeys.filter((key) => (weights[key] ?? 0) > 0)
   const zeroKeys = filteredKeys.filter((key) => (weights[key] ?? 0) <= 0)
 
-  // Explicit ER inclusion keeps it eligible even when the objective gives it no weight.
+  // explicit er inclusion keeps it eligible even when the objective gives it no weight.
   if (
       ncldNrgyRgn &&
       !nonZeroKeys.includes('energyRegen') &&
@@ -74,7 +74,7 @@ export function getRandSbst(
 
   const avg = total / (count || 1)
 
-  // Blend toward the mean and retain a floor so every eligible stat remains possible.
+  // blend toward the mean and retain a floor so every eligible stat remains possible.
   const adjusted: Array<[string, number]> = new Array(chosenPool.length)
   let totalWeight = 0
 
@@ -95,7 +95,7 @@ export function getRandSbst(
     }
   }
 
-  // Floating-point residue can survive the final subtraction.
+  // floating-point residue can survive the final subtraction.
   return adjusted[adjusted.length - 1][0]
 }
 

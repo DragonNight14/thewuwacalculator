@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Builds manual buff preset catalog entries from game-data effects
+  description: builds manual buff preset catalog entries from game-data effects
                and converts selected presets into static manual modifiers.
 */
 
@@ -563,7 +563,7 @@ export function presetToManualModifiers(
   const scope = makeScope(runtime, entry.source, values, rank)
 
   // translate data-effect operations into the static manual modifier rows the
-  // buff editor already knows how to persist and apply.
+  // buff editor already supports persistence and application.
   return entry.effect.operations.flatMap((operation): MnlMod[] => {
     const value = 'value' in operation ? evalPresetValue(operation.value, scope) : 0
 

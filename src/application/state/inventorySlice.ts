@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Defines persisted inventory and saved-scenario mutations with
+  description: defines persisted inventory and saved-scenario mutations with
                semantic deduplication and stable item identity.
 */
 
@@ -35,7 +35,7 @@ export function createInventoryActions({ get, persistedSet }: Pick<StoreSliceCon
       return null
     }
 
-    // A UID identifies one physical Echo, so a new entry takes a fresh UID when
+    // a uid identifies one physical echo, so a new entry takes a fresh uid when
     // the incoming echo's uid already belongs to another bag entry.
     const uidTaken = echo.uid != null
       && invChs.some((entry) => entry.echo.uid === echo.uid)
@@ -58,9 +58,9 @@ export function createInventoryActions({ get, persistedSet }: Pick<StoreSliceCon
     }
 
     const invChs = get().library.echoes
-    // De-dupe by semantic echo signature before touching UIDs. A pasted/team
-    // batch can contain old UIDs from equipped echoes; identical stat payloads
-    // should be skipped, while distinct payloads with colliding UIDs get fresh
+    // de-dupe by semantic echo signature before touching uids. a pasted/team
+    // batch can contain old uids from equipped echoes; identical stat payloads
+    // should be skipped, while distinct payloads with colliding uids get fresh
     // identity below.
     const knownEchoSigs = new Set(invChs.map((entry) => getEchoSignature(entry.echo)))
     const knownUids = new Set(invChs.map((entry) => entry.echo.uid).filter((uid): uid is string => Boolean(uid)))
@@ -78,7 +78,7 @@ export function createInventoryActions({ get, persistedSet }: Pick<StoreSliceCon
 
       let nextEcho = echo
       if (echo.uid != null && knownUids.has(echo.uid)) {
-        // Keep generating until the whole in-memory batch is collision-free,
+        // keep generating until the whole in-memory batch is collision-free,
         // not only collision-free against entries that were already saved.
         let nextUid = makeEchoUid()
         while (knownUids.has(nextUid)) {

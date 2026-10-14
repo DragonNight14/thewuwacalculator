@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Upgrades legacy personal saved rotations into the mode-less
+  description: upgrades legacy personal saved rotations into the mode-less
                saved-program contract without replacing their saved record.
 */
 
@@ -34,7 +34,7 @@ function readSnapshotTeam(entry: StoredRecord): TeamSlots | null {
 
 /**
  * `mode` is an input-only discriminator from the split personal/team era.
- * Personal entries did not duplicate their team beside the profile snapshot,
+ * personal entries did not duplicate their team beside the profile snapshot,
  * so materialize it before dropping the discriminator.
  */
 export function migrateLegacySavedRotationRecord(value: unknown): unknown {
@@ -55,9 +55,8 @@ export function migrateLegacySavedRotationRecord(value: unknown): unknown {
     }
   }
 
-  // Damage summaries are derived from the current simulation environment.
-  // Drop legacy snapshots at every persistence/import boundary instead of
-  // allowing stale Simulation output back into the saved-rotation entity.
+  // damage summaries derive from the current simulation environment. remove
+  // legacy snapshots at every persistence and import boundary.
   delete entry.summary
   delete entry.mode
   return entry

@@ -1,7 +1,7 @@
 /*
   Author: Runor Ewhro
-  Description: defines base damage helpers for negative-effect archetypes
-               such as Spectro Frazzle, Aero Erosion, and Fusion Burst.
+  description: defines base damage helpers for negative-effect archetypes
+               such as spectro frazzle, aero erosion, and fusion burst.
 */
 
 import type { SkillDef } from '@/domain/entities/stats'
@@ -46,7 +46,7 @@ function getLvlVl(currentLevel: number): number {
   return 0
 }
 
-// compute the base Fusion Burst damage before external multipliers
+// compute the base fusion burst damage before external multipliers
 // this depends on both the resonator level and the current stack count
 export function getFsnBrstBa(level: number, stacks: number): number {
   // resolve the base value contributed by stack count
@@ -76,7 +76,7 @@ export function getFsnBrstBa(level: number, stacks: number): number {
   return getStckVl(stacks) * getLvlVl(level) / 10000
 }
 
-// compute the base Electro Flare damage before external multipliers
+// compute the base electro flare damage before external multipliers
 // this depends on both the resonator level and the current stack count
 export function getLctrFlrBa(level: number, stacks: number): number {
   // resolve the base value contributed by stack count
@@ -109,7 +109,7 @@ export function getLctrFlrBa(level: number, stacks: number): number {
   return getStckVl(stacks) * getLvlVl(level) / 10000
 }
 
-// compute the base Glacio Chafe damage before external multipliers
+// compute the base glacio chafe damage before external multipliers
 // this depends on both the resonator level and the current stack count
 export function getGlcChfBas(level: number, stacks: number): number {
   // resolve the base value contributed by stack count
@@ -162,12 +162,12 @@ export function getNegBase(
     return options.fixedMv * getLvlVl(level) / 10000
   }
 
-  // Spectro Frazzle uses a simple linear stack formula
+  // spectro frazzle uses a simple linear stack formula
   if (archetype === 'spectroFrazzle') {
     return 209.9 + 895.8 * stacks
   }
 
-  // Aero Erosion has a special case for one stack and a separate
+  // aero erosion has a special case for one stack and a separate
   // linear formula for two or more stacks
   if (archetype === 'aeroErosion') {
     return stacks === 1
@@ -183,6 +183,6 @@ export function getNegBase(
     return getGlcChfBas(level, stacks)
   }
 
-  // Fusion Burst uses its own level-and-stack scaling helper
+  // fusion burst uses its own level-and-stack scaling helper
   return getFsnBrstBa(level, stacks)
 }

@@ -2,7 +2,7 @@
 
 /*
   Author: Runor Ewhro
-  Description: Parses, migrates, and validates large settings-page imports
+  description: parses, migrates, and validates large settings-page imports
                outside the browser's interaction thread.
 */
 
@@ -25,7 +25,7 @@ self.onmessage = async (event: MessageEvent<DataImportWorkerRequest>) => {
   const scope = self as DedicatedWorkerGlobalScope
 
   try {
-    // Validation and migration must use the same catalog mode as the caller.
+    // validation and migration must use the same catalog mode as the caller.
     await initGameData({ mode: message.gameDataMode })
     const result = await runDataImportJob(message.job)
     scope.postMessage({ id: message.id, ok: true, result } satisfies DataImportWorkerResponse)

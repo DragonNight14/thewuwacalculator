@@ -1,4 +1,4 @@
-/* Keep one full-resolution, genuinely WebP icon for display and card matching. */
+/* keep one full-resolution, genuinely webp icon for display and card matching. */
 import { readFile, readdir, rename, writeFile } from 'node:fs/promises'
 import { join } from 'node:path'
 import { fileURLToPath } from 'node:url'

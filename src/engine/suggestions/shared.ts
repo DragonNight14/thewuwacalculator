@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: builds suggestion evaluation contexts, runs baseline
+  description: builds suggestion evaluation contexts, runs baseline
                simulations, derives weight maps, and evaluates echo
                combinations for direct and rotation-based suggestions.
 */
@@ -294,7 +294,7 @@ function mkSuggWghtMa(
     return {}
   }
 
-  // use contribution-based weighting so more important entries influence the map more
+  // contribution weights give important entries greater influence in the map.
   const cntr = entries.map((entry) => Math.max(0, entry.avg * (entry.weight ?? 1)))
   const baseTotal = cntr.reduce((sum, value) => sum + value, 0) || entries.length
 
@@ -412,7 +412,7 @@ export function mkRotSuggCtx(
     input: SuggestInput,
     simulation?: RotationTargetSimulation,
 ): RotSuggCtx | null {
-  // Only optional Echo attack targets come from a prior simulation. The
+  // only optional echo attack targets come from a prior simulation. the
   // authored rotation below materializes its own ordinary damage targets.
   if (input.includeEchoAttacks && !simulation) {
     throw new Error('Echo attack targets require a simulation')
@@ -422,7 +422,7 @@ export function mkRotSuggCtx(
     return null
   }
 
-  // apply the rotation program to a stripped runtime so setup effects are reflected
+  // apply rotation setup effects to a stripped runtime.
   const rotRt = applyRotationProgram(
       stripEchoes(input.runtime),
       input.runtime.rotation.sequence,

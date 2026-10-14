@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Builds echo instances from parsed OCR results; the stat lines
+  description: builds echo instances from parsed ocr results; the stat lines
                themselves are read in statReading.
 */
 
@@ -14,7 +14,7 @@ import { readSubstats, resolveMainKey } from '@/engine/echoParser/statReading'
 
 export { costForMain } from '@/engine/echoParser/statReading'
 
-// build echo instances from parsed OCR results
+// build echo instances from parsed ocr results
 export function mkEchoNstnFr(raw: RawPrsdEcho[]): Array<EchoInstance | null> {
   const echoCatalog = listEchoes()
 

@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Resolves requested scenario members, lazily loads their editor,
+  description: resolves requested scenario members, lazily loads their editor,
                and retains the console session through close completion.
 */
 
@@ -19,12 +19,12 @@ import { holdResonatorData } from '@/data/gameData'
 import { useResonatorData } from '@/application/hooks/useResonatorData'
 import AppLoaderOverlay from '@/shared/ui/AppLoaderOverlay'
 
-// Defer the member-editor module while keeping modal lifecycle state in this host.
+// defer the member-editor module while keeping modal lifecycle state in this host.
 const MemberStage = lazy(async () => ({
   default: (await import('@/modules/simulation/features/teams/stage/MemberStage.tsx')).MemberStage,
 }))
 
-// Load the console only after a request and retain it until close completion.
+// load the console only after a request and retain it until close completion.
 export function TeamConsoleHost() {
   const target = useTeamCnsl((state) => state.target)
   const scenario = useAppStore((state) => target
@@ -98,8 +98,8 @@ function ConsoleView({
     })
   }, [closeRequest, hide, session])
 
-  // A removed teammate may still be the requested view for one render. Follow
-  // the surviving context resonator instead of treating that as a close.
+  // a removed teammate may remain the requested view for one render. switch
+  // to the surviving context resonator.
   useEffect(() => {
     if (!visible || closing) return
     if (!actRt) {

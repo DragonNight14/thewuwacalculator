@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Verifies stable scenario-derived compatibility selectors.
+  description: verifies stable scenario-derived compatibility selectors.
 */
 
 import { describe, expect, it } from 'vitest'

@@ -1,9 +1,9 @@
 /*
   Author: Runor Ewhro
-  Description: Aggregates node damage, execution counts, shares, and loop-normalized totals.
+  description: aggregates node damage, execution counts, shares, and loop-normalized totals.
 */
 
-/* Read-only calculations over the editor tree and its selected loop passes. */
+/* read-only calculations over the editor tree and its selected loop passes. */
 
 import type {
   EditorBlock,

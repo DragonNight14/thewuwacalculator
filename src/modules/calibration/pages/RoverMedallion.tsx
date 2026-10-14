@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Stages Rover gender changes, summarizes affected persisted
+  description: stages rover gender changes, summarizes affected persisted
                artifacts, and commits the confirmed identity conversion.
 */
 
@@ -207,7 +207,7 @@ export function RoverMedallion() {
   )
 }
 
-// Excluded identities are converted irreversibly, so selection remains staged
+// excluded identities are converted irreversibly, so selection remains staged
 // until the affected-save summary is confirmed.
 function RoverTrade({
   applied,

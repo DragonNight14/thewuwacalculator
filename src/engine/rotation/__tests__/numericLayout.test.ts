@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Verifies the numericLayout.test behavior and its compatibility invariants.
+  description: verifies the numericLayout.test behavior and its compatibility invariants.
 */
 
 import { describe, expect, it } from 'vitest'

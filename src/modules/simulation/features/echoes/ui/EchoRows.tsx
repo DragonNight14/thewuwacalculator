@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: renders an equipped loadout as rows built from the suggestions
+  description: renders an equipped loadout as rows built from the suggestions
                pane's own parts, in a wide "slice" and a compact "tray"
                density, while preserving inventory slot indices.
 */
@@ -28,7 +28,7 @@ import { withDefEchoMg, withDefIconM } from '@/shared/lib/imageFallback.ts'
 import { formatTruncCompact } from '@/shared/lib/number.ts'
 import '@/styles/features/echoes/rows.css'
 
-// leaves the spare ones empty rather than letting a short echo reflow
+// reserve five substat tracks; short echoes leave unused tracks empty.
 const SUB_TRACKS = 5
 
 export type EchoRowVariant = 'slice' | 'tray' | 'card'
@@ -285,8 +285,7 @@ export function EchoRow({
   return (
     <div className={classNames} style={rowStyle} onClick={onClick} {...domProps}>
       {gutter}
-      {/* the wedge runs wider than its track and dissolves, so the art bleeds
-          into the row. the gradient carries the sonata, not a rarity. */}
+      {/* extend the wedge beyond its track and use a sonata gradient. */}
       <div className="ecr__wedge">
         {definition?.icon && (
           <DisplayImage

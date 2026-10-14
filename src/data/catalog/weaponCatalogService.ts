@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Provides weapon catalog lookup helpers for listing weapons
+  description: provides weapon catalog lookup helpers for listing weapons
                by type and resolving weapons by id.
 */
 

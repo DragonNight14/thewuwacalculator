@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Card files preserve an explicit Surface override while null keeps
+  description: card files preserve an explicit surface override while null keeps
                the portrait-derived default available after import.
 */
 

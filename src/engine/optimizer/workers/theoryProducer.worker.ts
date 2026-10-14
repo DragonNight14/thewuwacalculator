@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Streams theory-mode combo batches from the synthetic row space
+  description: streams theory-mode combo batches from the synthetic row space
                on a dedicated worker so the orchestrating thread never blocks
                on combo generation between worker dispatches.
 */

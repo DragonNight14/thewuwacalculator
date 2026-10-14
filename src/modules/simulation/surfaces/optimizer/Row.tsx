@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Converts optimizer display rows into inert/interactive result
+  description: converts optimizer display rows into inert/interactive result
                rows without re-validating optimizer search output.
 */
 
@@ -39,14 +39,12 @@ export interface OptDisplayRow {
   costs: number[] | null
   sets: OptDsplSetEn[]
   mainEchoIcon: string | null
-  // Populated only by theory weapon search; null keeps ordinary echo rows on the
+  // populated only by theory weapon search; null keeps ordinary echo rows on the
   // historical display shape.
   weaponIcon: string | null
   weaponName: string | null
-  // theory builds that cannot materialize into a legal five-echo loadout (e.g.
-  // the same catalog echo lands in two slots). they still carry an abstract
-  // damage number so they render, but they have no preview and cannot be
-  // equipped, so the row is shown disabled rather than clickable.
+  // theory builds with duplicate catalog echoes cannot form a valid five-echo
+  // loadout. show their calculated damage but disable preview and equip.
   invalid?: boolean
 }
 

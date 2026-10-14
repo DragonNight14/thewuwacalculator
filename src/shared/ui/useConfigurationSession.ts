@@ -1,7 +1,7 @@
 /*
   Author: Runor Ewhro
-  Description: Keeps configuration edits in a local reducer-backed draft until
-               the owning transient surface has finished closing.
+  description: keeps configuration edits in a local reducer draft until the
+               temporary surface closes.
 */
 
 import { useCallback, useEffect, useRef, useState } from 'react'
@@ -11,7 +11,7 @@ export type ConfigurationReducer<T> = (current: T) => T
 export interface ConfigurationTransaction<T> {
   read: () => T
   update: (reducer: ConfigurationReducer<T>) => T
-  /** Full replacement; unlike update reducers, it does not merge later source changes. */
+  /** full replacement; unlike update reducers, it does not merge later source changes. */
   replace: (next: T) => T
   finish: () => void
   reset: (source: T) => T
@@ -45,8 +45,8 @@ export function createConfigurationTransaction<T>(
     const next = nextReducer(draft)
     if (Object.is(draft, next)) return draft
 
-    // Compose edits for replay against the latest committed source, rather than
-    // replacing that source with a draft cloned before unrelated updates.
+    // replay composed edits against the latest committed source. a draft cloned
+    // before unrelated updates may be stale.
     const previousReducer = reducer
     reducer = (current) => nextReducer(previousReducer(current))
     draft = next
@@ -59,7 +59,7 @@ export function createConfigurationTransaction<T>(
     update,
     replace: (next) => update(() => next),
     finish: () => {
-      // Close callbacks and unmount cleanup may both finish the same transaction.
+      // close callbacks and unmount cleanup may both finish the same transaction.
       if (finished) return
       finished = true
       if (dirty) commit(reducer)
@@ -81,7 +81,7 @@ export function useConfigurationSession<T>({
   clone = structuredClone,
   commit,
 }: ConfigurationSessionOptions<T>) {
-  // Keep the transaction stable while its eventual commit uses the latest owner.
+  // keep the transaction stable while its eventual commit uses the latest owner.
   const commitRef = useRef(commit)
   commitRef.current = commit
 
@@ -118,7 +118,7 @@ export function useConfigurationSession<T>({
       finish()
       return
     }
-    // Source updates do not overwrite an active draft. Reopening seeds a new one.
+    // source updates do not overwrite an active draft. reopening seeds a new one.
     if (!active || wasActive) return
 
     setDraft(transaction.reset(source))
@@ -130,9 +130,9 @@ export function useConfigurationSession<T>({
     return () => {
       const cleanupGeneration = ++mountGenerationRef.current
       queueMicrotask(() => {
-        // React Strict Mode immediately re-establishes effects after its
-        // development cleanup. A genuine owner unmount has no later setup,
-        // so it still flushes an open draft instead of silently discarding it.
+        // react strict mode immediately re-establishes effects after development
+        // cleanup. a genuine owner unmount has no later setup and flushes any
+        // open draft.
         if (
           mountGenerationRef.current === cleanupGeneration
           && activeRef.current

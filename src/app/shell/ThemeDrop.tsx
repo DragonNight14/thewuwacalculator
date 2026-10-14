@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Selects persisted theme variants and their light/dark mode
+  description: selects persisted theme variants and their light/dark mode
                through an anchored popup with shared dismissal handling.
 */
 
@@ -50,7 +50,7 @@ export function ThemeDrop({ open, onToggle, onClose }: ThemeDropProps) {
   const session = useConfigurationSession({
     source: ui,
     active: open,
-    // Every edit creates a new top-level object, so opening this small popup
+    // every edit creates a new top-level object, so opening this small popup
     // does not need to clone the nested showcase and layout preferences.
     clone: (source) => source,
     commit: commitAppearanceConfig,
@@ -90,7 +90,7 @@ export function ThemeDrop({ open, onToggle, onClose }: ThemeDropProps) {
     applyDocumentTheme(variant, textMode, draftUi.blurMode, draftUi.entranceAnimations)
   }, [draftUi, open])
 
-  // A variant selection updates its mode as well as that mode's stored theme.
+  // a variant selection updates its mode as well as that mode's stored theme.
   const pick = (variant: ThemeVariant) => {
     if (mode === 'background') {
       session.update((current) => ({ ...current, backgroundVariant: variant as BgThemeVar }))

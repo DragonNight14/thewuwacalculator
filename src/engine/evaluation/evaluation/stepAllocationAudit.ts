@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Exhaustively audits tier spending for one fixed reference line layout offline.
+  description: exhaustively audits tier spending for one fixed reference line layout offline.
 */
 
 import { ECHO_STAT_STRIDE } from '@/engine/optimizer/config/constants'
@@ -15,8 +15,8 @@ export interface FixedLineTierAudit {
   bestValues: Record<string, number[]>
 }
 
-// This proves the best tier spend only for the supplied line counts and ER
-// choice. It deliberately does not run during anchor generation: the complete
+// this proves the best tier spend only for the supplied line counts and er
+// choice. it deliberately does not run during anchor generation: the complete
 // search can be exponential, and changing the live winner changes 100% ties.
 export function auditFixedLineTiers(
   base: Float32Array,

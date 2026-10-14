@@ -1,7 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Holds the level badge's plate scan against the shipped sample
-               card, so the name band and the badge never drift apart again.
+  description: tests level-badge detection against the shipped sample card.
 */
 
 import { describe, expect, it } from 'vitest'
@@ -64,7 +63,7 @@ describe('name line', () => {
     })
   })
 
-  it('keeps a line that carries no badge', () => {
+  it('keeps a line without a badge', () => {
     expect(splitNameLvl('Hiyuki')).toEqual({ name: 'Hiyuki', level: null })
   })
 })

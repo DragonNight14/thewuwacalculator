@@ -1,9 +1,9 @@
 /*
   Author: Runor Ewhro
-  Description: Implements the specialMath logic for the optimizer module.
+  description: implements the specialMath logic for the optimizer module.
 */
 
-/* Scalar special-case math shared by every TypeScript optimizer evaluator. */
+/* scalar special-case math shared by every typescript optimizer evaluator. */
 
 export function countOneBits(x: number): number {
   let value = x >>> 0

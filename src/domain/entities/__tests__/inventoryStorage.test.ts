@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Verifies the inventoryStorage.test behavior and its compatibility invariants.
+  description: verifies the inventoryStorage.test behavior and its compatibility invariants.
 */
 
 import { describe, expect, it, vi } from 'vitest'
@@ -100,7 +100,7 @@ describe('cloneRotationNodes', () => {
     expect(child?.featureId).toBe('feature-b')
   })
 
-  it('gives standalone and owned notes fresh identities with the copied document', () => {
+  it('gives standalone and attached notes fresh identities in a copied document', () => {
     const items: RotationNode[] = [
       { id: 'standalone-note', type: 'note', text: 'Standalone' },
       {

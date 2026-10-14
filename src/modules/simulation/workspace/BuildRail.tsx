@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Projects a runtime into the shared build rail and coordinates
+  description: projects a runtime into the shared build rail and coordinates
                stat-family focus, sequence changes, and scenario member edits.
 */
 
@@ -33,7 +33,7 @@ import type { SpinePlacement } from '@/shared/spine/SpinePortrait.tsx'
 import type { ShowcaseCardHidden, ShowcaseLayout } from '@/domain/entities/preferences'
 import { StatGlyph, EvaluationSeqRail, ResonatorName, statFamily, type EvaluationEchoSelection, type CssVars } from '@/modules/simulation/workspace/ui.tsx'
 import { ShowcaseBuild } from '@/modules/simulation/surfaces/showcase/Showcase.tsx'
-import { SealShowcase, rarityVars } from '@/modules/simulation/surfaces/showcase/SealShowcase.tsx'
+import { DetailedCard, rarityVars } from '@/modules/simulation/surfaces/showcase/DetailedCard.tsx'
 import { getRarityColor } from '@/modules/simulation/model/display.ts'
 import { useShowcaseImageContrast } from '@/modules/simulation/surfaces/showcase/showcaseImageContrast.ts'
 import Thewuwacalculator from '@/assets/thewuwacalculator.svg?react'
@@ -92,8 +92,8 @@ export interface ShowcaseBuildModel {
   sonataSets: Array<{ setId: number; pieces: number; icon: string | null; name: string }>
 }
 
-/* Stat families cross separate subtrees, so one delegated root updates their
-   DOM classes without introducing transient React state. */
+/* stat families cross separate subtrees, so one delegated root updates their
+   dom classes without introducing transient react state. */
 function applyStatFocus(root: HTMLElement, family: string): void {
   if ((root.dataset.statFocus ?? '') === family) return
   if (family) root.dataset.statFocus = family
@@ -191,8 +191,8 @@ export const BuildRail = memo(function BuildRail({
   const weaponLevel = railModel.weaponState?.level ?? 1
   const weaponStats = railModel.weapon ? weaponStatsAt(railModel.weapon, weaponLevel) : null
   const seqRailHidden = isShowcase && cardHidden.seqRail
-  // Layout preference is showcase-only; shared workspace rails remain classic.
-  const seal = isShowcase && layout === 'seal'
+  // layout preference is showcase-only; shared workspace rails remain classic.
+  const detailed = isShowcase && layout === 'seal'
   const contrastWatchKey = `${railResId ?? ''}:${JSON.stringify(backdropStyle)}:${railStyle['--bg']}:${layout}:${customCss ?? ''}`
   const imageContrastVars = useShowcaseImageContrast(
     buildCardRef,
@@ -205,7 +205,7 @@ export const BuildRail = memo(function BuildRail({
   )
 
   const updResRt = useAppStore((state) => state.updResRt)
-  // Activating the current sequence node steps back one; another node selects its prefix.
+  // activating the current sequence node steps back one; another node selects its prefix.
   const setSequence = useCallback((node: number) => {
     if (!editable || !railResId) return
     const update = onRuntimeUpdate ?? updResRt
@@ -224,7 +224,7 @@ export const BuildRail = memo(function BuildRail({
     if ((event.target as HTMLElement).closest(RAIL_OWN_CONTROLS)) return
     openMember()
   }, [openMember])
-  const sealTeam = useMemo(() => <TeamBlock variant="seal" teamSupports={railModel.teamSupports}
+  const detailedTeam = useMemo(() => <TeamBlock variant="detailed" teamSupports={railModel.teamSupports}
     ownerResId={railResId} team={railModel.runtime?.build.team ?? null} editable={editable} scenarioId={scenarioId} />,
   [editable, railModel.runtime?.build.team, railModel.teamSupports, railResId, scenarioId])
   const weaponBlock = (
@@ -295,7 +295,7 @@ export const BuildRail = memo(function BuildRail({
     <aside
       ref={buildCardRef} className="wk-rail wk-card"
       data-phase={railPhase}
-      data-layout={seal ? 'seal' : undefined}
+      data-layout={detailed ? 'detailed' : undefined}
       data-edit={isShowcase ? editMode ?? undefined : undefined}
       data-opens-member={railOpensMember ? 'true' : undefined}
       style={resolvedRailStyle}
@@ -331,7 +331,7 @@ export const BuildRail = memo(function BuildRail({
           aria-label={onAnimatedPortraitsChange ? 'Animated portrait' : undefined}
           tabIndex={onAnimatedPortraitsChange ? 0 : undefined}
           onClick={onAnimatedPortraitsChange ? (event) => {
-            // Nested controls retain their own activation instead of toggling playback.
+            // nested controls activate independently of playback.
             if ((event.target as HTMLElement).closest('button, a, input, [role="button"], [role="radio"]')) return
             onAnimatedPortraitsChange(!animatedPortraits)
           } : undefined}
@@ -363,12 +363,12 @@ export const BuildRail = memo(function BuildRail({
               />
             }
           />
-          {grade && !seal ? (
+          {grade && !detailed ? (
             <span className="wk-portrait-grade" data-score={Math.floor(score ?? 0)} style={{ '--grade': tone } as CssVars}>
               {grade}
             </span>
           ) : null}
-          {railResId && !seal ? (
+          {railResId && !detailed ? (
             <EvaluationSeqRail
               resId={railResId}
               sequence={railModel.runtime?.base.sequence ?? 0}
@@ -378,7 +378,7 @@ export const BuildRail = memo(function BuildRail({
           ) : null}
         </div>
 
-        {!seal ? (
+        {!detailed ? (
           <div className="wk-rail-body">
             <div className="wk-portrait-meta" data-rarity={railModel.rarity}>
               <span className="wk-portrait-name"> {railModel.attrIcon ? (
@@ -428,8 +428,8 @@ export const BuildRail = memo(function BuildRail({
       <div className="wk-rail-build"
         {...(isShowcase ? echoSelection?.surfaceProps : undefined)}
       >
-        {isShowcase && showcaseBuild && seal ? (
-          <SealShowcase
+        {isShowcase && showcaseBuild && detailed ? (
+          <DetailedCard
             model={railModel}
             build={showcaseBuild}
             score={score}
@@ -444,13 +444,13 @@ export const BuildRail = memo(function BuildRail({
             onSequence={editable && railModel.runtime ? setSequence : undefined}
             onEditWeapon={editable && railResId && railModel.runtime ? editWeapon : undefined}
             onOpenMember={canOpenMember ? openMember : undefined}
-            team={sealTeam}
+            team={detailedTeam}
             onEchoOpen={editable && railResId && railModel.runtime ? onEchoOpen : undefined}
             echoSelection={echoSelection}
             blank={blank}
           />
         ) : null}
-        {isShowcase && showcaseBuild && !seal ? (
+        {isShowcase && showcaseBuild && !detailed ? (
           <ShowcaseBuild
             echoes={showcaseBuild.echoes}
             combatStatsView={showcaseBuild.combatStatsView}
@@ -476,7 +476,7 @@ export const BuildRail = memo(function BuildRail({
         ) : null}
       </div>
 
-      {isShowcase && !seal && !cardHidden.brand ? (
+      {isShowcase && !detailed && !cardHidden.brand ? (
         <div className="wk-rail-brand" aria-hidden="true">
           <span className="wk-brand-word">rendered by</span>
           <Thewuwacalculator className="wk-brand-mark" />
@@ -486,7 +486,7 @@ export const BuildRail = memo(function BuildRail({
         </div>
       ) : null}
 
-      {!seal && credits.length ? (
+      {!detailed && credits.length ? (
         <div className="wk-rail-credit" aria-hidden="true">
           {credits.map((credit) => (
             <span key={credit.tag} className="wk-credit-line">
@@ -514,7 +514,7 @@ function TeamBlock({
   team: ResRuntime['build']['team'] | null
   editable: boolean
   scenarioId?: CombatScenarioId | null
-  variant?: 'rail' | 'seal'
+  variant?: 'rail' | 'detailed'
 }) {
   const scenario = useAppStore((state) => (
     (scenarioId ? state.combat.scenariosById[scenarioId] : null)
@@ -529,10 +529,10 @@ function TeamBlock({
   const seats = Array.from({ length: 2 }, (_, slotIndex) => {
     const mate = teamSupports[slotIndex]
     const onPick = seatable ? () => openPicker() : undefined
-    if (variant === 'seal') {
+    if (variant === 'detailed') {
       return mate
-        ? <SealMate key={mate.id} mate={mate} editable={editable} scenarioId={scenario.id} />
-        : <SealEmptyMate key={`empty:${slotIndex}`} onPick={onPick} />
+        ? <Teammate key={mate.id} mate={mate} editable={editable} scenarioId={scenario.id} />
+        : <EmptyTeammate key={`empty:${slotIndex}`} onPick={onPick} />
     }
     return mate
       ? <TeamMate key={mate.id} mate={mate} editable={editable} scenarioId={scenario.id} />
@@ -540,8 +540,8 @@ function TeamBlock({
   })
 
   return (
-    <div className={variant === 'seal' ? 'seal-party' : 'wk-rail-block'}>
-      {variant === 'seal' ? seats : (
+    <div className={variant === 'detailed' ? 'showcase-detail-team' : 'wk-rail-block'}>
+      {variant === 'detailed' ? seats : (
         <>
           <span className="wk-eyebrow">Team</span>
           <div className="wk-team">{seats}</div>
@@ -558,7 +558,7 @@ function TeamBlock({
           team={scenario.team.members.map((member) => member.resonatorId)}
           onClose={closePicker}
           onCommit={(supports) => {
-            // The store write renders synchronously, so commit the closing
+            // the store write renders synchronously, so commit the closing
             // phase first or the new team remounts an open picker.
             flushSync(() => closePicker())
             setTeam(supports)
@@ -696,7 +696,7 @@ function TeamMate({
   )
 }
 
-function SealMate({
+function Teammate({
   mate,
   editable,
   scenarioId,
@@ -718,23 +718,23 @@ function SealMate({
     }, [])
   const body = (
     <>
-      <span className="seal-mate-art">
+      <span className="showcase-detail-mate-art">
         <DisplayImage src={mate.sprite} alt="" style={mate.spriteCss} decoding="async" onError={withDefIconM} />
       </span>
-      <i className="seal-spark seal-mate-mark" aria-hidden="true" />
-      {attrIcon ? <DisplayImage className="seal-mate-elem" src={attrIcon} alt="" onError={withDefIconM} /> : null}
-      <span className="seal-mate-weapon" style={rarityVars(mate.weaponRarity)}>
+      <i className="showcase-detail-star showcase-detail-mate-mark" aria-hidden="true" />
+      {attrIcon ? <DisplayImage className="showcase-detail-mate-elem" src={attrIcon} alt="" onError={withDefIconM} /> : null}
+      <span className="showcase-detail-mate-weapon" style={rarityVars(mate.weaponRarity)}>
         {mate.weaponIcon ? (
           <DisplayImage src={mate.weaponIcon} alt={mate.weaponName ?? 'Weapon'} onError={withDefIconM} />
         ) : null}
         {mate.weaponRank != null ? <b>R{mate.weaponRank}</b> : null}
       </span>
       {setRows.length ? (
-        <span className="seal-mate-sets">
+        <span className="showcase-detail-mate-sets">
           {setRows.map((row) => (
             <span
               key={row.pieces}
-              className="seal-mate-set"
+              className="showcase-detail-mate-set"
               title={`${row.sets.map((set) => set.name).join(' + ')} · ${row.pieces}pc`}
             >
               {row.sets.map((set, index) => (
@@ -749,58 +749,58 @@ function SealMate({
           ))}
         </span>
       ) : null}
-      <span className="seal-mate-rule" aria-hidden="true"><i /><i /></span>
-      <span className="seal-mate-lv">Lv.<b>{mate.level ?? 1}</b></span>
-      <span className="seal-stars-row" aria-label={`Sequence ${mate.sequence} of 6`}>
+      <span className="showcase-detail-mate-rule" aria-hidden="true"><i /><i /></span>
+      <span className="showcase-detail-mate-lv">Lv.<b>{mate.level ?? 1}</b></span>
+      <span className="showcase-detail-stars-row" aria-label={`Sequence ${mate.sequence} of 6`}>
         {Array.from({ length: 6 }, (_, node) => (
-          <i key={node} className="seal-spark" data-on={node < mate.sequence ? 'true' : undefined} />
+          <i key={node} className="showcase-detail-star" data-on={node < mate.sequence ? 'true' : undefined} />
         ))}
       </span>
-      <strong className="seal-mate-name" data-fit="9">{mate.name}</strong>
+      <strong className="showcase-detail-mate-name" data-fit="9">{mate.name}</strong>
     </>
   )
 
   return (
     <article
-      className="seal-mate"
+      className="showcase-detail-mate"
       style={{ '--mate-tint': mate.accent, ...rarityVars(mate.rarity) } as CssVars}
     >
       {editable ? (
         <button
-          type="button" className="seal-mate-content"
+          type="button" className="showcase-detail-mate-content"
           aria-label={`Configure ${mate.name}`}
           onClick={() => openTeamCnsl(mate.id, 'loadout', scenarioId)}
         >
           {body}
         </button>
       ) : (
-        <div className="seal-mate-content">{body}</div>
+        <div className="showcase-detail-mate-content">{body}</div>
       )}
     </article>
   )
 }
 
-function SealEmptyMate({ onPick }: { onPick?: () => void }) {
+function EmptyTeammate({ onPick }: { onPick?: () => void }) {
   const body = (
     <>
-      <span className="seal-mate-art seal-mate-art--empty" aria-hidden="true" />
-      <span className="seal-mate-rule" aria-hidden="true"><i /><i /></span>
-      <strong className="seal-mate-name">Empty</strong>
+      <span className="showcase-detail-mate-art showcase-detail-mate-art--empty" aria-hidden="true" />
+      <span className="showcase-detail-mate-rule" aria-hidden="true"><i /><i /></span>
+      <strong className="showcase-detail-mate-name">Empty</strong>
     </>
   )
 
   return (
-    <article className="seal-mate seal-mate--empty">
+    <article className="showcase-detail-mate showcase-detail-mate--empty">
       {onPick ? (
         <button
-          type="button" className="seal-mate-content"
+          type="button" className="showcase-detail-mate-content"
           aria-label="Add a resonator to this team slot"
           onClick={onPick}
         >
           {body}
         </button>
       ) : (
-        <div className="seal-mate-content">{body}</div>
+        <div className="showcase-detail-mate-content">{body}</div>
       )}
     </article>
   )

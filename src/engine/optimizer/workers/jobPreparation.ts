@@ -1,13 +1,13 @@
 /*
   Author: Runor Ewhro
-  Description: Bounds optimizer result staging and constructs compact target
+  description: bounds optimizer result staging and constructs compact target
                execution payloads for worker jobs.
 */
 
 import { packTargetCtx } from '@/engine/optimizer/context/pack'
 import type { PckdOptXctnP, PrepTheoryRot, PrepTheoryTarget } from '@/engine/optimizer/types'
 
-// Bound both local result buffers and the merged heap independently of caller input.
+// bound both local result buffers and the merged heap independently of caller input.
 const GPU_RESULT_LIMIT = 65536
 const TGTGPUJOBVRS = 1
 const GPU_COLLECT_MUL = 2
@@ -20,17 +20,17 @@ function clmpTgtGpuRs(resultsLimit: number, oversample: number): number {
   )
 }
 
-/** Caps one GPU job at the requested top-k and the global allocation ceiling. */
+/** caps one gpu job at the requested top-k and the global allocation ceiling. */
 export function resTgtGpuJob(resultsLimit: number, lowMem = false): number {
   return clmpTgtGpuRs(resultsLimit, lowMem ? 1 : TGTGPUJOBVRS)
 }
 
-/** Lets the merged collector retain twice the requested top-k unless low-memory mode is active. */
+/** lets the merged collector retain twice the requested top-k unless low-memory mode is active. */
 export function resTgtGpuCll(resultsLimit: number, lowMem = false): number {
   return clmpTgtGpuRs(resultsLimit, lowMem ? 1 : GPU_COLLECT_MUL)
 }
 
-// Five Int32 values represent each combo, so halving the low-memory batch
+// five int32 values represent each combo, so halving the low-memory batch
 // directly halves its largest remaining transient allocation.
 export function bchSzFr(normal: number, lowMem: boolean): number {
   return lowMem ? Math.max(1, Math.floor(normal / 2)) : normal

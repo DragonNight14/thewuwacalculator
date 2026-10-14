@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Verifies beta acknowledgement survives reloads and expires daily.
+  description: verifies beta acknowledgement survives reloads and expires daily.
 */
 
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'

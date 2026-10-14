@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Small indexeddb-backed blob store used for image snapshots and
+  description: small indexeddb-backed blob store used for image snapshots and
                other local binary persistence needs.
 */
 
@@ -19,7 +19,7 @@ function openDatabase(): Promise<IDBDatabase> {
     }
 
     request.onupgradeneeded = () => {
-      // Preserve existing image blobs when adding derived surface metadata.
+      // preserve existing image blobs when adding derived surface metadata.
       const database = request.result
       if (!database.objectStoreNames.contains(STORE_NAME)) {
         database.createObjectStore(STORE_NAME)

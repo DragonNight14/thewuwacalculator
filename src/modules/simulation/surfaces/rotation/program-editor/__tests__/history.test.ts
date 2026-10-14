@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Verifies the history.test behavior and its compatibility invariants.
+  description: verifies the history.test behavior and its compatibility invariants.
 */
 
 import { describe, expect, it, vi } from 'vitest'
@@ -108,7 +108,7 @@ function loop(children: EditorNode[]): EditorBlock {
 }
 
 describe('rotation editor local history', () => {
-  it('coalesces rapid edits to one control but keeps later edits undoable', () => {
+  it('coalesces rapid control edits and preserves later undo steps', () => {
     vi.useFakeTimers()
     try {
       const edit = (before: number, after: number) => ({
@@ -181,7 +181,7 @@ describe('rotation editor local history', () => {
     expect(undoRotationEdit(second).snapshot).toBe(cursor)
   })
 
-  it('restores the pass that owned a loop-specific edit', () => {
+  it('restores the pass associated with a loop-specific edit', () => {
     const before = section(loop([step('hit')]))
     const runTwo = checkoutLoopPassById(before, 'loop-a', 2)
     const after = updateCheckedOutLoopChildren(runTwo, 'loop-a', (children) => [
@@ -199,7 +199,7 @@ describe('rotation editor local history', () => {
       : []).toEqual(['hit', 'note-a'])
   })
 
-  it('restores the run date owned by each undo and redo state', () => {
+  it('restores the run date for each undo and redo state', () => {
     const firstKey = rotationSimulationKey(section(condition(1)), [])
     const secondKey = rotationSimulationKey(section(condition(2)), [])
     const edited = commitRotationEdit(emptyRotationEditHistory(), {
@@ -244,7 +244,7 @@ describe('rotation simulation key', () => {
       .toBe(rotationSimulationKey(before, []))
   })
 
-  it('ignores a note-only pass fork but detects an executable pass edit', () => {
+  it('detects executable pass edits while ignoring note-only forks', () => {
     const before = section(loop([step('hit')]))
     const runTwo = checkoutLoopPassById(before, 'loop-a', 2)
     const noted = updateCheckedOutLoopChildren(runTwo, 'loop-a', (children) => [
@@ -333,7 +333,7 @@ describe('stale rotation nodes', () => {
     expect(staleBetween(before, after)).toEqual(['added'])
   })
 
-  it('marks nothing for a note-only edit, the way the run key does not move', () => {
+  it('leaves marks and the run key unchanged after note-only edits', () => {
     const baseStep = step('hit')
     const before = section(baseStep)
     const after = section(
@@ -350,7 +350,7 @@ describe('stale rotation nodes', () => {
     expect(staleBetween(before, after)).toEqual([])
   })
 
-  it('marks a row inside a loop rather than the block around it', () => {
+  it('marks the edited row inside a loop', () => {
     const before = section(loop([step('hit'), condition(1)]))
     const after = section(loop([step('hit'), condition(2)]))
 

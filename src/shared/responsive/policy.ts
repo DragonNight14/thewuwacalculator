@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Exports canonical responsive breakpoints and scale settings to
+  description: exports canonical responsive breakpoints and scale settings to
                runtime code and the stylesheet build transform.
 */
 

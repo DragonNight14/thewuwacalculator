@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Verifies the nodeNavigation.test behavior and its compatibility invariants.
+  description: verifies the nodeNavigation.test behavior and its compatibility invariants.
 */
 
 import { describe, expect, it } from 'vitest'
@@ -119,7 +119,7 @@ describe('rotation editor node navigation', () => {
       .toEqual(['preamble', 'state-a'])
   })
 
-  it('locates an owned note at its host execution position', () => {
+  it('locates an attached note at its host execution position', () => {
     const host = {
       ...step('host'),
       attachedNote: { id: 'owned-note', type: 'note' as const, text: 'Timing' },
@@ -369,7 +369,7 @@ describe('rotation editor node navigation', () => {
     expect([...(navigation?.shutIds ?? [])]).toEqual([])
   })
 
-  it('searches an owned note but targets its selectable host row', () => {
+  it('targets the selectable host row for an attached note match', () => {
     const host = {
       ...step('host'),
       attachedNote: {

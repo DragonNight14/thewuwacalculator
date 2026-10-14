@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Verifies main-Echo candidate pruning preserves set coverage,
+  description: verifies main-echo candidate pruning preserves set coverage,
                stable dominance, required identities, and cost constraints.
 */
 

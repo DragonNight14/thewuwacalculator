@@ -1,7 +1,7 @@
 /*
   Author: Runor Ewhro
-  Description: Replaces and disposes the GPU resources owned by one initialized
-               optimizer payload.
+  description: replaces and disposes gpu resources for an initialized optimizer
+               payload.
 */
 
 export class GpuResourceSession<State> {

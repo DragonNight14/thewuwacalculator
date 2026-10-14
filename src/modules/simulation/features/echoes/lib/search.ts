@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Shared comma-token search helpers for echo-facing picker and
+  description: shared comma-token search helpers for echo-facing picker and
                inventory surfaces.
 */
 

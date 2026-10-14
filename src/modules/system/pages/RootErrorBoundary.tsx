@@ -1,7 +1,7 @@
 /*
   Author: Runor Ewhro
-  Description: Keeps provider and router initialization errors visible even
-               when they occur outside React Router's route boundaries.
+  description: keeps provider and router initialization errors visible even
+               when they occur outside react router's route boundaries.
 */
 
 import { Component, type ErrorInfo, type ReactNode } from 'react'

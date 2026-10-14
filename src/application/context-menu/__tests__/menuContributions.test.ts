@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Verifies contribution ordering, duplicate suppression, cleanup,
+  description: verifies contribution ordering, duplicate suppression, cleanup,
                and legacy-route classification in the context-menu registry.
 */
 

@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Defines the external-service glyphs used by application navigation links.
+  description: defines the external-service glyphs used by application navigation links.
 */
 
 import { SiDiscord, SiKofi } from 'react-icons/si'

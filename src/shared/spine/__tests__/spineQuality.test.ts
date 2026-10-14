@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Verifies live Spine assets use bounded display derivatives while
+  description: verifies live spine assets use bounded display derivatives while
                export paths retain full-resolution setup images.
 */
 

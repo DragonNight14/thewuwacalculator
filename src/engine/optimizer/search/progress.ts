@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: builds throttled optimizer progress snapshots so long-running
+  description: builds throttled optimizer progress snapshots so long-running
                search jobs can report elapsed time, speed, and remaining work.
 */
 

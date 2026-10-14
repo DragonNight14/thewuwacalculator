@@ -1,7 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Verifies optimizer worker cancellation, replacement ownership,
-               and settlement of synchronous dispatch failures.
+  description: tests optimizer worker cancellation, replacement, and synchronous dispatch failures.
 */
 
 import { afterEach, expect, it, vi } from 'vitest'

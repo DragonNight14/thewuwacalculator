@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Verifies the useOrderedSelection.test behavior and its compatibility invariants.
+  description: verifies the useOrderedSelection.test behavior and its compatibility invariants.
 */
 
 import { describe, expect, it } from 'vitest'
@@ -25,7 +25,7 @@ describe('what a clipboard shortcut acts on', () => {
     expect(shortcutTargetIds(false, [], ['live'], available)).toEqual([])
   })
 
-  it('keeps the old do-nothing answer when nothing is tracked', () => {
+  it('returns the existing empty result when nothing is tracked', () => {
     expect(shortcutTargetIds(false, [], undefined, available)).toEqual([])
   })
 })

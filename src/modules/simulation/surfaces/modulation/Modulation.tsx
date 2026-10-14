@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Coordinates Modulation member analysis, panel selection, live
+  description: coordinates modulation member analysis, panel selection, live
                source-state controls, progression edits, and report access.
 */
 
@@ -28,7 +28,7 @@ import {
 } from '@/modules/simulation/features/resonator/lib/forteTree.ts'
 import { getResonator, type ResView } from '@/modules/simulation/features/resonator/lib/resonator.ts'
 import type { CombatScenarioId } from '@/domain/entities/combatScenario.ts'
-import { SeatStack } from './SeatStack.tsx'
+import { MemberSelector } from './MemberSelector.tsx'
 import { TeamEditButton } from '@/modules/simulation/features/teams/TeamEditButton.tsx'
 import { ModulationStats } from './Stats.tsx'
 import {
@@ -134,7 +134,7 @@ function CommittedRange({
   )
 }
 
-/* The live combat pipeline already owns current stats. Only the evaluation
+/* the live combat pipeline already computes current stats. only the evaluation
    targets need the search program; normalize the three core row keys here so
    the build worksheet can keep its source vocabulary. */
 function makeModulationOverviewStats(
@@ -151,7 +151,7 @@ function makeModulationOverviewStats(
   }
 }
 
-// Derive member-scoped variables from the currently inspected teammate.
+// derive member-scoped variables from the currently inspected teammate.
 export function memberAccent(member: ResView | null | undefined): CssVars | undefined {
   return member ? { '--resonator-accent': ATTR_COLORS[member.attribute] } : undefined
 }
@@ -204,7 +204,7 @@ function Glyph({ glyph, className }: { glyph: BayGlyph; className: string }) {
   )
 }
 
-// Preserve each source state's native control semantics while grouping by owner.
+// preserve each source state's native control semantics while grouping by owner.
 function Row({
   row,
   threaded,
@@ -249,7 +249,7 @@ function Row({
 
 const SCROLL_PAD = 8
 
-// Find the nearest ancestor that actually owns vertical scrolling.
+// find the nearest ancestor that controls vertical scrolling.
 export function findScroller(from: HTMLElement): HTMLElement | null {
   let node = from.parentElement
   while (node) {
@@ -264,12 +264,12 @@ export function findScroller(from: HTMLElement): HTMLElement | null {
 
 const SCROLL_MS = 460
 
-// Cubic easing shared by the manually controlled scroll transition.
+// cubic easing shared by the manually controlled scroll transition.
 function ease(t: number): number {
   return t < 0.5 ? 4 * t * t * t : 1 - ((-2 * t + 2) ** 3) / 2
 }
 
-// The application motion preference is the canonical animation gate here.
+// the application motion preference is the canonical animation gate here.
 function motionOn(): boolean {
   return typeof document !== 'undefined'
     && !document.documentElement.classList.contains('reduce-animation')
@@ -287,7 +287,7 @@ function useViewScroll(panel: RefObject<HTMLDivElement | null>) {
 
     cancelAnimationFrame(frame.current)
 
-    // Re-read the target each frame because swapping panel content changes geometry.
+    // re-read the target each frame because swapping panel content changes geometry.
     const mark = () => {
       const want = scroller.scrollTop
         + node.getBoundingClientRect().top
@@ -301,7 +301,7 @@ function useViewScroll(panel: RefObject<HTMLDivElement | null>) {
       return
     }
 
-    // Drive the transition locally so browser scroll behavior cannot cancel it.
+    // drive the transition locally so browser scroll behavior cannot cancel it.
     const from = scroller.scrollTop
     const start = performance.now()
     const step = (now: number) => {
@@ -330,21 +330,21 @@ interface StatesProps {
   onRtPdt: RtUpdHnd
   view: ModulationPanel
   onView: (view: ModulationPanel) => void
-  /** Inspectable team ordered with the current subject first. */
+  /** inspectable team ordered with the current subject first. */
   roster: ResView[]
   memberId: string | null
   onMember: (resonatorId: string) => void
-  /** Whether the loadout-hosted member selector is outside the visible board. */
+  /** whether the loadout-hosted member selector is outside the visible board. */
   seatOut: boolean
-  /** Scenario whose team the seat's edit control changes; null hides it. */
+  /** scenario whose team the seat's edit control changes; null hides it. */
   teamScenarioId: CombatScenarioId | null
-  /** Optional evaluation snapshots that enrich otherwise live analysis. */
+  /** optional evaluation snapshots that enrich otherwise live analysis. */
   activeBuild: EvaluationBuildSnapshot | null
   referenceBuild: EvaluationBuildSnapshot | null
   maximumBuild: EvaluationBuildSnapshot | null
-  /** Complete evaluation report used by the report modal. */
+  /** complete evaluation report used by the report modal. */
   report: BuildEvaluationReport | null
-  /** Detail-only report, requested and retained only while the drawer is open. */
+  /** detail-only report, requested and retained only while the drawer is open. */
   detailReport: BuildEvaluationReport | null
   detailReportReady: boolean
   detailReportLoading: boolean
@@ -372,7 +372,7 @@ function PanelSeat({
   return (
     <div className="pgs-seat" data-out={out ? 'true' : 'false'}>
       <span className="pgs-seat-rail" aria-hidden="true" />
-      <SeatStack roster={roster} memberId={memberId} onMember={onMember} hidden={!out} />
+      <MemberSelector roster={roster} memberId={memberId} onMember={onMember} hidden={!out} />
       <b className="pgs-seat-name">{seated.name}</b>
       {teamScenarioId ? <TeamEditButton scenarioId={teamScenarioId} hidden={!out} /> : null}
     </div>
@@ -455,7 +455,7 @@ export function ModulationView({
       : null,
     [memberAnalysis.simulation, runtime, view],
   )
-  // Build the nested stat graph once for consumers that need rows omitted by the flat view.
+  // build the nested stat graph once for consumers that need rows omitted by the flat view.
   const statsTree = useMemo(
     () => view === 'stats' && memberAnalysis.simulation
       ? makeStatsTree(memberAnalysis.simulation.finalStats)
@@ -499,7 +499,7 @@ export function ModulationView({
     }, REPORT_ASIDE_TRANSITION_MS)
   }
 
-  // Re-selecting the active panel still scrolls its anchor into view.
+  // re-selecting the active panel still scrolls its anchor into view.
   const takeView = (next: ModulationPanel) => {
     onView(next)
     toPanel()
@@ -665,8 +665,8 @@ export function ModulationView({
           statsTree={statsTree}
         />
       ) : view === 'damage' ? (
-        /* Keep component identity across member changes so panel-local state is
-           not reset when only the inspected subject changes. */
+        /* keep component identity across member changes and retain panel-local
+           state when the inspected subject changes. */
         <Suspense fallback={<AppLdrVrly mode="inline" text="Loading damage analysis..." />}>
           <LazyModulationDamage runtime={runtime} simulation={memberAnalysis.simulation} />
         </Suspense>
@@ -676,7 +676,7 @@ export function ModulationView({
         <div className="pgs-sections">
           {bays.map((bay) => {
             const on = bay.rows.filter((row) => row.lit && row.enabled).length
-            // Find the final active row once so the group can terminate its connector.
+            // find the final active row once so the group can terminate its connector.
             const lastLive = bay.rows.reduce(
               (found, row, index) => (row.lit && row.enabled ? index : found),
               -1,
@@ -739,7 +739,7 @@ function ForteBody({
   onRtPdt: RtUpdHnd
 }) {
   const { member, branches, dock, mode, nodesOn, nodeTotal, skillSum, skillCap } = facts
-  // Use the simulation-scoped modal so its member selection stays synchronized.
+  // the simulation-scoped modal shares member selection with this surface.
   const skillData = useSkllData()
 
   return (
@@ -767,7 +767,7 @@ function ForteBody({
           <div className="pgs-marks" aria-hidden="true">
             {ASCENSION_STOPS.map((stop) => {
               const reached = runtime.base.level >= stop
-              // Mark ascension boundaries that unlock at least one inherent skill.
+              // mark ascension boundaries that unlock at least one inherent skill.
               const gates = member?.inherentSkills?.some((skill) => skill.unlockLevel === stop)
               return (
                 <span

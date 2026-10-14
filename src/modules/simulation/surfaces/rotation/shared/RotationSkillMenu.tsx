@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Resolves live team features, groups skills and sub-hits, and
+  description: resolves live team features, groups skills and sub-hits, and
                maintains valid keyboard focus as search and hit filters change.
 */
 
@@ -60,7 +60,7 @@ export function RotationSkillMenu({
   const showSubHitsP = useAppStore((state) => state.ui.showSubHits)
   const [query, setQuery] = useState('')
   const [showHits, setShowHits] = useState(() => dfltShowSubH || showSubHitsP)
-  // Track per-skill folding overrides relative to the global hit-visibility setting.
+  // track per-skill folding overrides relative to the global hit-visibility setting.
   const [flipped, setFlipped] = useState<Set<string>>(() => new Set())
   const [shutTabs, setShutTabs] = useState<Set<string>>(() => new Set())
   const [atTab, setAtTab] = useState<SkillTabKey | null>(null)
@@ -77,7 +77,7 @@ export function RotationSkillMenu({
     [members],
   )
   const rslvSkllById = useMemo(() => {
-    // Resolve each source skill once per member for consistent visibility and labels.
+    // resolve each source skill once per member for consistent visibility and labels.
     if (!activeMember || !actRt) {
       return {}
     }
@@ -125,7 +125,7 @@ export function RotationSkillMenu({
     const grouped: Partial<Record<SkillTabKey, SkillMenuGroup[]>> = {}
     const featsBySkllI = new Map<string, SkillMenuEntry[]>()
 
-    // Group features by source skill before separating totals from sub-hits.
+    // group features by source skill before separating totals from sub-hits.
     for (const entry of entries) {
       const current = featsBySkllI.get(entry.skill.id) ?? []
       current.push(entry)
@@ -165,7 +165,7 @@ export function RotationSkillMenu({
 
   const hasSubHitEnt = useMemo(() => entries.some((entry) => entry.variant === 'subHit'), [entries])
 
-  // A sub-hit match retains its parent skill group.
+  // a sub-hit match retains its parent skill group.
   const shown = useMemo<TabGroup[]>(() => {
     const needle = query.trim().toLowerCase()
     const out: TabGroup[] = []
@@ -190,7 +190,7 @@ export function RotationSkillMenu({
   }, [grpdEnts, query])
 
   const total = shown.reduce((sum, group) => sum + group.groups.length, 0)
-  // Clear focused identity when filtering removes its node.
+  // clear focused identity when filtering removes its node.
   const atNow = shown.some((group) => group.tab === atTab) ? atTab : shown[0]?.tab ?? null
 
   const hitsOpen = (id: string) => (flipped.has(id) ? !showHits : showHits)

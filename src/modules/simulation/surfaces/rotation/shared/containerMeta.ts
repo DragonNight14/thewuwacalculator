@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Resolves authored container names, colors, ownership, and scope labels.
+  description: resolves container names, colors, source identifiers, and scope labels.
 */
 
 type RotScopeKind = 'loop' | 'repeat' | 'uptime'
@@ -11,7 +11,7 @@ const SCOPE_LABELS: Record<RotScopeKind, string> = {
   uptime: 'Uptime',
 }
 
-/** The palette that identifies flow-control loops. */
+/** the palette that identifies flow-control loops. */
 export const ROT_LOOP_COLORS: readonly string[] = [
   '#f59e0b',
   '#22c55e',
@@ -22,8 +22,8 @@ export const ROT_LOOP_COLORS: readonly string[] = [
 ]
 
 /**
- * Containers are not loop markers, so their defaults deliberately read from a
- * different family. The first two retain the page's existing teal repeat and
+ * containers are not loop markers, so their defaults deliberately read from a
+ * different family. the first two retain the page's existing teal repeat and
  * warm uptime language while later blocks still remain distinguishable.
  */
 export const ROT_BLOCK_COLORS: readonly string[] = [
@@ -100,7 +100,7 @@ function collectUsedScopeLabels(
   return used
 }
 
-/** The next automatic label for one kind of authored rotation container. */
+/** the next automatic label for one kind of authored rotation container. */
 export function makeScopeLabel(
   kind: RotScopeKind,
   labels: Iterable<string | null | undefined>,

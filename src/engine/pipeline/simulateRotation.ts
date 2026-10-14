@@ -1,8 +1,8 @@
 /*
   Author: Runor Ewhro
-  Description: runs the full feature/rotation simulation for a resonator,
+  description: runs the full feature/rotation simulation for a resonator,
                then reshapes the produced entry lists into the result object
-               the rest of the app consumes. Totalling those rows belongs to
+               the rest of the app consumes. totalling those rows belongs to
                rotationTotals.
 */
 

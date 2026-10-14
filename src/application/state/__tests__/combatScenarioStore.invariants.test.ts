@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Verifies canonical working-scenario commands and saved-snapshot boundaries.
+  description: verifies canonical working-scenario commands and saved-snapshot boundaries.
 */
 
 import { beforeEach, describe, expect, it } from 'vitest'

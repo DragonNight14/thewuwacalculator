@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Uses responsive game art while retaining the canonical source
+  description: uses responsive game art while retaining the canonical source
                for capture and falling back when a derivative is unavailable.
 */
 import { useLayoutEffect, useRef, type ImgHTMLAttributes } from 'react'

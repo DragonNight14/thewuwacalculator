@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Renders the unmatched-route fallback with canonical navigation back to the application.
+  description: renders the unmatched-route fallback with canonical navigation back to the application.
 */
 
 import { useNavX } from '@/shared/navigation/useNavX'

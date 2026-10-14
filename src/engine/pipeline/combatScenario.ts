@@ -1,8 +1,8 @@
 /*
   Author: Runor Ewhro
-  Description: Provides scenario-first preparation and evaluation entrypoints.
-               The compatibility runtime projection is confined here while
-               the remaining engine is migrated from ResRuntime ownership.
+  description: provides scenario-first preparation and evaluation entrypoints.
+               the compatibility runtime projection is confined here while
+               the remaining engine is migrated from ResRuntime state.
 */
 
 import type { CombatScenario, TeamMemberId } from '@/domain/entities/combatScenario'
@@ -38,7 +38,7 @@ export interface PreparedCombatScenario {
   selectedTargets: Readonly<Record<string, string | null>>
   numericTeam: NumericTeamState | null
   numericLaneByMemberId: Readonly<Record<TeamMemberId, number>>
-  /** Object-rich preparation retained for inspection and current UI projections. */
+  /** object-rich preparation retained for inspection and current ui projections. */
   workspace: PrepWork
 }
 
@@ -128,7 +128,7 @@ function prepareProjectedCombatScenario(
   }
 }
 
-/** Prepare the complete team using the scenario's explicit context member. */
+/** prepare the complete team using the scenario's explicit context member. */
 export function prepareCombatScenario(
   scenario: CombatScenario,
 ): PreparedCombatScenario {
@@ -136,7 +136,7 @@ export function prepareCombatScenario(
 }
 
 /**
- * Temporary active-based UI adapter. Existing Simulation surfaces receive
+ * temporary active-based ui adapter. existing simulation surfaces receive
  * member zero without changing the scenario's canonical context member.
  */
 export function prepareCombatScenarioForUi(
@@ -156,7 +156,7 @@ export function simulateCombatScenario(
   return runPrepWorkS(prepared.workspace, options)
 }
 
-/** Canonical team-shaped result; the single-result API is a UI compatibility view. */
+/** canonical team-shaped result; the single-result api is a ui compatibility view. */
 export function simulateCombatScenarioTeam(
   prepared: PreparedCombatScenario,
   options: {

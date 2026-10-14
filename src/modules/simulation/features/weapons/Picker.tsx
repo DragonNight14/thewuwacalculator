@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Filters weapons by rarity, type, text query, and recommendation
+  description: filters weapons by rarity, type, text query, and recommendation
                state before returning a selected weapon id.
 */
 

@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Projects canonical damage factors into inspectable formula rows and formatted totals.
+  description: projects canonical damage factors into inspectable formula rows and formatted totals.
 */
 
 import type { FeatureResult } from '@/domain/gameData/contracts.ts'
@@ -27,11 +27,11 @@ import { mergeSkillType } from '@/engine/resolvers/buffPool.ts'
 import { getSkillType, fmtSkllTypeL } from '@/domain/gameData/skillTypes.ts'
 import { formatTrunc, formatTruncCompact, truncTo } from '@/shared/lib/number.ts'
 
-/** The engine's factors, plus how this pane names the skill's types. */
+/** the engine's factors, plus how this pane names the skill's types. */
 type ShrdDmgCtx = DamageFactors & { skillTypeLabel: string }
 
 /*
-  A factor's role in the chain, which is what lets a readout say the difference
+  a factor's role in the chain, which is what lets a readout say the difference
   between what built the hit and what the target took back off it.
 */
 export type FactorKind = 'base' | 'up' | 'down' | 'flat'
@@ -65,22 +65,20 @@ export type DmgBreakdown = {
     lines: string[]
   }>
   /*
-    The same story as `equation`, kept in the shape it was built in rather than
-    joined into a line. A narrow readout sets it out as a column of factors; the
-    wide one keeps reading `equation`, which is why this is additive and
-    `fmtBreakdown` never looks at it.
+    structured operands from `equation` for the narrow factor list. the wide
+    view and `fmtBreakdown` use `equation`.
   */
   chain?: DmgFactor[]
-  /** what the chain lands on: 'Normal hit', 'Healing', 'Tune Break' */
+  /** result label, such as 'Normal hit', 'Healing', or 'Tune Break' */
   outLabel?: string
   outValue?: string
-  /** what happens to that figure afterwards: crit, and the crit-weighted average */
+  /** critical result and weighted average after the base figure */
   after?: Array<{ key: string; label: string; value: string; expr: string }>
 }
 
 export function fmtBreakdown(breakdown: DmgBreakdown): string {
-  // the editor-style formula viewer expects plain text with comment headers, so the structured breakdown is flattened
-  // into deterministic sections instead of rendered as nested jsx.
+  // the editor-style formula viewer expects plain text with comment headers.
+  // flatten the structured breakdown into deterministic sections.
   return [
     `// ${breakdown.title}`,
     breakdown.equation,
@@ -150,14 +148,14 @@ function nonZero(value: number, epsilon = 1e-9): boolean {
   return Math.abs(value) > epsilon
 }
 
-/* a running value wants whole numbers once it is past a thousand */
+/* display running values above one thousand as whole numbers */
 function fmtRun(value: number): string {
   return Math.abs(value) >= 1000 ? fmtInt(value) : fmtNum(value, 2)
 }
 
 /*
-  The fixed-digit enemy multipliers arrive as `80.0000%`, which spends a quarter
-  of a narrow row saying nothing. The flat text keeps its full precision; only
+  the fixed-digit enemy multipliers arrive as `80.0000%`, which spends a quarter
+  of a narrow row saying nothing. the flat text keeps its full precision; only
   what is read on screen is trimmed.
 */
 function trimZeros(text: string): string {
@@ -176,8 +174,8 @@ interface ChainStep {
 }
 
 /*
-  Folds the factors in the order the equation applies them and records what the
-  hit is worth after each one. The last running value is the entry's own damage,
+  folds the factors in the order the equation applies them and records what the
+  hit is worth after each one. the last running value is the entry's own damage,
   since it is the same arithmetic the pipeline did.
 */
 function mkChain(
@@ -290,7 +288,7 @@ function mkShrdDmgCtx(
 
   if (factors.zeroed) {
     // 100 percent base resistance is treated as immune before shred, matching the simulator's zero-damage shortcut,
-    // and the breakdown states zeros rather than the multipliers that never got applied.
+    // and the breakdown shows zero for every unapplied multiplier.
     return {
       ...factors,
       resShred: 0,
@@ -366,8 +364,7 @@ function fmtSrcDdnd(parts: Array<{ label: string; value: number }>, digits = 2):
 }
 
 /*
-  Where each modifier came from, described once. The flat lines join these and
-  the chain carries them as terms, so the two can never drift apart.
+  define modifier sources once for both flat rows and formula terms.
 */
 function modParts(finalStats: FinalStats, skill: SkillDef, shared: ShrdDmgCtx) {
   const spread = (

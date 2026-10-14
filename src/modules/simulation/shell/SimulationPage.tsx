@@ -1,7 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Mounts the Simulation surfaces and owns initialization shared by
-               every simulation route.
+  description: mounts simulation surfaces and initializes shared simulation state.
 */
 
 import { Suspense, useEffect, useRef, useState } from 'react'
@@ -11,7 +10,7 @@ import { selectedCombatScenario } from '@/domain/entities/scenarioLibrary'
 import { useResonatorData } from '@/application/hooks/useResonatorData'
 import { seedRsnt, seedRsntById } from '@/modules/simulation/features/resonator/lib/seedData.ts'
 import { ATTR_COLORS } from '@/modules/simulation/model/display'
-import { ResQBbbl } from '@/modules/simulation/shell/ResonatorQueueBubble'
+import { QueuedResonatorPicker } from '@/modules/simulation/shell/QueuedResonatorPicker'
 import { useResQStr } from '@/shared/util/resonatorQueueStore.ts'
 import { Inventory } from '@/modules/simulation/features/inventory/Inventory.tsx'
 import { SimulationProvider } from '@/modules/simulation/shell/context/SimulationContext.tsx'
@@ -60,7 +59,7 @@ export function SimulationPage() {
 function ReadySimulationPage() {
   const surface = useSimulationSurface()
   useEffect(() => () => {
-    // StrictMode's development effect replay remains on a Simulation URL.
+    // strict mode's development effect replay remains on a simulation url.
     if (!isSimulationRoute(window.location.pathname)) releaseCalculationGameData()
   }, [])
   useEffect(() => () => {
@@ -165,7 +164,7 @@ function ReadySimulationPage() {
           </Suspense>
         ) : null}
 
-        <ResQBbbl />
+        <QueuedResonatorPicker />
       </div>
       </ImportSurfaceProvider>
       </SimulationProvider>

@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Provides small immutable helpers for app-history snapshots,
+  description: provides small immutable helpers for app-history snapshots,
                stack trimming, and user-facing history labels derived from
                changed runtime or persisted domains.
 */
@@ -70,7 +70,7 @@ function atPath(value: unknown, path: readonly string[]): unknown {
   return value
 }
 
-/** The action's declared domains describe ownership; reference changes tell
+/** the action's declared domains identify affected state; reference changes tell
  * persistence which of those domains actually changed in this transaction. */
 export function changedPersistDomains(before: PersistedState, after: PersistedState, domains: PersistKey[]): PersistKey[] {
   return domains.filter((domain) => !Object.is(
@@ -91,7 +91,7 @@ function addChanges(before: unknown, after: unknown, path: (string | number)[], 
       return
     }
     const keys = new Set([...Object.keys(before), ...Object.keys(after)])
-    // Array length changes are represented by the array itself so restoration
+    // array length changes are represented by the array itself so restoration
     // cannot leave holes or an incorrect length after a remove/reorder.
     if (!Array.isArray(before) || before.length === after.length) {
       for (const key of keys) {
@@ -108,7 +108,7 @@ function addChanges(before: unknown, after: unknown, path: (string | number)[], 
   output.push({ path, before, after, beforeExists, afterExists })
 }
 
-/** Walk only changed immutable branches; unchanged lazy scenario getters stay cold. */
+/** walk only changed immutable branches; unchanged lazy scenario getters stay cold. */
 export function makeHistoryEntry(before: PersistedState, after: PersistedState, domains: PersistKey[], label: string): PrssHistEnt | null {
   const changes: PersistChange[] = []
   const roots = new Set(domains.map((domain) => DOMAIN_ROOTS[domain].join('\u0000')))
@@ -125,7 +125,7 @@ function shouldCompact(entry: PrssHistEnt): boolean {
     || (Array.isArray(change.after) && change.after.length > 32))
 }
 
-/** Owns queued compression work and the one active worker. */
+/** manages queued compression work and the active worker. */
 export class HistoryCompactor {
   private readonly queue: PrssHistEnt[] = []
   private compacting = false
@@ -228,7 +228,7 @@ function areVlsQl(left: unknown, right: unknown): boolean {
 }
 
 export function resFllbHistL(dirtyDomains: PersistKey[]): string {
-  // prefer the most user-meaningful domain bucket instead of echoing raw keys.
+  // prefer the most meaningful domain bucket for history labels.
   const domainSet = new Set(dirtyDomains)
 
   if (domainSet.has('library.echoes')) {
@@ -278,7 +278,7 @@ export function mkRtUpdHistL(
   previous: ResRuntime,
   next: ResRuntime,
 ): string {
-  // check the most visible setup areas first so history labels stay specific.
+  // check visible setup areas first for specific history labels.
   if (!areVlsQl(previous.build.echoes, next.build.echoes)) {
     return 'Updated Equipped Echoes'
   }

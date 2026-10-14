@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Recovers monolithic and versioned legacy application state
+  description: recovers monolithic and versioned legacy application state
                without treating newly introduced defaults as stored values.
 */
 
@@ -131,7 +131,7 @@ function readLegacyStateVersion(
   const draft = structuredClone(defaults) as unknown as Record<string, unknown>
   const draftUi = draft.ui as Record<string, unknown>
   const draftCalculator = draft.simulation as Record<string, unknown>
-  // Let the legacy optimizer-context slice supply its settings. Leaving the
+  // let the legacy optimizer-context slice supply its settings. leaving the
   // v27 default here would make migration mistake it for explicitly stored data.
   delete draftCalculator.optimizerSettings
   delete draft.combat

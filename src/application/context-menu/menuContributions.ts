@@ -1,7 +1,7 @@
 /*
   Author: Runor Ewhro
-  Description: Registers feature-owned context-menu factories by location and
-               resolves them lazily against the current target context.
+  description: registers context menu factories by location and resolves them
+               for the current target.
 */
 
 import type { MenuEntry } from '@/shared/ui/CtxMenu.tsx'

@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Provides the persistent chrome portal target used by route-owned tool controls.
+  description: provides the persistent chrome portal target for route tool controls.
 */
 
 import { createContext, useContext } from 'react'

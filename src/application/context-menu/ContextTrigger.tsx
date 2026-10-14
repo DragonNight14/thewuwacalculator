@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Attaches context-menu open behavior to arbitrary children,
+  description: attaches context-menu open behavior to arbitrary children,
                including right-click and long-press support.
 */
 
@@ -202,7 +202,7 @@ export function ContextTrigger({
       return
     }
 
-    // A nested target owns its hold gesture; the parent must not open another
+    // a nested target handles its hold gesture; the parent must not open another
     // menu when the same timer expires.
     if (location || getItems || items?.length) event.stopPropagation()
 

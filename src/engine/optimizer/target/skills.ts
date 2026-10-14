@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: lists valid direct optimizer targets from a runtime and prepares
+  description: lists valid direct optimizer targets from a runtime and prepares
                a specific target skill only when it remains eligible for direct
                optimizer evaluation.
 */

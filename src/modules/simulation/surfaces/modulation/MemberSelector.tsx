@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Projects an ordered team around the selected member and exposes
+  description: projects an ordered team around the selected member and exposes
                a shared member-selection control for loadout and panel hosts.
 */
 
@@ -10,7 +10,7 @@ import { ATTR_COLORS } from '@/modules/simulation/model/display.ts'
 import { withDefResMg } from '@/shared/lib/imageFallback'
 import type { CssVars } from '@/modules/simulation/workspace/ui.tsx'
 
-export function SeatStack({
+export function MemberSelector({
   roster,
   memberId,
   onMember,
@@ -19,30 +19,30 @@ export function SeatStack({
   roster: ResView[]
   memberId: string | null
   onMember: (resonatorId: string) => void
-  /** Removes an inactive duplicate from focus order and the accessibility tree. */
+  /** removes an inactive duplicate from focus order and the accessibility tree. */
   hidden?: boolean
 }) {
-  const seated = roster.find((mate) => mate.id === memberId) ?? roster[0] ?? null
-  if (!seated) return null
+  const selected = roster.find((mate) => mate.id === memberId) ?? roster[0] ?? null
+  if (!selected) return null
 
-  // Keep DOM order stable and derive each member's relative position from selection.
+  // keep dom order stable and derive each member's relative position from selection.
   const count = roster.length
-  const seatAt = roster.findIndex((mate) => mate.id === seated.id)
+  const selectedIndex = roster.findIndex((mate) => mate.id === selected.id)
   const slotOf = (index: number) => {
-    const turn = (index - seatAt + count) % count
+    const turn = (index - selectedIndex + count) % count
     return turn === 0 ? 'front' : turn === 1 ? 'right' : 'left'
   }
 
   return (
-    <span className="pgs-seat-stack"
+    <span className="pgs-member-selector"
       role="tablist"
       aria-label="Member being tuned"
       aria-hidden={hidden || undefined}
       data-solo={count === 1 ? 'true' : undefined}
-      style={{ '--seat-left': count > 2 ? 1 : 0 } as CssVars}
+      style={{ '--member-left': count > 2 ? 1 : 0 } as CssVars}
     >
       {roster.map((mate, index) => {
-        const at = mate.id === seated.id
+        const at = mate.id === selected.id
         return (
           <button
             type="button"
@@ -52,7 +52,7 @@ export function SeatStack({
             aria-label={mate.name}
             title={mate.name}
             tabIndex={hidden ? -1 : undefined}
-            className={at ? 'pgs-seat-bead is-at' : 'pgs-seat-bead'}
+            className={at ? 'pgs-member-button is-at' : 'pgs-member-button'}
             data-slot={slotOf(index)}
             style={{ '--el': ATTR_COLORS[mate.attribute] } as CssVars}
             onClick={() => { if (!at) onMember(mate.id) }}

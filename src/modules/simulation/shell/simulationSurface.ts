@@ -1,8 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Carries the simulation surface on its route's handle, so the page
-               and the chrome read the surface the router matched instead of
-               parsing the address again.
+  description: provides the matched simulation surface through the route handle.
 */
 
 import { useMatches } from 'react-router-dom'

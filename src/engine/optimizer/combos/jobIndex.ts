@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: shared combinadic indexing helpers for optimizer jobs (cpu and
+  description: shared combinadic indexing helpers for optimizer jobs (cpu and
                gpu). a job derives a combo index view and, in locked-main mode,
                an index map that excludes the locked echo from the selectable
                pool.

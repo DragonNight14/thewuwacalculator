@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Retains requested resonator bundles while a consumer is mounted
+  description: retains requested resonator bundles while a consumer is mounted
                and reports when their asynchronous data load completes.
 */
 

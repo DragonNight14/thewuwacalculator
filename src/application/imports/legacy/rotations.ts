@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Converts legacy saved rotations into the current inventory
+  description: converts legacy saved rotations into the current inventory
                rotation format used by the calculator.
 */
 
@@ -122,7 +122,7 @@ function mtchLegRotFe(
 
   const legacyTab = mapLegacyTab(typeof entry.tab === 'string' ? entry.tab : null)
   // duplicate labels are common across skill panels, so the legacy tab narrows
-  // the match before falling back to resonator-owned features.
+  // the match before checking resonator features.
   if (legacyTab) {
     const tabMatches = exactMatches.filter((candidate) => candidate.skill?.tab === legacyTab)
     if (tabMatches.length === 1) {
@@ -174,8 +174,8 @@ export function cnvrLegRotEn(
     return []
   }
 
-  // build candidates once per imported rotation so every entry resolves against
-  // the same equipped-echo snapshot.
+  // resolve all entries in an imported rotation against one equipped-echo
+  // snapshot.
   const candidates = cllcRotFeatC(resonatorId, legQppdChs)
   const nodes: RotationNode[] = []
 

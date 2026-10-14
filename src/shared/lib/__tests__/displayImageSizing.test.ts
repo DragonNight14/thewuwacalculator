@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Verifies measured derivative selection, density and transform
+  description: verifies measured derivative selection, density and transform
                updates, fallback preservation, and shared observer cleanup.
 */
 
@@ -38,7 +38,7 @@ beforeEach(() => {
     cancelAnimationFrame: clearTimeout,
     matchMedia: () => { const query = new EventTarget(); densityQueries.push(query); return query },
   })
-  // Transitions bubble from an ancestor of every test image.
+  // transitions bubble from an ancestor of every test image.
   documentEvents = Object.assign(new EventTarget(), { contains: () => true })
   vi.stubGlobal('window', windowEvents)
   vi.stubGlobal('document', documentEvents)

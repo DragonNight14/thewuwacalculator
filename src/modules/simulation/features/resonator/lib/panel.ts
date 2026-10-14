@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: pure resonator-panel helpers for labels, slider display,
+  description: pure resonator-panel helpers for labels, slider display,
                control options, and image preloading.
 */
 

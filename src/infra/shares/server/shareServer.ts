@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Worker-side anonymous share storage for compact app share links.
+  description: worker-side anonymous share storage for compact app share links.
 */
 
 export interface ShareKvNamespace {

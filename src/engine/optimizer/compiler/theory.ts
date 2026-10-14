@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: compiles theoretical optimizer payloads by keeping equipped
+  description: compiles theoretical optimizer payloads by keeping equipped
                substat profiles fixed while preparing catalog echo metadata
                and normal optimizer target or rotation contexts.
 */
@@ -145,7 +145,7 @@ function mkThryProfs(input: OptStartPay): ThryProf[] {
 }
 
 // collect catalog echo rows that can participate in theoretical set plans
-// allowed-set filtering is kept here so later generators start from the same search space.
+// apply allowed-set filtering here for a shared generator search space.
 function mkThryCats(input: OptStartPay): ThryEchoCt[] {
   const setIds = optSetIdSet(input.settings.allowedSets)
 
@@ -601,7 +601,7 @@ function mergeIds(left: TheoryRow, right: TheoryRow): void {
 
 // collapse rows that are identical for the active calculation before search.
 // this keeps irrelevant main stats and equivalent main-echo effects from
-// becoming real CPU combinations.
+// becoming real cpu combinations.
 function prnThryRows<T extends PrepTheoryTarget | PrepTheoryRot>(
     payload: T,
     rows: TheoryRow[],
@@ -661,7 +661,7 @@ function prnThryRows<T extends PrepTheoryTarget | PrepTheoryRot>(
     sourceRows[dst] = index
   }
 
-  // Allocate only the surviving numeric rows, directly in final storage.
+  // allocate only the surviving numeric rows, directly in final storage.
   const costs = new Uint8Array(outRows.length)
   const sets = new Uint8Array(outRows.length)
   const stats = optimizerFloats(outRows.length * ECHO_STAT_STRIDE)
@@ -681,7 +681,7 @@ function prnThryRows<T extends PrepTheoryTarget | PrepTheoryRot>(
 
   // walk the (dedupe-free) combo space once on this thread to derive the exact
   // count the producer will emit. cntThryEmt mirrors gnrtThryCpuCm's loop
-  // structure with no per-combo allocation, so it completes in ms and gives an
+  // structure with no per-combo allocation. it gives an
   // exact progress denominator from t=0 (countTheory only gives a looser upper
   // bound). the same slot-equivalence reps the producer uses for
   // canonicalization are passed so the count matches the emitted set.

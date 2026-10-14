@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Locks defaulting and split-layout persistence for the player
+  description: locks defaulting and split-layout persistence for the player
                identity extracted from build-card screenshots.
 */
 

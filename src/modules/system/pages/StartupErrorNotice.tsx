@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Adapts startup and root failures to the shared error notice.
+  description: adapts startup and root failures to the shared error notice.
 */
 
 import { useEffect } from 'react'

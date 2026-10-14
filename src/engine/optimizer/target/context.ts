@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: prepares a fully compiled optimizer target context for one
+  description: prepares a fully compiled optimizer target context for one
                selected skill by resolving the resonator seed, building the
                runtime combat snapshot for that skill, and translating the
                result into the packed optimizer form used by the

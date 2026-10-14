@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Evaluates a build's substats against an optimally rolled set of
+  description: evaluates a build's substats against an optimally rolled set of
                25 substats for the active target, evaluated at floor and ceiling
                roll values, while preserving the build's energy regen investment.
 */
@@ -34,7 +34,7 @@ export interface SubstatIdealEntry {
   count: number
   min: number
   max: number
-  /** Total stat value that remains useful; excludes the over-cap tail. */
+  /** total stat value that remains useful; excludes the over-cap tail. */
   target: number
 }
 
@@ -42,7 +42,7 @@ interface SubstatEvaluation {
   rows: SubstatEvaluationRow[]
   ideal: SubstatIdealEntry[]
   slots: number              // total ideal rolls actually allocated (<= 25)
-  reservedEr: number         // ER rolls preserved from the current build
+  reservedEr: number         // er rolls preserved from the current build
 }
 
 // evaluation the current build against a build wearing the optimal 25 substats
@@ -82,7 +82,7 @@ export function calcSubEvaluation(
   // ceiling are optimized independently because the best mix shifts with roll
   // size (e.g. more crit rate fits before the cap at low rolls, and energy regen
   // needs more low rolls to hit its target). energy regen earns ~0 damage, so we
-  // reserve just enough rolls at this quality to cover the build's ER first.
+  // reserve just enough rolls at this quality to cover the build's er first.
   const buildOptimal = (rollOf: (key: string) => number) => {
     const counts: Record<string, number> = {}
     const values: Record<string, number> = {}
@@ -137,8 +137,8 @@ export function calcSubEvaluation(
           low = middle
         }
       }
-      // Float32 evaluation can plateau infinitesimally below an uncapped
-      // roll. Keep normal roll ceilings exact rather than amplifying noise.
+      // float32 evaluation can plateau infinitesimally below an uncapped
+      // roll. keep normal roll ceilings exact despite rounding noise.
       if (high >= roll * 0.9999) high = roll
       counts[bestKey] = (counts[bestKey] ?? 0) + 1
       values[bestKey] = (values[bestKey] ?? 0) + high

@@ -1,20 +1,5 @@
 # Architecture
 
-## Summary
-
-This repository contains the production React and TypeScript app for *Wuthering Waves* build planning, damage simulation, rotation analysis, Suggestions, Echo image import, inventory management, and optimization.
-
-The app processes data in this order:
-
-1. route-appropriate core or scoped game data is loaded before React mounts
-2. that data becomes catalogs plus a richer executable registry, with detailed bundles loaded as their consumers need them
-3. the composed app store holds canonical state and runtime projections; focused stores own transient optimizer and inventory UI state
-4. runtime adapters convert the selected resonator, team, enemy, and controls into inputs for the engine
-5. the engine resolves effects, final stats, formulas, and rotations
-6. Suggestions and Optimizer use the same runtime data and run expensive searches in workers or through WebGPU
-
-Start here for the system overview, then use the other docs for subsystem details.
-
 See [lifecycle-owners.md](./lifecycle-owners.md) for the class boundaries around workers, caches, persistence coordination, and GPU resources.
 
 ## Runtime Boot Flow
@@ -34,7 +19,7 @@ Startup order:
 4. Source packages are combined into the shared registry. `GameDataSession` retains scoped bundles and loads additional resonator or weapon bundles when a consumer requests them.
 5. React mounts only after the selected startup scope is ready.
 6. `AppProviders` installs persistence flushing, theme sync, wallpaper sync, font sync, tooltips, context menus, and floating selection actions. Google OAuth is scoped to Calibration.
-7. `AppRoot` renders the router; `AppLayout` owns route tracking, cookie bootstrap, global hosts, the header, and the routed outlet.
+7. `AppRoot` renders the router; `AppLayout` handles route tracking, cookie bootstrap, global hosts, the header, and the routed outlet.
 
 The important constraint is that the route-appropriate core registry must exist before React mounts. Detailed resonator and weapon bundles may load later, but consumers must acquire the required scope before rendering data-dependent Simulation work.
 
@@ -48,7 +33,7 @@ Thin application orchestration:
 - shell composition
 - global providers
 
-This layer should wire systems together, not own combat rules.
+This layer configures the router, shell, and providers.
 
 ### `src/application`
 
@@ -59,7 +44,7 @@ Application-wide state and use cases:
 - navigation and context-menu contracts
 - theme, media, and integration-facing hooks
 
-This layer may coordinate domain, data, engine, and infrastructure code, but it does not render route-owned feature surfaces.
+This layer coordinates domain, data, engine, and infrastructure code; route modules render the corresponding pages.
 
 ### `src/data`
 
@@ -84,7 +69,7 @@ Durable concepts and contracts:
 - pure entities and value types
 - domain-only services
 
-This layer defines what the app means by profile, runtime, inventory entry, optimizer settings, enemy profile, and related concepts. It has no dependency on application state, catalogs, or engine execution.
+This layer defines profiles, runtimes, inventory entries, optimizer settings, enemy profiles, and related types without depending on application state, catalogs, or engine execution.
 
 ### `src/engine`
 
@@ -110,7 +95,7 @@ External integration and environment specific code:
 - analytics
 - cookies
 
-This layer should not own simulation rules. It owns platform-specific storage and external integration behavior.
+This layer handles platform-specific storage and external integration behavior.
 
 ### `src/modules`
 
@@ -122,7 +107,7 @@ Route-facing feature surfaces:
 - `calibration`
 - `system`
 
-This is where domain state and engine outputs become interactive UI.
+UI.
 
 ### `src/shared`
 
@@ -138,18 +123,17 @@ Reusable UI primitives and low level helpers:
 
 ### Responsive policy and mobile presentation
 
-`src/shared/responsive/policy.json` is the source of truth for app-wide layout
-widths, the phone capability query, and route IDs with a dedicated mobile shell.
-The responsive policy module exposes those settings to TypeScript; Vite
-substitutes the same configured widths into CSS placeholders at build time.
-Component-specific media queries remain next to the components they shape.
+`src/shared/responsive/policy.json` defines app-wide layout widths, the phone
+capability query, and route IDs with a dedicated mobile shell. The responsive
+policy module exposes those settings to TypeScript, and Vite substitutes the
+configured widths into CSS placeholders at build time. Component-specific
+media queries remain with their components.
 
-`src/shared/responsive/mobileUi.ts` owns mode resolution and temporary UI-mode
-overrides. Shared mobile presentation primitives live in
-`src/shared/ui/mobile`; feature-specific mobile components stay with their
-owning module under a `mobile/` directory. Global mobile styling is isolated
-under `src/styles/mobile`. Feature state, domain rules, and persistence stay in
-their normal shared owners; mobile components only present those contracts.
+`src/shared/responsive/mobileUi.ts` handles mode resolution and temporary UI-mode
+overrides. Shared mobile components are in `src/shared/ui/mobile`, and feature
+specific mobile components are in each module's `mobile/` directory. Global
+mobile styles are in `src/styles/mobile`. Mobile components use the existing
+feature state, domain rules, and persistence contracts.
 
 The import direction and source boundary are enforced by `npm run check:architecture`. App source cannot import files outside `src/`; app-to-module and cross-module imports must use an explicit `api/` or route `pages/` entry. The git-ignored root archives are therefore outside the app import graph.
 
@@ -164,7 +148,7 @@ Stylesheets
 - `mobile/`: global phone-only presentation; module-specific phone components live with their feature
 - `pages/`: Home, Read, Calibration and system pages
 
-`styles/index.css` imports the global layers in cascade order, and `src/index.css` only imports it. Mobile-only styles are grouped under `styles/mobile`; a few large surface sheets (the rotation editor, optimizer transport, suggestions climb, echo card and rows) are imported by their components so they load with their chunk.
+`styles/index.css` imports the global layers in cascade order, and `src/index.css` only imports it. Mobile-only styles are grouped under `styles/mobile`; a few large surface sheets load with their component chunks.
 
 Class names are short block codes (`amdl`, `pkr`, `wk`, `fcm`, `rte`) with BEM elements and modifiers (`fcm__item`, `wk-echo--empty`).
 
@@ -179,9 +163,7 @@ Primary files:
 
 Navigation groups pages under `Home > Read / Simulation`, while URLs remain flat. Home is `/`. Simulation tools are `/modulation`, `/rotation`, `/showcase`, `/optimizer`, and `/suggestions`. Read includes Guides, Docs, Changelog, Privacy, and Terms. What's New is a Home section. The header links directly to Simulation tools and puts reference pages and Calibration in the Read dropdown.
 
-Pages mount under `AppLayout`. `ChromeHeader` owns header interaction only; `AppLayout` owns global shell behavior and `GlobalHosts` owns application-wide portals and notices.
-
-Modulation, Showcase, Optimizer, and Suggestions share one persistent parameterized route and mounted workspace. Rotation has its own editor surface under the same Simulation provider.
+Pages mount under `AppLayout`; `ChromeHeader` handles header interaction, `AppLayout` handles global shell behavior, and `GlobalHosts` renders application-wide portals and notices.
 
 See [app-shell-and-routing.md](./app-shell-and-routing.md) for detail.
 
@@ -215,7 +197,7 @@ Registry layer:
 - rotations
 - skills
 
-The catalogs provide direct lookup data. The registry provides executable relationships and shared effect definitions. This is what lets the app reuse one effect system across resonators, weapons, echoes, and sets instead of hardcoding each behavior in React components.
+The catalogs provide direct lookup data. The registry provides executable relationships and shared effect definitions. Resonators, weapons, echoes, and sets use the same effect system; React components consume its results.
 
 See [game-data-and-content-pipeline.md](./game-data-and-content-pipeline.md) for detail.
 
@@ -241,7 +223,7 @@ The app distinguishes between:
 - materialized runtime state
 - transient execution state
 
-Persisted state holds durable user choices such as combat scenarios, inventory, optimizer settings, and saved UI preferences.
+Persisted state stores combat scenarios, inventory, optimizer settings, and saved UI preferences.
 
 Runtime adapters expand that into active runtime structures for the engine:
 
@@ -251,13 +233,13 @@ Runtime adapters expand that into active runtime structures for the engine:
 - team slot layout
 - derived workspace bundles
 
-The focused transient stores hold optimizer progress and results and inventory panel state. Worker lifecycle remains with its resource owners. All persisted actions still pass through the app store's domain-aware write path.
+Transient stores track optimizer progress, results, and inventory panel state; resource managers control worker lifetimes, and persisted actions use the app store's domain-specific write path.
 
-Persistence is granular by domain. The app does not rewrite one monolithic blob for every small change.
+Persistence is granular by domain.
 
 See [state-and-persistence.md](./state-and-persistence.md) for detail.
 
-## Simulation, Suggestions, And Optimizer Model
+## Simulation and Optimizer Model
 
 Primary files:
 
@@ -273,9 +255,7 @@ The shared execution model is:
 2. build a combat context for the target slot
 3. resolve effects and final stats
 4. resolve skills, rows, and rotation outputs
-5. return user facing results or feed those results into ranking systems
-
-Suggestions reuse this runtime context to score main stat layouts, set plans, and generated echoes. Main-stat and set-plan suggestion comparisons intentionally neutralize main-Echo passive bonus rows in both the candidate and baseline score so those surfaces rank only the requested change.
+5. return results to the UI or use them for ranking
 
 Optimizer extends the same model by:
 
@@ -300,7 +280,7 @@ Primary files:
 
 The production deployment is a Cloudflare Worker plus static assets from `dist`.
 
-The worker has a deliberately small responsibility surface:
+The worker handles:
 
 - serve static assets through Cloudflare assets
 - intercept `/api/exchange-code`
@@ -308,14 +288,6 @@ The worker has a deliberately small responsibility surface:
 - create and retrieve shared payloads under `/api/shares` and `/api/shares/*`
 
 OAuth uses Worker variables plus the `GOOGLE_CLIENT_SECRET` secret. Share persistence uses the production `SHARES` KV binding. Everything else falls through to the SPA asset handler.
-
-The root `scripts/` directory is git-ignored and contains local-only data maintenance workflows and private inputs. Its npm commands are available in a developer checkout that has those scripts, but the scripts themselves are not part of a clean clone. Tracked utilities under `tools/` prepare runtime assets during dev and build. The checked-in files under `public/data` are what the browser loads; their output shapes remain part of the production contract.
-
-The root `wip/` directory is also ignored. It holds experiments that are not
-part of the runtime or maintained test surface. The rotation tape prototype,
-unused team rotation catalog loader, and their generated rotation and kit
-catalogs are archived there. The supported Rotation route, editor, engine,
-defaults, and runtime game data remain tracked under `src/` and `public/data`.
 
 See [deployment-and-operations.md](./deployment-and-operations.md) for detail.
 

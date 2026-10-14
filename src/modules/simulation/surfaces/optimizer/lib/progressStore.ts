@@ -1,7 +1,7 @@
 /*
   Author: Runor Ewhro
-  Description: Provides a minimal external store for high-frequency optimizer
-               progress updates without subscribing the owning component state.
+  description: stores frequent optimizer progress updates outside component
+               state.
 */
 
 import { useSyncExternalStore } from 'react'

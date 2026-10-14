@@ -41,7 +41,7 @@ describe('compiled expression evaluator', () => {
     const scope = makeScope({ base: 4, stacks: 2 })
 
     expect(evalForm(formula, scope)).toBe(18)
-    // A second execution reuses the same compiled program and numeric stack.
+    // a second execution reuses the same compiled program and numeric stack.
     expect(evalForm(formula, scope)).toBe(18)
   })
 

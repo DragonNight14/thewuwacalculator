@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Coordinates controlled selection and grid/filter page state for
+  description: coordinates controlled selection and grid/filter page state for
                mobile picker dialogs.
 */
 

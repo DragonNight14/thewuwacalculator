@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Measures and retains inspector leader placement across scrolling and surface transitions.
+  description: measures and retains inspector leader placement across scrolling and surface transitions.
 */
 
 interface LeaderBox {
@@ -12,20 +12,20 @@ interface LeaderBox {
 interface LeaderPlacement {
 
   noteTop: number
-  /** where the pip sits on the note's edge, in the body's own content */
+  /** pip position on the note edge in body coordinates */
   pipTop: number
   pipLeft: number
 
   shown: boolean
 }
 
-/** the note keeps this much clear of the body's ends */
+/** minimum note distance from each body edge */
 const EDGE = 13
-/** and the pip stops this far inside the note's own ends */
+/** minimum pip distance from each note edge */
 const PIP_EDGE = 14
 
 const HEAD_SHARE = 0.28
-/** the pip straddles the note's left edge rather than sitting beside it */
+/** the pip straddles the note's left edge. */
 const STRADDLE = 1.6
 
 export function placeLeader({

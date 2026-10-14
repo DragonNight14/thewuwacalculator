@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Applies undoable program edits and maintains bounded undo and redo stacks.
+  description: applies undoable program edits and maintains bounded undo and redo stacks.
 */
 
 import type { RotationNode } from '@/domain/gameData/contracts.ts'
@@ -19,9 +19,9 @@ import { editorSectionsToRotation } from '@/modules/simulation/surfaces/rotation
 export interface RotationEditSnapshot {
   sections: EditorSection[]
   runsByLoopId: LoopRunSelections
-  /** This exact authored state was committed through Run at this time. */
+  /** this exact authored state was committed through run at this time. */
   lastRanAt: number | null
-  /** Cached dirty-key so undo/redo does not serialize the tree again. */
+  /** cached dirty key reused by undo and redo. */
   simulationKey?: string
 }
 
@@ -38,14 +38,14 @@ export interface RotationEditHistory {
   future: RotationEditHistoryEntry[]
 }
 
-/** Hard cap on the number of undoable edits. Unchanged nodes are shared. */
+/** hard cap on the number of undoable edits. unchanged nodes are shared. */
 export const PAGE_EDIT_HISTORY_LIMIT = 40
 
 export function emptyRotationEditHistory(): RotationEditHistory {
   return { past: [], future: [] }
 }
 
-/** The one immutable snapshot currently at the undo/redo cursor. */
+/** the one immutable snapshot currently at the undo/redo cursor. */
 export function rotationEditHistoryCursor(
   history: RotationEditHistory,
   current?: {
@@ -82,8 +82,8 @@ export function captureRotationEditSnapshot(
   lastRanAt: number | null = null,
 ): RotationEditSnapshot {
   return {
-    // Editor mutations are immutable. Share untouched projected nodes across
-    // the bounded undo stack instead of copying every stat line on every edit.
+    // editor mutations are immutable. share untouched projected nodes across
+    // the bounded undo stack.
     sections: checkinAllLoopPasses(sections),
     runsByLoopId: { ...runsByLoopId },
     lastRanAt,
@@ -102,7 +102,7 @@ export function restoreRotationEditSnapshot(
   }
 }
 
-/** Execution-equivalent presentation edits retain the last qualified run. */
+/** execution-equivalent presentation edits retain the last qualified run. */
 export function rotationEditRanAt(
   currentKey: string,
   nextKey: string,
@@ -171,8 +171,8 @@ export function redoRotationEdit(history: RotationEditHistory): {
 }
 
 /**
- * A run refreshes derived evaluation data without being an authored edit.
- * Replace the cursor snapshot so undo and redo restore the refreshed result.
+ * a run refreshes derived evaluation data without being an authored edit.
+ * replace the cursor snapshot so undo and redo restore the refreshed result.
  */
 export function refreshRotationHistoryCursor(
   history: RotationEditHistory,
@@ -193,9 +193,9 @@ export function refreshRotationHistoryCursor(
   return { past, future }
 }
 
-/* Section ownership is authored execution state: preamble nodes are prepared
-   before the main sequence. Only fields that cannot change execution belong
-   here, otherwise a cross-section drag never arms Run. */
+/* section placement affects authored execution state: preamble nodes are prepared
+   before the main sequence. only fields that cannot change execution belong
+   here, otherwise a cross-section drag never arms run. */
 const NON_EXECUTABLE_FIELDS = new Set(['label', 'color'])
 
 function withoutPresentationNode(node: RotationNode): RotationNode {
@@ -313,8 +313,8 @@ function executableItems(
 }
 
 /**
- * Serialize the canonical engine program while excluding projection-only
- * metadata. Equality of this output defines the authored dirty boundary.
+ * serialize the canonical engine program while excluding projection-only
+ * metadata. equality of this output defines the authored dirty boundary.
  */
 export function rotationSimulationKey(
   sections: EditorSection[],
@@ -324,7 +324,7 @@ export function rotationSimulationKey(
   return JSON.stringify(executableItems(sections, originalItems, options))
 }
 
-/* A serialization that does not depend on the order the fields were written
+/* a serialization that does not depend on the order the fields were written
    in, so two nodes assembled by different paths still compare as one value. */
 function stableSignature(value: unknown): string {
   if (Array.isArray(value)) {
@@ -341,10 +341,9 @@ function stableSignature(value: unknown): string {
 }
 
 /*
-  A node is signed for what it is, not for what it holds: the bodies a
-  container carries are signed as themselves and looked up under their own ids.
-  So an edit inside a loop marks the row it happened on rather than lighting
-  the whole block around it. What a step carries stays part of the step, since
+  sign each node independently of its contents. sign container bodies by their
+  own ids and look them up separately.
+  an edit inside a loop marks its own row. attachments stay part of their step;
   an attachment is drawn inside its parent's row and has none of its own.
 */
 function signExecutableNodes(
@@ -372,7 +371,7 @@ function signExecutableNodes(
 }
 
 /**
- * `rotationSimulationKey` read one node at a time. Both sides of a comparison
+ * `rotationSimulationKey` read one node at a time. both sides of a comparison
  * have to be signed by this function for the two to mean the same thing, which
  * is why the last run's signatures are taken when its baseline is taken.
  */
@@ -387,10 +386,10 @@ export function rotationNodeSignatures(
 }
 
 /**
- * The nodes the last run either never saw, or saw as something else. Which
+ * the nodes the last run either never saw, or saw as something else. which
  * section a node executes in is part of what it is, so moving one across the
  * preamble boundary marks it; reordering inside a section does not, and a
- * deleted node has no row left to mark. Both of those still arm Run, which is
+ * deleted node has no row left to mark. both of those still arm run, which is
  * why the band's pending count is taken from the tree, not from these marks.
  */
 export function rotationStaleNodeIds(

@@ -6,7 +6,7 @@ import { normalizeEchoIcons } from './normalizeEchoIcons.mjs'
 import { buildSourceManifest } from './buildSourceManifest.mjs'
 import { buildWeaponCoreCatalog } from './buildWeaponCoreCatalog.mjs'
 
-// Worker calculations need control/trace semantics, not skill prose or tables.
+// worker calculations need control/trace semantics, not skill prose or tables.
 function runtimeDetails(detail) {
   if (!detail) return null
   const stripped = JSON.parse(JSON.stringify(detail, (key, value) =>

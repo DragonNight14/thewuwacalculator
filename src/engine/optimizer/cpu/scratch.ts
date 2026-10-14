@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: allocates reusable cpu-side scratch buffers for combo
+  description: allocates reusable cpu-side scratch buffers for combo
                evaluation so the optimizer can avoid per-iteration
                allocations during tight loops.
 */

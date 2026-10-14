@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: protects the generated beta Unison sonata effects, including
+  description: protects the generated beta unison sonata effects, including
                their self, incoming-resonator, and team-wide scopes.
 */
 

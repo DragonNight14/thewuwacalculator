@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Shares bounded image decoding across callers. Cancellation drops
+  description: shares bounded image decoding across callers. cancellation drops
                queued work without aborting downloads another caller still needs.
 */
 const warmed = new Set<string>()

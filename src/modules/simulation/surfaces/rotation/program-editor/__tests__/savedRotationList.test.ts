@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Verifies the savedRotationList.test behavior and its compatibility invariants.
+  description: verifies the savedRotationList.test behavior and its compatibility invariants.
 */
 
 import { describe, expect, it } from 'vitest'
@@ -94,7 +94,7 @@ describe('saved rotation list', () => {
       .toEqual([['first', 400, 0.4], ['second', 200, 0.25]])
   })
 
-  it('finds a rotation by any contributing resonator, not only its lead', () => {
+  it('finds a rotation by any contributing resonator', () => {
     const rotations = [entry({
       id: 'team',
       name: 'Opening sequence',
@@ -261,14 +261,13 @@ describe('saved rotation list', () => {
     ])
 
     const ranks = rankSavedEntries(rows)
-    /* the live take prints the rank it would take, and the take under it keeps
-       the rank it already has rather than being pushed down by a preview */
+    /* the live take shows its projected rank. saved takes retain their ranks. */
     expect(ranks.get('best')).toBe(1)
     expect(ranks.get('live-rotation:a')).toBe(2)
     expect(ranks.get('worst')).toBe(2)
   })
 
-  it('places a bank by the work kept in it, not by the live take standing in it', () => {
+  it('orders a bank by its saved work', () => {
     const rows = makeSavedEntries([
       entry({
         id: 'live-rotation:a',
@@ -292,8 +291,7 @@ describe('saved rotation list', () => {
 
     const groups = groupSavedEntries(rows)
 
-    /* b's bank holds better saved work than a's, so it leads, even though a's
-       bank is the one the unsaved 500 is standing in */
+    /* bank order follows saved work; b leads despite a's higher live preview. */
     expect(groups.map((group) => group.lead.id)).toEqual(['b', 'a'])
     expect(groups.find((group) => group.lead.id === 'a')?.best).toBe(100)
   })

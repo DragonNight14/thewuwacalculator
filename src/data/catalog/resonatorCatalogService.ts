@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Provides resonator catalog lookup helpers by combining seed,
+  description: provides resonator catalog lookup helpers by combining seed,
                generated detail, and game data registry information.
 */
 

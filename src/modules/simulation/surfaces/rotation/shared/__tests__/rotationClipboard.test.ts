@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Verifies the rotationClipboard.test behavior and its compatibility invariants.
+  description: verifies the rotationClipboard.test behavior and its compatibility invariants.
 */
 
 import { describe, expect, it } from 'vitest'

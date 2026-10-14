@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Coordinates resonator selection, existing-profile activation, and new-profile creation.
+  description: coordinates resonator selection, existing-profile activation, and new-profile creation.
 */
 
 import { useCallback } from 'react'
@@ -12,7 +12,7 @@ import { ResPckr } from '@/modules/simulation/features/resonator/Picker.tsx'
 import { mainPortal } from '@/shared/lib/portalTarget'
 import { useAppModal } from '@/shared/ui/useAppModal.ts'
 
-export function useRosterAdd(): {
+export function useAdd(): {
   open: () => void
   portal: ReactNode
 } {

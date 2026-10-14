@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Registers route-owned chrome stamp actions and restores the previous registration on cleanup.
+  description: registers chrome stamp actions for each route and restores the previous registration on cleanup.
 */
 
 import { useOutletContext } from 'react-router-dom'

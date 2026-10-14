@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: evaluates one target-mode optimizer combo on the cpu by
+  description: evaluates one target-mode optimizer combo on the cpu by
                aggregating echo stats, applying set effects, testing each
                valid main-echo choice, and returning the best passing result.
 */
@@ -157,7 +157,7 @@ interface PrepTgtCpuCt {
   aux0: number
 }
 
-// cache parsed contexts so repeated combo checks do not keep unpacking the same buffer
+// cache parsed contexts across repeated combo checks.
 const prsdCtxCch = new WeakMap<Float32Array, PrepTgtCpuCt>()
 
 // select the matching elemental bonus bucket from base stats + set bonus
@@ -303,7 +303,7 @@ export function mkCmbBaseStt(
       continue
     }
 
-    // use kind ids so duplicates of the same echo do not overcount set pieces
+    // kind ids deduplicate identical echoes in set-piece counts.
     const bit = (1 << (kinds[echoIndex] & 31)) >>> 0
     const prevMask = setMasks[setId] >>> 0
     const nextMask = (prevMask | bit) >>> 0
@@ -433,7 +433,7 @@ export function evalTgtCpuCmPrepped(options: {
     bonus += mainEchoBuffs[mainBase + MAIN_ECHO_SKILL] * ((prepared.skillMask >>> 6) & 1)
     bonus += mainEchoBuffs[mainBase + MAIN_COORD] * ((prepared.skillMask >>> 7) & 1)
     // generic top_stat dmgBonus (e.g. set effects or conditional echo passives
-    // that grant +N% damage regardless of skill type or element)
+    // that grant +n% damage regardless of skill type or element)
     bonus += mainEchoBuffs[mainBase + MAIN_DMG_BNS]
 
     const dmgBonus =
@@ -648,7 +648,7 @@ export function evalTgtCpuCm(options: {
   return result
 }
 
-// compose W full packed contexts from a shared base context and the per-weapon
+// compose w full packed contexts from a shared base context and the per-weapon
 // stat overlays. only WEAPON_OVERLAY_SLOTS differ per weapon; everything else
 // (set mask, scaling, enemy, archetype, meta) is weapon-invariant and copied
 // from base. built once per run, then reused across every combo.
@@ -680,8 +680,8 @@ export function composeOneWeaponContext(
 }
 
 // evaluate one combo against every weapon context and keep the best, returning
-// the winning weapon index alongside damage + main echo. the CPU reference for
-// the GPU max-over-weapons reduction.
+// the winning weapon index alongside damage + main echo. the cpu reference for
+// the gpu max-over-weapons reduction.
 export function evalTgtCpuCmWeapons(options: {
   weaponContexts: Float32Array[]
   stats: Float32Array

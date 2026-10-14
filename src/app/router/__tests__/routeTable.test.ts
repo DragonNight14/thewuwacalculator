@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Protects the simulation layout: every surface resolves through
+  description: protects the simulation layout: every surface resolves through
                one shared route, so moving between them never remounts the page.
 */
 
@@ -23,7 +23,7 @@ describe('simulation route layout', () => {
     }
   })
 
-  it('holds every surface under one layout route', () => {
+  it('nests every surface under one layout route', () => {
     const layouts = new Set(SIMULATION_SURFACE_IDS.map((surface) => (
       matched(SIMULATION_SURFACES[surface].path).at(-2)?.route
     )))

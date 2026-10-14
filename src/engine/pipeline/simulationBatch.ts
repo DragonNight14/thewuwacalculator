@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Keyed batch scheduling for independent simulations. Callers
+  description: keyed batch scheduling for independent simulations. callers
                provide immutable structural keys, allowing exact result reuse,
                in-flight de-duplication, and worker-backed executors later.
 */
@@ -17,7 +17,7 @@ export interface SimulationBatchOptions<T> {
 }
 
 export interface SimulationBatchRunnerOptions {
-  /** Disable only when execution already crosses an asynchronous boundary. */
+  /** disable only when execution already crosses an asynchronous boundary. */
   yieldBeforeExecute?: boolean
 }
 
@@ -26,9 +26,9 @@ function yieldToHost(): Promise<void> {
 }
 
 /**
- * Stable compact fingerprint for plain simulation inputs. The old
+ * stable compact fingerprint for plain simulation inputs. the old
  * implementation rebuilt every object with sorted keys and retained the full
- * JSON text as a cache key. Streaming tokens into two independent 32-bit
+ * json text as a cache key. streaming tokens into two independent 32-bit
  * accumulators keeps key memory constant while preserving structural ordering.
  */
 export function stableSimulationKey(value: unknown): string {
@@ -145,7 +145,7 @@ export class SimulationBatchRunner<TInput, TOutput> {
         cursor += 1
         if (!job) break
 
-        // Synchronous engines need a paint/input boundary between jobs. A
+        // synchronous engines need a paint/input boundary between jobs. a
         // worker-backed executor is already off-thread and must not pay for a
         // clamped host timer before every message.
         if (this.yieldBeforeExecute) await yieldToHost()

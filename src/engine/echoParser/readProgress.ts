@@ -1,7 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Describes what a build-card read is doing while it runs, so the
-               import surface can report real progress instead of a spinner.
+  description: reports build-card reading progress to the import surface.
 */
 
 export type ReadStage = 'catalog' | 'worker' | 'slots' | 'head' | 'match'
@@ -38,7 +37,7 @@ export const STAGE_SHARE: Record<ReadStage, number> = {
 
 const STAGE_ORDER: ReadStage[] = ['catalog', 'worker', 'slots', 'head', 'match']
 
-// monotonic 0..1 estimate, so the meter never walks backwards between stages
+// monotonic 0..1 estimate, so the meter never decreases between stages
 export function getReadFraction({ stage, done, total }: ReadProgress): number {
   let base = 0
   for (const key of STAGE_ORDER) {

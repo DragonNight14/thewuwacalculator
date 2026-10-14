@@ -1,9 +1,8 @@
 /*
   Author: Runor Ewhro
-  Description: Watches the address bar for an incoming share link (remote token
-               or local fragment) and routes it through the import surface so it
-               opens the import confirmation modal instead of applying silently.
-               Clears the share params once handed off so a refresh won't repeat.
+  description: routes incoming share links (remote tokens or local fragments)
+               from the address bar to the import confirmation modal. clears
+               the share params after handoff; each link imports once.
 */
 
 import { useEffect, useRef } from 'react'

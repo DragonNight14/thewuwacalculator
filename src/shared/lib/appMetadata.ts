@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Centralizes small app/catalog version labels used in exported
+  description: centralizes small app/catalog version labels used in exported
                and locally persisted community-facing data.
 */
 

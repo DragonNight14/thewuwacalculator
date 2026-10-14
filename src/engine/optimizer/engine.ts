@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Orchestrates optimizer compilation, packed CPU execution,
+  description: orchestrates optimizer compilation, packed cpu execution,
                main-candidate collection, and final result materialization.
 */
 
@@ -38,7 +38,7 @@ interface OptRunHks {
 type InvPrepPay = Extract<PrepOptPay, { mode: 'targetSkill' | 'rotation' }>
 type ThryPrepPay = PrepTheoryTarget | PrepTheoryRot
 
-// convert a prepared payload into the packed CPU execution shape
+// convert a prepared payload into the packed cpu execution shape
 // expected by the concrete search routines.
 function mkCpuXctnPay(payload: InvPrepPay): PckdOptXctnP {
   return payload.mode === 'rotation'

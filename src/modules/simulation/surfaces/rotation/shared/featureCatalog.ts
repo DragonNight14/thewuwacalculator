@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: resolves rotation feature nodes back to catalog skill metadata.
+  description: resolves rotation feature nodes back to catalog skill metadata.
 */
 
 import type { DataSrcRef, FeatDef, RotationNode } from '@/domain/gameData/contracts.ts'

@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Builds searchable guide navigation, deep-link resolution,
+  description: builds searchable guide navigation, deep-link resolution,
                chapter selection, active-section tracking, and authored block
                rendering from the guide content catalog.
 */
@@ -853,14 +853,14 @@ function ChptRdr({
     return () => window.removeEventListener('keydown', handler)
   }, [onClose])
 
-  // Defer anchor resolution until the selected chapter has committed its measurements.
+  // defer anchor resolution until the selected chapter has committed its measurements.
   useEffect(() => {
     const container = containerRef.current
     if (!container) return
     const scroller = container.closest<HTMLElement>('.page')
     if (!scroller) return
 
-    // A section anchor is more specific than its containing article anchor.
+    // a section anchor is more specific than its containing article anchor.
     const sctnTgt = initSctnNchr
       ? container.querySelector<HTMLElement>(`#${CSS.escape(initSctnNchr)}`)
       : null
@@ -897,7 +897,7 @@ function ChptRdr({
 
     const observer = new IntersectionObserver(
       (entries) => {
-      // Select the topmost intersecting section as the active anchor.
+      // select the topmost intersecting section as the active anchor.
         const visible = entries
           .filter((entry) => entry.isIntersecting)
           .sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top)
@@ -1075,7 +1075,7 @@ function GuideSearch({ onSelectHit }: { onSelectHit: (hit: GdSrchHit) => void })
       event.preventDefault()
       const input = inputRef.current
       if (!input) return
-      // Suppress implicit focus scrolling because this handler owns the scroll target.
+      // suppress implicit focus scrolling because this handler sets the scroll target.
       input.focus({ preventScroll: true })
       input.select()
       const field = rootRef.current ?? input
@@ -1499,7 +1499,7 @@ export function GuidesPage() {
     })
   }, [])
 
-  // Initial URL state is consumed lazily; this effect handles later deep-link changes.
+  // initial url state is consumed lazily; this effect handles later deep-link changes.
   useEffect(() => {
     const key = `${location.search}::${location.hash}`
     const isFirstRun = lastLctnKeyR.current === null

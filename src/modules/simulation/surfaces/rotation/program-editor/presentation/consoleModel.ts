@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Projects executed trace rows into container, handoff, and runtime-state console tracks.
+  description: projects executed trace rows into container, handoff, and runtime-state console tracks.
 */
 
 import { ATTR_COLORS } from '@/domain/gameData/attributeDisplay.ts'
@@ -38,7 +38,7 @@ export interface RcnNode {
   key: string
   /** the authored node behind this execution, which is what a pick selects */
   id: string
-  /** the exact execution a pick asks for, passes included */
+  /** the exact execution selected, passes included */
   target: FlatRowTarget
 
   i: number
@@ -69,9 +69,8 @@ interface RcnFieldSpan {
 }
 
 /**
- * One container over one pass. A loop of four passes leaves four of these
- * side by side rather than a single span wearing a multiplier, which is the
- * whole point: the console draws what ran, so a pass is a place on the ruler.
+ * one container for one executed pass. four loop passes occupy four separate
+ * places on the console ruler.
  */
 export interface RcnBand {
   key: string
@@ -93,7 +92,7 @@ export interface RcnBand {
 
 /** where a container opens, turns over to its next pass, or closes */
 export interface RcnSeam {
-  /** the column this edge sits to the left of; `count` is the far right edge */
+  /** column after this edge; `count` is the rightmost edge */
   i: number
   kind: 'edge' | 'pass'
   depth: number
@@ -126,7 +125,7 @@ export interface RcnModel {
 
   peak: number
   total: number
-  /** a container ran more than once, so the ruler carries repeated passes */
+  /** a container ran more than once, so the ruler displays repeated passes */
   repeated: boolean
 }
 
@@ -147,8 +146,7 @@ const GLYPH_BY_TYPE: Record<string, RcnGlyph> = {
   tuneRupture: 'tune',
 }
 
-/* a step carries the display label rather than the key it came from, so the
-   lookup is built from the same table the label was printed out of */
+/* steps carry display labels. build this lookup from the label source table. */
 const GLYPH_BY_LABEL = new Map<string, RcnGlyph>(
   Object.entries(GLYPH_BY_TYPE).map(([key, glyph]) => [
     skllTypeDspl[key]?.short ?? skllTypeDspl[key]?.label ?? key,
@@ -168,7 +166,7 @@ function parseState(raw: string | undefined): { v: number; bool: boolean } {
 }
 
 /**
- * Authored container colors keyed by trace identity. Loop passes share their
+ * authored container colors keyed by trace identity. loop passes share their
  * loop id; all other containers use their node id.
  */
 function rcnBandColors(
@@ -191,9 +189,9 @@ interface StateDraft extends RcnStateTrack {
 }
 
 /**
- * Sections the trace by the containers it ran inside. A band closes the moment
- * the chain below it changes, so re-entering the same loop on its next pass
- * opens a new band rather than extending the old one.
+ * sections the trace by the containers it ran inside. a band closes the moment
+ * the chain below it changes. re-entering the loop on its next pass opens a
+ * new band.
  */
 function bandsOf(
   rows: readonly FlatRow[],

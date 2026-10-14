@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Discovers evaluation echo, main-stat, Sonata, and main-Echo candidates.
+  description: discovers evaluation echo, main-stat, sonata, and main-echo candidates.
 */
 import type { EchoInstance } from '@/domain/entities/runtime';
 import type { SkillTypeKey } from '@/domain/entities/stats';
@@ -190,8 +190,8 @@ export function mainBuffDominates(left: Float32Array, right: Float32Array): bool
   return strictlyBetter
 }
 
-// Fixtures and dominance depend on the profile catalog, not on the thousands
-// of set/cost plans visited by an anchor search. Prepare them once per search.
+// fixtures and dominance depend on the profile catalog, not on the thousands
+// of set/cost plans visited by an anchor search. prepare them once per search.
 export function prepareMainEchoChoices(
   profiles: MainEchoProfile[],
   requiredMainEchoId: string | null = null,
@@ -456,11 +456,11 @@ export function makeStatContributions(
     .sort((left, right) => right.damage - left.damage || right.total - left.total)
 }
 
-// Yields one candidate per legal main-stat assignment. Each candidate's
-// `stats` / `primaryStats` / `mainCounts` ALIAS the live recursion buffers and
+// yields one candidate per legal main-stat assignment. each candidate's
+// `stats` / `primaryStats` / `mainCounts` alias the live recursion buffers and
 // are only valid for the duration of that iteration: the consumer reads what it
 // needs synchronously and deep-copies on a new best (see `consider` in
-// search.ts). Streaming this keeps peak memory at O(one candidate) and avoids a
+// search.ts). streaming this keeps peak memory at o(one candidate) and avoids a
 // per-candidate Float32Array slice for the (vast majority of) candidates that
 // never become the running best.
 export function* enumerateMainStatCandidates(
@@ -555,9 +555,9 @@ export function findUsefulStatImpacts(
   const fullDamage = frame.score(probe, frame.sets)
   const epsilon = Math.max(0.000001, Math.abs(fullDamage) * 1e-9)
   const impacts: Array<{ key: string; impact: number }> = []
-  // Reuse one scratch buffer across probe keys instead of allocating a fresh
-  // `probe.slice()` per key (~20 throwaway Float32Arrays/frame x ~4500 frames).
-  // `scratch.set(probe)` reproduces the bytes of `probe.slice()` exactly, so the
+  // reuse one scratch buffer across probe keys. a slice per key would allocate
+  // about 20 Float32Arrays per frame across roughly 4500 frames.
+  // `scratch.set(probe)` reproduces the bytes of `probe.slice()` exactly. the
   // resulting useful impact list is byte-identical to the per-key-allocation
   // version before normalization.
   const scratch = new Float32Array(probe.length)

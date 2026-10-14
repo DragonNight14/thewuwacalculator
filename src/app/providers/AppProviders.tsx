@@ -1,11 +1,11 @@
 /*
   Author: Runor Ewhro
-  Description: Composes application-wide router, error, SEO, store-bootstrap, and interaction providers.
+  description: composes application-wide router, error, seo, store-bootstrap, and interaction providers.
 */
 
 /*
-  Author      : Runor Ewhro
-  Description : Wraps the application in global providers and manages
+  author      : runor ewhro
+  description : wraps the application in global providers and manages
                 debounced persistence flushing and global providers.
 */
 import { useEffect } from 'react'

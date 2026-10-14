@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Builds reference-keyed signature indexes for saved Echo and build
+  description: builds reference-keyed signature indexes for saved echo and build
                membership checks without rescanning unchanged libraries.
 */
 

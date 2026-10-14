@@ -1,7 +1,7 @@
 /*
   Author: Runor Ewhro
-  Description: Stores Sonata set-conditional disabled overrides used by
-               Suggestions and Optimizer.
+  description: stores sonata set-conditional disabled overrides used by
+               suggestions and optimizer.
 */
 
 export interface OvrSntSetCo {

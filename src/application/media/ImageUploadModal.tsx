@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Resolves image links or uploads with scaling and storage-mode
+  description: resolves image links or uploads with scaling and storage-mode
                selection, then commits successful upload preferences on close.
 */
 
@@ -30,14 +30,14 @@ const MODE_COPY: Record<UploadMode, { label: string; blurb: string }> = {
 
 type ScaleKey = 'recommended' | 'compact' | 'original'
 
-// Default compression caps the longest edge; `original` bypasses scaling.
+// default compression caps the longest edge; `original` bypasses scaling.
 const SCALE_COPY: Record<ScaleKey, { label: string; sub: string; maxEdge: number | null }> = {
   recommended: { label: 'Recommended', sub: '2048px', maxEdge: 2048 },
   compact: { label: 'Compact', sub: '1280px', maxEdge: 1280 },
   original: { label: 'Original', sub: 'Full size', maxEdge: null },
 }
 
-// Key the body by open cycle to initialize form state without effect-driven reset.
+// key the body by open cycle to initialize form state without effect-driven reset.
 export function ImageUploadModal({ state, title = 'Add image', initialCredit = '', onClose, onApply }: ImageUploadModalProps) {
   return (
     <AppModal state={state} ariaLabel={title} onClose={onClose}>
@@ -250,7 +250,7 @@ function UploadBody({ title, initialCredit, onClose, onApply }: { title: string;
               No built-in uploader because Imgur stopped handing out new API keys; no keyless host like
               Catbox because browsers block direct uploads to it (it'd need a server) and it's a fragile
               one-person service; and no shared app key because everyone would share one rate limit,
-              it invites abuse, and your images would sit on someone else's account instead of yours.
+              invite abuse, and place your images under a shared account.
             </p>
           </Expandable>
         ) : null}

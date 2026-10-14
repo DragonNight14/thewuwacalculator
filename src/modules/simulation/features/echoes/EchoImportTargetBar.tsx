@@ -1,7 +1,7 @@
 /*
   Author: Runor Ewhro
-  Description: Displays standalone context builds and active-team instances as
-               separate import destinations. The same resonator can appear in
+  description: displays standalone context builds and active-team instances as
+               separate import destinations. the same resonator can appear in
                both groups without collapsing its two runtimes together.
 */
 

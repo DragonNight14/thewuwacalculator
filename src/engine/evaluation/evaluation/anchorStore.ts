@@ -1,18 +1,18 @@
 /*
   Author: Runor Ewhro
-  Description: Caches and invalidates evaluation anchors by catalog, scenario, and scoring identity.
+  description: caches and invalidates evaluation anchors by catalog, scenario, and scoring identity.
 */
 import type { EvaluationAnchors } from './search.ts'
 
 const DB_NAME = 'wuwa-evaluation'
 const STORE_NAME = 'anchors'
 const DB_VERSION = 1
-// Persisted anchors encode scoring-engine and generated-data assumptions that
-// are not fully represented by a user's runtime. Bump this whenever those
+// persisted anchors encode scoring-engine and generated-data assumptions that
+// are not fully represented by a user's runtime. bump this whenever those
 // assumptions change so an older bundle cannot grade a current build.
 export const EVALUATION_ANCHOR_CACHE_REVISION = 5
-// Anchor bundles contain compact scoring inputs. Keep persistence bounded too;
-// the in-memory LRU remains the hot path and a miss is preferable to retaining
+// anchor bundles contain compact scoring inputs. keep persistence bounded too;
+// the in-memory lru remains the hot path and a miss is preferable to retaining
 // an unbounded catalog of stale reports on disk.
 const MAX_STORED_ANCHORS = 16
 const MAX_HYDRATED_ANCHORS = 2
@@ -74,7 +74,7 @@ export function selectCurrentAnchorEntries(
     .map((row) => [row.key, row.anchors])
 }
 
-// Cursor through persisted entries one at a time. getAll() materialized every
+// cursor through persisted entries one at a time. getAll() materialized every
 // large anchor bundle together, even though the worker retains only two.
 export async function loadPersistedAnchors(): Promise<Array<[string, EvaluationAnchors]>> {
   const db = await openDb()
@@ -104,8 +104,8 @@ export async function loadPersistedAnchors(): Promise<Array<[string, EvaluationA
   })
 }
 
-// Fire-and-forget write-through. Stores the bundle and prunes the oldest entries
-// beyond the cap, all in one transaction. Failures are swallowed because the in-memory
+// fire-and-forget write-through. stores the bundle and prunes the oldest entries
+// beyond the cap, all in one transaction. failures are swallowed because the in-memory
 // cache is the source of truth; persistence is a best-effort accelerator.
 export function persistAnchor(key: string, anchors: EvaluationAnchors): void {
   void openDb().then((db) => {

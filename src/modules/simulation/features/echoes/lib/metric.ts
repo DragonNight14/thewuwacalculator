@@ -1,7 +1,7 @@
 /*
   Author: Runor Ewhro
-  Description: Calculates Echo crit value, normalizes grade scales, and maps
-               scores to shared tier metadata and CSS classes.
+  description: calculates echo crit value, normalizes grade scales, and maps
+               scores to shared tier metadata and css classes.
 */
 
 import type { EchoInstance } from '@/domain/entities/runtime'
@@ -40,7 +40,7 @@ function clamp(value: number, min: number, max: number): number {
   return Math.min(max, Math.max(min, value))
 }
 
-// Repeatedly halve scores above 100 before tier lookup; for example, 150 maps to 75.
+// repeatedly halve scores above 100 before tier lookup; for example, 150 maps to 75.
 function fldToScale(value: number): number {
   let folded = Number.isFinite(value) ? value : 0
   while (folded > 100) folded /= 2
@@ -64,7 +64,7 @@ export function cmptEchoCrit(substats: Record<string, number>): number {
   return (substats.critRate ?? 0) * 2 + (substats.critDmg ?? 0)
 }
 
-// Crit value across an echo's full crit contribution: substats plus any crit
+// crit value across an echo's full crit contribution: substats plus any crit
 // rolled on the primary/secondary main stats.
 export function cmptEchoCritAll(echo: EchoInstance): number {
   let critRate = echo.substats.critRate ?? 0
@@ -93,7 +93,7 @@ export function getCvToneColor(cv: number, maxCv = MAX_CV): string {
   return SCORE_TONE_COLORS[getCvTone(cv, maxCv)]
 }
 
-// Remove a 44-CV main-stat allowance for up to two four-cost Echoes, then
+// remove a 44-cv main-stat allowance for up to two four-cost echoes, then
 // average the remaining crit contribution across the five-slot loadout.
 export function cmptBldCritGr(echoes: Array<EchoInstance | null>): number {
   let cv = 0

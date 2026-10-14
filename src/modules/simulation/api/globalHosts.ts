@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Exposes route-level Simulation hosts through a stable module boundary.
+  description: exposes route-level simulation hosts through a stable module boundary.
 */
 
 export { EchoImportHost } from '../features/echoes/EchoImportHost'

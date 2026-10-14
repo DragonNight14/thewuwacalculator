@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: The app select: an underline field with a chevron with portal-mounted options,
+  description: the app select: an underline field with a chevron with portal-mounted options,
                keyboard navigation, and grouped option support.
 */
 

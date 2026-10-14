@@ -1,13 +1,13 @@
 /*
   Author: Runor Ewhro
-  Description: Encodes and decodes persisted domains while retaining the
+  description: encodes and decodes persisted domains while retaining the
                established compressed-record prefix.
 */
 
 import { compressToUTF16, decompressFromUTF16 } from 'lz-string'
 import type { PersistKey } from './storage'
 
-/** Existing on-disk prefix shared by saved rotations and scenario records. */
+/** existing on-disk prefix shared by saved rotations and scenario records. */
 export const COMPRESSED_ROTATIONS_PREFIX = 'wwcalc-lz1:'
 
 export function encodePersistedDomain(key: PersistKey, value: unknown): string {

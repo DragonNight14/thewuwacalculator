@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Applies immutable scenario replacement, identifier allocation,
+  description: applies immutable scenario replacement, identifier allocation,
                and selection updates to application state.
 */
 

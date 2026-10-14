@@ -1,7 +1,7 @@
 /*
   Author: Runor Ewhro
-  Description: Guards generated character stat-weight catalog coverage and the
-               ER, healer, and current live/beta utility contracts.
+  description: guards generated character stat-weight catalog coverage and the
+               er, healer, and current live/beta utility contracts.
 */
 
 import { describe, expect, it } from 'vitest'

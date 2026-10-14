@@ -1,12 +1,12 @@
 /*
   Author: Runor Ewhro
-  Description: Builds insertion-order-independent signatures for generated
-               Echo loadouts and retains the first result for each unique build.
+  description: builds insertion-order-independent signatures for generated
+               echo loadouts and retains the first result for each unique build.
 */
 
 import type { RandGenEcho } from './echoSetBuilder'
 
-// Sorting makes signatures independent of object insertion order.
+// sorting makes signatures independent of object insertion order.
 function fmtStatEnts(stats: Record<string, number>): string {
   return Object.keys(stats)
       .sort()

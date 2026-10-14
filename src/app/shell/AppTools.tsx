@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Exposes global Simulation inventory and enemy actions through persistent application chrome.
+  description: exposes global simulation inventory and enemy actions through persistent application chrome.
 */
 
 import { DisplayImage } from '@/shared/ui/DisplayImage'

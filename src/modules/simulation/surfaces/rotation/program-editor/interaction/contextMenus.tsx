@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Builds rotation-editor context actions for authored nodes, executed rows, and selections.
+  description: builds rotation-editor context actions for authored nodes, executed rows, and selections.
 */
 
 import { CheckCheck, ClipboardPaste, Copy, CopyPlus, Eraser, Gauge, GitCompare, ListEnd, Power, PowerOff, RotateCcw, Scissors, SquareDashedMousePointer, TextQuote, Trash2, Unlink, X } from 'lucide-react'
@@ -19,7 +19,7 @@ export interface RowCtxActions {
   onRemoveEnd: () => void
   onToggleEnabled: () => void
   onDelete: () => void
-  /** only on a feature standing after a Tune Break, which is the only place it means anything */
+  /** only on a feature standing after a tune break, which is the only place it means anything */
   offTuneResume?: { marked: boolean; onSelect: () => void }
   edit: EditConfig
 }
@@ -133,7 +133,7 @@ interface PickCtxActions {
 }
 
 /**
- * What a palette tile offers. Pressing one already adds it after the selected
+ * what a palette tile offers. pressing one already adds it after the selected
  * row, so the menu's own job is to offer the other place it could go.
  */
 export function makeSelectionMenu(actions: PickCtxActions): MenuEntry[] {

@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Applies weapon selection and rank changes while resetting weapon-owned runtime state.
+  description: applies weapon selection and rank changes while resetting runtime state for the previous weapon.
 */
 
 import type { ResRuntime } from '@/domain/entities/runtime.ts'
@@ -13,9 +13,8 @@ export const WPN_RANK_MIN = 1
 export const WPN_RANK_MAX = 5
 
 /*
-  a picked weapon lands at rank one, and either at the level the slot already
-  held or at the ceiling when the user has asked for maxed picks. the states the
-  old weapon owned leave with it, which is what initWpnStts/maxWpnRt settle.
+  selection sets weapon rank to one and preserves the slot level or uses the
+  maximum level when requested. initWpnStts/maxWpnRt replace old weapon states.
 */
 export function applyWpnSel(
   runtime: ResRuntime,

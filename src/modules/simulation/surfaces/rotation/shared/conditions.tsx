@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: defines the editable condition rows and choice builders used by
+  description: defines the editable condition rows and choice builders used by
                rotation condition nodes and when-rule editors.
 */
 
@@ -34,7 +34,7 @@ export function makeCondValue(definition: SourceState): RotationConditionValue {
   return openingConditionValue(definition)
 }
 
-/** A state sitting at its zero: switched off, empty, or holding nothing. */
+/** a state sitting at its zero: switched off, empty, or holding nothing. */
 export function isCondValueOff(value: RotationConditionValue | undefined): boolean {
   if (value === undefined || value === false) {
     return true
@@ -175,8 +175,8 @@ export function getCondChoice(
     return null
   }
 
-  // enemy and rotation-level changes are globally scoped, while resonator changes need the owning resonator id to
-  // avoid matching a teammate state with the same path.
+  // resonator changes require an id to distinguish teammates with the same
+  // state path; enemy and rotation changes are global.
   return choices.find((choice) => {
     if (choice.changeTarget === 'enemy' || choice.changeTarget === 'rotation') {
       return choice.state.path === change.path
@@ -326,8 +326,8 @@ export function conditionChoiceLabel(choice: CondChoice): string {
     return choice.label
   }
 
-  // The source heading is useful for grouping, but a condition's name should
-  // identify the effect/passive rather than the weapon item that owns it.
+  // the source heading groups conditions. each condition name identifies its
+  // effect or passive.
   return formatEffectConditionName(choice.effectName ?? choice.sourceName, choice.label)
 }
 

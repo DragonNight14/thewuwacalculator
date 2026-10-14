@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Projects source-state ownership, values, labels, and descriptions for Simulation controls.
+  description: projects source-state identifiers, values, labels, and descriptions for simulation controls.
 */
 
 import { getEchoSetDe } from '@/data/gameData/echoSets/effects'
@@ -15,8 +15,8 @@ export interface SrcSttDspl {
 }
 
 /**
- * Resolve the semantic name of a source-backed effect without replacing the
- * authored control/stat label. Weapon effects are split into several numeric
+ * resolve the semantic name of a source-backed effect without replacing the
+ * authored control/stat label. weapon effects are split into several numeric
  * operations, but they all belong to the weapon's one named passive.
  */
 export function getSourceEffectName(
@@ -30,7 +30,7 @@ export function getSourceEffectName(
   return fallback
 }
 
-/** Resolve the human-facing owner name used by source summary surfaces. */
+/** resolve the human-facing owner name used by source summary surfaces. */
 export function getSourceOwnerName(
   source: DataSrcRef,
   fallback: string,
@@ -38,7 +38,7 @@ export function getSourceOwnerName(
   return getSourceEffectName(source, fallback)
 }
 
-/** Resolve the semantic effect identity for a state while keeping its authored
+/** resolve the semantic effect identity for a state while keeping its authored
  * control label available for condition editors and enabler controls. */
 export function getStateEffectName(state: SourceState): string {
   if (state.source.type === 'echoSet') {
@@ -48,7 +48,7 @@ export function getStateEffectName(state: SourceState): string {
   return getSourceEffectName(state.source, state.label)
 }
 
-/** Format a condition with its semantic effect and authored control text. */
+/** format a condition with its semantic effect and authored control text. */
 export function formatEffectConditionName(
   effectName: string | undefined,
   controlLabel: string,
@@ -60,7 +60,7 @@ export function formatEffectConditionName(
   return `${effectName} · ${controlLabel}`
 }
 
-/** Resolve the semantic name for a registered effect definition. */
+/** resolve the semantic name for a registered effect definition. */
 export function getEffectName(effect: Pick<EffectDef, 'id' | 'source' | 'label'>): string {
   if (effect.source.type === 'echoSet') {
     const setId = Number(effect.source.id)
@@ -130,7 +130,7 @@ export function getStateText(state: SourceState): SrcSttDspl {
     }
   }
 
-  // weapon states show the owning weapon name directly
+  // weapon states show the associated weapon name.
   if (state.source.type === 'weapon') {
     const weapon = getWpnById(state.source.id)
     return {
@@ -160,7 +160,7 @@ export function getStateText(state: SourceState): SrcSttDspl {
     }
   }
 
-  // try to resolve the matching set part so we can surface a better description
+  // the matching set part supplies the specific description.
   const part = setDef.parts.find((entry) => entry.key === state.id)
 
   return {

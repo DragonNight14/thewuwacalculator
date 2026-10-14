@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Resolves mobile presentation from the shared responsive policy,
+  description: resolves mobile presentation from the shared responsive policy,
                pointer capabilities, and temporary page-local overrides.
 */
 
@@ -21,7 +21,7 @@ function isUiMode(value: string | null): value is UiMode {
   return value === 'mobile' || value === 'desktop'
 }
 
-// Query overrides apply only to this page load and never update the manual pick.
+// query overrides apply only to this page load and never update the manual pick.
 function readPick(): UiMode | null {
   if (typeof window === 'undefined') return null
   const asked = new URLSearchParams(window.location.search).get('ui')
@@ -39,7 +39,7 @@ export function prefersMobileUi(): boolean {
   return pick ? pick === 'mobile' : deviceIsPhone()
 }
 
-// Null clears the manual override and restores capability-based resolution.
+// null clears the manual override and restores capability-based resolution.
 export function setUiMode(mode: UiMode | null) {
   pick = mode
   listeners.forEach((listener) => listener())

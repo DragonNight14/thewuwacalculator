@@ -1,7 +1,7 @@
 /*
   Author: Runor Ewhro
-  Description: Protects the persistent shell selector from returning nested
-               allocations that invalidate Zustand snapshots on every read.
+  description: protects the persistent shell selector from returning nested
+               allocations that invalidate zustand snapshots on every read.
 */
 
 import { describe, expect, it } from 'vitest'

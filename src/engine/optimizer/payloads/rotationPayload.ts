@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: exposes the packed rotation-search payload used by optimizer
+  description: exposes the packed rotation-search payload used by optimizer
                workers and runner paths.
 */
 

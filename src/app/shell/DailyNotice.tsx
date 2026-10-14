@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Emits at most one local-day greeting for a persisted player identity.
+  description: emits at most one local-day greeting for a persisted player identity.
 */
 
 import { useEffect } from 'react'
@@ -31,15 +31,11 @@ export function DlyNtc() {
     }
 
     /*
-      The slab is raised a beat after the mount rather than during it. A mount
-      that is torn down and run again in the same commit, which is every mount
-      under StrictMode, would otherwise raise one toast, dismiss it, and raise a
-      second: the dismissal is animated, so the two stand together for the
-      length of the close and the notice reads as double. Deferring lets the
-      teardown cancel the first before it ever reaches the store.
+      delay the notice until after mount. StrictMode can tear down and remount
+      in the same commit; cleanup cancels the first notice before it enters the
+      store. this avoids overlapping enter and dismissal animations.
 
-      The day is marked here too, so a mount that never showed anything does not
-      spend the day's only notice.
+      mark the day only when the notice is shown.
     */
     let id: string | null = null
     const timer = setTimeout(() => {

@@ -1,11 +1,11 @@
 /*
   Author: Runor Ewhro
-  Description: Encodes Brotli app exports behind a magic header while retaining plain-JSON import compatibility.
+  description: encodes brotli app exports behind a magic header while retaining plain-json import compatibility.
 */
 
 import type { BrotliWasmType } from 'brotli-wasm'
 
-// "WWCB1" identifies a wwcalc compressed file; version byte lives in the tag.
+// "WWCB1" identifies a wwcalc compressed file; the version byte is in the tag.
 const WWCB_MAGIC = new Uint8Array([0x57, 0x57, 0x43, 0x42, 0x31])
 const BROTLI_QUALITY = 10
 

@@ -1,13 +1,13 @@
 /*
   Author: Runor Ewhro
-  Description: Selects generated image derivatives from measured display size and
+  description: selects generated image derivatives from measured display size and
                pixel density while sharing observers across mounted images.
 */
 import { resolveDisplayImage } from './displayAssets'
 
 const sources = new Map<HTMLImageElement, string>()
 const selectedSources = new WeakMap<HTMLImageElement, string>()
-// Only images whose size may have changed are measured. Reading every mounted
+// only images whose size may have changed are measured. reading every mounted
 // image forces layout of skipped content-visibility subtrees (a whole picker).
 const pending = new Set<HTMLImageElement>()
 let pendingAll = false
@@ -34,14 +34,14 @@ function refresh() {
   const images = pendingAll ? [...sources.keys()] : [...pending].filter((image) => sources.has(image))
   pending.clear()
   pendingAll = false
-  // Read all layout bounds before changing any image URLs.
+  // read all layout bounds before changing any image urls.
   const widths = images.map((image) => image.getBoundingClientRect().width)
   for (let index = 0; index < images.length; index += 1) {
     const image = images[index]!
     const source = sources.get(image)
     const width = widths[index] ?? 0
     if (!source) continue
-    // A failed derivative falls back to canonical art until the source changes.
+    // a failed derivative falls back to canonical art until the source changes.
     const current = image.getAttribute('src')
     if (width <= 0 || (current && current !== selectedSources.get(image))) continue
     const asset = resolveDisplayImage(source, width, currentPixelRatio())
@@ -65,7 +65,7 @@ function onResize(entries: ResizeObserverEntry[]) {
 }
 
 function onGeometryTransition(event: TransitionEvent) {
-  // Layout size changes already reach ResizeObserver. Only transforms can
+  // layout size changes already reach ResizeObserver. only transforms can
   // change a measured display width without changing the layout box, and only
   // for images inside the transitioned element.
   if (event.propertyName !== 'transform' && event.propertyName !== 'scale') return
@@ -94,13 +94,13 @@ export function observeDisplayImage(image: HTMLImageElement, source: string) {
   if (sources.size === 0) {
     observer = typeof ResizeObserver === 'undefined' ? undefined : new ResizeObserver(onResize)
     window.addEventListener('resize', refreshAll)
-    // Transforms can change displayed width without changing the layout box.
+    // transforms can change displayed width without changing the layout box.
     document.addEventListener('transitionend', onGeometryTransition)
     watchDensity()
   }
   sources.set(image, source)
-  // The observer's first report picks the source once the image has a layout
-  // box. Measuring here forces layout per image, and content-visibility
+  // the observer's first report picks the source once the image has a layout
+  // box. measuring here forces layout per image, and content-visibility
   // skipped images are only reported once they near the viewport.
   if (observer) observer.observe(image)
   else loadDisplayImage(image, source)

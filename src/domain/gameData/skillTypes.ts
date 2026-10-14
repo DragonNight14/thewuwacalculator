@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Resolves canonical skill-type labels, icons, and primary type selection.
+  description: resolves canonical skill-type labels, icons, and primary type selection.
 */
 
 import type { SkillTypeKey } from '@/domain/entities/stats'
@@ -39,7 +39,7 @@ export function fmtSkllTypeL(skillType: string): string {
       .trim()
 }
 
-// when a skill has multiple types, the ui usually wants the first one
+// when a skill has multiple types, the ui usually uses the first one
 // as the main representative type/icon
 export function getPrimarySkill(
     skillType?: SkillTypeKey | SkillTypeKey[] | null,

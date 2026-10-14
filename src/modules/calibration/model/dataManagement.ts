@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Serializes full and partial app-data exports, validates imported
+  description: serializes full and partial app-data exports, validates imported
                envelopes, and merges selected domains into persisted snapshots.
 */
 
@@ -66,7 +66,7 @@ type SetsBndl = DataXprtBndl<'settings', {
 }>
 
 type SssnBndl = DataXprtBndl<'session', {
-  /** Legacy bundle payload converted to a combat scenario during import. */
+  /** legacy bundle payload converted to a combat scenario during import. */
   session: CombatSession
 }>
 
@@ -319,8 +319,8 @@ export function resMprtData(raw: string, currentState: PersistedState): RslvMprt
     }
   } catch {
     const bundle = prsBndlJson(raw)
-    // partial imports patch a cloned current snapshot so unrelated domains are
-    // preserved instead of being reset to defaults.
+    // partial imports patch a clone of current state and preserve unrelated
+    // domains.
     const snapshot = makeImportWorkingState(currentState)
     const selectedScenario = selectedCombatScenario(snapshot.combat)
 

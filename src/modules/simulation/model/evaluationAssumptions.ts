@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Defines normalized enemy, progression, and runtime assumptions used for build evaluation.
+  description: defines normalized enemy, progression, and runtime assumptions used for build evaluation.
 */
 
 import type { EnemyProfile } from '@/domain/entities/appState'

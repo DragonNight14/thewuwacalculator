@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Creates live saved rotations and edits persisted saved metadata.
+  description: creates live saved rotations and edits persisted saved metadata.
 */
 
 import { useState } from 'react'

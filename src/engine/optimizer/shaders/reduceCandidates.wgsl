@@ -132,8 +132,8 @@ fn reduceCandidates(
 
     workgroupBarrier();
 
-    // permanently block the winning thread so the next loop iteration
-    // finds the next best remaining candidate instead of repeating it
+    // block the winning thread permanently. the next iteration selects from
+    // the remaining candidates.
     if (winningDamage > 0.0 && localId == winningThread) {
       blocked[localId] = 1u;
     }

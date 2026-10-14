@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Protects asset signatures, regeneration and source preservation.
+  description: protects asset signatures, regeneration and source preservation.
 */
 import { mkdtemp, mkdir, readFile, writeFile, stat, rm } from 'node:fs/promises'
 import { tmpdir } from 'node:os'

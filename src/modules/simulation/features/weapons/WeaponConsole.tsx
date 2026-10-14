@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Resolves weapon-slot owners and edits weapon identity, level,
+  description: resolves weapon-slot owners and edits weapon identity, level,
                rank, and passive controls through a deferred configuration session.
 */
 
@@ -48,7 +48,7 @@ import { useWpnCnsl } from '@/modules/simulation/features/weapons/lib/weaponCons
 import { projectScenarioUiRuntimes } from '@/engine/runtime/scenarioRuntime.ts'
 import { holdResonatorData } from '@/data/gameData'
 
-// Load the console only after a request and hold it until the close completes.
+// load the console only after a request and hold it until the close completes.
 export function WeaponConsoleHost() {
   const target = useWpnCnsl((state) => state.target)
 
@@ -77,7 +77,7 @@ function WeaponConsole({
   const maxWpnOnInit = useAppStore((state) => state.ui.preferences.maxResOnInit)
   const bumpPickerFreq = useAppStore((state) => state.bumpPickFr)
 
-  // Requests may target an inactive profile. Prefer its live participant runtime,
+  // requests may target an inactive profile. prefer its live participant runtime,
   // falling back to the stored profile when it is outside the current scenario.
   const { partRtsById } = useAppStore(useShallow(selWorkDrvd))
   const initRtsById = useAppStore(selInitRtLkp)
@@ -136,7 +136,7 @@ function WeaponConsole({
     })
   }, [bumpPickerFreq, closeRequest, hide, resonator, session])
 
-  // Close if the weapon's owner leaves the current runtime graph.
+  // close if the weapon's owner leaves the current runtime graph.
   useEffect(() => {
     if (visible && !closing && !runtime) {
       closeConsole()
@@ -234,7 +234,7 @@ function WeaponConsole({
                           aria-hidden="true"
                           style={glyphVars(WPN_STAT_CNS.atk, '--g')}
                         />
-                        {/* Match canonical integer base ATK by flooring table fractions. */}
+                        {/* match canonical integer base atk by flooring table fractions. */}
                         {Math.floor(stats.atk)}
                       </span>
                       <span className="wcon-stat" title={WPNSTATLBLS[weapon.statKey] ?? weapon.statKey}>

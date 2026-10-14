@@ -1,7 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Owns the build-card import strip: the three moves that produce a
-               card, and the group inspector that shows what gets read from it.
+  description: renders build-card capture controls and the parsed group inspector.
 */
 
 import { useEffect, useRef, useState } from 'react'
@@ -144,7 +143,7 @@ export function ImportStrip({
     if (file) onFile(file)
   }
 
-  // Progressively expose only parser regions already processed by the worker.
+  // progressively expose only parser regions already processed by the worker.
   const readCount = loading && progress?.area != null ? progress.area : -1
   const readPct = loading ? Math.round(getReadFraction(progress ?? {
     stage: 'catalog',

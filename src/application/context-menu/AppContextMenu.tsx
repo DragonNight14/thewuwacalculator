@@ -1,7 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Hosts one context-menu surface and resolves feature-owned menu
-               contributions for the clicked target.
+  description: renders one context menu with entries for the clicked target.
 */
 
 import { createContext, useContext, useEffect, useMemo, useRef, useState } from 'react'

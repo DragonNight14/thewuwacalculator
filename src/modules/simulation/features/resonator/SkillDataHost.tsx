@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Hosts shared skill-detail modal requests across persistent and routed Simulation surfaces.
+  description: hosts shared skill-detail modal requests across persistent and routed simulation surfaces.
 */
 
 import { createContext as mkCtx, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react'
@@ -57,7 +57,7 @@ export function SkllDataProv({ children }: { children: ReactNode }) {
     })
   }, [modal])
 
-  // the common case only knows which resonator was clicked, so land on
+  // the common case provides only the clicked resonator, so land on
   // whichever tab that one authored first.
   const openFor = useCallback((resonatorId: string) => {
     open({ resonatorId })

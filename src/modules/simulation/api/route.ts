@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Defines the stable Simulation route-handle contract available outside the module.
+  description: defines the stable simulation route-handle contract available outside the module.
 */
 
 export {

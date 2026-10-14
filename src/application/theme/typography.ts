@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Loads configured font stylesheets and applies resolved document typography variables.
+  description: loads configured font stylesheets and applies resolved document typography variables.
 */
 
 import {
@@ -14,8 +14,8 @@ import {
   type ResolvedBodyFont,
 } from '@/domain/entities/appearance.ts'
 
-// Families used by shared chrome stay together; customization-only families
-// are requested when Showcase actually needs its typography controls.
+// families used by shared chrome stay together; customization-only families
+// are requested when showcase actually needs its typography controls.
 const APP_FONT_URL = 'https://fonts.googleapis.com/css2?family=Sen:wght@400..800&family=Montserrat:ital,wght@0,100..900;1,100..900&family=DM+Mono:wght@400;500&family=Rubik+Glitch&family=Roboto+Mono:ital,wght@0,100..700;1,100..700&family=Indie+Flower&display=swap'
 const SHOWCASE_FONT_URL = 'https://fonts.googleapis.com/css2?family=Keania+One&display=swap'
 const GAME_FONT_URL = 'https://hw-media-cdn-mingchao.kurogame.com/font/LaguSansBold.otf'
@@ -47,7 +47,7 @@ function ensureLink(href: string, rel: string, configure?: (link: HTMLLinkElemen
   document.head.appendChild(link)
 }
 
-// Capture must wait for stylesheet discovery before document.fonts.ready:
+// capture must wait for stylesheet discovery before document.fonts.ready:
 // a newly inserted sheet may not have registered any font faces yet.
 export async function waitForFontStylesheets(): Promise<void> {
   await Promise.all(pendingStylesheets.values())
@@ -201,7 +201,7 @@ export async function loadGglFontStack(
   return { family, stack: `'${family}', ${fallback}` }
 }
 
-// link). Idempotent and dedupes by family. Uses the lenient v1 API so requesting
+// link). idempotent and dedupes by family. uses the lenient v1 api so requesting
 // weights a family lacks doesn't fail the whole sheet.
 export function ensureGoogleFamily(family: string): void {
   if (!family.trim() || typeof document === 'undefined') {

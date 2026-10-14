@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Resolves echo stat keys to shared mask-icon output, grouping
+  description: resolves echo stat keys to shared mask-icon output, grouping
                flat and percent variants that use the same source asset.
 */
 

@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: resolves runtime skill visibility and level-scaled values,
+  description: resolves runtime skill visibility and level-scaled values,
                expands hit tables into concrete hit entries, and applies
                manual skill modifiers before the skill is used elsewhere.
 */
@@ -22,7 +22,7 @@ import { countEchoSets } from '@/engine/pipeline/buildCombatContext'
 const rtSkllEvalSc = new WeakMap<ResRuntime, EffectScope>()
 export type SkillConditionEvaluator = (condition: NonNullable<SkillDef['visibleWhen']>) => boolean
 
-/** Compatibility evaluation for skills not present when a numeric team was compiled. */
+/** compatibility evaluation for skills not present when a numeric team was compiled. */
 export function evalRuntimeSkillCondition(
     runtime: ResRuntime,
     condition: NonNullable<SkillDef['visibleWhen']>,
@@ -140,9 +140,8 @@ function skllTypeAt(skill: SkillDef, index: number): SkillDef['skillType'] {
 }
 
 /*
-  Which variant a skill takes is a condition outcome, so it is resolved as an
-  index. The patched skill for one index never changes, so it is built once and
-  shared: the resolution cache below keys on the index, not on the object.
+  a condition outcome selects the skill variant by index. build one immutable
+  patched skill per index and share it through the resolution cache.
 */
 const variantSkillCache = new WeakMap<SkillDef, Map<number, SkillDef>>()
 
@@ -210,14 +209,14 @@ export function isSkllVsbl(
 }
 
 /*
-  Resolving a skill expands its hit table, resolves level scaling, and applies
-  manual overrides, which allocates a skill and a row per hit. None of that
+  resolving a skill expands its hit table, resolves level scaling, and applies
+  manual overrides, which allocates a skill and a row per hit. none of that
   depends on anything but the runtime, the skill, and the three condition
-  outcomes below, so it is built once per distinct combination.
+  outcomes below. build it once per distinct combination.
 
-  Rotation execution resolves a skill on every feature node, hundreds of times
+  rotation execution resolves a skill on every feature node, hundreds of times
   per run, almost always reaching the same combination it reached last time.
-  The conditions are still evaluated on every call, because rotation state
+  the conditions are still evaluated on every call, because rotation state
   writes can change them mid-run; only the construction is reused.
 */
 const resolvedSkillCache = new WeakMap<ResRuntime, WeakMap<SkillDef, Map<string, SkillDef>>>()
@@ -297,7 +296,7 @@ function buildResolvedSkill(
         return rslvSkll.label
       }
 
-      // Preserve authored named skills like "Fine Snow: Glacio Bite" and only
+      // preserve authored named skills like "Fine Snow: Glacio Bite" and only
       // relabel the generic catalog placeholder skill such as "Glacio Chafe".
       return rslvSkll.label === getNegFfctqf(negFfctKey)
         ? rslvLbl

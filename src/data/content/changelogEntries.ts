@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Authored changelog entry data rendered by the changelog page and
+  description: authored changelog entry data rendered by the changelog page and
                update toast surfaces.
 */
 
@@ -78,31 +78,31 @@ export const curChngEnts: ChngRcrd[] = [
       {
         type: 'paragraph',
         content: `
-          The <strong>New Wuwa Calculator</strong> is finally here. The old app had reached the kind of state where even simple changes kept turning into wrestling matches, so i stopped trying to politely patch around it and rebuilt the whole thing from the ground up instead.
+          The <strong>New Wuwa Calculator</strong> is available. I rebuilt the app to make future changes easier.
         `,
       },
       {
         type: 'paragraph',
         content: `
-          New design, cleaner structure, way less "huh??" energy, and a much better foundation for adding things without the entire app threatening to explode dramatically in the background.
+          It has a new design and a simpler structure for future features.
         `,
       },
       {
         type: 'paragraph',
         content: `
-          Already includes a ton of revamped stuff compared to the original:<br/>
-          - Full calculator workspace rework with clearer panes and stronger overview flow.<br/>
-          - Inventory, rotations, optimizer, and suggestions systems have all been carried forward into a much saner structure for future updates.<br/>
+          The update includes:<br/>
+          - A rebuilt calculator workspace with clearer panels and overview.<br/>
+          - Updated inventory, rotations, optimizer, and suggestions systems.<br/>
         `,
       },
       {
         type: 'paragraph',
         content: `
-          There is still plenty more to do, obviously, but this remake exists so future features can be added like a normal person instead of performing surgery on a "rare" beef.
+          The new structure supports further features and updates.
         `,
       },
     ],
-    shortDesc: `new app, new foundation, way less suffering (〜^∇^)〜`,
+    shortDesc: `new app and updated structure`,
   },
   {
     date: '03/04/2026',
@@ -110,29 +110,29 @@ export const curChngEnts: ChngRcrd[] = [
       {
         type: 'paragraph',
         content: `
-          Polished up <strong>Background Mode</strong> a lot more. The wallpaper side of the app should feel way nicer now instead of just being "yes there is technically an image behind the UI" and calling it a day.
+          <strong>Background Mode</strong> has updated wallpaper controls and styling.
         `,
       },
       {
         type: 'paragraph',
         content: `
-          Wallpaper picking now uses cleaner preview cards, custom uploads behave better, switching backgrounds feels smoother, and the frosted/glassy look should match the active wallpaper much more naturally across the app.
+          Wallpaper selection uses preview cards. Custom uploads and background switching are improved, and translucent panels adjust to the selected wallpaper.
         `,
       },
       {
         type: 'paragraph',
         content: `
-          Also brought over <strong>Set Conditionals</strong> properly. You can now control which set-effect parts the app is allowed to consider for optimization/simulation stuff instead of having to just trust whatever mystery assumptions it was making in the background (Not really but you get the point).
+          <strong>Set Conditionals</strong> let you choose which set effects simulation and optimization include.
         `,
       },
       {
         type: 'paragraph',
         content: `
-          ALSO... cleaned up a bunch of layout and popup styling weirdness while i was in there, so some menus, panels, and calculator sections should feel a bit less cramped and a bit less likely to do silly things.
+          Menus, panels, and calculator sections have updated spacing and popup styling.
         `,
       },
     ],
-    shortDesc: `Background mode polish + Set Conditionals~! (〜^∇^)〜`,
+    shortDesc: `background mode and set conditionals`,
   },
   {
     date: '07/04/2026',
@@ -140,29 +140,29 @@ export const curChngEnts: ChngRcrd[] = [
       {
         type: 'paragraph',
         content: `
-          <strong>3.3 support</strong> is in now, so <strong>Hiyuki</strong> and <strong>Denia</strong> are both available in the calculator along with their base kit logic, new weapons, and the new sonata sets instead of the patch just sort of staring at the app awkwardly from outside.
+          <strong>3.3 support</strong> adds <strong>Hiyuki</strong>, <strong>Denia</strong>, their base kits, new weapons, and new sonata sets.
         `,
       },
       {
         type: 'paragraph',
         content: `
-          Also finished wiring more of the negative-effect side properly. <strong>Glacio Chafe</strong>, <strong>Glacio Bite</strong>, <strong>Electro Flare</strong>, and <strong>Electro Rage</strong> all behave much more like real systems now instead of loose mystery values, and the enemy UI got cleaned up so statuses show up in a way that is way easier to read at a glance.
+          <strong>Glacio Chafe</strong>, <strong>Glacio Bite</strong>, <strong>Electro Flare</strong>, and <strong>Electro Rage</strong> now have explicit behavior. Enemy statuses are easier to read.
         `,
       },
       {
         type: 'paragraph',
         content: `
-          Brought in preset/default rotations for some of the newer roster too, including <strong>Buling</strong>, <strong>Luuk Herssen</strong>, <strong>Denia</strong>, and <strong>Hiyuki</strong>, so there is less "ok now i guess i manually build the whole thing from scratch" energy when opening them for the first time.
+          Added default rotations for <strong>Buling</strong>, <strong>Luuk Herssen</strong>, <strong>Denia</strong>, and <strong>Hiyuki</strong>.
         `,
       },
       {
         type: 'paragraph',
         content: `
-          Importing older saved data should behave better now as well. Some older exported resonator setups were getting grumpy after schema changes, so persistence/import handling was tightened up to normalize things more safely instead of just refusing to save and acting dramatic.
+          Import handling now normalizes older resonator exports after schema changes.
         `,
       }
     ],
-    shortDesc: `3.3 support, negative effects cleanup and default rotations~! (〜^∇^)〜`,
+    shortDesc: `3.3 support, negative effects, and default rotations`,
   },
   {
     date: '11/04/2026',
@@ -200,19 +200,19 @@ export const curChngEnts: ChngRcrd[] = [
       {
         type: 'paragraph',
         content: `
-          Rotation editing got some new toys. You can now attach <strong>conditions/state changes directly to features</strong>, so a feature can temporarily set up the state it needs before it gets calculated instead of needing an awkward separate wrapper every time.
+          You can attach <strong>conditions and state changes directly to features</strong> for use during calculation.
         `,
       },
       {
         type: 'paragraph',
         content: `
-          The condition editor also got cleaned up into a nicer picker/editing flow. It should be easier to search for the state you want, add multiple changes, tweak values, and generally avoid the old "wait where do i put this again" feeling.
+          The condition editor has updated search, value editing, and support for multiple changes.
         `,
       },
       {
         type: 'paragraph',
         content: `
-          You can also add new actions below a specific rotation feature now, which should make building or adjusting longer rotations less annoying. Less dragging things around like you're defusing a tiny UI bomb.
+          You can add actions below a selected rotation feature.
         `,
       },
       {
@@ -248,13 +248,13 @@ export const curChngEnts: ChngRcrd[] = [
       {
         type: 'paragraph',
         content: `
-          <strong>Rotation loops are here now.</strong> You can finally put repeated sections inside rotations properly instead of manually duplicating the same chunk over and over like the app personally wronged you.
+          <strong>Rotation loops</strong> let you repeat a section without duplicating its actions.
         `,
       },
       {
         type: 'paragraph',
         content: `
-          Saved rotations also have <strong>new metadata</strong>. You can add a <strong>note</strong> and <strong>duration</strong>, which means saved rotations can show <strong>DPS</strong> now and the saved list can sort by DPS instead of only caring about raw damage totals.
+          Saved rotations can include a <strong>note</strong> and <strong>duration</strong>, show <strong>DPS</strong>, and sort by DPS.
         `,
       },
       {
@@ -278,13 +278,13 @@ export const curChngEnts: ChngRcrd[] = [
       {
         type: 'paragraph',
         content: `
-          <strong>Echo inventory has a new compact look</strong>, and it can be toggled from app settings. Echoes also got better paste/import handling and clearer loadout movement, so moving echoes between loadouts and inventory should feel less like balancing dishes during an earthquake.
+          <strong>Echo inventory has a compact view</strong> available in settings. Paste, import, and loadout movement have been updated.
         `,
       },
       {
         type: 'paragraph',
         content: `
-          <strong>Weapon suggestions exist now.</strong> They are still a little "yay..." in spirit, but the app can now suggest weapon options instead of leaving that whole area as a future-problem-shaped hole.
+          <strong>Weapon suggestions</strong> now show available weapon options.
         `,
       },
       {
@@ -302,13 +302,13 @@ export const curChngEnts: ChngRcrd[] = [
       {
         type: 'paragraph',
         content: `
-          App settings have more actual preferences now, including toggles for some of the new behavior. Settings, persistence, imports, restore/export flows, picker history, local history, and old backup handling also got tightened up so saved data should be less dramatic about schema changes.
+          App settings have more preferences. Saved data, imports, exports, history, and backups have updated handling for schema changes.
         `,
       },
       {
         type: 'paragraph',
         content: `
-          <strong>Overview profiles</strong> are more manageable now as well. They can be copied, pasted, overwritten, deleted in batches, and switched around more cleanly, so overview is more of an actual profile manager instead of just a nice display shelf.
+          <strong>Overview profiles</strong> support copy, paste, overwrite, batch deletion, and switching.
         `,
       }
     ],
@@ -338,13 +338,13 @@ export const curChngEnts: ChngRcrd[] = [
       {
         type: 'paragraph',
         content: `
-          <strong>Theory optimizer</strong> can now include weapons in the search, so theory max results can pick a weapon instead of being glued to whatever was already equipped. Inventory optimizer also has an <strong>Exclude equipped</strong> toggle now, for when you do not want it casually borrowing echoes from another resonator's build like it pays rent there.
+          <strong>Theory optimizer</strong> can include weapons in its search. Inventory optimizer has an <strong>Exclude equipped</strong> toggle.
         `,
       },
       {
         type: 'paragraph',
         content: `
-          The <strong>Max</strong> button got smarter too. It now fills in more of the relevant modes, states, weapon passives, and other kit switches instead of only doing the obvious level/trace stuff and leaving you to clean up the rest.
+          The <strong>Max</strong> button now sets relevant modes, states, weapon passives, and kit switches along with levels and traces.
         `,
       },
       {
@@ -374,7 +374,7 @@ export const curChngEnts: ChngRcrd[] = [
       {
         type: 'paragraph',
         content: `
-          The Echoes pane also has a new <strong>Quick Setup</strong> flow. It can forge a loadout from a chosen echo count, main stats and costs, repeated substat templates, sonata plan, and main echo choice, while filling anything left open with valid random picks.
+          The Echoes pane also has a new <strong>Quick Setup</strong> flow. It can generate a loadout from a chosen echo count, main stats and costs, repeated substat templates, sonata plan, and main echo choice, while filling anything left open with valid random picks.
         `,
       },
       {
@@ -440,19 +440,19 @@ export const curChngEnts: ChngRcrd[] = [
       {
         type: 'paragraph',
         content: `
-          The benchmark page doubles down as a showcase page with a <strong>showcase card</strong>: resonator, team, echoes and score in one screenshot-ready frame, with a <strong>Customize</strong> panel for portrait, backdrop, colours, fonts and custom CSS.
+          The benchmark page includes a <strong>showcase card</strong> with resonator, team, echoes, and score details. The <strong>Customize</strong> panel controls portrait, backdrop, colors, fonts, and custom CSS.
         `,
       },
       {
         type: 'paragraph',
         content: `
-          Added a new <strong>Docs</strong> page with live, pokeable instruments for the method notes behind some of the app's main engines.
+          Added a <strong>Docs</strong> page with interactive examples of scoring and calculation methods.
         `,
       },
       {
         type: 'paragraph',
         content: `
-          Retired the old <strong>Overview</strong> page, the benchmark and showcase cards do its job much better now, so it's been folded in instead of left lying around.
+          Removed the old <strong>Overview</strong> page. The benchmark and showcase cards provide its information.
         `,
       }
     ],
@@ -464,7 +464,7 @@ export const curChngEnts: ChngRcrd[] = [
       summary:
         'The build score now sims your damage and reports baseline-to-max builds. Separately: a sub stat priority readout in Suggestions, showcase cards with splash art, a new docs page, and Overview removed.',
       lede:
-        "The build score has been around a while as a quick read on a build. It has now been rebuilt. Instead of grading how closely your echoes match a set of stat weights, it runs your whole build through the sim and scores the damage, then reports what a baseline and an ideal build look like next to yours.",
+        "Build score now simulates your build's damage and compares it with baseline and ideal builds.",
       hero: {
         kind: 'image',
         src: `${S_2026_07_06}/benchmark-page.png`,
@@ -547,7 +547,7 @@ export const curChngEnts: ChngRcrd[] = [
           kicker: 'Splash art',
           title: 'I-it moves..?',
           body: [
-            'The portrait can use animated Live2D splash art instead of a still image. You can toggle it on the card below (and on the page itself). What practical use does this have? None. Does that matter? No it doesn\'t.',
+            'The portrait supports animated Live2D splash art. Toggle it on the card or page.',
           ],
           media: [
             {
@@ -582,7 +582,7 @@ export const curChngEnts: ChngRcrd[] = [
           kicker: 'Docs',
           title: 'Behind the scenes..',
           body: [
-            'I bet y\'all wanna see how some of the complex-ish stuff works huh? You can find all the juicy deets in the new docs page. It collects the notes behind the scoring, with small live instruments for the scale and the negative-effect math. It will grow over time.',
+            'The Docs page explains scoring and negative-effect calculations with interactive examples.',
           ],
           layout: 'text',
           href: '/docs',
@@ -593,7 +593,7 @@ export const curChngEnts: ChngRcrd[] = [
           kicker: 'Overview',
           title: 'The overview page is gone...',
           body: [
-            'Sigh... the Overview page has now been retired. The build score report and the showcase card cover what it did, so it has been folded in rather than kept around.',
+            'The Overview page was removed. The build score report and showcase card provide its information.',
           ],
           layout: 'text',
         },
@@ -665,8 +665,8 @@ export const curChngEnts: ChngRcrd[] = [
           kicker: 'Team Setup',
           title: 'The lineup now..',
           body: [
-            'Team members now sit in a connected row instead of feeling like loose setup blocks.',
-            'Each teammate row also carries more visible context: weapon, main echo, sonata pieces, and team-facing effects are easier to scan before opening anything deeper.',
+            'Team members appear in one connected row.',
+            'Each row shows weapon, main echo, sonata pieces, and team effects.',
           ],
           media: [
             {
@@ -932,14 +932,14 @@ export const curChngEnts: ChngRcrd[] = [
           <strong>Rotation</strong><br/>
           - <strong>Rotation</strong> moved out of its pane and onto its own page.<br/>
           - Personal and team rotations are one thing now: you set a team and do whatever, add opening steps before the main loop, and after a run you get a cleaner view plus a Builds section showing every member's echoes and weapon.<br/>
-          - Saved rotations line up on one field and can be compared side by side instead of sitting in a list.<br/>
+          - Saved rotations can be compared side by side on one field.<br/>
         `,
       },
       {
         type: 'paragraph',
         content: `
           <strong>Showcase</strong><br/>
-          - <strong>Showcase</strong> is its own page too, and has a second card layout, <strong>Seal</strong>.<br/>
+          - <strong>Showcase</strong> is its own page too, and has a second card layout, <strong>Detailed</strong>.<br/>
           - The Classic card was redone alongside it.<br/>
         `,
       },
@@ -999,8 +999,8 @@ export const curChngEnts: ChngRcrd[] = [
           kicker: 'Getting around',
           title: 'Easier navigation',
           body: [
-            'The sidebar and the toolbar of pane icons are gone. One header row holds the five pages, and Docs, Guides, Changelog and Calibration live in the Read menu beside them.',
-            'There\'s also a real Home now (you\'re on it!) instead of being dropped straight into the calculator, and the old About page moved in here too.',
+            'The header lists five pages and a Read menu for Docs, Guides, Changelog, and Calibration.',
+            'The Home page opens before the calculator and includes the previous About content.',
           ],
           media: [
             {
@@ -1008,7 +1008,7 @@ export const curChngEnts: ChngRcrd[] = [
               src: `${S_2026_10_05}/header-read.webp`,
               ar: 2400 / 460,
               alt: 'The header with the five pages on the left and the Read menu open on the right',
-              caption: 'Everything that isn\'t a build page sits under Read.',
+              caption: 'Docs, Guides, Changelog, and Calibration are in Read.',
             },
           ],
           layout: 'stage',
@@ -1018,15 +1018,15 @@ export const curChngEnts: ChngRcrd[] = [
           kicker: 'Rotation',
           title: 'Rotations got a whole page',
           body: [
-            'No more Personal and Team tabs: there\'s one rotation for the team, and the roster capsule picks who\'s in it. You can set up opening steps before the main loop, and every run ends with a Timeline and a Builds section showing what each member had on.',
+            'No more Personal and Team tabs: there\'s one rotation for the team, and the roster details panel picks who\'s in it. You can set up opening steps before the main loop, and every run ends with a Timeline and a Builds section showing what each member had on.',
             'Saved rotations sit together on one field now, and you can line a few up and compare them.',
           ],
           media: [
             {
               kind: 'image',
-              src: `${S_2026_10_05}/rot-capsule.webp`,
+              src: `${S_2026_10_05}/rot-details.webp`,
               ar: 576 / 392,
-              alt: 'The rotation roster capsule for Phoebe with her two teammates',
+              alt: 'The rotation roster details panel for Phoebe with her two teammates',
               caption: 'The team, picked from the roster.',
             },
             {
@@ -1049,17 +1049,17 @@ export const curChngEnts: ChngRcrd[] = [
         {
           id: 'showcase',
           kicker: 'Showcase',
-          title: 'Meet Seal',
+          title: 'Detailed Showcase layout',
           body: [
-            'Showcase moved to its own page and got a second card layout, Seal. The Classic card got redone while I was at it.',
+            'Showcase moved to its own page and gained a Detailed card layout. The Classic card was also updated.',
           ],
           media: [
             {
               kind: 'image',
-              src: `${S_2026_10_05}/sc-seal.webp`,
+              src: `${S_2026_10_05}/sc-detailed.webp`,
               ar: 1288 / 935,
-              alt: 'The Seal showcase card for Phoebe',
-              caption: 'Seal.',
+              alt: 'The Detailed showcase card for Phoebe',
+              caption: 'Detailed layout.',
             },
             {
               kind: 'image',
@@ -1076,7 +1076,7 @@ export const curChngEnts: ChngRcrd[] = [
           kicker: 'Optimizer',
           title: 'Bye bye, settings console',
           body: [
-            'The Optimizer was rebuilt from scratch. It sits on the same board as the other pages now, and picking a result shows it on your build before you keep anything.',
+            'The rebuilt Optimizer has its own page. Selecting a result previews it on your build before applying it.',
             'Suggestions got the same treatment on its own page, with ranked results that preview the same way.',
           ],
           media: [
@@ -1102,7 +1102,7 @@ export const curChngEnts: ChngRcrd[] = [
           kicker: 'Pop-ups',
           title: 'Same look everywhere',
           body: [
-            'Nearly every pop-up wears the same look now instead of each having its own. The echo editor was redesigned around the rolls an echo can actually have, and Sonata set conditions, weapon search and the team picker got new layouts too.',
+            'Pop-ups now share a common style. The echo editor, sonata conditions, weapon search, and team picker have updated layouts.',
           ],
           media: [
             {
@@ -1152,7 +1152,7 @@ export const curChngEnts: ChngRcrd[] = [
           kicker: 'Guides',
           title: 'Guides with pictures!',
           body: [
-            'The guides used to be walls of text. Now they\'re built on real screenshots of the app, with every step pointing at the thing it\'s talking about.',
+            'Guides now use app screenshots to show each step.',
           ],
           media: [
             {
@@ -1556,7 +1556,7 @@ export const legChngEnts: ChngRcrd[] = [
       {
         type: 'paragraph',
         content: `
-                Updated <strong>Galbrena's Afterflame</strong> and <strong>Qiuyuan's Inherent Skill: Quietude Within</strong> to correctly function as <em>Damage Taken</em> effects instead of <em>additive Damage Bonus</em>.
+                Updated <strong>Galbrena's Afterflame</strong> and <strong>Qiuyuan's Inherent Skill: Quietude Within</strong> to use <em>Damage Taken</em> effects.
                 The English text originally described these as damage bonuses, but the Chinese text specified them as damage taken modifiers.
                 With <strong>Galbrena's</strong> official release confirming the CN behavior, both effects have been adjusted to match the in-game mechanics which also implies that <strong>Qiuyuan's Inherent Skill: Quietude Within</strong> should follow the same rule.
                 Apparently, <em>Kuro's localization team</em> decided that "translation accuracy" was just another optional buff. (￣▽￣*)ゞ
@@ -1665,7 +1665,7 @@ export const legChngEnts: ChngRcrd[] = [
       {
         type: 'paragraph',
         content: `
-            This update also introduces a visually different theme selector. You can now visually choose your preferred <em>light</em> and <em>dark</em> mode themes using color swatches instead of dropdowns.
+            The theme selector now uses color swatches for <em>light</em> and <em>dark</em> modes.
             `,
       },
     ],
@@ -1748,7 +1748,7 @@ export const legChngEnts: ChngRcrd[] = [
       },
       {
         type: 'paragraph',
-        content: `Reworked how buffs and stats are stored and applied: everything now flows through a unified <strong>"buff path"</strong> system instead of a patchwork of special cases. This should make future characters, Echoes, and weapons much easier to support.`,
+        content: `Buffs and stats now use a unified <strong>"buff path"</strong> system to support future characters, echoes, and weapons.`,
       },
       {
         type: 'paragraph',

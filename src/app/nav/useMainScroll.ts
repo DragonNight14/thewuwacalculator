@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Where each page was left. A push arrives at the top of the new
+  description: where each page was left. a push arrives at the top of the new
                page, and a step back arrives exactly where it was read from, so
                the transition never animates a page into a scroll position it
                did not have.
@@ -10,8 +10,7 @@ import { useEffect, useLayoutEffect } from 'react'
 import type { RefObject } from 'react'
 import { useLocation, useNavigationType } from 'react-router-dom'
 
-// history is bounded in practice; the oldest entries are dropped rather than
-// kept for a session that never ends
+// keep at most 40 scroll history entries; evict the oldest on overflow.
 const KEPT = 40
 const left = new Map<string, number>()
 

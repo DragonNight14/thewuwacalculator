@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Shares grouped-result display and weapon grouping between surfaces
+  description: shares grouped-result display and weapon grouping between surfaces
                and materializes scored weapon candidates.
 */
 
@@ -15,8 +15,8 @@ export function getSetPlanDisplay(plan: CompactSetPlanSuggest): SetPlanDisplayEn
     : plan.setPlan.map((entry) => ({ setIds: [entry.setId], pieces: entry.pieces }))
 }
 
-/* Grouping can choose a concrete representative other than the worn plan.
-   Match distinct worn bonuses to the displayed effect-equivalent slots. */
+/* grouping can choose a concrete representative other than the worn plan.
+   match distinct worn bonuses to the displayed effect-equivalent slots. */
 export function sameSetPlanCandidate(result: CompactSetPlanSuggest, worn: SetPlanSmmrE[], base: number): boolean {
   const tolerance = Math.max(1e-6, Math.abs(result.avgDamage) * 1e-6, Math.abs(base) * 1e-6)
   if (Math.abs(result.avgDamage - base) > tolerance) return false
@@ -48,9 +48,8 @@ export function groupWeaponSuggestions(results: WeaponEntry[]): Array<{ id: stri
   return [...groups].map(([id, plans]) => ({ id, plans }))
 }
 
-/* Apply the exact candidate the engine scored. In particular, a state omitted
-   by weapon config stays omitted instead of being restored by global weapon
-   initialization before the scored controls are merged. */
+/* apply the exact candidate scored by the engine. states omitted by weapon
+   config remain absent through global initialization and control merging. */
 export function materializeWeaponSuggestion(
   runtime: ResRuntime,
   plan: WeaponEntry,

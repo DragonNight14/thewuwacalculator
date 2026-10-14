@@ -1,10 +1,10 @@
 /*
   Author: Runor Ewhro
-  Description: Defines the Simulation module integrations mounted by persistent application chrome.
+  description: defines the simulation module integrations mounted by persistent application chrome.
 */
 
 export { SkllDataProv } from '../features/resonator/SkillDataHost'
-export { RosterColumn } from '../workspace/RosterColumn'
+export { Column as RosterColumn } from '../workspace/roster/Column'
 export { EnemyConsoleHost } from '../features/enemies/ConsoleHost'
 export { openEnemyCnsl } from '../features/enemies/consoleRequest'
 export { EchoImportHost } from '../features/echoes/EchoImportHost'

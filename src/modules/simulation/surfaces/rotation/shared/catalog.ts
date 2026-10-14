@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Prepares authored condition choices, feature metadata, and
+  description: prepares authored condition choices, feature metadata, and
                runtime-backed rotation editor options from the live scenario
                state.
 */

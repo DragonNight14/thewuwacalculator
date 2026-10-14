@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Filters resonator catalog entries and returns a selected resonator identity.
+  description: filters resonator catalog entries and returns a selected resonator identity.
 */
 
 import { DisplayImage } from '@/shared/ui/DisplayImage'
@@ -66,7 +66,7 @@ export function usePickerFilters() {
 }
 
 export function ResPckr(props: ResPckrPrps) {
-  // Preserve filter choices between openings without subscribing to the store
+  // preserve filter choices between openings without subscribing to the store
   // or building every card while this picker is closed.
   const filters = usePickerFilters()
   return props.visible && props.portalTarget
@@ -116,8 +116,8 @@ function ResPickerContent({
   )
 }
 
-// Callers that commit immediately preload the selected resonator before invoking
-// onSelect. Staged callers defer that work until their aggregate commit.
+// callers that commit immediately preload the selected resonator before invoking
+// onSelect. staged callers defer that work until their aggregate commit.
 export function useResPickerView({
   resonators,
   selResId = null,

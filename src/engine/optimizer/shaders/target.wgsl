@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: scores target-skill optimizer candidates on the gpu by rebuilding
+  description: scores target-skill optimizer candidates on the gpu by rebuilding
                each echo combo, applying packed set and stat rows, then reducing
                the best candidate for the cpu result reader.
 */
@@ -620,7 +620,7 @@ fn applySetEffectsBase(base: EchoBase) -> SetApplied {
     return s;
 }
 
-// apply runtime-dependent conditional set effects that cannot live purely in the LUT
+// apply runtime-dependent conditional set effects that cannot live purely in the lut
 fn applySetEffectsConditional(
     s: ptr<function, SetApplied>,
     setCount: array<u32, SET_SLOTS>,
@@ -796,7 +796,7 @@ fn evalMainPos(
     mainType0: vec4<f32>,
     mainType1: vec2<f32>,
     // top_stat contributions from the chosen main echo, expressed as
-    // percentage points (matches the CPU evaluator's units).
+    // percentage points (matches the cpu evaluator's units).
     mainCR: f32,
     mainCD: f32,
     mainDmgBns: f32,
@@ -869,14 +869,14 @@ fn evalMainPos(
         dmgBonus += extraDmgBonus * INV_100 * f32((mask >> 6u) & 1u);
     }
 
-    // seed crit aggregates with main-echo top_stat contributions so echoes
-    // like 6000201 (Adam Smasher for Lucy/Rebecca) actually shift the
+    // seed crit aggregates with main-echo top_stat contributions. echoes
+    // like 6000201 (adam smasher for Lucy/Rebecca) actually shift the
     // damage estimate.
     var critRateForDmg = pre.critRateTotal + mainCR * INV_100;
     var critDmgForDmg = pre.critDmgTotal + mainCD * INV_100;
     let baseMul = pre.resDefAmp * pre.dmgReductionTotal;
 
-    // 1505 team crit from Shorekeeper's own er
+    // 1505 team crit from shorekeeper's own er
     if (pre.charId == 1505.0) {
         critRateForDmg = critRateForDmg + min(max(finalER * 0.05, 0.0), 12.5) * INV_100 * toggleValue(pre.toggles, 1u);
         critDmgForDmg = critDmgForDmg + min(max(finalER * 0.1, 0.0), 25.0) * INV_100 * toggleValue(pre.toggles, 1u) * toggleValue(pre.toggles, 2u);

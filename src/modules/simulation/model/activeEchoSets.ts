@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Derives equipped Echo sets whose authored activation threshold
+  description: derives equipped echo sets whose authored activation threshold
                is satisfied by the current loadout.
 */
 

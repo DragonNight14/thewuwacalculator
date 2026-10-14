@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Builds context-menu entries for evaluation resonator selection.
+  description: builds context-menu entries for evaluation resonator selection.
 */
 
 import { ArrowRightLeft, Clipboard, Copy, Scissors, SquareDashedMousePointer, Trash2 } from 'lucide-react'

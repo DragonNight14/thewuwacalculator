@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: keeps rotation weapon suggestions numerically aligned with the
+  description: keeps rotation weapon suggestions numerically aligned with the
                canonical simulation after each candidate passive is applied.
 */
 

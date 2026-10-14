@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Resolves a scenario member's runtime, team ordering, visible
+  description: resolves a scenario member's runtime, team ordering, visible
                source states, combat stats, target routing, and update actions.
 */
 
@@ -38,17 +38,17 @@ import { useTeamSlots } from './teamSlots.ts'
 const EMPTY_RUNTIME_MAP: Record<string, ResRuntime> = Object.freeze({})
 
 export interface MemberModel {
-  /** Selected member, or null when absent from the resolved team. */
+  /** selected member, or null when absent from the resolved team. */
   member: ResView | null
   memberRt: ResRuntime | null
-  /** Active runtime used when evaluating teammate-dependent visibility. */
+  /** active runtime used when evaluating teammate-dependent visibility. */
   actRt: ResRuntime | null
-  /** Resolved team ordered with the active subject first. */
+  /** resolved team ordered with the active subject first. */
   roster: ResView[]
   isActive: boolean
   sttDefs: SourceState[]
   cmbtSttsView: StatsView | null
-  /** Nested projection of the same final stats used by the flat view. */
+  /** nested projection of the same final stats used by the flat view. */
   cmbtSttsTree: StatTreeNode[]
   invBlds: SavedBuild[]
   onSqncChng: (value: number) => void
@@ -101,7 +101,7 @@ export function useMemberModel(
   const member = memberId ? getResonator(memberId) : null
   const memberRt = memberId ? partRtsById[memberId] ?? null : null
 
-  // Preserve the active resonator at index zero while dropping unresolved support slots.
+  // preserve the active resonator at index zero while dropping unresolved support slots.
   const roster = useMemo(() => {
     if (!runtime) {
       return []
@@ -122,7 +122,7 @@ export function useMemberModel(
       return []
     }
 
-    // Team-targeted state visibility depends on the active runtime and composition.
+    // team-targeted state visibility depends on the active runtime and composition.
     const memberStates = makeSourceCat(memberRt).states
       .filter((state) => isSourceVisible(memberRt, memberRt, state, runtime))
       .filter((state) => state.source.type !== 'echo')

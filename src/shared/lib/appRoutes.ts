@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Defines the Home, Read, and Simulation route hierarchy plus the
+  description: defines the home, read, and simulation route hierarchy plus the
                retired addresses that redirect into it.
 */
 
@@ -29,15 +29,15 @@ export const APP_ROUTES = {
   ...READ_ROUTES,
 } as const
 
-// The retired calculator now opens Modulation.
+// the retired calculator now opens modulation.
 export const LEGACY_CALCULATOR_ALIAS = '/calculator'
 
 export const LEGACY_HOME_ROUTE = '/home'
 
-// Settings became Calibration. The old address still works.
+// settings became calibration. the old address still works.
 export const LEGACY_SETTINGS_ROUTE = '/settings'
 
-// Preserve the legacy What's New route and its optional release hash on redirect.
+// preserve the legacy what's new route and its optional release hash on redirect.
 export const LEGACY_WHATS_NEW_ROUTE = '/changelog/whatsnew'
 export const WHATS_NEW_ACT = 'whatsnew'
 
@@ -71,9 +71,9 @@ export type SimulationRoute = keyof typeof SIMULATION_ROUTES
 
 const SIMULATION_ROUTE_KEYS = Object.keys(SIMULATION_ROUTES) as SimulationRoute[]
 
-// Every surface the simulation page can stand. The router builds its routes
+// every surface the simulation page can stand. the router builds its routes
 // from this table and the chrome reads it back, so a surface is declared once.
-// `workspace` surfaces share one Build Lab body and move between each other
+// `workspace` surfaces share one build lab body and move between each other
 // without a page transition; `roster` stands the chrome-mounted roster column.
 export type SimulationPane = 'workspace' | 'rotation'
 
@@ -103,7 +103,7 @@ export function isWorkspaceSurface(surface: SimulationSurface | null): surface i
   return surface !== null && SIMULATION_SURFACES[surface].pane === 'workspace'
 }
 
-// Resolves a path the router has not rendered yet (a navigation target, a chunk
+// resolves a path the router has not rendered yet (a navigation target, a chunk
 // to warm) with the router's own matching, trailing slash included.
 export function surfaceAt(pathname: string): SimulationSurface | null {
   return SIMULATION_SURFACE_IDS.find((surface) => (

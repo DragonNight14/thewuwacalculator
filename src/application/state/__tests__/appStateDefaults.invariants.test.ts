@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Protects fresh-app max-on-init and saved-state preservation.
+  description: protects fresh-app max-on-init and saved-state preservation.
 */
 
 import { describe, expect, it } from 'vitest'

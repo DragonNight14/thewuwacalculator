@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Prepares Vitest fetch handling and hydrates calculator game data
+  description: prepares vitest fetch handling and hydrates calculator game data
                before test modules run.
 */
 

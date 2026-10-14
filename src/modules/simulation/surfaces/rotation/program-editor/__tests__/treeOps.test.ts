@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Verifies the treeOps.test behavior and its compatibility invariants.
+  description: verifies the treeOps.test behavior and its compatibility invariants.
 */
 
 import { describe, expect, it } from 'vitest'
@@ -91,7 +91,7 @@ describe('Off-Tune landing authoring', () => {
 })
 
 describe('loop run counts', () => {
-  it('discards removed copied forks so re-added runs inherit the new last run', () => {
+  it('discards removed copied forks and inherits the new last run on re-add', () => {
     const copied: EditorBlock = {
       type: 'loop',
       id: 'copied-loop',
@@ -315,7 +315,7 @@ describe('rotation editor tree moves', () => {
     expect(result?.type === 'repeat' ? result.children.map((node) => node.id) : []).toEqual(['b', 'a'])
   })
 
-  it('persists section ownership when a node moves between sections', () => {
+  it('updates the node section when moving between sections', () => {
     const original: EditorSection[] = [
       { id: 'preamble', title: 'Preamble', meta: '', children: [step('setup')] },
       { id: 'main', title: 'Main', meta: '', children: [step('hit'), step('finish')] },
@@ -750,7 +750,7 @@ describe('a loop that ends where it starts', () => {
   /*
     written out, the end it already had is the marker standing before the
     start, so the loop it round trips through is the same loop drawn the same
-    way rather than one that lost a body.
+    way with its body intact.
   */
   it('writes the end it is drawn with before its start until one is placed', () => {
     expect(editorSectionsToRotation(noEndLoop(), [])[0].items.map((node) => node.id)).toEqual([
@@ -808,7 +808,7 @@ describe('a loop that ends where it starts', () => {
     ])
     expect(findNode(moved, start.id)).toMatchObject({ loopSegment: 'start', wrap: 'tail' })
 
-    // the two loops cross rather than nest: each marker keeps its own place
+    // the two loops cross; each marker retains its own position.
     expect(editorSectionsToRotation(moved, [])[0].items.map((node) => node.id)).toEqual([
       'other-start',
       'b-1',
@@ -1013,7 +1013,7 @@ describe('taking a loop end away', () => {
 
   /*
     the end does not vanish: the loop still stops somewhere, and where it stops
-    is the row above its own start. so it is drawn in the two pieces a loop
+    is the row above its own start. draw it in the two pieces a loop
     that runs back around is drawn in.
   */
   it('leaves the loop running back around to its own start', () => {

@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Verifies per-owner draft retention, evaluated-result refresh,
+  description: verifies per-owner draft retention, evaluated-result refresh,
                and explicit replacement boundaries in the editor session store.
 */
 

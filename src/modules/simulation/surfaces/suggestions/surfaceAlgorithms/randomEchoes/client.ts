@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Owns random-Echo worker requests and their idle lifecycle.
+  description: manages random-echo worker requests and idle teardown.
 */
 
 import { getGameDataMode } from '@/data/gameData'

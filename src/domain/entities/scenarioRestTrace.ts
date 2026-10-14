@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Defines the UI-independent graph contract for a scenario's
+  description: defines the ui-independent graph contract for a scenario's
                currently applied member effects, target effects, and states.
 */
 

@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Defines synthetic formula-stat paths used by rotation condition
+  description: defines synthetic formula-stat paths used by rotation condition
                nodes to alter later feature formulas without touching saved
                manual buffs or scoped source effects.
 */

@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Converts paired Rover identities in complete scenarios and saved builds.
+  description: converts paired rover identities in complete scenarios and saved builds.
 */
 
 import type { CombatScenario, CombatScenarioId, DormantScenarioMember, ScenarioTeamMember, TeamMemberId } from '@/domain/entities/combatScenario'
@@ -14,7 +14,7 @@ import type { ScenarioWorkspace } from '@/domain/entities/scenarioLibrary'
 import { summarizeScenario } from '@/domain/entities/scenarioLibrary'
 import { makeMemberManualEffect, memberManualEffectId } from '@/engine/runtime/scenarioEnvironment'
 
-/** Literal UTF-8 size of the serialized data, including its ordinary metadata. */
+/** literal utf-8 size of the serialized data, including its ordinary metadata. */
 export function serializedByteSize(value: unknown): number {
   return new TextEncoder().encode(JSON.stringify(value)).byteLength
 }

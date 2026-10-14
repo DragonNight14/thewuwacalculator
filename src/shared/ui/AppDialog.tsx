@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Wraps the shared radix dialog primitives with the app's portal,
+  description: wraps the shared radix dialog primitives with the app's portal,
                overlay, and outside-interaction safeguards.
 */
 
@@ -32,7 +32,7 @@ function isAppPopup(target: EventTarget | null) {
   return target instanceof Element && Boolean(target.closest('.app-popup'))
 }
 
-// Preserve the primitive's focus-candidate order while deferring the layout read.
+// preserve the primitive's focus-candidate order while deferring the layout read.
 const FOCUS_CANDIDATES = [
   'input:not([type="hidden"])',
   'select',
@@ -54,7 +54,7 @@ function focusFirst(content: HTMLElement) {
   content.focus({ preventScroll: true })
 }
 
-// Restrict layout invalidation during the opening transition, then remove
+// restrict layout invalidation during the opening transition, then remove
 // containment before descendants can position anchored popups against the page.
 const ARRIVAL_MS = 760
 
@@ -68,7 +68,7 @@ function useArrival(open: boolean) {
     content.dataset.arriving = 'true'
     const land = () => content.removeAttribute('data-arriving')
     const timer = window.setTimeout(land, ARRIVAL_MS)
-    // Pointer interaction may open an anchored popup before the timer settles.
+    // pointer interaction may open an anchored popup before the timer settles.
     content.addEventListener('pointerdown', land, { once: true })
     return () => {
       window.clearTimeout(timer)
@@ -106,7 +106,7 @@ export function AppDialog({
   const cntnClssNms = [contentClass, open ? 'open' : '', closing ? 'closing' : '']
     .filter(Boolean)
     .join(' ')
-  // Keep backdrop filtering outside the scrolling subtree to avoid re-filtering each frame.
+  // backdrop filtering stays outside the scrolling subtree; each frame reuses it.
   const blurClssNms = ['app-modal-blur', open ? 'open' : '', closing ? 'closing' : '']
     .filter(Boolean)
     .join(' ')
@@ -132,7 +132,7 @@ export function AppDialog({
             data-app-modal-content="true"
             aria-label={ariaLabel}
             onOpenAutoFocus={(event) => {
-              // Defer focus until the mounted dialog has its own layout boundary.
+              // defer focus until the mounted dialog has its own layout boundary.
               event.preventDefault()
               const content = event.currentTarget ?? event.target
               if (!(content instanceof HTMLElement)) return
@@ -153,7 +153,7 @@ export function AppDialog({
                 return
               }
 
-              // Nested popups and selection actions are not outside-dialog interactions.
+              // nested popups and selection actions are not outside-dialog interactions.
               if (
                 isAppPopup(event.target)
                 || isFltnSelCtn(event.target)

@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Groups visible source states by canonical ownership scope for the selected member.
+  description: groups visible source states by source scope and piece count for the selected member.
 */
 
 import type { SourceState, SrcOwnDef } from '@/domain/gameData/contracts'
@@ -55,7 +55,7 @@ export interface ModulationBay {
   /**
    * the rarity the section's accent takes, when the thing it stands for has
    * one. the console tints its weapon block by the weapon's rarity, so the
-   * weapon reads gold at 5-star rather than taking the resonator's colour.
+   * a 5-star weapon uses gold from its own rarity.
    */
   rarity: number | null
   /** the small caption on the right of the bay head: which thing this came from */
@@ -64,7 +64,7 @@ export interface ModulationBay {
   rows: BayRow[]
 }
 
-/* Stable source-group order used by every modulation consumer. */
+/* stable source-group order used by every modulation consumer. */
 const BAY_ORDER = ['resonator', 'weapon', 'echoes'] as const
 type BayId = (typeof BAY_ORDER)[number]
 
@@ -89,8 +89,8 @@ const BY_KIND: Record<string, number> = {
 }
 
 /*
-  a teamBuff and a buffWindow name how an effect is applied, not what bought it,
-  so those owners are placed by the key instead: qingxiao's s4 is authored as a
+  teamBuff and buffWindow describe application mode. place their owners by key:
+  qingxiao's s4 is authored as a
   team buff and is still a chain node, and the port already reads its art the
   same way.
 */
@@ -154,8 +154,7 @@ function rowGlyph(owner: SrcOwnDef, srcRt: ResRuntime, weaponIcon: string | null
 }
 
 /*
-  a state the build has not unlocked yet is worth drawing rather than hiding: a
-  greyed row with its gate printed says what a sequence or a level would buy.
+  draw locked states as greyed rows with their level or sequence gate printed.
   only an unmet level or sequence gate qualifies -- anything else genuinely does
   not apply to this build and stays out.
 */
@@ -236,7 +235,7 @@ function stateVisibility(
   }
 }
 
-/** Counts active and available effects without materializing row metadata. */
+/** counts active and available effects without materializing row metadata. */
 export function countModulationEffects(
   srcRt: ResRuntime,
   actRt: ResRuntime,
@@ -272,7 +271,7 @@ export function countModulationEffects(
   the shown resonator's switches and shared eligible team states, in bays.
 
   teammates are deliberately absent: their states belong to the member console,
-  which already owns them, and this surface is about the resonator on the rail.
+  which already displays them, and this surface is about the resonator on the rail.
 */
 export function makeModulationBays(
   srcRt: ResRuntime,

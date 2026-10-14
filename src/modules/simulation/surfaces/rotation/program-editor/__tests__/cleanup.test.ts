@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Verifies cleanup classification and canonical removal across
+  description: verifies cleanup classification and canonical removal across
                containers, loop passes, attachments, and unavailable sources.
 */
 
@@ -220,11 +220,11 @@ describe('planning a rotation sweep', () => {
     expect(plan.targets).toEqual([{ id: 'stale-handoff', reason: 'dead' }])
   })
 
-  it('keeps rows inside a switched-off block, but not inside a switched-off loop marker', () => {
+  it('keeps rows in switched-off blocks and removes those in switched-off loop markers', () => {
     const parked = planRotationCleanup(section([
       block('off', 'repeat', [step('inner', { kind: 'dead' })], { disabled: true }),
     ]))
-    // A loop marker has no structural ownership over the following body rows.
+    // a loop marker has no structural relation to the following body rows.
     const looped = planRotationCleanup(section([
       block('off-loop', 'loop', [step('inner', { kind: 'dead' })], { disabled: true }),
     ]))

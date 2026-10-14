@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Implements prepared workspace data-flow and calculation invariants.
+  description: implements prepared workspace data-flow and calculation invariants.
 */
 
 import type { EnemyProfile } from '@/domain/entities/appState'
@@ -60,8 +60,7 @@ interface MkPrepWorkNp {
   combatGraph?: CombatGraph | null
 }
 
-// Build one combat context for every participant so multiple Simulation surfaces
-// can reuse them without rebuilding the graph repeatedly
+// build one combat context per participant and reuse it across simulation surfaces.
 function mkCntx(
     graph: CombatGraph,
     enemy: EnemyProfile,
@@ -224,7 +223,7 @@ export interface PreparedDetailedProgramRun {
   cacheHit: boolean
 }
 
-/** Prepared execution with phase timing for performance-facing consumers. */
+/** prepared execution with phase timing for performance-facing consumers. */
 export function runPrepWorkDetailedProgramTimed(
   prepared: PrepWork,
   items: RotationNode[],
@@ -262,8 +261,8 @@ export function runPrepWorkDetailedProgramTimed(
 }
 
 /**
- * Execute one advanced program against an existing workspace while retaining
- * the complete inspection surface required by the rotation page. The cache is
+ * execute one advanced program against an existing workspace while retaining
+ * the complete inspection surface required by the rotation page. the cache is
  * identity-based: immutable workspace/program inputs share the exact result,
  * while an edited program array always receives a fresh evaluation.
  */
@@ -276,9 +275,9 @@ export function runPrepWorkDetailedProgram(
 }
 
 /**
- * Stored editor programs execute their Preamble before their Main section.
- * Keep that presentation rule at the shared execution boundary so every
- * consumer reuses the same exact detailed result, including imported programs
+ * stored editor programs execute their preamble before their main section.
+ * apply that rule at the shared execution boundary for all consumers,
+ * including imported programs
  * whose section markers happen to be interleaved in the persisted array.
  */
 export function runPrepWorkDetailedStoredProgram(

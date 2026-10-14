@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Re-exports canonical application persistence parsing, saving, clearing, and storage identity.
+  description: re-exports canonical application persistence parsing, saving, clearing, and storage identity.
 */
 
 export {

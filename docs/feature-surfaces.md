@@ -1,57 +1,51 @@
 # Features And Pages
 
-## Summary
-
-User-facing modules follow the `Home > Read / Simulation` hierarchy.
-
 ## Home
 
 Primary root: [src/modules/home](../src/modules/home)
-
-Home introduces the Simulation tools and links into the Read collection. It does not own simulation state.
 
 ## Simulation
 
 Primary root: [src/modules/simulation](../src/modules/simulation)
 
-Shared ownership is divided by purpose:
+Simulation code is grouped by purpose:
 
 - `shell`: the route boundary, Simulation-wide providers, imports, and context menus
 - `workspace`: the persistent roster, rail, loadout, and shared board
 - `features`: reusable resonator, weapon, Echo, team, enemy, buff, inventory, and result capabilities
 - `surfaces`: route-selectable Modulation, Rotation, Showcase, Optimizer, and Suggestions
-- `model` and `ui`: Simulation-owned presentation logic and primitives
+- `model` and `ui`: Simulation presentation logic and primitives
 - `api`: explicit contracts used by app routing or another feature module
 
 ### Modulation
 
 Primary root: [src/modules/simulation/surfaces/modulation](../src/modules/simulation/surfaces/modulation)
 
-Modulation is the primary everyday tool. It combines character progression, weapon and Echo loadout, active states, team context, live stats, damage, and build evaluation. The evaluation engine produces baseline, active, reference, and maximum builds; it is not a separate public page.
+Modulation combines character progression, weapon and Echo loadout, active states, team context, live stats, damage, and build evaluation. The evaluation engine produces baseline, active, reference, and maximum builds.
 
 ### Rotation
 
 Primary root: [src/modules/simulation/surfaces/rotation](../src/modules/simulation/surfaces/rotation)
 
-Rotation builds, simulates, saves, imports, and shares ordered team actions. Its editor uses the shared combat scenario and Simulation state.
+Rotation builds, simulates, saves, imports, and shares ordered team actions. Its editor uses the combat scenario and simulation state.
 
 ### Showcase
 
 Primary root: [src/modules/simulation/surfaces/showcase](../src/modules/simulation/surfaces/showcase)
 
-Showcase turns the current build and evaluation into a customizable export card. Its visual preferences are stored as `showcaseCards`.
+UI for customizable build export card. Its visual preferences are stored as `showcaseCards`.
 
 ### Optimizer
 
 Primary root: [src/modules/simulation/surfaces/optimizer](../src/modules/simulation/surfaces/optimizer)
 
-Optimizer searches inventory and theoretical Echo combinations against a selected skill or rotation target. Preview changes stay detached until an explicit equip action.
+Searches inventory and theoretical Echo combinations against a selected skill or rotation target.
 
 ### Suggestions
 
 Primary root: [src/modules/simulation/surfaces/suggestions](../src/modules/simulation/surfaces/suggestions)
 
-Suggestions ranks main-stat layouts, Sonata set plans, and weapons against a selected skill or rotation target. It shares the mounted build workspace and keeps candidate changes detached until the user applies them.
+Ranks main stat layouts, sonata set plans, and weapons against a selected skill or rotation target.
 
 ### Shared Workspace And Inventory
 
@@ -61,18 +55,16 @@ Primary roots:
 - [src/modules/simulation/features/inventory](../src/modules/simulation/features/inventory)
 - [src/modules/simulation/features/echoes](../src/modules/simulation/features/echoes)
 
-Modulation, Showcase, Optimizer, and Suggestions share the same mounted roster and rail. The rail remains editable on each workspace tool. Inventory is a cross-tool library rather than a standalone route.
-
 ## Read
 
 Primary root: [src/modules/read](../src/modules/read)
 
-Read owns the Guides, Docs, Changelog, Privacy, and Terms pages. Home has a What's New section organized by release. Authored content is in `src/data/content`.
+Guides, Docs, Changelog, Privacy, Terms, etc. Home has a What's New section organized by release. Authored content is in `src/data/content`.
 
 ## Calibration And System
 
-- [src/modules/calibration](../src/modules/calibration) owns the Calibration page: appearance, application preferences, exports and data management.
-- [src/modules/system](../src/modules/system) owns fallback system pages such as Not Found.
+- [src/modules/calibration](../src/modules/calibration): appearance, application preferences, exports and data management.
+- [src/modules/system](../src/modules/system): fallback system pages such as Not Found.
 
 ## Related Docs
 

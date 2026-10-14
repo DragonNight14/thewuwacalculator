@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Verifies that random Echo suggestion workers are reused during
+  description: verifies that random echo suggestion workers are reused during
                active bursts and released after their idle grace period.
 */
 

@@ -1,7 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Holds the stable route-menu context identity and its consumer
-               contract outside React Fast Refresh component boundaries.
+  description: provides a stable route-menu context across react fast refresh boundaries.
 */
 
 import { createContext, useContext } from 'react'

@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Owns confirmation modal behavior and state transitions for the ui module.
+  description: renders confirmation dialogs and handles their response state.
 */
 
 import type { ReactNode } from 'react'

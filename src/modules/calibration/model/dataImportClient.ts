@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Owns the settings data-import worker lifecycle and file transfers.
+  description: manages settings data-import worker requests and file transfers.
 */
 
 import { getGameDataMode } from '@/data/gameData'
@@ -57,7 +57,7 @@ export async function runDataImport(
     job = { kind, source: resolvedSource }
   }
 
-  // Non-browser callers use the same parser and migration path without a worker.
+  // non-browser callers use the same parser and migration path without a worker.
   if (typeof Worker === 'undefined') {
     const { runDataImportJob } = await import('./dataImport')
     return runDataImportJob(job)

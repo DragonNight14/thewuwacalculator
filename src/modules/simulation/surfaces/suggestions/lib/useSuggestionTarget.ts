@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Derives the runtime and simulation used by Suggestions for
+  description: derives the runtime and simulation used by suggestions for
                a catalog default rotation.
 */
 

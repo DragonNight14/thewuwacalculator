@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Maps weapon-type identifiers to the canonical asset key used by
+  description: maps weapon-type identifiers to the canonical asset key used by
                build workspace weapon projections.
 */
 

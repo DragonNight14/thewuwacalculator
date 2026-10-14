@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Resolves executable node scope, ownership, and attachment context within authored programs.
+  description: resolves executable node scope and attachment context in authored programs.
 */
 
 import type {
@@ -33,10 +33,8 @@ interface EditorLoopScopeIndex {
 }
 
 /**
- * Resolve authored loop scope in document order. Most loops are ordinary
- * nested blocks. A freely positioned marker pair can cross a container edge,
- * so its start/end segments update one shared flow stack while recursion walks
- * through that container.
+ * resolve loop scope in document order. freely positioned markers can cross
+ * container boundaries, so all segments update one stack during traversal.
  */
 export function collectEditorLoopScopeByNode(
   sections: readonly EditorSection[],
@@ -116,8 +114,8 @@ export function collectEditorLoopScopeByNode(
         continue
       }
 
-      // Legacy same-list wrap segments are locally scoped display fragments.
-      // They do not carry their active state through the surrounding parent.
+      // legacy same-list wrap segments are locally scoped display fragments.
+      // they do not carry their active state through the surrounding parent.
       active.push(loopsById.get(loopId) ?? node)
       visit(node.children)
       active.pop()
@@ -169,7 +167,7 @@ function loopScope(
 }
 
 /**
- * Display scope includes a loop block's own pass. Edit scope deliberately does
+ * display scope includes a loop block's own pass. edit scope deliberately does
  * not: loop values are authored for the loop as a whole, while supported
  * children bind edits to their nearest enclosing loop.
  */

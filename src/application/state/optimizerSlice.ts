@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Defines optimizer settings and run actions, including lazy
+  description: defines optimizer settings and run actions, including lazy
                engine loading, request invalidation, and result application.
 */
 

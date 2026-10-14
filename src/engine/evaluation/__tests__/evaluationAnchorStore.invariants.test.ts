@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Locks persisted evaluation anchors to the current scoring revision.
+  description: locks persisted evaluation anchors to the current scoring revision.
 */
 
 import { describe, expect, it } from 'vitest'

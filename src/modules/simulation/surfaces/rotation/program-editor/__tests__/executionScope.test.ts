@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Verifies the executionScope.test behavior and its compatibility invariants.
+  description: verifies the executionScope.test behavior and its compatibility invariants.
 */
 
 import { describe, expect, it } from 'vitest'
@@ -99,7 +99,7 @@ describe('rotation editor execution scopes', () => {
     expect(selectedRunForNode(sections, loopBStep.id, selections)).toBe(3)
   })
 
-  it('carries a free loop scope into a block only until its nested end segment', () => {
+  it('keeps a free loop scope active inside a block until its nested end segment', () => {
     const start = loop('free', 'Free', 3, [])
     start.wrap = 'tail'
     start.loopSegment = 'start'

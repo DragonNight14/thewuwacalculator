@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Builds and caches runtime source catalogs for resonator and
+  description: builds and caches runtime source catalogs for resonator and
                main echo sources, including skills, features, and states.
 */
 

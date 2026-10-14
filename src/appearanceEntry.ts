@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Restores the saved appearance in a module graph independent of
+  description: restores the saved appearance in a module graph independent of
                the application entry, including when the app graph fails.
 */
 

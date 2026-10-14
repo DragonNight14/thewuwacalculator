@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Provides targeted cloning helpers for runtime, profile,
+  description: provides targeted cloning helpers for runtime, profile,
                inventory-adjacent, and persisted state objects so hot paths
                can avoid full structuredClone calls.
 */

@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Implements the rotationSummary logic for the entities module.
+  description: implements the rotationSummary logic for the entities module.
 */
 
 import type { ResonatorId } from './runtime'
@@ -17,7 +17,7 @@ export interface RotationMemberContribution {
   contribution: RotationDamageTotals
 }
 
-/** Calculated comparison data. This is never part of a saved rotation. */
+/** calculated comparison data. this is never part of a saved rotation. */
 export interface RotationComparisonSummary {
   total: RotationDamageTotals
   members?: RotationMemberContribution[]

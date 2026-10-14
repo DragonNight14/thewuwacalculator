@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Normalizes toggle, numeric, and select source states into one
+  description: normalizes toggle, numeric, and select source states into one
                binary activation path without intercepting nested controls.
 */
 

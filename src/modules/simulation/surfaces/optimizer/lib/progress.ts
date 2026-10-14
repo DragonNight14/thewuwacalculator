@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Formats optimizer timing and accumulates normalized throughput
+  description: formats optimizer timing and accumulates normalized throughput
                samples across the lifetime of a running search.
 */
 
@@ -45,7 +45,7 @@ export function useOptimizerWave(isLoading: boolean, progress: OptPrgr): number[
         let changed = shouldReset
         const next = source.slice()
 
-        // Large batches can jump several slots per update. Carry the latest
+        // large batches can jump several slots per update. carry the latest
         // rate across skipped positions so the trace has no artificial gaps.
         for (let index = 0; index <= slot; index += 1) {
           const value = index === slot

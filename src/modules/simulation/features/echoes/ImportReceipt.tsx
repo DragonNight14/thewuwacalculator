@@ -1,7 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Owns the review step for a read build card: what the card says,
-               beside what the build holds, one band at a time.
+  description: compares parsed build-card data with the current build during import review.
 */
 
 import type { ReactNode } from 'react'

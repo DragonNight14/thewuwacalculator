@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Verifies standing condition values across scopes, loop passes,
+  description: verifies standing condition values across scopes, loop passes,
                handoffs, authored writes, and runtime fallbacks.
 */
 
@@ -155,7 +155,7 @@ describe('standing state at the point a condition is added', () => {
     )).toBe(0)
   })
 
-  it('carries the last write before the anchor', () => {
+  it('uses the last write before the anchor', () => {
     const children = [
       condition('c1', STACKS, 'res-a', 2),
       step('s1', 'res-a'),
@@ -261,7 +261,7 @@ describe('the write a newly added condition opens on', () => {
     )).toBe(5)
   })
 
-  it('carries a standing stack value forward instead of the default', () => {
+  it('preserves the current stack value', () => {
     const children = [condition('c1', STACKS, 'res-a', 3)]
 
     expect(seedCondValueFor(

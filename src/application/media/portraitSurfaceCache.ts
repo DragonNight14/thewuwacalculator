@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Caches derived portrait colors by stable image reference while
+  description: caches derived portrait colors by stable image reference while
                coalescing concurrent sampling and tolerating unavailable storage.
 */
 
@@ -10,8 +10,8 @@ import { DEFAULT_PORTRAIT_SURFACE, readPortraitSurface } from '@/shared/lib/port
 const pending = new Map<string, Promise<string>>()
 const MAX_SURFACES = 32
 
-// Use the persisted upload ref, never its temporary resolved blob URL. Legacy
-// uploads and pasted URLs acquire metadata on first use without a migration.
+// use the persisted upload ref, never its temporary resolved blob url. legacy
+// uploads and pasted urls acquire metadata on first use without a migration.
 export function readCachedPortraitSurface(imageRef: string, source: string): Promise<string> {
   const key = `portrait-surface-v1:${imageRef}`
   const existing = pending.get(key)
@@ -26,12 +26,12 @@ export function readCachedPortraitSurface(imageRef: string, source: string): Pro
     if (persistent) await saveImageSurface(key, color).catch(() => undefined)
     return color
   })().catch(() => {
-    // A revoked temporary URL or transient network error must not poison the
+    // a revoked temporary url or transient network error must not poison the
     // stable image ref when it is resolved again later.
     pending.delete(key)
     return DEFAULT_PORTRAIT_SURFACE
   })
-  // Also coalesce concurrent requests and retain session-only results.
+  // also coalesce concurrent requests and retain session-only results.
   pending.set(key, result)
   while (pending.size > MAX_SURFACES) pending.delete(pending.keys().next().value!)
   return result

@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: shared substat aggregation, roll bounds, and ER-aware key helpers.
+  description: shared substat aggregation, roll bounds, and er-aware key helpers.
 */
 
 import type { EchoInstance } from '@/domain/entities/runtime'

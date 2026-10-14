@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: small shared formatters for display-only ui values.
+  description: small shared formatters for display-only ui values.
 */
 
 import { formatTruncCompact } from '@/shared/lib/number.ts'

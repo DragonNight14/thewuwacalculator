@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Defines the program editor's authored node model and the
+  description: defines the program editor's authored node model and the
                simulation-backed projections stored on those nodes.
 */
 
@@ -15,7 +15,7 @@ import type {
 } from '@/domain/gameData/contracts.ts'
 import type { CondAction } from '@/modules/simulation/surfaces/rotation/shared/authoringTypes.ts'
 
-/** Resonator id used as the stable member identity. */
+/** resonator id used as the stable member identity. */
 export type MemberId = string
 
 export interface EditorMember {
@@ -32,9 +32,9 @@ export interface EditorMember {
     rank: number
     level: number
     baseAtk: number
-    /** Canonical weapon rarity from 1 through 5. */
+    /** canonical weapon rarity from 1 through 5. */
     rarity: number
-    /** Secondary stat key and level-adjusted weapon values. */
+    /** secondary stat key and level-adjusted weapon values. */
     statKey: string
     atk: number
     statValue: number
@@ -42,7 +42,7 @@ export interface EditorMember {
   level: number
   sequence: number
   skillLevels: string
-  /** Slot-preserving Echo loadout. */
+  /** slot-preserving echo loadout. */
   echoes: Array<EditorEcho | null>
   sharePct: number
   seedName?: string
@@ -74,7 +74,7 @@ export interface RotationSummary {
     crit: number
     avg: number
   }
-  /** Non-damage rotation outputs, intentionally separate from `total`. */
+  /** non-damage rotation outputs, intentionally separate from `total`. */
   supportTotals: {
     healing: number
     shield: number
@@ -85,7 +85,7 @@ export interface RotationSummary {
     conditions: number
     /**
      * steps that are switched on but never acted because their direct
-     * condition was false. A step switched off by the user is not counted.
+     * condition was false. a step switched off by the user is not counted.
      */
     neverFired: number
     loops: number
@@ -135,18 +135,18 @@ export type NodeOwner =
   | { kind: 'echo'; echoId: string }
 
 /**
- * Derived from simulation. `dead` is a node the last run never got anything
+ * derived from simulation. `dead` is a node the last run never got anything
  * out of: it was not reached, or what it names could not be resolved.
  * `inert` is a node that ran and wrote only what its state already held.
  */
 export type NodeGate = { kind: 'dead' } | { kind: 'inert' }
 
 /**
- * Snapshot of the owning resonator when this node was evaluated.
+ * resonator stat snapshot from this node's evaluation.
  *
- * The basic and global values are this point-in-time snapshot. Skill-scoped
+ * the basic and global values are this point-in-time snapshot. skill-scoped
  * values such as crit, bonus and enemy modifiers are the aggregate that the
- * evaluated skill actually resolved. Using the engine result prevents a
+ * evaluated skill actually resolved. using the engine result prevents a
  * second, potentially stale reconstruction of the same effective stats.
  */
 export type StatLine = NonNullable<DamageFeature['effectiveStats']>
@@ -156,16 +156,16 @@ interface EditorNodeBase {
   owner: NodeOwner
   label: string
   /**
-   * The exact engine node this editor node was projected from. Simulation
-   * values are deliberately kept beside it rather than written back into it;
-   * serialization starts here and applies only explicit editor mutations.
+   * the exact engine node behind this editor projection. simulation values
+   * stay beside the source node. serialization applies explicit editor
+   * mutations to that source.
    */
   sourceNode?: RotationNode
 
   ownerEdited?: boolean
   sourceIcon?: string
   gate?: NodeGate
-  /** Annotation metadata owned by this node; never an execution child. */
+  /** display annotation for this node; never an execution child. */
   attachedNote?: EditorNote
 
   noteEdited?: boolean
@@ -184,9 +184,7 @@ export interface EditorNote {
 }
 
 /**
- * A write a step performs as part of firing. Not a condition standing beside
- * the step: it happens because the step happens, which is why it is carried on
- * the step rather than emitted as a node of its own.
+ * a state write performed when a step fires and carried on that step.
  */
 export interface StateWrite {
   id: string
@@ -197,7 +195,7 @@ export interface StateWrite {
 }
 
 /**
- * Evaluated values keyed by loop run. Authored differences live in exact pass
+ * evaluated values keyed by loop run. authored differences live in exact pass
  * fork bodies; this map only records what simulation observed.
  */
 export type ByRun<T> = Record<number, T>
@@ -212,11 +210,11 @@ export interface EditorStep extends EditorNodeBase {
   featureId?: string
 
   color?: string
-  /** Semantic category that separates damage from healing and shielding. */
+  /** semantic category that separates damage from healing and shielding. */
   aggregationType?: SkillAggType
   /** a step switched off stays in the rotation but contributes nothing */
   disabled?: boolean
-  /** a damage-over-time feature, which carries its own stack configuration */
+  /** a damage-over-time feature, with a separate stack configuration */
   negEffect?: boolean
   /**
    * fixed-max stack skills have no instance/stable-width series to configure.
@@ -227,19 +225,18 @@ export interface EditorStep extends EditorNodeBase {
   negativeEffectInstances?: number
   /** how many hits keep the same stack value before it steps down (default 1) */
   negativeEffectStableWidth?: number
-  /** True when authored series values differ from the execution baseline. */
+  /** true when authored series values differ from the execution baseline. */
   negSeriesEdited?: boolean
   /**
-   * the skill's own element, which is not always the resonator's. Rover casts
-   * across several, so a step is coloured by what it deals rather than by who
-   * cast it.
+   * the skill's damage element. rover can cast across several elements; colour
+   * each step by the damage it deals.
    */
   element?: AttributeKey
   /** state this step writes when it fires, per run */
   writesByRun?: ByRun<StateWrite[]>
   /**
-   * The attached writes as authored, for a step whose `changes` were edited
-   * since the last run. Simulation has not seen them yet, so there is no
+   * the attached writes as authored, for a step whose `changes` were edited
+   * since the last run. simulation has not seen them yet, so there is no
    * per-run write to read, so these remain authoritative until the next run.
    */
   pendingWrites?: StateWrite[]
@@ -248,16 +245,16 @@ export interface EditorStep extends EditorNodeBase {
   /** attached condition writes resolved for each loop run */
   attachedChangesByRun?: ByRun<RtChng[]>
   /*
-    the features this step carries. they are features in every respect: their
+    the features attached to this step. they are features in every respect: their
     own owner, multiplier, damage and stat line, resolved from their own rows.
-    the engine strips attachments from them, so this never goes a level deeper.
+    the engine strips their attachments; this projection has one attachment level.
   */
   attached?: EditorStep[]
-  /** True when authored attachments differ from the source node. */
+  /** true when authored attachments differ from the source node. */
   attachedEdited?: boolean
   /** how many times this rotation action emits its skill */
   multiplier: number
-  /** Off-Tune starts counting again on this feature after a Tune Break */
+  /** off-tune starts counting again on this feature after a tune break */
   offTuneResume?: boolean
   /** per-run damage, keyed by loop run. steps outside a loop use run 1 */
   damageByRun: ByRun<number>
@@ -292,7 +289,7 @@ export interface EditorCondition extends EditorNodeBase {
   /** semantic effect/passive identity, separate from the authored control label */
   effectName?: string
   /**
-   * Source definition for this write. Keeping it with the projected condition
+   * source definition for this write. keeping it with the projected condition
    * allows every editing path to apply the same value and action rules.
    */
   state?: SourceState
@@ -308,13 +305,13 @@ export interface EditorCondition extends EditorNodeBase {
   writeValue?: RuntimeValue
   /** whether the authored numeric write replaces or increments its state */
   writeAction?: ConditionWriteAction
-  /** True when the authored base write differs from the source node. */
+  /** true when the authored base write differs from the source node. */
   writeEdited?: boolean
   /** a value that rose, or a state that came on */
   rising: boolean
   /** further writes folded into this node, beyond the one named */
   extra?: number
-  /** Canonical authored write represented by this condition. */
+  /** canonical authored write represented by this condition. */
   change?: RtChng
   /** what this condition wrote on each run, where the runs differ */
   byRun?: ByRun<{
@@ -350,26 +347,25 @@ export interface EditorHandoff {
 export interface EditorBlock extends EditorNodeBase {
   /**
    * `setup` is the branch of an uptime block that runs in full to open the
-   * window. it is modelled as a block of its own so it folds, stacks and takes
-   * drops the way every other group does, rather than needing a second kind of
-   * child list nobody else understands.
+   * window. model it as a block with the usual folding, stacking, and drop
+   * behavior.
    */
   type: 'loop' | 'repeat' | 'uptime' | 'setup'
   /** persisted loop identity; local-only loops use their node id */
   loopId?: string
   /**
-   * Independent loop markers can cross list and block boundaries. One authored
-   * loop is therefore projected as linked segments: `tail` owns the start,
-   * `middle` continues the scope, and `head` owns the end.
+   * independent loop markers can cross list and block boundaries. one authored
+   * loop is therefore projected as linked segments: `tail` marks the start,
+   * `middle` continues the scope, and `head` marks the end.
    *
-   * A bounded loop needs no segment tag because it emits both markers.
+   * a bounded loop needs no segment tag because it emits both markers.
    */
   wrap?: 'head' | 'middle' | 'tail'
-  /** Identity of the segment that owns the loop start boundary. */
+  /** identity of the segment containing the loop start boundary. */
   wrapOf?: string
   /**
-   * Boundary role for a loop whose markers were positioned independently.
-   * Unlike a regular nested loop block, this scope can continue through and
+   * boundary role for a loop whose markers were positioned independently.
+   * unlike a regular nested loop block, this scope can continue through and
    * out of another block before a later segment closes it.
    */
   loopSegment?: 'both' | 'start' | 'middle' | 'end'
@@ -380,7 +376,7 @@ export interface EditorBlock extends EditorNodeBase {
   runsByRun?: ByRun<number>
   ratioByRun?: ByRun<number>
   valueEdited?: boolean
-  /** Engine-derived totals that take precedence over child aggregation. */
+  /** engine-derived totals that take precedence over child aggregation. */
   totals?: { normal: number; crit: number; avg: number }
   /** pass damage for loop blocks, keyed by the loop's own run number */
   damageByRun?: ByRun<number>
@@ -392,16 +388,16 @@ export interface EditorBlock extends EditorNodeBase {
   noEnd?: boolean
   color?: string
   colorEdited?: boolean
-  /** True when the authored label differs from its projected default. */
+  /** true when the authored label differs from its projected default. */
   labelEdited?: boolean
   /**
-   * Initial body before the first divergent run (lazy COW template). `children`
+   * initial body before the first divergent run (lazy cow template). `children`
    * is the pass currently checked out; transition bodies live in `passForks`.
    */
   passTemplate?: EditorNode[]
-  /** Bodies inherited from each divergent run forward (1-based keys). */
+  /** bodies inherited from each divergent run forward (1-based keys). */
   passForks?: Record<number, EditorNode[]>
-  /** Which run `children` currently represents. */
+  /** which run `children` currently represents. */
   checkedOutRun?: number
   nodeCount: number
   children: EditorNode[]
@@ -457,7 +453,7 @@ interface EditorLoopScope {
   runs: number
 }
 
-/** Exact section or loop pass in which a projected node executes. */
+/** exact section or loop pass in which a projected node executes. */
 export type EditorExecutionScope = EditorSectionScope | EditorLoopScope
 
 export interface BuffLine {
@@ -466,7 +462,7 @@ export interface BuffLine {
   name: string
   icon: string
   /**
-   * Trusted markup emitted by the state-summary builder. Consumers must not
+   * trusted markup emitted by the state-summary builder. consumers must not
    * escape it a second time.
    */
   effects: string[]

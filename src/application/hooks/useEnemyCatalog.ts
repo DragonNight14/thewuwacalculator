@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Loads and exposes the enemy catalog through a shared React
+  description: loads and exposes the enemy catalog through a shared react
                hook with loading and error state handling.
 */
 

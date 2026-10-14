@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Searches valid build space for baseline, evaluation, and maximum builds.
+  description: searches valid build space for baseline, evaluation, and maximum builds.
 */
 import type { EchoInstance } from '@/domain/entities/runtime';
 import { ECHO_MAIN_STATS, SUBSTAT_KEYS, getSbstStepP } from '@/data/gameData/catalog/echoStats';
@@ -18,11 +18,11 @@ import { buildEvaluationFeatureBreakdownFromEncoded } from './features.ts';
 import { distributeStepSubstats, prepareStepAllocator, stepSubstatPlan } from './stepAllocation';
 
 
-// The 0%/100%/200% anchors depend on the equipped build only through the ER
+// the 0%/100%/200% anchors depend on the equipped build only through the er
 // requirement (`targetEr`), retained maxed utility-set plan, and retained
-// team-facing main Echo. Splitting the anchor search out from active-build
+// team-facing main echo. splitting the anchor search out from active-build
 // scoring lets callers cache the expensive search and re-score the live build
-// cheaply (see report.ts). The anchor bundle is plain data (no closures / ctx
+// cheaply (see report.ts). the anchor bundle is plain data (no closures / ctx
 // references), so a bundle computed against one ctx can be reused to assemble a
 // evaluation against another ctx that shares the same anchor inputs.
 export interface EvaluationAnchors {
@@ -36,8 +36,8 @@ export interface EvaluationAnchors {
   }
 }
 
-// Retain only the scoring inputs. Report-only feature trees and stat rows are
-// derived from these when a report actually asks for them.
+// retain only the scoring inputs. report-only feature trees and stat rows are
+// derived from these when a report requests them.
 interface EvaluationAnchorBuild {
   echoes: EchoInstance[]
   stats: Float32Array
@@ -61,8 +61,8 @@ const DEFAULT_EVALUATION_OPTIONS: Required<BuildEvaluationOptions> = {
   includeInvariantStats: true,
 }
 
-// Lean report assembly can skip the active build's expensive per-stat
-// contribution re-scoring, feature breakdown, and invariant stat tree. Target
+// lean report assembly can skip the active build's expensive per-stat
+// contribution re-scoring, feature breakdown, and invariant stat tree. target
 // snapshots stay included because they are precomputed in the anchors and the
 // full report can reuse the same evaluation without another anchor search.
 export const LEAN_SCORE_OPTIONS: BuildEvaluationOptions = {
@@ -79,22 +79,21 @@ const SUBSTAT_IMPACT_STAT_LIMIT = 8
 const SUBSTAT_IMPACT_STAT_FLOOR = 5
 const SUBSTAT_IMPACT_RATIO_FLOOR = 0.12
 
-// The evaluation is a guidance signal, not an optimizer result. Keep the
-// report responsive by searching a beam of promising frame families instead
-// of materializing the full legal build space. The frame proxy is deliberately
+// evaluation is a guidance signal with a bounded beam of promising frame
+// families. this keeps the report responsive. the frame proxy is deliberately
 // cheap and deterministic; lowering either cap is an intentional accuracy /
 // latency trade-off.
 const APPROXIMATE_FRAME_LIMIT = 128
-// Reference tier allocation dominates search time; the maximum pass keeps
+// reference tier allocation dominates search time; the maximum pass keeps
 // the wider beam because its per-candidate fill is inexpensive.
 const REFERENCE_FRAME_LIMIT = 32
 const APPROXIMATE_MAIN_CANDIDATE_LIMIT = 256
 const REFERENCE_REFINEMENT_LIMIT = 8
 
-// A reference trial changes only row zero. Main-stat permutations with the
+// a reference trial changes only row zero. main-stat permutations with the
 // same first row and remaining-row totals have the same prepared score for
-// every legal substat allocation in this fixed frame. Retain their first
-// occurrence so equal-damage ties keep the original Echo layout.
+// every legal substat allocation in this fixed frame. retain their first
+// occurrence so equal-damage ties keep the original echo layout.
 function referenceCandidateSignature(stats: Float32Array): string {
   const parts = new Array<string>(ECHO_STAT_STRIDE)
   for (let stat = 0; stat < ECHO_STAT_STRIDE; stat += 1) {
@@ -139,7 +138,7 @@ function materializeAnchorBuild(
     }
   }
   const frame = makeEvaluationEchoFrame(ctx, anchor.echoes, mkSuggMainEc(ctx, anchor.echoes))
-  // Early compact anchors stored this vector as a plain array. IndexedDB can
+  // early compact anchors stored this vector as a plain array. IndexedDB can
   // still return one during a hot update, and scoring requires subarray().
   const stats = Float32Array.from(anchor.stats)
   return makeEvaluationBuildSnapshot({
@@ -223,8 +222,8 @@ function limitUsefulStatsByImpact(
   },
 ): Set<string> {
   const requiresEr = !options.ignoreEr && options.targetEr > 0
-  // ER is a hard feasibility constraint. Candidate branching reserves its slot
-  // separately so an ER-scaling resonator does not let ER consume one of the
+  // er is a hard feasibility constraint. candidate branching reserves its slot
+  // separately so an er-scaling resonator does not let er consume one of the
   // damage-stat slots and push a legal stat out of the search.
   const reservesErSlot = requiresEr && options.reserveErSlot === true
   const rankedLimit = Math.max(0, options.limit - (reservesErSlot ? 1 : 0))
@@ -252,7 +251,7 @@ function limitUsefulStatsByImpact(
     }
   }
 
-  // ER preservation is an anchor constraint, not only a damage-preference stat.
+  // er preservation is an anchor constraint, not only a damage-preference stat.
   if (requiresEr) {
     limited.add(ENERGY_REGEN)
   }
@@ -265,8 +264,8 @@ function frameEnergyRegen(ctx: SuggestContext, frame: EvaluationEchoFrame): numb
     .secondaryStats.find((row) => row.key === ENERGY_REGEN)?.total ?? 0
 }
 
-// Match the representative combat ER, including source stats, sets, and the
-// main Echo effect. Candidate ER uses that same evaluator snapshot.
+// match the representative combat er, including source stats, sets, and the
+// main echo effect. candidate er uses that same evaluator snapshot.
 export function evaluationErTarget(
   ctx: SuggestContext,
   equipped: Array<EchoInstance | null>,
@@ -303,9 +302,8 @@ export function buildEvaluationAnchors(
     mainEcho: EchoInstance
   }> = []
   const forEachEvaluationFrame = (visit: (frame: EvaluationEchoFrame, index: number) => void, stride = 1): number => {
-    // The first pass establishes legal frame identities. Later sparse passes
-    // reuse those identities instead of repeating set-plan feasibility and
-    // main-Echo choice enumeration; only sampled frames are materialized.
+    // the first pass establishes legal frame identities. later sparse passes
+    // reuse them and materialize only sampled frames.
     if (frameDescriptors.length > 0) {
       for (let index = 0; index < frameDescriptors.length; index += stride) {
         const descriptor = frameDescriptors[index]
@@ -328,12 +326,12 @@ export function buildEvaluationAnchors(
         if (!isFeasible(setPlan)) continue
         const choices = selectMainEchoChoices(costPlan, setPlan)
         for (const choice of choices) {
-          // The frame's `mainSig` is fully determined by the main Echo's own
-          // effect class (`choice.effectSig`), the team-facing main-Echo buff
+          // the frame's `mainSig` is fully determined by the main Echo's own
+          // effect class (`choice.effectSig`), the team-facing main-echo buff
           // never depends on the filler echoes or the set assignment, so the real
-          // `mainEchoEffectSig` always equals `choice.effectSig`. That makes the
+          // `mainEchoEffectSig` always equals `choice.effectSig`. that makes the
           // whole dedup key knowable before any echo assembly, so the ~95% of
-          // (set-effect x main-Echo) combos that collapse to an already-seen frame
+          // (set-effect x main-echo) combos that collapse to an already-seen frame
           // skip the expensive applySetPlan / validity / mkSuggMainEc work.
           const frameSig = `${effectSig}|${choice.effectSig}`
           if (seenFrames.has(frameSig)) continue
@@ -359,7 +357,7 @@ export function buildEvaluationAnchors(
     return frameIndex
   }
 
-  // Only 128 frame families can enter the bounded search. Keep those frames
+  // only 128 frame families can enter the bounded search. keep those frames
   // and their score proxies, releasing every other candidate immediately.
   const frameInfos: Array<{
     echoes: EchoInstance[]
@@ -391,27 +389,26 @@ export function buildEvaluationAnchors(
   const targetEr = evaluationErTarget(ctx, equipped)
   const erInvestment = Math.max(0, targetEr - frameEnergyRegen(ctx, noEchoFrame))
 
-  // Native legal tiers for the reference and maximum per-line values.
+  // native legal tiers for the reference and maximum per-line values.
   const tiers = Object.fromEntries(SUBSTAT_KEYS.map(key => [key, getSbstStepP(key)]))
   const nonErSubKeys = SUBSTAT_KEYS.filter((key) => key !== ENERGY_REGEN)
   const maximumParams = MAXIMUM_SCORING_PARAMS
 
-  // Main-stat candidates are enumerated lazily for the retained beam rather
-  // than materialized into one giant array. The bounded search compares the
-  // same candidates in both passes; neither pass is globally exhaustive.
-  // The set of substats/mains that move damage is fixed by the resonator's
+  // enumerate main-stat candidates lazily for the retained beam. both bounded
+  // passes compare the same candidates; neither is globally exhaustive.
+  // the set of substats/mains that move damage is fixed by the resonator's
   // element, skill types, and base crit; it is invariant across every frame of
   // a single search (verified empirically: exactly one distinct useful set per
-  // resonator across all elements / set plans / main Echoes, for frame counts
-  // into the thousands). Candidate sets and main Echoes only add FLAT stat
+  // resonator across all elements / set plans / main echoes, for frame counts
+  // into the thousands). candidate sets and main echoes only add flat stat
   // contributions; they never introduce a new damage-relevant stat (an
   // off-element set is dead for the resonator) nor permanently remove one (a
   // crit-cap-saturating set just makes an included stat add zero, which the
-  // greedy already handles). So we compute one SHARED useful set instead of
-  // re-deriving it (~21 scores) on every frame. A superset is always safe here:
+  // greedy already handles). compute one shared useful set for all frames.
+  // a superset is safe here:
   // an over-included stat simply never gets allocated, so we union the result
   // across a wide spread sample of frames to guard against any rare variation.
-  // Regenerating these sparse samples trades construction work for lower peak
+  // regenerating these sparse samples trades construction work for lower peak
   // memory than retaining every frame and its stats buffer.
   const usefulSampleStride = Math.max(1, Math.floor(frameCount / 48))
   const sharedUsefulImpacts = new Map<string, number>()
@@ -426,10 +423,10 @@ export function buildEvaluationAnchors(
   if (ignoreEr) {
     sharedUsefulImpacts.delete(ENERGY_REGEN)
   }
-  // Rank each candidate family only against stats that are legal in that
-  // family. A main-only elemental stat must not consume a substat rank and
-  // evict a legal damage roll (Brant + team buffs can otherwise lose Basic
-  // Attack DMG from the 200% anchor), and the inverse applies to substat-only
+  // rank each candidate family only against stats that are legal in that
+  // family. a main-only elemental stat must not consume a substat rank and
+  // evict a legal damage roll (brant + team buffs can otherwise lose basic
+  // attack dmg from the 200% anchor), and the inverse applies to substat-only
   // damage types during main-stat enumeration.
   const legalMainStats = new Set(
     Object.values(ECHO_MAIN_STATS).flatMap((stats) => Object.keys(stats)),
@@ -458,23 +455,22 @@ export function buildEvaluationAnchors(
   })
   const usefulSubKeys = SUBSTAT_KEYS.filter((entry) => substatUsefulStats.has(entry))
   const usefulDamageSubKeys = usefulSubKeys.filter((entry) => entry !== ENERGY_REGEN)
-  // Use every damage-relevant key for the reference's relevant-line cap. The ranked
+  // use every damage-relevant key for the reference's relevant-line cap. the ranked
   // maximum-search shortlist must not relabel weak damage stats as free filler.
   const referenceRelevantKeys = [...substatUsefulImpacts.keys()].filter(key => key !== ENERGY_REGEN)
   const allocateSteps = prepareStepAllocator(tiers, referenceRelevantKeys)
   const maximumRolls = Object.fromEntries(SUBSTAT_KEYS.map((key) => [key, tiers[key].at(-1) ?? 0]))
 
-  // shared scratch vectors for the substat search; reused across every candidate
-  // to avoid allocating a fresh Float32Array per trial roll (the dominant source
-  // of GC churn in the greedy fill).
+  // shared substat search vectors serve every candidate. per-roll Float32Array
+  // allocations are the dominant source of gc churn in the greedy fill.
   const firstFrame = makeEvaluationEchoFrame(ctx, frameInfos[0].echoes,
     mkSuggMainEc(ctx, frameInfos[0].echoes), frameInfos[0].setPlan)
   const scratchLen = firstFrame.stats.length
   const workingScratch = new Float32Array(scratchLen)
   const trialScratch = new Float32Array(scratchLen)
 
-  // ER is additive in the packed evaluator. Resolve the source/set/main-Echo
-  // contribution once per frame, then add each candidate's encoded main ER.
+  // er is additive in the packed evaluator. resolve the source/set/main-Echo
+  // contribution once per frame, then add each candidate's encoded main er.
   const frameErOffsets = new WeakMap<EvaluationEchoFrame, number>()
   const candidateEnergyRegen = (candidate: MainStatCandidate) => {
     let offset = frameErOffsets.get(candidate.frame)
@@ -504,10 +500,9 @@ export function buildEvaluationAnchors(
     const cap = caps[ENERGY_REGEN] ?? 0
     if (roll <= 0 || cap <= 0) return null
 
-    // `targetEr` is accumulated through Float32 echo rows, while legal roll
-    // values are ordinary JS numbers. Compare in roll-count space so a target
-    // such as 62.0000019 ER remains exactly five legal 12.4 rolls instead of
-    // being rounded up to an impossible sixth roll.
+    // `targetEr` is accumulated through float32 echo rows, while legal roll
+    // values are ordinary js numbers. compare in roll-count space so a target
+    // such as 62.0000019 er remains exactly five legal 12.4 rolls.
     const count = Math.ceil((missing / roll) - 0.000001)
     if (count > cap || count > params.substatGoal) return null
     return { count, total: missing }
@@ -599,17 +594,17 @@ export function buildEvaluationAnchors(
       damage: candidate.frame.score(working, candidate.frame.sets),
       counts,
       main: candidate,
-      // Aliases the shared `workingScratch`; only valid until the next trial.
+      // aliases the shared `workingScratch`; only valid until the next trial.
       // `consider` deep-copies this (and the candidate's main stats) when the
       // candidate becomes a new running best.
       stats: working,
     }
   }
 
-  // Try one main-stat candidate against one pass's running best, applying the
-  // branch-and-bound prune. Returns the (possibly updated) best. The prune only
-  // skips candidates whose valid upper bound can't beat the current best, so the
-  // remaining fill is still heuristic within the bounded candidate pool.
+  // try one main-stat candidate against one pass's running best, applying the
+  // branch-and-bound prune. returns the (possibly updated) best. the prune only
+  // skips candidates whose valid upper bound cannot beat the current best.
+  // remaining fill is heuristic within the bounded candidate pool.
   const consider = (
     candidate: MainStatCandidate,
     params: EvaluationScoringParams,
@@ -657,13 +652,13 @@ export function buildEvaluationAnchors(
     }
   }
   const considerReference = (candidate: MainStatCandidate, best: SubstatCandidate | null): SubstatCandidate | null => {
-    // Reject impossible ER plans before preparing a scorer or trying the
-    // damage bound. The tier allocator can never place more than five ER lines.
+    // reject impossible er plans before preparing a scorer or trying the
+    // damage bound. the tier allocator can never place more than five er lines.
     const missingEr = Math.max(0, targetEr - candidateEnergyRegen(candidate))
     if (missingEr > MAX_ROLLS_PER_KEY * maximumRolls[ENERGY_REGEN] + 1e-5) return best
     const scoreCandidate = candidate.frame.prepareFirstLaneScore(candidate.stats)
-    // A generous bound: all keys at five maximum values, ignoring slot and
-    // upgrade budgets. Include ER because some kits convert it into damage.
+    // a generous bound: all keys at five maximum values, ignoring slot and
+    // upgrade budgets. include er because some kits convert it into damage.
     const optimistic = candidate.stats.slice()
     for (const key of SUBSTAT_KEYS) addStatTotal(optimistic, key, MAX_ROLLS_PER_KEY * maximumRolls[key])
     if (best && scoreCandidate(optimistic) <= best.damage) return best
@@ -681,7 +676,7 @@ export function buildEvaluationAnchors(
     return best
   }
 
-  // Both passes reuse the same bounded main-stat candidate pool. The reference
+  // both passes reuse the same bounded main-stat candidate pool. the reference
   // allocates physical slots and tier upgrades; the maximum retains its fill.
   let evaluation: SubstatCandidate | null = null
   let perfection: SubstatCandidate | null = null
@@ -760,14 +755,14 @@ export function buildEvaluationAnchors(
   }
 }
 
-// Compute equipped damage without searching anchors or materializing report snapshots.
+// compute equipped damage without searching anchors or materializing report snapshots.
 export function evaluateEquippedDamage(ctx: SuggestContext, equipped: Array<EchoInstance | null>): number {
   const echoes = equipped.filter((echo): echo is EchoInstance => echo != null)
   const frame = makeEvaluationEchoFrame(ctx, echoes, echoes.length ? mkSuggMainEc(ctx, equipped) : new Float32Array(MAIN_BUFF_LEN))
   return frame.score(frame.stats, frame.sets)
 }
 
-// Re-score the live build against precomputed anchors. This is the cheap path:
+// re-score the live build against precomputed anchors. this is the cheap path:
 // one active frame + one score + the active-build snapshot, no candidate search.
 export function assembleEvaluation(
   ctx: SuggestContext,

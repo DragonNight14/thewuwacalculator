@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: defines the stable ordering used for suggestion main-stat
+  description: defines the stable ordering used for suggestion main-stat
                filter presentation and comparison.
 */
 

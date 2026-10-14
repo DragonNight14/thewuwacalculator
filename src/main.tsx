@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Application bootstrap. Loads game data async then mounts the
+  description: application bootstrap. loads game data async then mounts the
                react component tree into the dom root with router and global
                provider context.
 */
@@ -50,7 +50,7 @@ async function startApp() {
       </StrictMode>,
     )
 
-    // Telemetry is non-critical; initialize it only after startup failure
+    // telemetry is non-critical; initialize it only after startup failure
     // handling and the application root are installed.
     void import('@/shared/lib/webVitals').then(({ initWebVitals }) => initWebVitals())
       .catch((error) => console.warn('Failed to load field telemetry:', error))

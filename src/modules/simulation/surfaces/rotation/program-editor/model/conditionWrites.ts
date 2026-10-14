@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Projects authored condition changes into runtime write summaries and cleanup evidence.
+  description: projects authored condition changes into runtime write summaries and cleanup evidence.
 */
 
 import type { RtChng } from '@/domain/gameData/contracts.ts'
@@ -11,7 +11,7 @@ import {
 } from '@/modules/simulation/surfaces/rotation/shared/conditions.tsx'
 import type { StateWrite } from './program.ts'
 
-/** Project authored state changes into the compact write labels shown by rows. */
+/** project authored state changes into the compact write labels shown by rows. */
 export function writesFromChanges(
   source: RtChng[] | undefined,
   condChoices: CondChoice[],

@@ -1,4 +1,4 @@
-.rqb {
+.queued-resonator-picker {
   display: flex;
   align-items: center;
   gap: 0;
@@ -18,7 +18,7 @@
   transition: opacity 180ms ease;
 }
 
-.rqb__icon {
+.queued-resonator-picker__icon {
   width: 2.3rem;
   height: 2.3rem;
   border-radius: 50%;
@@ -29,15 +29,15 @@
   transition: border-color 200ms ease, box-shadow 200ms ease;
 }
 
-.rqb:hover {
+.queued-resonator-picker:hover {
   opacity: 1;
 }
 
-.rqb:hover .rqb__icon {
+.queued-resonator-picker:hover .queued-resonator-picker__icon {
   border-color: color-mix(in srgb, var(--resonator-accent, var(--accent, #20bfb9)) 40%, var(--border, rgba(255, 255, 255, 0.15)));
 }
 
-.rqb__grip {
+.queued-resonator-picker__grip {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -50,11 +50,11 @@
   border-radius: 4px;
 }
 
-.rqb__grip:hover {
+.queued-resonator-picker__grip:hover {
   color: var(--text, rgba(255, 255, 255, 0.85));
 }
 
-.rqb__grip:active {
+.queued-resonator-picker__grip:active {
   cursor: grabbing;
   color: var(--resonator-accent, var(--accent, #20bfb9));
 }

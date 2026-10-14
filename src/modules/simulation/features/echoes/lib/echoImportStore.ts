@@ -1,8 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Holds the app-header Echo import request. The parser itself
-               remains a local surface; this store only lets the shell open it
-               without making the active/context resonator its owner.
+  description: stores app-header echo import requests without changing the active resonator.
 */
 
 import { create } from 'zustand'

@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: shared display metadata for attribute-facing UI accents.
+  description: shared display metadata for attribute-facing ui accents.
 */
 
 import type { AttributeKey } from '@/domain/entities/stats'

@@ -1,7 +1,7 @@
 /*
   Author: Runor Ewhro
-  Description: Coordinates save, lift, and undo operations for canonical or
-               caller-owned Echo loadouts in a build workspace.
+  description: handles save, lift, and undo for canonical or supplied echo
+               loadouts in a build workspace.
 */
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
@@ -25,8 +25,8 @@ export function useWorkspaceEchoActions({
   echoLoadout: Array<EchoInstance | null>
   editable: boolean
   canSaveEcho: (echo: EchoInstance) => boolean
-  /** Optional detached owner. When present, slot changes stay in the caller's
-      local workspace instead of writing through to the canonical runtime. */
+  /** optional detached owner. when present, slot changes stay in the caller's
+      local workspace. */
   onEchoLoadoutChange?: (echoes: Array<EchoInstance | null>) => void
 }): EvaluationEchoActions | undefined {
   const showToast = useTstStr((state) => state.show)

@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Computes final skill results for direct damage, support,
+  description: computes final skill results for direct damage, support,
                tune rupture, and negative-effect archetypes by combining
                final stats, enemy data, and skill metadata.
 */
@@ -90,8 +90,8 @@ export interface CalcSkillDamageOptions {
 }
 
 /**
- * Allocation-free damage output used by compiled rotation execution.
- * The caller owns the storage, so a feature evaluation can contribute its
+ * allocation-free damage output used by compiled rotation execution.
+ * the caller provides the storage, so a feature evaluation can contribute its
  * three scalar results without constructing a DamageResult or sub-hit rows.
  */
 export interface SkillDamageScoreTarget {
@@ -105,13 +105,9 @@ interface HitSummary {
 }
 
 /**
- * What the enemy side of the calculation came to for one skill.
- *
- * These four are layered the way crit and bonus are: the sheet's figure is
- * only the first of six, and the rest arrive from the attribute, skill type
- * and skill buffs in force. Reading them off the final stats states the wrong
- * one, and states defence ignore and defence shred as the same number whenever
- * the sheet carries neither.
+ * resolve enemy factors for one skill using sheet, attribute, skill-type, and
+ * skill-buff contributions. final stats alone omit the latter contributions
+ * and can report incorrect defence ignore and shred values.
  */
 export function resolveSkillFactors(
     finalStats: FinalStats,
@@ -138,8 +134,8 @@ export function resolveSkillFactors(
 }
 
 /**
- * The names this file's callers already use, over the shared factor set. The
- * math lives in damageFactors so the results pane explains the same numbers.
+ * the names this file's callers already use, over the shared factor set. the
+ * math is implemented in damageFactors so the results pane explains the same numbers.
  */
 function calcDamageCtx(
     finalStats: FinalStats,
@@ -408,9 +404,9 @@ function numericSkillMultiplier(skill: SkillDef): number {
 }
 
 /**
- * Extract the rotation register directly from the exact numeric final plane
- * used by the damage kernel. This is deliberately a projection rather than a
- * second calculation route: no FinalStats, buff-pool, or CombatContext object
+ * extract the rotation register directly from the exact numeric final plane
+ * used by the damage kernel. this projection performs no second calculation:
+ * no FinalStats, buff-pool, or CombatContext object
  * is materialized for captured feature rows.
  */
 export function resolveNumericEffectiveStats(
@@ -508,14 +504,14 @@ function writeScore(target: SkillDamageScoreTarget, normal: number, crit: number
 }
 
 /**
- * Canonical damage kernel. Every app-facing damage route reaches this function.
- * It reads a flat final-stat lane and can either write only three score scalars
+ * canonical damage kernel. every app-facing damage route reaches this function.
+ * it reads a flat final-stat lane and can either write only three score scalars
  * or additionally capture the exact per-hit rows from the same arithmetic.
  */
 /*
-  The lowered path for ordinary direct damage. Every stat it reads was resolved
-  to a cell index when the skill was compiled, so this walks index arrays and
-  never touches a string, a map, or a hit object.
+  the lowered path for ordinary direct damage reads cell indices resolved when
+  the skill was compiled. it iterates through index arrays without strings, maps, or hit
+  objects.
 */
 function runLoweredSkillDamage(
     target: SkillDamageScoreTarget,
@@ -609,8 +605,8 @@ function runNumericDamageKernel(
     subHits?: DamageResult['subHits'],
 ): void {
   /*
-    Sub-hit rows are the one thing the lowered path does not produce, because
-    they exist to be displayed rather than summed.
+    the lowered path omits sub-hit rows. they are display data and do not
+    contribute another sum.
   */
   if (!subHits) {
     const record = compileSkillRecord(skill)
@@ -821,9 +817,8 @@ function runNumericDamageKernel(
 }
 
 /**
- * Score one recorded invocation against a caller-owned stat plane. Recorded
- * replay owns its own lane view, because the team state that produced it is
- * long gone by the time it is replayed.
+ * score a recorded invocation against a supplied stat plane. replay uses a
+ * separate lane view because the original team state is no longer available.
  */
 export function scoreDamageAgainstLane(
     target: SkillDamageScoreTarget,
@@ -837,7 +832,7 @@ export function scoreDamageAgainstLane(
   runNumericDamageKernel(target, lane, skill, enemy, level, combatState, multiplierScale)
 }
 
-/** Object compatibility boundary. Object stats are packed once, then use the same kernel. */
+/** object compatibility boundary. object stats are packed once, then use the same kernel. */
 export function calcSkillDamageScoreInto(
     target: SkillDamageScoreTarget,
     finalStats: FinalStats,
@@ -858,7 +853,7 @@ export function calcSkillDamageScoreInto(
   )
 }
 
-/** Allocation-free score execution against a prepared three-lane team state. */
+/** allocation-free score execution against a prepared three-lane team state. */
 export function calcPackedSkillDamageScoreInto(
     target: SkillDamageScoreTarget,
     state: NumericTeamState,
@@ -880,7 +875,7 @@ export function calcPackedSkillDamageScoreInto(
   )
 }
 
-/** Score a caller-owned final plane while reusing the team's immunity lane. */
+/** score a supplied final plane using the team's immunity lane. */
 export function calcNumericPlaneSkillDamageScoreInto(
     target: SkillDamageScoreTarget,
     state: NumericTeamState,
@@ -903,7 +898,7 @@ export function calcNumericPlaneSkillDamageScoreInto(
   )
 }
 
-/** Detailed output is optional capture from the same flat numeric kernel. */
+/** detailed output is optional capture from the same flat numeric kernel. */
 export function calcNumericSkillDamage(
     state: NumericTeamState,
     lane: number,
@@ -928,7 +923,7 @@ export function calcNumericSkillDamage(
   return { normal: values[0]!, crit: values[1]!, avg: values[2]!, subHits }
 }
 
-/** Detailed capture from a caller-owned final plane. */
+/** capture damage details from a supplied final plane. */
 export function calcNumericPlaneSkillDamage(
     state: NumericTeamState,
     lane: number,
@@ -955,8 +950,8 @@ export function calcNumericPlaneSkillDamage(
 }
 
 /**
- * Legacy-shaped API retained for external callers. It is now only a packing
- * boundary; it no longer owns a second formula implementation.
+ * legacy-shaped api retained for external callers. it is now only a packing
+ * boundary; it no longer contains a separate formula implementation.
  */
 export function calcSkillDamage(
     finalStats: FinalStats,

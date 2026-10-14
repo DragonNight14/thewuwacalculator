@@ -1,8 +1,8 @@
 /*
   Author: Runor Ewhro
-  Description: breadth net for the damage pipeline. Every shipped resonator must
+  description: breadth net for the damage pipeline. every shipped resonator must
                simulate end-to-end and produce well-formed, deterministic,
-               non-dead damage. This does not pin exact numbers (the benchmark
+               non-dead damage. this does not pin exact numbers (the benchmark
                fingerprints and the optimizer parity test do). its job is to
                catch any resonator a data drop or engine change silently breaks
                (NaN, a throw, or a kit that resolves to nothing), across the
@@ -21,7 +21,7 @@ function simulate(seedId: string) {
   const seed = seeds.find((entry) => entry.id === seedId)
   if (!seed) throw new Error(`missing seed ${seedId}`)
   // a maxed kit (level/skills/traces/weapon) so damage reflects a real build;
-  // echoes stay empty so this measures the resonator's own kit, not gear.
+  // empty echo slots isolate damage from the resonator kit.
   const runtime = mkMaxResRt(seed)
   return runResSmlt(runtime, seed, makeEnemy(), makeRuntimeMap(runtime))
 }
@@ -48,14 +48,14 @@ describe('resonator damage invariants', () => {
 
       // the resonator's kit can actually deal damage somewhere, catching a
       // roster entry whose damage skills all resolve to nothing (broken hits,
-      // unmapped element, dangling feature ref). Checked on the full kit, not
+      // unmapped element, dangling feature ref). checked on the full kit, not
       // the default rotation, so a support's empty rotation is not a failure.
       const dealsDamage = result.allSkills.some(
         (row) => row.aggregationType === 'damage' && row.avg > 0,
       )
       expect(dealsDamage).toBe(true)
 
-      // same inputs, same output, catching accidental nondeterminism (Map
+      // same inputs, same output, catching accidental nondeterminism (map
       // iteration order, undefined-key reads) that would make scores unstable.
       const again = simulate(seedId)
       expect(again.total.avg).toBe(result.total.avg)

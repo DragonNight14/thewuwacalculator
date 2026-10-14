@@ -1,15 +1,15 @@
-.blm {
-  --blm-thread: color-mix(in srgb, var(--text) 16%, transparent);
-  --blm-notch: color-mix(in srgb, var(--text) 34%, transparent);
-  --blm-pitch: 4.1rem;
-  --blm-bead: 2.9rem;
-  --blm-bead-on: 3.25rem;
+.build-roster {
+  --build-roster-list: color-mix(in srgb, var(--text) 16%, transparent);
+  --build-roster-notch: color-mix(in srgb, var(--text) 34%, transparent);
+  --build-roster-pitch: 4.1rem;
+  --build-roster-item-size: 2.9rem;
+  --build-roster-selected-item-size: 3.25rem;
 
-  --blm-spring: linear(0, 0.0416, 0.1425, 0.2734, 0.4133, 0.5481, 0.6692, 0.7722, 0.8557, 0.9201, 0.9675, 1.0003, 1.0212, 1.0329, 1.0378, 1.038, 1.0352, 1.0307, 1.0254, 1.0201, 1.0151, 1.0108, 1.0072, 1.0043, 1.0022, 1.0006, 0.9996, 0.9989, 0.9986, 0.9985, 1);
-  --blm-io: cubic-bezier(0.7, 0, 0.2, 1);
+  --build-roster-spring: linear(0, 0.0416, 0.1425, 0.2734, 0.4133, 0.5481, 0.6692, 0.7722, 0.8557, 0.9201, 0.9675, 1.0003, 1.0212, 1.0329, 1.0378, 1.038, 1.0352, 1.0307, 1.0254, 1.0201, 1.0151, 1.0108, 1.0072, 1.0043, 1.0022, 1.0006, 0.9996, 0.9989, 0.9986, 0.9985, 1);
+  --build-roster-io: cubic-bezier(0.7, 0, 0.2, 1);
 
-  --blm-ease: cubic-bezier(0.22, 1, 0.36, 1);
-  --blm-line-soft: color-mix(in srgb, var(--resonator-accent, var(--accent)) 9%, var(--item-border, var(--border)));
+  --build-roster-ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --build-roster-line-soft: color-mix(in srgb, var(--resonator-accent, var(--accent)) 9%, var(--item-border, var(--border)));
   --row-ink: var(--resonator-accent, var(--accent));
   position: relative;
   width: var(--roster-w);
@@ -17,34 +17,34 @@
   min-height: 0;
   display: flex;
   flex-direction: column;
-  transition: translate 0.25s var(--blm-io);
+  transition: translate 0.25s var(--build-roster-io);
 }
 
-body:has(.scw-tab) .blm {
+body:has(.scw-tab) .build-roster {
   translate: 1rem 0;
 }
 
-.blm--held {
-  animation: blm-held-show 260ms ease 120ms both;
+.build-roster--held {
+  animation: build-roster-loading-show 260ms ease 120ms both;
 }
 
-.blm--held .blm-knot,
-.blm--held .blm-bead {
+.build-roster--held .build-roster-group-toggle,
+.build-roster--held .build-roster-item {
   cursor: default;
 }
 
-.blm--held .blm-bead {
+.build-roster--held .build-roster-item {
   animation: none;
 }
 
-.blm-held-bubble,
-.blm-held-bubble i {
+.build-roster-loading-bubble,
+.build-roster-loading-bubble i {
   position: absolute;
   inset: 0;
   border-radius: 50%;
 }
 
-.blm-held-bubble {
+.build-roster-loading-bubble {
   scale: 0.42;
   background:
     radial-gradient(circle at 34% 30%, color-mix(in srgb, var(--text) 34%, transparent) 0 9%, transparent 10%),
@@ -55,7 +55,7 @@ body:has(.scw-tab) .blm {
     0 0 0 3px var(--bg);
 }
 
-.blm-held-bubble i {
+.build-roster-loading-bubble i {
   opacity: 0;
   background:
     radial-gradient(circle at 34% 30%, color-mix(in srgb, #fff 70%, transparent) 0 6%, transparent 7%),
@@ -65,7 +65,7 @@ body:has(.scw-tab) .blm {
     0 0 0.9rem color-mix(in srgb, var(--row-ink) 45%, transparent);
 }
 
-.blm-held-lens {
+.build-roster-loading-lens {
   position: absolute;
   z-index: 4;
   left: 50%;
@@ -85,7 +85,7 @@ body:has(.scw-tab) .blm {
     0 0.4rem 1.2rem -0.3rem color-mix(in srgb, #000 40%, transparent);
 }
 
-.blm-held-lens::before {
+.build-roster-loading-lens::before {
   content: '';
   position: absolute;
   inset: -0.28rem;
@@ -93,26 +93,26 @@ body:has(.scw-tab) .blm {
   border: 1px solid color-mix(in srgb, var(--text) 10%, transparent);
 }
 
-.blm--held .blm-knot-mark {
+.build-roster--held .build-roster-group-toggle-mark {
   box-shadow:
     0 0 0 0.25rem var(--bg),
-    inset 0 0 0 1px color-mix(in srgb, var(--knot-ink) 40%, transparent);
+    inset 0 0 0 1px color-mix(in srgb, var(--group-ink) 40%, transparent);
 }
 
-.blm--held .blm-knot-mark img {
+.build-roster--held .build-roster-group-toggle-mark img {
   opacity: 0.4;
 }
 
-.blm--held .blm-socket {
+.build-roster--held .build-roster-add {
   opacity: 0.45;
   cursor: default;
 }
 
-.blm--held .blm-cap-name {
+.build-roster--held .build-roster-status-name {
   animation: none;
 }
 
-.blm-held-say {
+.build-roster-loading-say {
   position: absolute;
   width: 1px;
   height: 1px;
@@ -121,49 +121,49 @@ body:has(.scw-tab) .blm {
   white-space: nowrap;
 }
 
-.blm[data-from='held'] .blm-bead,
-.blm[data-from='held'] .blm-cap-name {
+.build-roster[data-from='loading'] .build-roster-item,
+.build-roster[data-from='loading'] .build-roster-status-name {
   animation: none;
 }
 
-.blm[data-from='held'] .blm-bead:not([data-active]) .blm-bead-pic img {
-  animation: blm-held-fill 520ms var(--blm-ease) both;
+.build-roster[data-from='loading'] .build-roster-item:not([data-active]) .build-roster-item-image img {
+  animation: build-roster-loading-fill 520ms var(--build-roster-ease) both;
   animation-delay: calc(var(--bi, 0) * 36ms);
 }
 
-.blm[data-from='held'] .blm-knot-mark img {
-  animation: blm-held-ink 400ms ease both;
+.build-roster[data-from='loading'] .build-roster-group-toggle-mark img {
+  animation: build-roster-loading-ink 400ms ease both;
 }
 
-@keyframes blm-held-show {
+@keyframes build-roster-loading-show {
   from {
     opacity: 0;
   }
 }
 
-@keyframes blm-held-fill {
+@keyframes build-roster-loading-fill {
   from {
     opacity: 0;
     scale: 0.42;
   }
 }
 
-@keyframes blm-held-ink {
+@keyframes build-roster-loading-ink {
   from {
     opacity: 0.4;
   }
 }
 
-.no-entrance-anim .blm--held,
-.reduce-animation .blm--held,
-.no-entrance-anim .blm[data-from='held'] .blm-bead-pic img,
-.reduce-animation .blm[data-from='held'] .blm-bead-pic img,
-.no-entrance-anim .blm[data-from='held'] .blm-knot-mark img,
-.reduce-animation .blm[data-from='held'] .blm-knot-mark img {
+.no-entrance-anim .build-roster--held,
+.reduce-animation .build-roster--held,
+.no-entrance-anim .build-roster[data-from='loading'] .build-roster-item-image img,
+.reduce-animation .build-roster[data-from='loading'] .build-roster-item-image img,
+.no-entrance-anim .build-roster[data-from='loading'] .build-roster-group-toggle-mark img,
+.reduce-animation .build-roster[data-from='loading'] .build-roster-group-toggle-mark img {
   animation: none;
 }
 
-.blm-scroll {
+.build-roster-scroll {
   flex: 1 1 auto;
   min-height: 0;
   overflow-y: auto;
@@ -173,21 +173,21 @@ body:has(.scw-tab) .blm {
   mask-image: linear-gradient(to bottom, transparent 0, #000 1.5rem, #000 calc(100% - 1.5rem), transparent 100%);
 }
 
-.blm-scroll::-webkit-scrollbar {
+.build-roster-scroll::-webkit-scrollbar {
   display: none;
 }
 
-.blm-thread {
+.build-roster-list {
   position: relative;
   overflow: visible;
   padding: 0.9rem 0 1.2rem;
 }
 
-.blm-thread:focus-visible {
+.build-roster-list:focus-visible {
   outline: none;
 }
 
-.blm-thread::before {
+.build-roster-list::before {
   content: '';
   position: absolute;
   left: 50%;
@@ -198,14 +198,14 @@ body:has(.scw-tab) .blm {
   background: linear-gradient(
     to bottom,
     transparent,
-    var(--blm-thread) 6%,
-    var(--blm-thread) 94%,
+    var(--build-roster-list) 6%,
+    var(--build-roster-list) 94%,
     transparent
   );
   pointer-events: none;
 }
 
-.blm-knot {
+.build-roster-group-toggle {
   position: relative;
   z-index: 3;
   display: block;
@@ -217,7 +217,7 @@ body:has(.scw-tab) .blm {
   cursor: pointer;
 }
 
-.blm-knot-mark {
+.build-roster-group-toggle-mark {
   position: absolute;
   left: 50%;
   top: 50%;
@@ -229,10 +229,10 @@ body:has(.scw-tab) .blm {
   border-radius: 50%;
   background: var(--bg);
   box-shadow: 0 0 0 0.25rem var(--bg);
-  transition: transform 320ms var(--blm-ease), box-shadow 240ms ease;
+  transition: transform 320ms var(--build-roster-ease), box-shadow 240ms ease;
 }
 
-.blm-knot-mark img {
+.build-roster-group-toggle-mark img {
   width: 0.88rem;
   height: 0.88rem;
   object-fit: contain;
@@ -241,77 +241,77 @@ body:has(.scw-tab) .blm {
   transition: opacity 240ms ease, filter 240ms ease;
 }
 
-.blm-knot:hover .blm-knot-mark {
+.build-roster-group-toggle:hover .build-roster-group-toggle-mark {
   transform: translate(-50%, -50%) scale(1.14);
 }
 
-.blm-knot:is(:hover, [data-folded]) .blm-knot-mark img {
+.build-roster-group-toggle:is(:hover, [data-folded]) .build-roster-group-toggle-mark img {
   opacity: 1;
   filter: none;
 }
 
-.blm-knot[data-folded] .blm-knot-mark {
+.build-roster-group-toggle[data-folded] .build-roster-group-toggle-mark {
   box-shadow:
     0 0 0 0.25rem var(--bg),
-    inset 0 0 0 1px color-mix(in srgb, var(--knot-ink) 55%, transparent);
+    inset 0 0 0 1px color-mix(in srgb, var(--group-ink) 55%, transparent);
 }
 
-.blm-knot-n {
+.build-roster-group-toggle-n {
   position: absolute;
   left: calc(50% + 1.05rem);
   top: 50%;
   transform: translateY(-50%);
   font: 500 0.55rem/1 var(--mono-font);
   font-variant-numeric: tabular-nums;
-  color: color-mix(in srgb, var(--knot-ink) 55%, var(--muted));
+  color: color-mix(in srgb, var(--group-ink) 55%, var(--muted));
   opacity: 0.55;
   transition: opacity 220ms ease, color 220ms ease;
 }
 
-.blm-knot:is(:hover, [data-folded]) .blm-knot-n {
+.build-roster-group-toggle:is(:hover, [data-folded]) .build-roster-group-toggle-n {
   opacity: 1;
-  color: color-mix(in srgb, var(--knot-ink) 80%, var(--text));
+  color: color-mix(in srgb, var(--group-ink) 80%, var(--text));
 }
 
-.blm-knot:focus-visible {
+.build-roster-group-toggle:focus-visible {
   outline: none;
 }
 
-.blm-knot:focus-visible .blm-knot-mark {
-  box-shadow: 0 0 0 0.25rem var(--bg), 0 0 0 calc(0.25rem + 1px) var(--knot-ink);
+.build-roster-group-toggle:focus-visible .build-roster-group-toggle-mark {
+  box-shadow: 0 0 0 0.25rem var(--bg), 0 0 0 calc(0.25rem + 1px) var(--group-ink);
 }
 
-.blm-group {
+.build-roster-group {
   display: grid;
   overflow: visible;
   grid-template-rows: 1fr;
-  transition: grid-template-rows 380ms var(--blm-ease), opacity 240ms ease;
+  transition: grid-template-rows 380ms var(--build-roster-ease), opacity 240ms ease;
 }
 
-.blm-group[data-folded] {
+.build-roster-group[data-folded] {
   grid-template-rows: 0fr;
   opacity: 0;
 }
 
-.blm-group-body {
+.build-roster-group-body {
   overflow: visible;
   min-height: 0;
 }
 
-.blm-bead {
+.build-roster-item {
   position: relative;
   z-index: 1;
   display: grid;
   place-items: center;
   width: 100%;
-  height: var(--blm-pitch);
+  height: var(--build-roster-pitch);
   padding: 0;
   border: 0;
   background: none;
   cursor: pointer;
 }
 
-.blm-bead::before {
+.build-roster-item::before {
   content: '';
   position: absolute;
   left: 50%;
@@ -327,26 +327,26 @@ body:has(.scw-tab) .blm {
   );
   opacity: 0;
   transform: scale(0.55);
-  transition: opacity 420ms ease, transform 560ms var(--blm-ease);
+  transition: opacity 420ms ease, transform 560ms var(--build-roster-ease);
   pointer-events: none;
 }
 
-.blm-bead[data-active]::before {
+.build-roster-item[data-active]::before {
   opacity: 1;
   transform: none;
 }
 
-.blm-spark-row {
+.build-roster-rotation-toggle-row {
   position: relative;
   display: block;
   height: 0;
 }
 
-.blm-spark {
+.build-roster-rotation-toggle {
   position: absolute;
   z-index: 2;
   left: 0;
-  top: calc(var(--blm-pitch) / -2);
+  top: calc(var(--build-roster-pitch) / -2);
   width: 1.45rem;
   height: 2.2rem;
   margin-top: -1.1rem;
@@ -354,26 +354,26 @@ body:has(.scw-tab) .blm {
   border: none;
   background: none;
   cursor: pointer;
-  color: var(--blm-notch);
-  animation: blm-fade-in 440ms ease backwards;
+  color: var(--build-roster-notch);
+  animation: build-roster-fade-in 440ms ease backwards;
   transition: color 200ms ease, filter 240ms ease;
 }
 
-.blm-spark[data-lead] {
-  color: color-mix(in srgb, var(--row-ink) 55%, var(--blm-notch));
+.build-roster-rotation-toggle[data-lead] {
+  color: color-mix(in srgb, var(--row-ink) 55%, var(--build-roster-notch));
 }
 
-.blm-spark:is(:hover, :focus-visible) {
+.build-roster-rotation-toggle:is(:hover, :focus-visible) {
   outline: none;
   color: color-mix(in srgb, var(--row-ink) 85%, var(--text));
 }
 
-.blm-spark[data-on] {
+.build-roster-rotation-toggle[data-on] {
   color: var(--row-ink);
   filter: drop-shadow(0 0 4px color-mix(in srgb, var(--row-ink) 75%, transparent));
 }
 
-.blm-spark-mark {
+.build-roster-rotation-toggle-mark {
   position: absolute;
   left: 0.32rem;
   top: 50%;
@@ -382,75 +382,75 @@ body:has(.scw-tab) .blm {
   margin-top: -0.3rem;
   background: currentColor;
   clip-path: polygon(50% 0%, 60% 40%, 100% 50%, 60% 60%, 50% 100%, 40% 60%, 0% 50%, 40% 40%);
-  transition: transform 420ms var(--blm-spring);
+  transition: transform 420ms var(--build-roster-spring);
 }
 
-.blm-spark:is(:hover, :focus-visible) .blm-spark-mark {
+.build-roster-rotation-toggle:is(:hover, :focus-visible) .build-roster-rotation-toggle-mark {
   transform: scale(1.3);
 }
 
-.blm-spark[data-on] .blm-spark-mark {
+.build-roster-rotation-toggle[data-on] .build-roster-rotation-toggle-mark {
   transform: rotate(45deg) scale(1.45);
 }
 
-.blm-bead-pic {
+.build-roster-item-image {
   position: relative;
-  width: var(--blm-bead);
-  height: var(--blm-bead);
+  width: var(--build-roster-item-size);
+  height: var(--build-roster-item-size);
   border-radius: 50%;
-  transition: width 340ms var(--blm-ease), height 340ms var(--blm-ease);
+  transition: width 340ms var(--build-roster-ease), height 340ms var(--build-roster-ease);
 }
 
-.blm-bead[data-active] .blm-bead-pic {
-  width: var(--blm-bead-on);
-  height: var(--blm-bead-on);
+.build-roster-item[data-active] .build-roster-item-image {
+  width: var(--build-roster-selected-item-size);
+  height: var(--build-roster-selected-item-size);
 }
 
-.blm-bead-pic img {
+.build-roster-item-image img {
   width: 100%;
   height: 100%;
   border-radius: 50%;
   object-fit: cover;
   background: var(--bg);
-  filter: saturate(0.5) brightness(0.72);
+  opacity: .8;
   box-shadow:
     inset 0 0 0 1px color-mix(in srgb, var(--text) 12%, transparent),
     0 0 0 3px var(--bg);
-  transition: filter 340ms ease, box-shadow 340ms ease;
+  transition: opacity 340ms ease, box-shadow 340ms ease;
 }
 
-.blm-bead[data-pointed] .blm-bead-pic img {
-  filter: saturate(0.95) brightness(0.98);
+.build-roster-item[data-pointed] .build-roster-item-image img {
+  opacity: 1;
 }
 
-.blm-bead[data-active] .blm-bead-pic img {
-  filter: none;
+.build-roster-item[data-active] .build-roster-item-image img {
+  opacity: 1;
   box-shadow:
     inset 0 0 0 1.5px var(--row-ink),
     0 0 0 3px var(--bg),
     0 0 0.85rem color-mix(in srgb, var(--row-ink) 55%, transparent);
 }
 
-.blm-bead:focus-visible {
+.build-roster-item:focus-visible {
   outline: none;
 }
 
-.blm-bead:focus-visible .blm-bead-pic img {
+.build-roster-item:focus-visible .build-roster-item-image img {
   box-shadow:
     inset 0 0 0 1.5px var(--text),
     0 0 0 3px var(--bg),
     0 0 0 5px color-mix(in srgb, var(--row-ink) 90%, transparent);
 }
 
-.blm-bead.focus-selected .blm-bead-pic img {
+.build-roster-item.focus-selected .build-roster-item-image img {
   box-shadow:
     inset 0 0 0 1.5px var(--row-ink),
     0 0 0 3px var(--bg),
     0 0 0 5px color-mix(in srgb, var(--row-ink) 45%, transparent);
 }
 
-.blm-capsule {
-  --cr: calc(var(--blm-bead) / 2);
+.build-roster-details {
+  --cr: calc(var(--build-roster-item-size) / 2);
   position: absolute;
   z-index: 6;
   left: calc(var(--cx) - var(--cr) - 4px);
@@ -474,26 +474,26 @@ body:has(.scw-tab) .blm {
     0 0.75rem 1.75rem -0.2rem color-mix(in srgb, #000 55%, transparent),
     0 0 1.6rem -0.5rem color-mix(in srgb, var(--row-ink) 70%, transparent);
   transition:
-    width 600ms var(--blm-spring),
-    height 450ms var(--blm-spring),
-    left 450ms var(--blm-spring),
-    top 450ms var(--blm-spring),
+    width 600ms var(--build-roster-spring),
+    height 450ms var(--build-roster-spring),
+    left 450ms var(--build-roster-spring),
+    top 450ms var(--build-roster-spring),
     opacity 120ms ease;
 
-  animation: blm-capsule-land 120ms ease backwards;
+  animation: build-roster-details-land 120ms ease backwards;
 }
 
-.blm-capsule[data-lead] {
-  --cr: calc(var(--blm-bead-on) / 2);
+.build-roster-details[data-lead] {
+  --cr: calc(var(--build-roster-selected-item-size) / 2);
 }
 
-.blm-capsule[data-phase='out'] {
+.build-roster-details[data-phase='out'] {
   opacity: 0;
   pointer-events: none;
-  transition: width 300ms var(--blm-io), opacity 140ms ease 240ms;
+  transition: width 300ms var(--build-roster-io), opacity 140ms ease 240ms;
 }
 
-.blm-capsule-face {
+.build-roster-details-face {
   position: relative;
   flex: none;
   width: calc(2 * var(--cr));
@@ -506,25 +506,25 @@ body:has(.scw-tab) .blm {
   background: var(--bg);
   box-shadow: 0 0 0 1.5px var(--row-ink);
   cursor: pointer;
-  transition: width 450ms var(--blm-spring), height 450ms var(--blm-spring), box-shadow 200ms ease;
+  transition: width 450ms var(--build-roster-spring), height 450ms var(--build-roster-spring), box-shadow 200ms ease;
 }
 
-.blm-capsule-face img {
+.build-roster-details-face img {
   position: absolute;
   inset: 0;
   width: 100%;
   height: 100%;
   object-fit: cover;
-  animation: blm-fade-in 280ms ease backwards;
+  animation: build-roster-fade-in 280ms ease backwards;
 }
 
-.blm-capsule-bodies {
+.build-roster-details-bodies {
   position: relative;
   flex: none;
   padding: 0 1.15rem 0 0.75rem;
 }
 
-.blm-capsule-body {
+.build-roster-details-body {
   display: flex;
   align-items: center;
   gap: 0.95rem;
@@ -532,58 +532,58 @@ body:has(.scw-tab) .blm {
   white-space: nowrap;
 }
 
-.blm-capsule-body[data-leaving] {
+.build-roster-details-body[data-leaving] {
   position: absolute;
   left: 0.75rem;
   top: 50%;
   translate: 0 -50%;
   pointer-events: none;
-  animation: blm-fade-out 140ms ease both;
+  animation: build-roster-fade-out 140ms ease both;
 }
 
-.blm-capsule-body[data-enter='mount'] > * {
-  animation: blm-rise 360ms var(--blm-ease) both;
+.build-roster-details-body[data-enter='mount'] > * {
+  animation: build-roster-rise 360ms var(--build-roster-ease) both;
   animation-delay: calc(160ms + var(--i, 0) * 50ms);
 }
 
-.blm-capsule-body[data-enter='swap'] {
-  animation: blm-rise 300ms var(--blm-ease) both;
+.build-roster-details-body[data-enter='swap'] {
+  animation: build-roster-rise 300ms var(--build-roster-ease) both;
 }
 
-.blm-capsule[data-phase='out'] .blm-capsule-body {
-  animation: blm-fade-out 100ms ease both;
+.build-roster-details[data-phase='out'] .build-roster-details-body {
+  animation: build-roster-fade-out 100ms ease both;
 }
 
-.blm-capsule-text {
+.build-roster-details-text {
   display: grid;
   gap: 0.14rem;
 }
 
-.blm-capsule-name {
+.build-roster-details-name {
   font: 600 0.9rem/1.12 var(--display-font);
   letter-spacing: -0.012em;
   color: var(--text);
 }
 
-.blm-capsule-note {
+.build-roster-details-note {
   font: 500 0.58rem/1.2 var(--mono-font);
   font-variant-numeric: tabular-nums;
   letter-spacing: 0.07em;
   color: color-mix(in srgb, var(--row-ink) 38%, var(--muted));
 }
 
-.blm-capsule-div {
+.build-roster-details-div {
   width: 1px;
   height: 1.6rem;
   background: linear-gradient(180deg, transparent, color-mix(in srgb, var(--row-ink) 50%, transparent), transparent);
 }
 
-.blm-capsule-mates {
+.build-roster-details-mates {
   display: flex;
   gap: 0.42rem;
 }
 
-.blm-mate {
+.build-roster-teammate {
   position: relative;
   flex: none;
   width: 2rem;
@@ -593,15 +593,15 @@ body:has(.scw-tab) .blm {
   border-radius: 50%;
   background: none;
   cursor: pointer;
-  transition: scale 450ms var(--blm-spring);
+  transition: scale 450ms var(--build-roster-spring);
 }
 
-.blm-capsule-body[data-enter='mount'] .blm-mate {
-  animation: blm-mate-in 600ms var(--blm-spring) backwards;
+.build-roster-details-body[data-enter='mount'] .build-roster-teammate {
+  animation: build-roster-teammate-in 600ms var(--build-roster-spring) backwards;
   animation-delay: calc(260ms + var(--i) * 70ms);
 }
 
-.blm-mate img {
+.build-roster-teammate img {
   display: block;
   width: 100%;
   height: 100%;
@@ -615,8 +615,8 @@ body:has(.scw-tab) .blm {
   transition: filter 200ms ease, box-shadow 200ms ease;
 }
 
-.blm-mate::after,
-.blm-capsule[data-lead] .blm-capsule-face::after {
+.build-roster-teammate::after,
+.build-roster-details[data-lead] .build-roster-details-face::after {
   content: '';
   position: absolute;
   inset: 0;
@@ -629,12 +629,12 @@ body:has(.scw-tab) .blm {
   transition: opacity 180ms ease;
 }
 
-.blm-mate:is(:hover, :focus-visible) {
+.build-roster-teammate:is(:hover, :focus-visible) {
   scale: 1.12;
   outline: none;
 }
 
-.blm-mate:is(:hover, :focus-visible) img {
+.build-roster-teammate:is(:hover, :focus-visible) img {
   filter: none;
   box-shadow:
     0 0 0 1.5px var(--mate),
@@ -642,59 +642,182 @@ body:has(.scw-tab) .blm {
     0 0 0.9rem color-mix(in srgb, var(--mate) 70%, transparent);
 }
 
-.blm-mate:is(:hover, :focus-visible)::after,
-.blm-capsule[data-lead] .blm-capsule-face:is(:hover, :focus-visible)::after {
+.build-roster-teammate:is(:hover, :focus-visible)::after,
+.build-roster-details[data-lead] .build-roster-details-face:is(:hover, :focus-visible)::after {
   opacity: 1;
 }
 
-.blm-capsule-face:is(:hover, :focus-visible) {
+.build-roster-details-face:is(:hover, :focus-visible) {
   outline: none;
   box-shadow:
     0 0 0 1.5px var(--row-ink),
     0 0 0.9rem color-mix(in srgb, var(--row-ink) 70%, transparent);
 }
 
-@keyframes blm-capsule-land {
+.build-roster-item {
+  touch-action: pan-y;
+}
+
+.build-roster-item[data-pulled] .build-roster-item-image,
+.build-roster-item[data-pulled]::before {
+  visibility: hidden;
+}
+
+.build-roster-item[data-leaving] {
+  height: 0;
+  opacity: 0;
+  pointer-events: none;
+  transition: height 420ms var(--build-roster-ease), opacity 220ms ease;
+}
+
+.build-roster-list[data-pull]::before {
+  -webkit-mask-image: linear-gradient(to bottom, #000 var(--pull-from), transparent var(--pull-from), transparent var(--pull-to), #000 var(--pull-to));
+  mask-image: linear-gradient(to bottom, #000 var(--pull-from), transparent var(--pull-from), transparent var(--pull-to), #000 var(--pull-to));
+}
+
+.build-roster-scroll,
+.build-roster-footer {
+  position: relative;
+  z-index: 1;
+}
+
+.build-roster-drag-line {
+  position: absolute;
+  z-index: 0;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  pointer-events: none;
+  visibility: hidden;
+}
+
+.build-roster-drag-line[data-on] {
+  visibility: visible;
+}
+
+.build-roster-drag-line path {
+  fill: none;
+  stroke: color-mix(in srgb, var(--row-ink) 55%, var(--build-roster-list));
+  stroke-width: 1;
+}
+
+.build-roster-drag-line path[data-slack] {
+  stroke: var(--build-roster-list);
+}
+
+.build-roster-drag-preview {
+  position: absolute;
+  z-index: 7;
+  margin: 0;
+  border-radius: 50%;
+  translate: -50% -50%;
+  pointer-events: none;
+  visibility: hidden;
+}
+
+.build-roster-drag-preview[data-on] {
+  visibility: visible;
+}
+
+.build-roster-drag-preview[data-home] {
+  transition: left 420ms var(--build-roster-spring), top 420ms var(--build-roster-spring);
+}
+
+.build-roster-drag-preview img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+  background: var(--bg);
+  box-shadow:
+    inset 0 0 0 1.5px var(--row-ink),
+    0 0 0 3px var(--bg),
+    0 0 0.85rem color-mix(in srgb, var(--row-ink) 55%, transparent);
+  transition: filter 200ms ease, box-shadow 200ms ease;
+}
+
+.build-roster-drag-preview::after {
+  content: '';
+  position: absolute;
+  inset: -7px;
+  border-radius: 50%;
+  border: 1px dashed color-mix(in srgb, var(--danger) 80%, var(--text));
+  opacity: 0;
+  scale: 0.86;
+  transition: opacity 180ms ease, scale 320ms var(--build-roster-spring);
+}
+
+.build-roster-drag-preview[data-free] img {
+  filter: saturate(0.25) brightness(0.8);
+  box-shadow:
+    inset 0 0 0 1px color-mix(in srgb, var(--text) 18%, transparent),
+    0 0 0 3px var(--bg),
+    0 0.6rem 1.4rem color-mix(in srgb, #000 55%, transparent);
+}
+
+.build-roster-drag-preview[data-free]::after {
+  opacity: 1;
+  scale: 1;
+  animation: build-roster-drag-preview-turn 9s linear infinite;
+}
+
+@keyframes build-roster-drag-preview-turn {
+  to {
+    rotate: 360deg;
+  }
+}
+
+.reduce-animation .build-roster-item[data-leaving],
+.reduce-animation .build-roster-drag-preview,
+.reduce-animation .build-roster-drag-preview img,
+.reduce-animation .build-roster-drag-preview::after {
+  transition: none;
+  animation: none;
+}
+
+@keyframes build-roster-details-land {
   from {
     opacity: 0;
   }
 }
 
-@keyframes blm-rise {
+@keyframes build-roster-rise {
   from {
     opacity: 0;
     transform: translateX(-7px);
   }
 }
 
-@keyframes blm-mate-in {
+@keyframes build-roster-teammate-in {
   from {
     opacity: 0;
     scale: 0.25;
   }
 }
 
-@keyframes blm-fade-in {
+@keyframes build-roster-fade-in {
   from {
     opacity: 0;
   }
 }
 
-@keyframes blm-fade-out {
+@keyframes build-roster-fade-out {
   to {
     opacity: 0;
   }
 }
 
-.no-entrance-anim .blm-capsule,
-.no-entrance-anim .blm-capsule *,
-.reduce-animation .blm-capsule,
-.reduce-animation .blm-capsule * {
+.no-entrance-anim .build-roster-details,
+.no-entrance-anim .build-roster-details *,
+.reduce-animation .build-roster-details,
+.reduce-animation .build-roster-details * {
   animation: none !important;
   transition: none !important;
 }
 
-.blm-foot {
+.build-roster-footer {
   flex: 0 0 auto;
   display: grid;
   justify-items: center;
@@ -702,7 +825,7 @@ body:has(.scw-tab) .blm {
   padding: 0.25rem 0.35rem 0.7rem;
 }
 
-.blm-socket {
+.build-roster-add {
   position: relative;
   display: grid;
   place-items: center;
@@ -716,39 +839,39 @@ body:has(.scw-tab) .blm {
   color: var(--muted);
   font-size: 0.85rem;
   cursor: pointer;
-  transition: color 220ms ease, transform 320ms var(--blm-ease);
+  transition: color 220ms ease, transform 320ms var(--build-roster-ease);
 }
 
-.blm-socket::before {
+.build-roster-add::before {
   content: '';
   position: absolute;
   inset: 0;
   border-radius: 50%;
   border: 1px dashed color-mix(in srgb, var(--text) 20%, transparent);
-  transition: border-color 220ms ease, transform 420ms var(--blm-ease);
+  transition: border-color 220ms ease, transform 420ms var(--build-roster-ease);
 }
 
-.blm-socket:hover {
+.build-roster-add:hover {
   color: var(--resonator-accent, var(--accent));
   transform: scale(1.06);
 }
 
-.blm-socket:hover::before {
+.build-roster-add:hover::before {
   border-color: color-mix(in srgb, var(--resonator-accent, var(--accent)) 55%, transparent);
   transform: rotate(90deg);
 }
 
-.blm-socket:focus-visible {
+.build-roster-add:focus-visible {
   outline: none;
   color: var(--resonator-accent, var(--accent));
 }
 
-.blm-socket:focus-visible::before {
+.build-roster-add:focus-visible::before {
   border-style: solid;
   border-color: var(--resonator-accent, var(--accent));
 }
 
-.blm-cap {
+.build-roster-status {
   width: 100%;
   min-height: 2.6rem;
   display: grid;
@@ -756,10 +879,10 @@ body:has(.scw-tab) .blm {
   align-content: start;
   gap: 0.25rem;
   padding-top: 0.6rem;
-  border-top: 1px solid var(--blm-line-soft);
+  border-top: 1px solid var(--build-roster-line-soft);
 }
 
-.blm-cap-name {
+.build-roster-status-name {
   max-width: 100%;
   font: 700 0.72rem/1.1 var(--body-font);
   letter-spacing: -0.01em;
@@ -768,40 +891,47 @@ body:has(.scw-tab) .blm {
   overflow: hidden;
   text-overflow: ellipsis;
   color: var(--text);
-  animation: blm-cap-in 240ms var(--blm-ease) both;
+  animation: build-roster-status-in 240ms var(--build-roster-ease) both;
 }
 
-.blm-cap-sub {
+.build-roster-status-sub {
   display: inline-flex;
   align-items: center;
   gap: 0.34rem;
 }
 
-.blm-cap-lv {
+.build-roster-status-lv {
   font: 500 0.55rem/1 var(--mono-font);
   font-variant-numeric: tabular-nums;
   letter-spacing: 0.06em;
   color: var(--muted);
 }
 
-.blm-cap-seq {
+.build-roster-status-seq {
   display: inline-flex;
   gap: 0.12rem;
 }
 
-.blm-cap-seq i {
+.build-roster-status-seq i {
   width: 0.22rem;
   height: 0.22rem;
   border-radius: 50%;
   background: color-mix(in srgb, var(--muted) 32%, transparent);
 }
 
-.blm-cap-seq i[data-on='true'] {
+.build-roster-status-seq i[data-on='true'] {
   background: var(--row-ink);
   box-shadow: 0 0 4px color-mix(in srgb, var(--row-ink) 60%, transparent);
 }
 
-.blm-cap-find {
+.build-roster-status-warn {
+  font: 500 0.55rem/1.25 var(--mono-font);
+  letter-spacing: 0.06em;
+  text-align: center;
+  color: color-mix(in srgb, var(--danger) 78%, var(--text));
+}
+
+.build-roster-status-find {
   max-width: 100%;
   overflow: hidden;
   font: 500 0.68rem/1.4 var(--mono-font);
@@ -809,18 +939,18 @@ body:has(.scw-tab) .blm {
   color: var(--resonator-accent, var(--accent));
 }
 
-.blm-cap-find::after {
+.build-roster-status-find::after {
   content: '_';
-  animation: blm-caret 1s steps(2) infinite;
+  animation: build-roster-caret 1s steps(2) infinite;
 }
 
-.blm-cap-empty {
+.build-roster-status-empty {
   font: 500 0.6rem/1.3 var(--mono-font);
   text-align: center;
   color: var(--muted);
 }
 
-@keyframes blm-cap-in {
+@keyframes build-roster-status-in {
   from {
     opacity: 0;
     transform: translateY(3px);
@@ -831,13 +961,13 @@ body:has(.scw-tab) .blm {
   }
 }
 
-@keyframes blm-caret {
+@keyframes build-roster-caret {
   50% {
     opacity: 0;
   }
 }
 
-@keyframes blm-bead-in {
+@keyframes build-roster-item-in {
   from {
     opacity: 0;
     transform: translateY(-8px) scale(0.85);
@@ -848,27 +978,27 @@ body:has(.scw-tab) .blm {
   }
 }
 
-.blm-bead {
-  animation: blm-bead-in 440ms var(--blm-ease) backwards;
+.build-roster-item {
+  animation: build-roster-item-in 440ms var(--build-roster-ease) backwards;
   animation-delay: calc(var(--bi, 0) * 42ms);
 }
 
-.no-entrance-anim .blm-bead,
-.no-entrance-anim .blm-cap-name,
-.reduce-animation .blm-bead,
-.reduce-animation .blm-cap-name {
+.no-entrance-anim .build-roster-item,
+.no-entrance-anim .build-roster-status-name,
+.reduce-animation .build-roster-item,
+.reduce-animation .build-roster-status-name {
   animation: none;
 }
 
-.reduce-animation .blm-group,
-.reduce-animation .blm-bead-pic,
-.reduce-animation .blm-bead::before,
-.reduce-animation .blm-spark,
-.reduce-animation .blm-spark-mark {
+.reduce-animation .build-roster-group,
+.reduce-animation .build-roster-item-image,
+.reduce-animation .build-roster-item::before,
+.reduce-animation .build-roster-rotation-toggle,
+.reduce-animation .build-roster-rotation-toggle-mark {
   transition: none;
 }
 
-.no-entrance-anim .blm-spark,
-.reduce-animation .blm-spark {
+.no-entrance-anim .build-roster-rotation-toggle,
+.reduce-animation .build-roster-rotation-toggle {
   animation: none;
 }

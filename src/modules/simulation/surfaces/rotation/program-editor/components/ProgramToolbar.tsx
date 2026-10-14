@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Coordinates editor surface switching, execution, comparison, selection, and document actions.
+  description: coordinates editor surface switching, execution, comparison, selection, and document actions.
 */
 
 import {
@@ -119,7 +119,7 @@ interface EditorBarActions {
   onToggleSelection: () => void
   onAppend: (value: string) => void
   /**
-   * Rows the last run left doing nothing, which the sweep would take. Null
+   * rows the last run left doing nothing, which the sweep would take. null
    * while the tree is not the one that ran, since nothing has judged it yet.
    */
   cleanCount: number | null
@@ -161,7 +161,7 @@ interface SavedBarActions {
 }
 
 interface DisplayBarActions {
-  /** Damage contribution keyed by resonator id. */
+  /** damage contribution keyed by resonator id. */
   teamShares: Readonly<Record<string, number>>
   statKeys: readonly StatKey[]
   onStatKeys: (value: readonly StatKey[]) => void
@@ -548,9 +548,9 @@ function SavedRotationListTools({ saved }: Pick<RotationProgramToolbarProps, 'sa
 }
 
 /*
-  The three that work the list rather than the rotation open in it: what a
+  three list tools open beside it: what a
   picked take can be turned into, what can be dropped in beside it, and how
-  more than one is picked at once. They stand against the search because that
+  more than one is picked at once. they stand against the search because that
   is the end of the bar the list itself is handled from.
 */
 function SavedLoadPopup({ saved }: Pick<RotationProgramToolbarProps, 'saved'>) {
@@ -669,10 +669,8 @@ function SavedRotationListEditTools({ saved }: Pick<RotationProgramToolbarProps,
 }
 
 /*
-  It stands against the search because both work the rotation that is open
-  rather than the document: one finds a row in it, the other takes out the rows
-  the last run showed were carrying nothing. With nothing to sweep it has
-  nothing to say, so it goes quiet rather than prompting for an empty edit.
+  search finds rows in the open rotation. clean removes rows the last run found
+  empty. hide clean when there is nothing to remove.
 */
 function CleanTool({ editor }: Pick<RotationProgramToolbarProps, 'editor'>) {
   const count = editor.cleanCount

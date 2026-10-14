@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Provides canonical Simulation workspace state and mutations to nested surfaces.
+  description: provides canonical simulation workspace state and mutations to nested surfaces.
 */
 
 import { DisplayImage } from '@/shared/ui/DisplayImage'

@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Maps active and pending routes to Simulation navigation stops
+  description: maps active and pending routes to simulation navigation stops
                and measures the matching indicator position.
 */
 
@@ -16,7 +16,7 @@ export interface GoStop {
 
 interface AppGoRunProps {
   stops: GoStop[]
-  // Active stop key; null when the current route is outside Simulation.
+  // active stop key; null when the current route is outside simulation.
   at: string | null
 }
 
@@ -30,13 +30,13 @@ export function AppGoRun({ stops, at }: AppGoRunProps) {
   const run = useRef<HTMLElement | null>(null)
   const bar = useRef<HTMLSpanElement | null>(null)
 
-  // Pending routes position the indicator immediately; running changes its
+  // pending routes position the indicator immediately; running changes its
   // state only after the shared progress threshold has elapsed.
   const aim = useNavPrgrs((state) => state.to)
   const held = useNavPrgrs((state) => state.running)
   const aimKey = aimedAt(stops, aim)
 
-  // DOM measurements drive indicator offsets without an extra React render.
+  // dom measurements drive indicator offsets without an extra react render.
   const measure = useCallback(() => {
     const node = bar.current
     const field = run.current
@@ -56,7 +56,7 @@ export function AppGoRun({ stops, at }: AppGoRunProps) {
     const node = run.current
     if (!node) return
 
-    // Font loading and container resizing can change offsets without a route change.
+    // font loading and container resizing can change offsets without a route change.
     const observer = new ResizeObserver(measure)
     observer.observe(node)
     void document.fonts?.ready.then(measure)
@@ -64,7 +64,7 @@ export function AppGoRun({ stops, at }: AppGoRunProps) {
     return () => observer.disconnect()
   }, [measure])
 
-  // Hide the indicator when neither the current route nor the press it is
+  // hide the indicator when neither the current route nor the press it is
   // waiting on has a matching navigation stop.
   const adrift = !stops.some((stop) => stop.key === at) && aimKey === null
 

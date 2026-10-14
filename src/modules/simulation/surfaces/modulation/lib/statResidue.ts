@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Separates scoped stat modifiers into row addends and independently inspectable residue rows.
+  description: separates scoped stat modifiers into row addends and independently inspectable residue rows.
 */
 
 import type { StatTreeNode } from '@/modules/simulation/model/statsView.ts'
@@ -33,12 +33,12 @@ export interface StatResidue {
   scopedCount: number
 }
 
-/* the five combat scalars the sheet prints as Secondary rows */
+/* the five combat scalars the sheet prints as secondary rows */
 const SHEET_SCALARS = new Set([
   'critRate', 'critDmg', 'energyRegen', 'healingBonus', 'tuneBreakBoost',
 ])
 
-/* the scopes whose DMG Bonus the sheet already states. `all` is in both lists
+/* the scopes whose dmg bonus the sheet already states. `all` is in both lists
    because makeStatsView folds the universal bucket into every one of its rows,
    so restating it here would count it twice. */
 const SHEET_DMG_SCOPES = new Set([

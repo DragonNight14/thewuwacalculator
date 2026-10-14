@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Persists scenario manifests and section records incrementally,
+  description: persists scenario manifests and section records incrementally,
                with lazy validation, migration, reuse, and orphan cleanup.
 */
 
@@ -77,7 +77,7 @@ export class ScenarioRecordRepository {
     try {
       const index = parseCombatStorageIndex(raw)
       if (!index.summaryById) {
-        // Migrate an older index one record at a time. A complete workspace
+        // migrate an older index one record at a time. a complete workspace
         // validation used to hold all decoded scenarios at once during startup.
         index.summaryById = Object.fromEntries(index.order.map((id) => [
           id, summarizeScenario(readScenarioRecord(id, index.recordsById[id])),
@@ -93,7 +93,7 @@ export class ScenarioRecordRepository {
         this.lastManifest = raw
       }
       const records = makeLazyScenarioRecords(index)
-      // Validate the selected record eagerly. Other records are parsed only
+      // validate the selected record eagerly. other records are parsed only
       // when their scenario is selected, copied, or exported.
       const selectedScenario = records[index.selectedScenarioId]
       this.savedRefs.clear()
@@ -123,10 +123,10 @@ export class ScenarioRecordRepository {
     try {
       if (oldRaw) oldIndex = parseCombatStorageIndex(oldRaw)
     } catch {
-      // A new manifest can recover from a damaged one without reusing its rows.
+      // a new manifest can recover from a damaged one without reusing its rows.
     }
     if (oldRaw !== this.lastManifest) this.savedRefs.clear()
-    // Records written before a failed manifest commit are unreachable. Reclaim
+    // records written before a failed manifest commit are unreachable. reclaim
     // them before migration, while the complete legacy workspace is still safe.
     if (!oldIndex && localStorage.getItem(APPSTORECMBT) != null) {
       for (let index = localStorage.length - 1; index >= 0; index -= 1) {
@@ -186,7 +186,7 @@ export class ScenarioRecordRepository {
           ? previousManifest.targetRecord : this.writeRecord(id, 'target', validated.target, createdKeys)
         const environmentRecord = previousScenario?.environment === scenario.environment && previousManifest?.environmentRecord
           ? previousManifest.environmentRecord : this.writeRecord(id, 'environment', validated.environment, createdKeys)
-        // Compact sequences are derived from the catalog when projected. Old
+        // compact sequences are derived from the catalog when projected. old
         // advanced content remains on disk until the saved-rotation migration
         // archives it, so a routine workspace save cannot erase that content.
         const resonatorId = contextScenarioMember(validated).resonatorId
@@ -366,7 +366,7 @@ function readScenarioRecord(id: string, recordKey: string): CombatScenario {
   if (!parsed || parsed.id !== id) throw new Error(`Invalid combat scenario record: ${id}`)
   const result = parseCombatScenario(parsed)
   if (!result.success) throw new Error(`Invalid combat scenario record: ${id}`)
-  // Normalize one record when it is actually read; this restores catalog
+  // normalize one record when it is actually read; this restores catalog
   // derived weapon fields without expanding every saved scenario at startup.
   return normalizeStoredCombatScenario(result.data as unknown as CombatScenario)
 }
@@ -403,8 +403,8 @@ function validateScenarioForWrite(
   }
   if (!previous || !previousManifest) return fullParse()
 
-  // This path only trusts section references that were validated at the last
-  // successful manifest commit. New sections still go through their schemas.
+  // this path only trusts section references that were validated at the last
+  // successful manifest commit. new sections still go through their schemas.
   const allowed = new Set(['id', 'revision', 'team', 'contextMemberId', 'initialOnFieldMemberId',
     'dormantMembersByResonatorId', 'target', 'environment', 'program'])
   const members = scenario.team?.members

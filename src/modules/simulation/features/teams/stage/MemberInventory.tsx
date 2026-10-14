@@ -1,7 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Computes inventory ownership only while the member's inventory
-               dialog is mounted, retaining member-scoped editing callbacks.
+  description: prepares member inventory data and editing callbacks while the dialog is mounted.
 */
 
 import type { ComponentProps } from 'react'

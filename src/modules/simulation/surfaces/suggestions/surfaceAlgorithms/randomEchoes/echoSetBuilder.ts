@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Builds randomized Echo objects for a cost and main-stat plan by
+  description: builds randomized echo objects for a cost and main-stat plan by
                assigning fixed secondary stats and distinct sampled substats.
 */
 
@@ -8,7 +8,7 @@ import { ECHO_MAIN_STATS, ECHO_SIDE_STATS, SUBSTAT_KEYS } from '@/data/gameData/
 import type { OptStatWeight } from '@/engine/optimizer/search/filtering.ts'
 import { getRandSbst, randSubVl } from './substats'
 
-// Zero stays outside the authored set-id range until a plan assigns a real set.
+// zero stays outside the authored set-id range until a plan assigns a real set.
 const NO_SET = 255
 
 export interface RandGenEcho {
@@ -45,7 +45,7 @@ export function mkEchoSetFor(params: {
 
     const substats: Record<string, number> = {}
 
-    // Stop at the normal cap or when no distinct substat key remains.
+    // stop at the normal cap or when no distinct substat key remains.
     while (
         Object.keys(substats).length < maxSubs &&
         Object.keys(substats).length < allSubKeys

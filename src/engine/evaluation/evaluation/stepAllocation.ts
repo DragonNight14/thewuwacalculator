@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Allocates legal substat lines and tier increases within reference-build budgets.
+  description: allocates legal substat lines and tier increases within reference-build budgets.
 */
 
 import type { EchoInstance } from '@/domain/entities/runtime'
@@ -8,7 +8,7 @@ import { ECHO_STAT_STRIDE } from '@/engine/optimizer/config/constants'
 import type { EvaluationSubstatEntry } from './types'
 import { addStatTotal, ENERGY_REGEN, MAX_ROLLS_PER_KEY, MAX_SUBS } from './stats'
 
-// Occupied lines and tier increases are separate native budgets. ER
+// occupied lines and tier increases are separate native budgets. er
 // consumes both; non-damage filler occupies real slots at minimum values.
 export const REFERENCE_STEP_MODEL = {
   slots: MAX_SUBS,
@@ -42,7 +42,7 @@ interface ErPlan {
   cost: number
 }
 
-// Every nondecreasing legal combination, grouped by occupied ER slots. Build
+// every nondecreasing legal combination, grouped by occupied er slots. build
 // this small catalog once per anchor search, not once per main-stat candidate.
 function makeErPlans(steps: readonly number[], maxCopies: number): ErPlan[][] {
   const plans: ErPlan[][] = Array.from({ length: maxCopies + 1 }, () => [])
@@ -67,8 +67,8 @@ export function prepareStepAllocator(
   const relevant = new Set(relevantKeys)
   const damageKeys = keys.filter(key => relevant.has(key))
   const fillerKeys = keys.filter(key => !relevant.has(key))
-  // Get the encoded lane from the canonical writer, without duplicating its
-  // stat layout. Equal Float32 totals are identical scoring trials, even when
+  // get the encoded lane from the canonical writer, without duplicating its
+  // stat layout. equal float32 totals are identical scoring trials, even when
   // they came from different current tiers on separate lines of the same key.
   const statOffsets = Object.fromEntries([...keys, ENERGY_REGEN].map(key => {
     const probe = new Float32Array(ECHO_STAT_STRIDE)
@@ -77,7 +77,7 @@ export function prepareStepAllocator(
   }))
   const erPlans = makeErPlans(tiers[ENERGY_REGEN] ?? [], REFERENCE_STEP_MODEL.maxCopies)
   const seenTotalsScratch = new Float32Array(REFERENCE_STEP_MODEL.maxCopies)
-  // Candidate trials are sequential. Keep the small line workspace and Echo
+  // candidate trials are sequential. keep the small line workspace and echo
   // buffer alive across calls; copy only a winning allocation.
   const working = new Float32Array(ECHO_STAT_STRIDE * 5)
   const values: Record<string, number[]> = Object.fromEntries([...keys, ENERGY_REGEN].map(key => [key, []]))
@@ -85,8 +85,8 @@ export function prepareStepAllocator(
   const erChoices = (missing: number): ErPlan[] => {
     if (missing <= 1e-5) return erPlans[0]
     return erPlans.slice(1).flatMap(group => {
-      // Native ER tiers are evenly spaced: at a fixed count, minimum total ER
-      // also has the fewest steps. Do not round a near-exact Float32 total up.
+      // native er tiers are evenly spaced: at a fixed count, minimum total er
+      // also has the fewest steps. do not round a near-exact float32 total up.
       let low = 0
       let high = group.length
       while (low < high) {
@@ -108,8 +108,8 @@ export function prepareStepAllocator(
   ): StepAllocation | null => {
     if (damageKeys.length === 0) return null
     let best: StepAllocation | null = null
-    // Rebuild a changed lane from its main-stat base and selected legal
-    // values. Repeated Float32 tier deltas accumulate error (five 15% CD
+    // rebuild a changed lane from its main-stat base and selected legal
+    // values. repeated float32 tier deltas accumulate error (five 15% cd
     // lines became 74.99996), making report totals disagree with the lines.
     const writeValues = (buffer: Float32Array, key: string, entries: readonly number[], delta = 0) => {
       buffer[statOffsets[key]] = base[statOffsets[key]]
@@ -124,8 +124,8 @@ export function prepareStepAllocator(
       working.set(base)
       if (er.total) writeValues(working, ENERGY_REGEN, er.values)
       let damage = score(working)
-      // Only one encoded lane changes in a line or tier trial. Restore its
-      // exact Float32 value after scoring instead of copying all five Echo rows.
+      // only one encoded lane changes in a line or tier trial. restore its
+      // exact float32 value after scoring, with one retained result.
       const scoreOneLane = (key: string, entries: readonly number[], delta = 0) => {
         const offset = statOffsets[key]
         const previous = working[offset]
@@ -135,8 +135,8 @@ export function prepareStepAllocator(
         return result
       }
 
-      // Rank one minimum-value line against this candidate's mains and ER.
-      // Keep that ranking fixed during allocation; ER is utility, not ranked.
+      // rank one minimum-value line against this candidate's mains and er.
+      // keep that ranking fixed during allocation; er is utility, not ranked.
       const ranking = damageKeys.map(key => {
         const offset = statOffsets[key]
         const previous = working[offset]
@@ -145,7 +145,7 @@ export function prepareStepAllocator(
         working[offset] = previous
         return { key, gain }
       }).sort((a, b) => b.gain - a.gain || a.key.localeCompare(b.key))
-      // If a context has fewer than five damage-affecting stats, keep a
+      // if a context has fewer than five damage-affecting stats, keep a
       // reference possible by using its lowest-ranked available stat.
       const requiredKey = ranking[Math.min(REFERENCE_STEP_MODEL.requiredDamageStatRank, ranking.length - 1)].key
       const cappedKeys = new Set(ranking.slice(0, REFERENCE_STEP_MODEL.cappedKeyCount).map(entry => entry.key))
@@ -176,7 +176,7 @@ export function prepareStepAllocator(
         relevantCount += 1
         return true
       }
-      // Two copies of this candidate's fifth-ranked damage stat consume the
+      // two copies of this candidate's fifth-ranked damage stat consume the
       // same relevant-line budget as every other selected damage substat.
       for (let count = 0; count < REFERENCE_STEP_MODEL.requiredFifthStatCopies; count += 1) {
         const minimum = tiers[requiredKey][0]
@@ -190,8 +190,8 @@ export function prepareStepAllocator(
         if (!addBestLine(damageKeys)) break
       }
 
-      // Realize the remaining physical lines using only non-damage keys.
-      // Spread filler deterministically; it receives no tier upgrades.
+      // realize the remaining physical lines using only non-damage keys.
+      // spread filler deterministically; it receives no tier upgrades.
       let occupied = relevantCount
       while (occupied < REFERENCE_STEP_MODEL.slots) {
         const selected = fillerKeys.reduce<string | undefined>((bestKey, key) => (
@@ -208,8 +208,8 @@ export function prepareStepAllocator(
       const lowestKey = ranking.filter(({ key }) => values[key].length > 0).at(-1)?.key
       if (lowestKey) {
         const minTier = Math.ceil((tiers[lowestKey].length - 1) * REFERENCE_STEP_MODEL.lowestKeyUpgradeFraction)
-        // Reject conflicting caps or insufficient budget instead of silently
-        // weakening either rule. Every selected line of this key gets the floor.
+        // reject conflicting caps or insufficient budget. every selected line
+        // of this key receives the upgrade floor.
         if (minTier > maxTier(lowestKey)) continue
         spent += minTier * values[lowestKey].length
         if (spent > stepBudget) continue
@@ -226,7 +226,7 @@ export function prepareStepAllocator(
         let bestGain = 0
         for (const key of damageKeys) {
           const steps = tiers[key]
-          // Identical values of a stat produce identical trials; evaluate one.
+          // identical values of a stat produce identical trials; evaluate one.
           let seenTiers = 0
           let seenTotalCount = 0
           for (let index = 0; index < values[key].length; index += 1) {
@@ -265,10 +265,10 @@ export function prepareStepAllocator(
         damage = selected.damage
       }
       if (refine) {
-        // Revisit the greedy result only for shortlisted final candidates. A
+        // revisit the greedy result only for shortlisted final candidates. a
         // same-tier line exchange or one-for-one tier transfer keeps both
         // investment budgets fixed, while the rank-based caps and floor stay
-        // attached to the original minimum-line ranking for this ER plan.
+        // attached to the original minimum-line ranking for this er plan.
         for (let pass = 0; pass < stepBudget; pass += 1) {
           checkCancel?.()
           const currentLowest = ranking.filter(({ key }) => values[key].length > 0).at(-1)?.key
@@ -297,7 +297,7 @@ export function prepareStepAllocator(
             for (let fromIndex = 0; fromIndex < values[fromKey].length; fromIndex += 1) {
               const fromValue = values[fromKey][fromIndex]
               const fromTier = tiers[fromKey].indexOf(fromValue)
-              // Keep the two capped keys present and preserve the mandatory
+              // keep the two capped keys present and preserve the mandatory
               // fifth-ranked stat when moving one relevant line to another key.
               if (!cappedKeys.has(fromKey) || values[fromKey].length > 1) {
                 for (const toKey of damageKeys) {
@@ -349,7 +349,7 @@ export function prepareStepAllocator(
           }
           if (!bestMove.commit) break
           bestMove.commit()
-          // A line exchange can empty a stat entirely. Restore its lane to
+          // a line exchange can empty a stat entirely. restore its lane to
           // the main-stat base too, or the removed roll remains as ghost damage.
           for (const key of [...damageKeys, ENERGY_REGEN]) {
             writeValues(working, key, values[key])
@@ -382,8 +382,8 @@ export function distributeStepSubstats(echoes: EchoInstance[], values: Record<st
   if (echoes.length !== 5) throw new Error('A step allocation requires five Echoes')
   const result = echoes.map(echo => ({ ...echo, substats: {} as Record<string, number> }))
   const remaining = Object.entries(values).map(([key, entries]) => ({ key, entries: [...entries] }))
-  // Assign highest remaining counts first: a bipartite degree realization
-  // with five equal-capacity Echo slots and no duplicate key in an Echo.
+  // assign highest remaining counts first: a bipartite degree realization
+  // with five equal-capacity echo slots and no duplicate key in an echo.
   for (const echo of result) {
     remaining.sort((a, b) => b.entries.length - a.entries.length || a.key.localeCompare(b.key))
     const selected = remaining.filter(entry => entry.entries.length > 0).slice(0, 5)

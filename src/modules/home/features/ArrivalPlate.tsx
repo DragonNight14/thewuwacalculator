@@ -1,8 +1,8 @@
 /*
   Author: Runor Ewhro
-  Description: Coordinates paired arrival data, artwork fallback, one-time
+  description: coordinates paired arrival data, artwork fallback, one-time
                activation, pointer-derived motion, shared active selection,
-               and opening held arrivals on Modulation.
+               and opening held arrivals on modulation.
 */
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
@@ -24,15 +24,15 @@ type ArrivalContext = { who: ArrivedResonator, side: Side }
 
 interface ArrivalPlateProps {
   arrivals: Arrivals
-  /** Whether this section owns the current rested home reading. */
+  /** whether this section is the current rested home view. */
   reading: boolean
-  /** Reports the active resonator to sibling arrival metadata. */
+  /** reports the active resonator to sibling arrival metadata. */
   onLit?: (id: string | null) => void
-  /** Disables entrance and pointer motion. */
+  /** disables entrance and pointer motion. */
   still: boolean
 }
 
-// Remounting by artwork key resets fallback state when release data changes.
+// remounting by artwork key resets fallback state when release data changes.
 function Figure({ who, className, animated }: { who: ArrivedResonator, className: string, animated: boolean }) {
   const [src, setSrc] = useState(who.artFallback ?? who.art)
 
@@ -102,7 +102,7 @@ export function ArrivalPlate({ arrivals, reading, onLit, still }: ArrivalPlatePr
   const pair = arrivals.resonators.slice(0, 2)
   const [left, right] = pair
 
-  /* Run activation once when the rested section first becomes active. Two
+  /* run activation once when the rested section first becomes active. two
      animation frames ensure the initial state commits before activation. */
   useEffect(() => {
     if (!reading || swept) return
@@ -116,7 +116,7 @@ export function ArrivalPlate({ arrivals, reading, onLit, still }: ArrivalPlatePr
     }
   }, [reading, swept])
 
-  // Normalize pointer coordinates to [-1, 1] CSS variables unless motion is disabled.
+  // normalize pointer coordinates to [-1, 1] css variables unless motion is disabled.
   const track = (event: RPointerEvent<HTMLDivElement>) => {
     const node = plate.current
     if (!node || still) return

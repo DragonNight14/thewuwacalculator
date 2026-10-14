@@ -1,12 +1,12 @@
 /*
   Author: Runor Ewhro
-  Description: Rasterizes an already frozen card without cloning it or retaining capture resources.
+  description: rasterizes an already frozen card without cloning it or retaining capture resources.
 */
 
-// WebKit decodes the data-URI images inside the SVG only when it is painted at
+// webkit decodes the data-uri images inside the svg only when it is painted at
 // a given size, after decode() has resolved, so an early draw has no artwork.
-// Redraw at the output size until six frames in a row agree: an artless frame
-// can hold for several polls before the artwork lands.
+// redraw at output size until six frames match; artwork may load after
+// several unchanged frames.
 async function settleEmbeddedImages(image: HTMLImageElement, output: HTMLCanvasElement, context: CanvasRenderingContext2D): Promise<void> {
   const probe = document.createElement('canvas')
   probe.width = 128; probe.height = Math.max(1, Math.round(128 * output.height / output.width))
@@ -29,8 +29,8 @@ async function settleEmbeddedImages(image: HTMLImageElement, output: HTMLCanvasE
   } finally { probe.width = 0; probe.height = 0 }
 }
 
-// Lay the card out at the output resolution with CSS zoom and draw the SVG 1:1.
-// WebKit misplaces and clips box-shadows when an SVG image is scaled at draw time.
+// lay the card out at the output resolution with css zoom and draw the svg 1:1.
+// webkit misplaces and clips box-shadows when an svg image is scaled at draw time.
 export async function rasterizeCard(card: HTMLElement, { width, height, pixelRatio }: { width: number; height: number; pixelRatio: number }): Promise<Blob> {
   const outWidth = width * pixelRatio
   const outHeight = height * pixelRatio

@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Evaluates source-state top-stat operations while preserving the
+  description: evaluates source-state top-stat operations while preserving the
                formula terms used by the combat pipeline.
 */
 
@@ -52,7 +52,7 @@ function term(formula: FormExpr, scope: EffectScope): string {
   return fmtNum(evalForm(formula, scope))
 }
 
-/** Serializes the evaluated operands without changing formula order. */
+/** serializes the evaluated operands without changing formula order. */
 function formulaMath(formula: FormExpr, scope: EffectScope): string {
   if (formula.type === 'mul') {
     return formula.values.map((entry) => term(entry, scope)).join(' x ')
@@ -88,8 +88,8 @@ export function mkEffectScope(
 }
 
 /**
- * Returns every matching top-stat operation with its evaluated operands.
- * Inactive operations retain their formula but contribute zero.
+ * returns every matching top-stat operation with its evaluated operands.
+ * inactive operations retain their formula but contribute zero.
  */
 export function topStatMath(
   runtime: ResRuntime,

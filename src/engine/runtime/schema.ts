@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Defines the zod schema used to validate and hydrate persisted
+  description: defines the zod schema used to validate and hydrate persisted
                application state from local storage.
 */
 
@@ -33,7 +33,7 @@ import {
   normalizePckrFreqState,
 } from '@/engine/runtime/pickerFrequency'
 
-// Strip retired keys before strict validation so older persisted layouts remain readable.
+// strip retired keys before strict validation so older persisted layouts remain readable.
 function stripRetiredUiKeys(value: unknown): unknown {
   if (!value || typeof value !== 'object' || Array.isArray(value)) {
     return value
@@ -403,7 +403,7 @@ const condExprSchm: z.ZodMiniType<CondExpr> = z.lazy(() =>
     ]),
 )
 
-// Input-only compatibility shape. rotItemsSchm migrates and removes it.
+// input-only compatibility shape. rotItemsSchm migrates and removes it.
 const legacyRotWhenRuleS = z.lazy(() => z.strictObject({
   loops: z.optional(z.array(z.strictObject({
     loopId: z.string(),
@@ -430,7 +430,7 @@ const rotNoteNodeS = z.lazy(() => z.strictObject({
 }))
 const rotNoteFieldS = { note: z.optional(rotNoteNodeS) }
 
-// Persisted nodes include legacy changes normalized by the rotation migration.
+// persisted nodes include legacy changes normalized by the rotation migration.
 const rotNodeSchm: z.ZodMiniType<unknown> = z.lazy(() =>
     z.discriminatedUnion('type', [
       rotNoteNodeS,
@@ -785,7 +785,7 @@ const enemyProfSchm = z.lazy(() => z.strictObject({
     }),
   }))
 
-// Legacy active/target projection accepted only while importing old snapshots.
+// legacy active/target projection accepted only while importing old snapshots.
 const cmbtSssnSchm = z.lazy(() => z.strictObject({
   activeResonatorId: z.nullable(z.string()),
   enemyProfile: enemyProfSchm,
@@ -847,7 +847,7 @@ const dormantScenarioMembersSchm = z.record(z.string(), z.strictObject({
   })),
 }))
 
-/** Incremental persistence reuses previously validated immutable sections. */
+/** incremental persistence reuses previously validated immutable sections. */
 export const parseScenarioMember = (value: unknown) => scenarioMemberSchm.safeParse(value)
 export const parseScenarioTarget = (value: unknown) => enemyProfSchm.safeParse(value)
 export const parseScenarioEnvironment = (value: unknown) => scenarioEnvironmentSchm.safeParse(value)
@@ -982,7 +982,7 @@ const combatScenarioSchm = z.lazy(() => z.pipe(z.transform((value) => {
   })
 }))))
 
-/** Validate and normalize a standalone scenario carried by an import artifact. */
+/** validate and normalize a standalone scenario carried by an import artifact. */
 export function parseCombatScenario(value: unknown) {
   return combatScenarioSchm.safeParse(value)
 }
@@ -1390,7 +1390,7 @@ export const prssCombatWorkspace = z.lazy(() => z.pipe(z.transform((value) => {
 }))))
 
 export const prssSimulationOptS = z.lazy(() => z.strictObject({
-  // Optional only while reading v28 records written before settings gained an
+  // optional only while reading v28 records written before settings gained an
   // owner key. initAppState backfills the selected context resonator.
   optimizerSettingsResonatorId: z.optional(z.nullable(z.string())),
   optimizerSettings: optSetsSchm,
@@ -1421,7 +1421,7 @@ function makePersistSchema(version: typeof APP_STATE_VER) {
   return z.strictObject({
     version: z.literal(version),
     ui: z.pipe(z.transform(stripRetiredUiKeys), uiPersistSchema),
-    // Optional only at the schema boundary so v22 state can materialize its
+    // optional only at the schema boundary so v22 state can materialize its
     // first scenario from legacy profiles/session during initialization.
     combat: z.optional(prssCombatWorkspace),
     library: z.optional(savedArtifactLibrarySchm),

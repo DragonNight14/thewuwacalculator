@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Provides default state factories and initialization helpers for
+  description: provides default state factories and initialization helpers for
                resonators, teams, optimizer settings, and persisted app state.
 */
 
@@ -536,8 +536,8 @@ function isKnownCombatTarget(enemy: EnemyProfile): boolean {
     return false
   }
 
-  // Custom targets and the unset/default placeholders are scenario-owned
-  // identities, not effect-source packages.
+  // custom targets and default placeholders are scenario identities without
+  // effect source packages.
   if (
     enemy.source === 'custom'
     || enemy.id === NONE_ENEMY_ID
@@ -550,8 +550,8 @@ function isKnownCombatTarget(enemy: EnemyProfile): boolean {
     return true
   }
 
-  // Most catalog enemies have no effect package, so sourcesByKey cannot be
-  // used as catalog membership. Preserve numeric catalog ids and drop the
+  // most catalog enemies have no effect package, so sourcesByKey cannot be
+  // used as catalog membership. preserve numeric catalog ids and drop the
   // obviously unknown ones used by cross-catalog repair.
   return enemy.source === 'catalog' && /^\d+$/.test(enemy.id)
 }
@@ -643,7 +643,7 @@ function normRotationForCatalog(rotation: RotationState, resonatorId: string): R
   const defaultSequence = getDefaultRotation(resonatorId)?.items ?? []
   return {
     ...rotation,
-    // Preserve only legacy advanced content until it can be archived. Compact
+    // preserve only legacy advanced content until it can be archived. compact
     // manual sequences no longer participate in or persist with a scenario.
     sequence: previousSequence.length > 0 && !isRotationSequence(previousSequence, resonatorId)
       ? previousSequence
@@ -1334,14 +1334,14 @@ interface InitializedData {
   runtimeRevision: number
 }
 
-// Legacy calculator payloads mixed workspace state with saved artifacts.
+// legacy calculator payloads mixed workspace state with saved artifacts.
 function mkInitData(
   base?: PersistedUnknown['simulation'],
   saved?: PersistedUnknown['library'],
 ): InitializedData {
   const runtimeRevision = Math.max(0, Math.floor(base?.runtimeRevision ?? 0))
   const baseProfiles = normProfsCat(structuredClone(base?.profiles ?? {}))
-  // Equipped echoes reserve their uids before inventory duplicates are repaired,
+  // equipped echoes reserve their uids before inventory duplicates are repaired,
   // preserving references from loadouts into the saved inventory.
   const invChs: SavedEcho[] = dedupeEchoUids(
     structuredClone(saved?.echoes ?? base?.inventoryEchoes ?? []).map((entry) => ({
@@ -1616,7 +1616,7 @@ function savedRotationFallbackScenario(entry: LegacySavedRotation): CombatScenar
   )
 }
 
-/** Normalizes all legacy saved-rotation shapes into scenario-backed artifacts. */
+/** normalizes all legacy saved-rotation shapes into scenario-backed artifacts. */
 function normRotsCat(rotations: LegacySavedRotation[]): SavedRotation[] {
   return rotations.map((entry) => {
     const fallback = savedRotationFallbackScenario(entry)
@@ -1784,7 +1784,7 @@ export function initAppState(
     library,
     simulation: {
       ...simulation,
-      // v28 snapshots predate the owner key. Their one settings object belongs
+      // v28 snapshots predate the owner key. their one settings object belongs
       // to the scenario that was selected when the snapshot was written.
       optimizerSettingsResonatorId:
         simulation.optimizerSettingsResonatorId ?? selectedContextId,

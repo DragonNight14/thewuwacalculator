@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Verifies calculation-only bundles reproduce full-catalog combat
+  description: verifies calculation-only bundles reproduce full-catalog combat
                results for every resonator in beta and live data modes.
 */
 

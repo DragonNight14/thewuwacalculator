@@ -1,31 +1,6 @@
 # The Wuwa Calculator
 
-Fan made tools for planning, simulating, and optimizing builds in *Wuthering Waves*.
-
-This repository contains the production app. Its navigation is `Home > Read / Simulation`. Simulation includes Modulation, Rotation, Showcase, Optimizer, and Suggestions. Read includes guides, reference docs, the changelog, and information pages. The repository also contains runtime data and the Cloudflare Worker used for deployment.
-
-## Quick Start
-
-Requirements:
-
-- Node `24.x`
-
-Install and run:
-
-```bash
-npm install
-npm run dev
-```
-
-Useful commands:
-
-```bash
-npm run build
-npm test
-npm run lint
-npm run dev:cloudflare
-npm run deploy:cloudflare
-```
+Hi, this is a fan made tools for planning, simulating, and optimizing builds in *Wuthering Waves*.
 
 ## Environment
 
@@ -35,7 +10,7 @@ Local Google Drive sync and OAuth flows expect:
 VITE_GOOGLE_CLIENT_ID=...
 GOOGLE_CLIENT_ID=...
 GOOGLE_CLIENT_SECRET=...
-GOOGLE_REDIRECT_URI=http://localhost:5174
+GOOGLE_REDIRECT_URI=...
 ```
 
 Browser side configuration uses `VITE_*` values. Server side OAuth exchange and refresh use the non `VITE_*` variables.
@@ -64,8 +39,6 @@ Browser side configuration uses `VITE_*` values. Server side OAuth exchange and 
   Shared UI primitives, shell components, and low level helpers.
 - `public/data`
   Checked-in, mode-scoped runtime JSON used by core startup and lazy Simulation data loading.
-- `scripts`
-  Git-ignored local maintenance workflows for runtime data and assets. Their commands require the author's private working-copy scripts.
 - `docs`
   Documentation for maintainers.
 
@@ -112,7 +85,7 @@ In short, the code is provided for reference and educational use only. You may v
 ## Project Notes
 
 - unofficial fan project, not affiliated with Kuro Games
-- designed, coded, and maintained by `ssjrunor`
+- designed, coded, and maintained by [`ssjrunor`](https://whoami.ssjrunor.com/)
 - gameplay values are based on in game inspection plus community maintained sources and testing
 
 ## Contact

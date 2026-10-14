@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Resolves disposable display derivatives while preserving original Showcase artwork for capture.
+  description: resolves disposable display derivatives while preserving original showcase artwork for capture.
 */
 import { resolveImageRef } from './imageUpload'
 import { loadMgBlob, saveMgBlob } from '@/infra/persistence/blobImageStore'
@@ -22,7 +22,7 @@ export async function resolveShowcaseImage(ref: string, edge: number, signal: Ab
   const release = () => { if (display) URL.revokeObjectURL(display); original.revoke?.() }
   try {
     signal.throwIfAborted()
-    // Stable local uploads can reuse derivatives without decoding the original.
+    // stable local uploads can reuse derivatives without decoding the original.
     let blob: Blob | null = null
     if (!blob) {
       const response = await fetch(original.url, { signal })
@@ -54,7 +54,7 @@ export async function resolveShowcaseImage(ref: string, edge: number, signal: Ab
     return { url: display, original: ref, release }
   } catch (error) {
     if (signal.aborted) { release(); throw error }
-    // Cross-origin artwork that cannot be sampled retains its working URL.
+    // cross-origin artwork that cannot be sampled retains its working url.
     return { url: original.url, original: original.url, release }
   } finally {
     bitmap?.close()

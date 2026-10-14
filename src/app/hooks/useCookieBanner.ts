@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Tracks cookie-banner visibility and dismissal state for the app
+  description: tracks cookie-banner visibility and dismissal state for the app
                shell.
 */
 

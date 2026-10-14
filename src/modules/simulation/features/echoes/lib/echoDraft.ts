@@ -1,7 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Owns unsaved Echo identity, main-stat, Sonata, and legal-substat
-               mutations until the caller commits the completed draft.
+  description: updates unsaved echo identity, main stat, sonata, and legal substats before commit.
 */
 
 import { useCallback, useEffect, useMemo, useState } from 'react'
@@ -32,7 +31,7 @@ export function fmtStatValue(key: string, value: number): string {
   return `${value}%`
 }
 
-// Map an arbitrary stored value to its nearest legal roll index.
+// map an arbitrary stored value to its nearest legal roll index.
 export function stepIndex(key: string, value: number): number {
   const steps = getSbstStepP(key)
   let best = 0
@@ -42,7 +41,7 @@ export function stepIndex(key: string, value: number): number {
   return best
 }
 
-// Preserve relative roll quality when stat families have different tier counts.
+// preserve relative roll quality when stat families have different tier counts.
 export function carryTier(fromKey: string, fromValue: number, toKey: string): number {
   const to = getSbstStepP(toKey)
   if (!to.length) return 0
@@ -55,7 +54,7 @@ export function carryTier(fromKey: string, fromValue: number, toKey: string): nu
 }
 
 export function useEchoDraft(echo: EchoInstance, echoes: EchoDef[]) {
-  // Catalog replacement stays local until the caller receives the saved draft.
+  // catalog replacement stays local until the caller receives the saved draft.
   const [echoId, setEchoId] = useState(echo.id)
   const [mainStatKey, setMainStatK] = useState(echo.mainStats.primary.key)
   const [selectedSet, setSelSet] = useState(echo.set)
@@ -79,7 +78,7 @@ export function useEchoDraft(echo: EchoInstance, echoes: EchoDef[]) {
   const setOptions = definition?.sets ?? []
   const usedKeys = useMemo(() => new Set(lclSbst.map(([key]) => key)), [lclSbst])
 
-  // Retain only stats legal for the replacement piece, matching slot initialization.
+  // retain only stats legal for the replacement piece, matching slot initialization.
   const recast = useCallback((nextId: string): boolean => {
     const nextDef = getEchoById(nextId)
     if (!nextDef) return false
@@ -99,7 +98,7 @@ export function useEchoDraft(echo: EchoInstance, echoes: EchoDef[]) {
     )))
   }, [])
 
-  // Empty slots append a stat; occupied slots replace it while retaining roll quality.
+  // empty slots append a stat; occupied slots replace it while retaining roll quality.
   const pickSubstat = useCallback((index: number, key: string) => {
     setLclSbst((prev) => {
       if (prev.some(([used], position) => used === key && position !== index)) return prev
@@ -131,7 +130,7 @@ export function useEchoDraft(echo: EchoInstance, echoes: EchoDef[]) {
     return steps.length > 0 && value === steps[steps.length - 1]
   }).length
 
-  // A draft without a legal main stat cannot be committed.
+  // a draft without a legal main stat cannot be committed.
   const build = (): EchoInstance | null => {
     if (!mainStatKey || !definition) return null
 

@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Loads a saved rotation snapshot into its context resonator's
+  description: loads a saved rotation snapshot into its context resonator's
                working scenario and replaces the standing editor document.
 */
 

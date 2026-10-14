@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Summarizes rotation action playback state from simulation output
+  description: summarizes rotation action playback state from simulation output
                without changing the authored rotation tree.
 */
 

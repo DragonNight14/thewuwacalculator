@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Defines rotation editor preferences data contracts and state invariants.
+  description: defines rotation editor preferences data contracts and state invariants.
 */
 
 export const ROTATION_EDITOR_STAT_KEYS = [

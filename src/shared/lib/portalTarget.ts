@@ -1,10 +1,10 @@
 /*
   Author: Runor Ewhro
-  Description: Shared portal target lookups for Simulation overlays and
+  description: shared portal target lookups for simulation overlays and
                dialogs that render into either the page body or main shell.
 */
 
-// Mount overlays outside the named transition aperture, which is a backdrop root.
+// mount overlays outside the route transition container, which is a backdrop root.
 export function mainPortal(): HTMLElement | null {
   if (typeof document === 'undefined') {
     return null
@@ -15,7 +15,7 @@ export function mainPortal(): HTMLElement | null {
     ?? document.body
 }
 
-// Resolve the persistent chrome host for controls that must outlive routed content.
+// resolve the persistent chrome host for controls that must outlive routed content.
 export function chromePortal(): HTMLElement | null {
   if (typeof document === 'undefined') {
     return null
@@ -24,7 +24,7 @@ export function chromePortal(): HTMLElement | null {
   return (document.querySelector('.ax-chrome') as HTMLElement | null) ?? mainPortal()
 }
 
-// Use the topmost open dialog as the portal boundary for nested floating controls.
+// use the topmost open dialog as the portal boundary for nested floating controls.
 export function dialogPortal(): HTMLElement | null {
   if (typeof document === 'undefined') {
     return null

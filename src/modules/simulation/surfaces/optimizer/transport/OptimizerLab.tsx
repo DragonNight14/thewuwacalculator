@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Coordinates optimizer compilation, execution, result selection, preview, and application.
+  description: coordinates optimizer compilation, execution, result selection, preview, and application.
 */
 
 import '@/styles/surfaces/optimizer/transport.css'

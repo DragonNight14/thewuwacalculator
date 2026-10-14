@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Owns suggestions worker requests and their idle lifecycle.
+  description: manages suggestions worker requests and idle teardown.
 */
 
 import type {

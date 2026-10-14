@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Gates beta acknowledgement behind a timed countdown, records
+  description: gates beta acknowledgement behind a timed countdown, records
                daily confirmation, and delays unmount through modal exit.
 */
 

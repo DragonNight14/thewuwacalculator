@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Owns game assets behavior and state transitions for the lib module.
+  description: provides shared game asset helpers and state updates.
 */
 
 import type { CSSProperties } from 'react'
@@ -11,9 +11,8 @@ const RES_SKILL_ROOT = '/assets/game/resonators/skills'
 export const SEQ_NODES = 6
 
 /*
-  the skill nodes `npm run ingest:node-icons` writes. these are the game's own
-  white glyphs, so they are painted as masks rather than drawn: an <img> of one
-  disappears against a light theme, and a mask takes the surface's own colour.
+  the skill nodes `npm run ingest:node-icons` writes. these white game glyphs
+  use masks that take the surface colour and remain visible in light themes.
 */
 export const RES_NODE_KEYS = [
   'normalAttack',
@@ -45,8 +44,7 @@ export function resSeqIcons(resonatorId: string): string[] {
 }
 
 /*
-  the inherent skills are stated in unlock order, and the art is named for that
-  order rather than for the level, which moves between resonators.
+  inherent skill art is named by unlock order. levels vary by resonator.
 */
 export function resInherentIcon(resonatorId: string, order: number): string | null {
   const node = RES_NODE_KEYS.find((key) => key === `inherent${order + 1}`)
@@ -54,8 +52,8 @@ export function resInherentIcon(resonatorId: string, order: number): string | nu
 }
 
 /*
-  masks take a quoted url or they break on paths the browser reads as a keyword,
-  so the custom property is written here rather than at each call site.
+  mask urls require quotes for paths the browser could read as a keyword.
+  this helper writes the quoted url into the custom property.
 */
 export function glyphVars(url: string | null, property = '--glyph'): CSSProperties | undefined {
   return url ? ({ [property]: `url("${url}")` } as CSSProperties) : undefined

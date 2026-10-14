@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: defers expensive UI work until a page has stopped changing and
+  description: defers expensive ui work until a page has stopped changing and
                the browser has an idle slice available.
 */
 
@@ -30,7 +30,7 @@ export function scheduleAfterSettled(
   let fallbackTimer: number | null = null
   let cancelled = false
 
-  // The idle callback can race with cleanup in a concurrent render.
+  // the idle callback can race with cleanup in a concurrent render.
   const guarded = () => {
     if (!cancelled) callback()
   }

@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Defines persisted resonator profile types, including
+  description: defines persisted resonator profile types, including
                progression, build, local slot state, routing, and team data.
 */
 
@@ -20,7 +20,7 @@ import type { SntSetConds } from './sonataSetConditionals'
 
 export type OptInventoryMode = 'include' | 'exclude'
 
-// Sparse optimizer inventory rule:
+// sparse optimizer inventory rule:
 // - include mode means only echoUids may be used.
 // - exclude mode means every inventory echo except echoUids may be used.
 export interface OptInventorySelection {
@@ -38,7 +38,7 @@ export function makeOptInventorySelection(): OptInventorySelection {
 export function cloneOptInventorySelection(
     selection?: Partial<OptInventorySelection> | null,
 ): OptInventorySelection {
-  // Normalize persisted/imported profiles at the boundary so downstream
+  // normalize persisted/imported profiles at the boundary so downstream
   // optimizer code never sees duplicate, empty, or unknown mode data.
   const mode = selection?.mode === 'include' ? 'include' : 'exclude'
   const echoUids = Array.isArray(selection?.echoUids)

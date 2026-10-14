@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Verifies the programOrder.test behavior and its compatibility invariants.
+  description: verifies the programOrder.test behavior and its compatibility invariants.
 */
 
 import { describe, expect, it } from 'vitest'

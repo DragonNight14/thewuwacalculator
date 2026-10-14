@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Captures keyed card bounds before a state change, computes layout
+  description: captures keyed card bounds before a state change, computes layout
                deltas after commit, delegates special moves, and cleans up clones
                used for removed cards.
 */
@@ -9,10 +9,10 @@ import { useCallback, useLayoutEffect, useRef, type RefObject } from 'react'
 import { loadDisplayImage } from '@/shared/lib/displayImageSizing'
 
 const SETTLE_EASE = 'cubic-bezier(.2, .8, .2, 1)'
-// A snapshot is valid only for the immediate commit that follows capture().
+// a snapshot is valid only for the immediate commit that follows capture().
 const STALE_MS = 300
 const MAX_CARDS = 600
-// Skip animation work for cards outside this margin around the scroll root.
+// skip animation work for cards outside this margin around the scroll root.
 const VIEW_MARGIN = 80
 
 export interface PickerMove {
@@ -35,19 +35,19 @@ function loadArt(el: HTMLElement) {
   })
 }
 
-// Returning true from onMove transfers ownership of that card's delta.
+// returning true from onMove assigns that card's delta to the caller.
 export function usePickerMotion(
   bodyRef: RefObject<HTMLElement | null>,
   onMove?: (move: PickerMove) => boolean,
 ) {
   const snapshot = useRef<Snapshot | null>(null)
 
-  // Explicit origins replace measured bounds after a detached drag. Unknown
+  // explicit origins replace measured bounds after a detached drag. unknown
   // event-handler arguments are ignored.
   const capture = useCallback((origins?: unknown) => {
     const body = bodyRef.current
     if (!body) return
-    // Once snapshots control card movement, disable the one-time grid animation.
+    // once snapshots control card movement, disable the one-time grid animation.
     body.closest('.pkm__frame')?.classList.add('is-live')
     if (calm()) return
     const list = body.querySelectorAll<HTMLElement>('[data-pick-id]')
@@ -91,7 +91,7 @@ export function usePickerMotion(
       const dy = was.rect.top - rect.top
       if (Math.abs(dx) < 1 && Math.abs(dy) < 1) return
       if (!near(rect) && !near(was.rect)) return
-      // Cancel in-flight animations before applying a new measured delta.
+      // cancel in-flight animations before applying a new measured delta.
       el.getAnimations().forEach((animation) => animation.cancel())
       if (onMove?.({ el, id, dx, dy })) return
       el.animate([{ transform: `translate(${dx}px, ${dy}px)` }, { transform: 'none' }], { duration: 440, easing: SETTLE_EASE })

@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Formats rich description text by resolving placeholders,
+  description: formats rich description text by resolving placeholders,
                preserving highlight markup, and applying keyword-based
                coloring for elemental and status-related terms.
 */
@@ -37,7 +37,7 @@ const ELEM_PHRASES = ELEM_WORDS.flatMap((element) => [
   element,
 ])
 
-// escape text so it can be safely used inside a regular expression
+// escape text before using it in a regular expression.
 function escapeRegex(value: string): string {
   return value.replace(/[-/\\^$*+?.()|[\]{}]/g, '\\$&')
 }
@@ -102,13 +102,13 @@ function prtcFxdHghbr(html: string): { html: string, prtcSgmn: Map<string, strin
   return { html: processed, prtcSgmn: prtcSgmn }
 }
 
-// inject highlight markup into HTML while preserving existing formatting
+// inject highlight markup into html while preserving existing formatting
 function hghlKywrInHt(html: string, xtrKywr: string[] = []): string {
   if (!html) {
     return html
   }
 
-  // elemental RES phrases get handled first so they are protected from later replacements
+  // elemental res phrases get handled first so they are protected from later replacements
   const resPhrases = ELEM_WORDS.map(
       (element) => `${element.charAt(0).toUpperCase() + element.slice(1)} RES`,
   )
@@ -174,7 +174,7 @@ export interface FmtDscrPtns {
   xtrKywr?: string[]
 }
 
-// check whether a raw HTML tag contains a font-bold class
+// check whether a raw html tag contains a font-bold class
 function hasFontBoldC(tag: string): boolean {
   const qtdClssMtch = tag.match(/\bclass\s*=\s*(['"])(.*?)\1/i)
   if (qtdClssMtch && /\bfont-bold\b/i.test(qtdClssMtch[2])) {
@@ -187,7 +187,7 @@ function hasFontBoldC(tag: string): boolean {
 
 // strip incoming bold markup and normalize it to the app's highlight spans
 function strpNjctMrkp(text: string): string {
-  // first normalize line breaks to literal newlines so we can rebuild them cleanly later
+  // literal newlines provide the base for rebuilding line breaks.
   const normalized = text
       .replace(/\bcolor=(?:Highlight|Title|Ice|Fire|Thunder|Wind|Light|Dark|Normal)>/gi, '<span class="highlight">')
       .replace(/(?:<br\s*\/?>\s*)+/gi, '\n')
@@ -226,7 +226,7 @@ function strpNjctMrkp(text: string): string {
   return result
 }
 
-// format description text into highlighted HTML
+// format description text into highlighted html
 export function fmtDscr(
     desc: string,
     param: Array<string | number> = [],
@@ -251,7 +251,7 @@ export function fmtDscr(
       .replace(/\n[ \t]+/g, '\n')
       .replace(/\n/g, '<br>')
 
-  // resolve pluralization custom tags of the form {Cus:... S=... P=... SapTag=n ...}
+  // resolve pluralization custom tags of the form {cus:... s=... p=... SapTag=n ...}
   formatted = formatted.replace(
       /\{Cus:[^}]*S=([^ ]+)\s+P=([^ ]+)\s+SapTag=(\d+)[^}]*\}/g,
       (_, singular: string, plural: string, tagIndex: string) => {
@@ -287,7 +287,7 @@ export function fmtDscr(
   )
 }
 
-// format description text and return a plain-text version without HTML
+// format description text and return a plain-text version without html
 export function formatDescription(
     desc: string,
     param: Array<string | number> = [],

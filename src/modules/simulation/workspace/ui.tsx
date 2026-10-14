@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Provides shared workspace glyph, stat, rating, and formatting primitives.
+  description: provides shared workspace glyph, stat, rating, and formatting primitives.
 */
 
 import { DisplayImage } from '@/shared/ui/DisplayImage'
@@ -116,9 +116,9 @@ export function statIconSrc(key: string): string | null {
   return file ? `/assets/game/stats/icons/${file}.png` : null
 }
 
-// Stable id for a stat across the card so flat/percent variants of the same stat
+// stable id for a stat across the card so flat/percent variants of the same stat
 // (atk/atkFlat/atkPercent, etc.) read as one family for the hover-focus feature.
-// STAT_KEY_ICON already collapses those variants, so it is the single source.
+// STAT_KEY_ICON is the single mapping for these stat variants.
 export function statFamily(key: string): string {
   return STAT_KEY_ICON[key] ?? key
 }
@@ -209,7 +209,7 @@ export const EVALUATION_RAIL_EXIT_MS = 120
 export const EVALUATION_RAIL_ENTER_MS = 260
 export const EVALUATION_SURFACE_EXIT_MS = 180
 export const EVALUATION_SURFACE_ENTER_MS = 460
-// Must match the rail width transition so dependent measurements wait for stable geometry.
+// must match the rail width transition so dependent measurements wait for stable geometry.
 export const EVALUATION_RAIL_RESIZE_MS = 460
 export const EVALUATION_RAIL_PRELOAD_TIMEOUT_MS = 260
 
@@ -232,7 +232,7 @@ export function preloadEvaluationRailImages(assets: Array<{ src: string; width: 
       for (const image of images) {
         image.onload = null
         image.onerror = null
-        // A timed-out transition must not keep decoding images that are no
+        // a timed-out transition must not keep decoding images that are no
         // longer needed by the incoming rail.
         if (!image.complete) {
           image.removeAttribute('srcset')
@@ -412,7 +412,7 @@ export function EchoCard({
   onOpen?: () => void
   actions?: EvaluationEchoActions
 }) {
-  // selection mode owns the click, so the slot only opens outside of it
+  // selection mode handles the click; the slot opens only when selection mode is off
   const openProps = onOpen
     ? {
         role: 'button',
@@ -476,8 +476,8 @@ export function EchoCard({
   const setColor = getSntSetClr(echo.setId)
   const itemId = selection?.getId(index) ?? null
   const selected = itemId ? selection?.isSelected(itemId) ?? false : false
-  /* selection mode has its own toolbar for the same writes, so the gutter stays
-     out of its way rather than competing for the click */
+  /* selection mode routes these writes through its toolbar; hide the gutter
+     actions during selection. */
   const gutter = actions && !selection?.selectionMode
   const canSave = gutter ? actions.canSave(index) : false
   const echoLabel = echoDef?.name ?? echo.echoName

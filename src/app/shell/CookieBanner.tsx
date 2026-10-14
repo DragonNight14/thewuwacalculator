@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Displays the cookie-consent banner and links users to the
+  description: displays the cookie-consent banner and links users to the
                privacy policy when they want more detail.
 */
 

@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Projects exact saved-rotation results into sortable entries,
+  description: projects exact saved-rotation results into sortable entries,
                team contributions, comparison data, and selection actions.
 */
 
@@ -92,14 +92,14 @@ interface SavedListProps {
   entries: SavedRotation[]
   prefs: SavedListPrefs
   view: SavedListView
-  /** Stable identity of the active saved entry. */
+  /** stable identity of the active saved entry. */
   selectedId: string | null
   onSelect: (id: string) => void
   getContextItems: (id: string, live: boolean) => MenuEntry[]
   panel: SavedListPanel
   dockPanel: boolean
   onPanelChange: (panel: SavedListPanel) => void
-  /** Exact engine result for the active entry. */
+  /** exact engine result for the active entry. */
   selectedRun: RunResult | null
   summariesById: ReadonlyMap<string, RotationComparisonSummary>
   loading: boolean
@@ -115,13 +115,13 @@ interface SavedListProps {
 interface SavedListLive {
   entry: SavedRotation
   summary: RotationComparisonSummary
-  /** Exact result from which the entry and summary were projected. */
+  /** exact result from which the entry and summary were projected. */
   run: RunResult
-  /** True when current authored nodes differ from this result. */
+  /** true when current authored nodes differ from this result. */
   stale: boolean
 }
 
-/** Comparison state backed by already-computed exact results. */
+/** comparison state backed by already-computed exact results. */
 interface SavedListCompare {
 
   mode: boolean
@@ -179,9 +179,9 @@ function useTrackWidth(): [(node: HTMLElement | null) => void, number] {
 }
 
 /*
-  The axis is two numbers on the field, and every mark places itself from them
-  in CSS, so one transition on those numbers glides the gridlines, the runs,
-  the portraits and the figures together. The tick set is the only part that
+  the axis is two numbers on the field, and every mark places itself from them
+  in css, so one transition on those numbers glides the gridlines, the runs,
+  the portraits and the figures together. the tick set is the only part that
   cannot interpolate: outgoing values are kept for one beat and faded out while
   the incoming ones travel into place.
 */
@@ -220,9 +220,8 @@ function Portrait({
 }
 
 /* ---- the cut ----
-   picked, the lead stops naming the take and shows the cast instead. the name,
-   the rate and the rank are all printed elsewhere on this screen; who ran it is
-   not, so that is the one thing the row spends its own room on.
+   the picked row shows the cast. name, rate, and rank appear elsewhere;
+   this row identifies the participating members.
 */
 
 /*
@@ -245,7 +244,7 @@ const CUT_ZOOM = 2.8
   stands more than three steps.
 */
 const CUT_LIFT = 3
-/* how long a leaving cut is held mounted for, so it can fold back out */
+/* keep a leaving cut mounted through its fold-out animation. */
 const CUT_OUT_MS = 420
 /* the same, for a compared panel folding back under its neighbour */
 
@@ -258,9 +257,8 @@ function cutShares(count: number): number[] {
 }
 
 /*
-  a resonator whose standing art has not shipped yet still gets a pane. the
-  shared default sits centred in it on a wash of the member's element instead
-  of being placed as a face, which the icon does not have.
+  resonators without standing art use a centered default icon on an
+  element-coloured background.
 */
 function withBareCut(event: SyntheticEvent<HTMLImageElement>) {
   event.currentTarget.closest('.rsl-cut__pane')?.classList.add('is-bare')
@@ -348,8 +346,7 @@ function ResonanceCut({ members, out }: { members: SavedMember[]; out: boolean }
 }
 
 /*
-  the cut only mounts on the row that holds the floor and the one just leaving
-  it, so a field of takes is never holding every member's standing art at once.
+  mount transition art only for the selected row and the outgoing row.
 */
 function useSvdLstCut(selectedId: string | null): string | null {
   const [leaving, setLeaving] = useState<string | null>(null)
@@ -370,13 +367,8 @@ function useSvdLstCut(selectedId: string | null): string | null {
   return leaving
 }
 
-/*
-  Whether another panel would still leave the field something to be. The index
-  and the note are the same box and the index never travels, so one measurement
-  answers for all of them: its own margin is the page's margin, and its width
-  is what every panel standing beside it is worth.
-*/
-/* what a standing take is worth against the best one in the rack */
+/* the index and note share dimensions; measure index width and page margin to
+   determine available space for comparison panels. */
 interface CompareShare {
   pct: string
   top: boolean
@@ -426,8 +418,7 @@ function useSvdPnlRoom(panel: HTMLElement | null): PanelRoom | null {
 }
 
 /*
-  Compared panels are held mounted for one beat after they are taken down, so
-  a panel folds back under the one it opened from instead of vanishing. Its
+  keep compared panels mounted through their exit fold under the parent. their
   place is captured on the way out: removing the middle of three should let the
   other two travel, and let the one leaving leave from where it stood.
 */
@@ -437,10 +428,10 @@ function useSvdPnlRoom(panel: HTMLElement | null): PanelRoom | null {
   the average and the dashed rule past it is headroom only a perfect run
   reaches, so the row still reads as one comparable mark.
 
-  A member rides its own run. Runs too narrow to hold a portrait dock at their
-  leading edge and overlap the neighbour rather than disappear, and a name only
+  a member rides its own run. runs too narrow to hold a portrait dock at their
+  leading edge and overlap the neighbour. a name only
   prints where the run is wide enough to carry it, which is what the zoom is
-  for. At rest the row prints one figure, its average.
+  for. at rest the row prints one figure, its average.
 */
 function Beam({
   row,
@@ -467,8 +458,7 @@ function Beam({
   const contributors = savedContributors(row)
   const capX = px(row.avg)
   const headroom = Math.max(0, px(row.crit) - capX)
-  /* an average whose cap sits too near the start of the track has no room to
-     print before it, so the figure crosses to the other side */
+  /* place the average label after the cap when the left side has insufficient space. */
   const after = capX < LABEL_ROOM
   const floorX = px(row.normal)
 
@@ -606,14 +596,12 @@ function Row({
   selected: boolean
   batchSelected: boolean
   selectionMode: boolean
-  /* whether this take is already standing in the comparison, or whether the
-     rack is full and has no room for it */
+  /* `on` is included; `off` is excluded by the comparison limit. */
   compareMark: 'on' | 'off' | null
-  /* what this take is worth against the best one standing, printed where the
-     rank goes: while a comparison is open, that is what the order is worth */
+  /* percentage against the best compared entry, displayed in place of rank. */
   compareOff: CompareShare | null
   onSelectionClickCapture: MouseEventHandler<HTMLElement>
-  /* whether this row is dressing itself in the cut, or folding it back away */
+  /* entering or exiting the row transition. */
   cut: 'in' | 'out' | null
   lit: ResonatorId | null
   onLight: (id: ResonatorId | null) => void
@@ -621,8 +609,7 @@ function Row({
   onPick: (id: ResonatorId) => void
   onSelect: (id: string) => void
   getContextItems: (id: string, live: boolean) => MenuEntry[]
-  /* banked under its lead, where the head has already said who the take was
-     written for. the row spends that portrait on the rest of the team instead */
+  /* in grouped view, the head identifies the lead and rows show teammates. */
   grouped?: boolean
   /* set on the live take only: whether the figure is still the program's */
   live?: { stale: boolean } | null
@@ -653,17 +640,15 @@ function Row({
       style={{
         '--rsl-e': row.lead.accent,
         '--rsl-last': lastContributor?.accent ?? row.lead.accent,
-        /* the row is the one that has to let the strip out of its top, so it
-           is the one told how far the strip stands past it */
+        /* the row renders the strip's extension above its top edge. */
         ...(cut ? { '--rsl-cut-rise': cutRise(row.members.length) } : null),
       } as CSSProperties}
       role="listitem"
-      /* the leader points at the row from the note's edge, and only the field
-         knows where a row has ended up */
+      /* the leader points at the row from the note's edge, and the field
+         tracks the final row position */
       data-rsl-row-id={row.id}
       aria-current={selected ? 'true' : undefined}
-      /* an unsaved take has nothing to rename, duplicate or delete, so it is
-         explicitly disabled while a persisted-entry selection is being built */
+      /* disable unsaved takes during persisted-entry selection. */
       aria-disabled={compareMark === 'off' || (row.live && selectionMode) ? true : undefined}
       aria-selected={row.live ? undefined : batchSelected}
       data-selection-focus-item={row.live ? undefined : 'true'}
@@ -687,10 +672,8 @@ function Row({
     >
       {cut ? <ResonanceCut members={row.members} out={cut === 'out'} /> : null}
 
-      {/* opened, a take gives its readout up to the standing art, because a
-          record is named everywhere else. an unsaved one is not, so the line
-          the art covered is printed back over it, on the scrim the cut already
-          lays down to keep its own foot readable */}
+      {/* show the live label over transition art because unsaved runs have no
+          separate entry title. */}
       {row.live && cut === 'in' ? (
         <span className="rsl-live__stamp">
           <i aria-hidden="true" />
@@ -712,17 +695,13 @@ function Row({
               <i aria-hidden="true">%</i>
             </>
           ) : row.live ? (
-            /* the rank it would take, held apart from the ranks that are real.
-               a stale figure cannot claim a place at all, so it withholds one */
+            /* show the live take's projected rank only when its figure is current. */
             <em>{live?.stale ? '\u2026' : String(rank).padStart(2, '0')}</em>
           ) : String(rank).padStart(2, '0')}
         </span>
 
-        {/* banked, the group head is already the lead's portrait and name, so
-            printing it again on every take says nothing. what the takes in a
-            bank actually differ by is who else ran them, so that is what the
-            row spends the cell on. a take with nobody else keeps the lead,
-            which is the one case where the portrait is still the answer */}
+        {/* group heads identify the lead. each take row shows its teammates;
+            a solo take retains the lead portrait. */}
         {grouped && row.mates.length > 0 ? (
           <span className="rsl-row__mates" title={row.mates.map((mate) => mate.name).join(', ')}>
             {row.mates.map((mate) => (
@@ -796,8 +775,8 @@ function Row({
 }
 
 /*
-  What a rebuilt saved rotation reads as. It is drawn once and used twice: the
-  panel beside the field is this, and so is every take standing to its left. A
+  what a rebuilt saved rotation reads as. it is drawn once and used twice: the
+  panel beside the field is this, and so is every take standing to its left. a
   compared take is not a second design, it is this inspector for its own entry.
 */
 function SavedInspectorRead({
@@ -816,9 +795,8 @@ function SavedInspectorRead({
     ? damageBasis === 'full' ? run.fullSummary : run.summary
     : null
   /*
-    the builds are known from the take's own snapshot, so the panel shows them
-    while the run is still resolving rather than leaving the fold out and
-    putting it back once the numbers land.
+    the take snapshot supplies builds before the run resolves. keep them
+    visible while result figures arrive.
   */
   const snapMembers = useMemo(
     () => run ? run.members : savedRotationMembers(row.entry),
@@ -867,8 +845,7 @@ function SavedInspectorRead({
           the same sections in the same order as the editor reads them, standing
           whether the run has arrived or not. the builds come off the take's own
           snapshot and are open from the first frame; everything else is
-          collapsed by default, so it can fill in inside a fold nobody is
-          looking into rather than putting something else on screen first.
+          collapsed by default. results fill those folded sections as they arrive.
         */}
         <RotationTotalsInspector
           key={row.id}
@@ -891,9 +868,8 @@ function SavedInspectorRead({
 }
 
 /*
-  A take being compared. The same panel, one note width and a rem further left
-  for each one, and stacked under its neighbour so it comes out from beneath
-  the panel it opened from rather than landing on top of it.
+  a compared take uses the same panel. each additional panel shifts left and
+  stacks beneath its parent.
 */
 function SavedCompareInspector({
   row,
@@ -909,11 +885,9 @@ function SavedCompareInspector({
   stale: boolean
   index: number
   leaving: boolean
-  /* the compared panels belong to the read panel: closing that one puts them
-     away with it rather than leaving them standing on their own */
+  /* closing the read panel closes its compared panels. */
   open: boolean
-  /* the index is standing in the margin, so the whole rack starts a panel
-     further left rather than opening underneath it */
+  /* shift the rack left by one panel width when the index occupies the margin. */
   aside: boolean
 }) {
   return (
@@ -1007,10 +981,10 @@ function SavedRotationInspector({
 }
 
 /*
-  The resonator rack, read from the panel that owns it. `mark` is a member's
+  the resonator rack, read from its panel. `mark` is a member's
   standing in it: `on` is already up, which includes the anchor the others are
   read against, and `off` is a member the full rack has no room for, which
-  stops taking picks rather than failing them silently.
+  disables further picks visibly.
 */
 interface MemberComparison {
   mode: boolean
@@ -1020,7 +994,7 @@ interface MemberComparison {
 }
 
 /*
-  The archive's roster. The anchor panel picks the member it is about out of
+  the archive's roster. the anchor panel picks the member it is about out of
   it, and a compared panel re-aims itself the same way, so the grid is written
   once and told what a portrait means where it is standing.
 */
@@ -1034,8 +1008,7 @@ function SavedTeamRoster({
   roster: SavedRosterMember[]
   member: SavedRosterMember | null
   mark: (id: ResonatorId) => 'on' | 'off' | null
-  /* while a rack is up, a portrait answers whether it is standing rather than
-     whether it is this panel's own subject */
+  /* during comparison, portrait pressed state indicates rack membership. */
   pressedIsMark: boolean
   onSelect: (id: ResonatorId) => void
 }) {
@@ -1078,7 +1051,7 @@ function SavedTeamRoster({
 }
 
 /*
-  What a take was run with, for the one member the ledger is about. The take's
+  what a take was run with, for the one member the ledger is about. the take's
   snapshot is only rebuilt when its row is opened: the fold's content is not
   mounted until then, so a ledger of twenty takes costs nothing to draw.
 */
@@ -1110,10 +1083,10 @@ function SavedTakeBuild({
 }
 
 /*
-  One member's saved damage, entry by entry, each take against the biggest of
-  them. The anchor panel prints this under the roster it was picked from and a
+  one member's saved damage, entry by entry, each take against the biggest of
+  them. the anchor panel prints this under the roster it was picked from and a
   compared member prints the same thing on its own, so the rack is read across
-  one row rather than against two different ledgers.
+  one shared ledger row.
 */
 function SavedTeamLedger({
   member,
@@ -1186,10 +1159,9 @@ function SavedTeamLedger({
 }
 
 /*
-  A member being compared. The whole panel the roster was picked from, so the
-  rack is read straight across rather than against a shorter card. Its grid is
-  its own: a portrait re-aims this panel at another member, which is how a
-  comparison is corrected without taking it down and building it again. The
+  a compared member uses the full roster panel. the rack aligns its rows.
+  each panel has its own grid: a portrait re-aims the panel, which is how a
+  comparison is corrected without taking it down and building it again. the
   members already up elsewhere are shown standing and stop taking picks, since
   one member cannot be two of the panels being read against each other.
 */
@@ -1208,8 +1180,7 @@ function SavedTeamCompareInspector({
   takes: SavedMemberTake[]
   index: number
   leaving: boolean
-  /* the rack belongs to the resonator panel: closing that one puts these away
-     with it rather than leaving them standing on their own */
+  /* closing the resonator panel closes its comparison rack. */
   open: boolean
   /* every member the rack is already holding, the anchor included */
   standing: readonly ResonatorId[]
@@ -1386,8 +1357,7 @@ export function SavedList({
   const ranks = useMemo(() => rankSavedEntries(rows), [rows])
   const full = useMemo(() => makeSavedAxis(rows), [rows])
   const groups = useMemo(() => (view === 'groups' ? groupSavedEntries(rows) : []), [rows, view])
-  /* a bank numbers its own takes, so the live take's would-be rank inside a
-     bank is worked out against that bank rather than against the whole field */
+  /* compute a live take's projected rank within its own bank. */
   const groupRanks = useMemo(() => new Map(
     groups.map((group) => [group.lead.id, rankSavedEntries(group.takes)] as const),
   ), [groups])
@@ -1431,7 +1401,7 @@ export function SavedList({
   /*
     a row's standing in the comparison. `on` is already up, which includes the
     anchor the others are read against; `off` is a row the full rack has no
-    room for, and it stops taking picks rather than failing them silently.
+    room for, and it visibly disables further picks.
   */
   const cmpMark = useCallback((id: string): 'on' | 'off' | null => {
     if (!compare.mode) return null
@@ -1440,12 +1410,8 @@ export function SavedList({
   }, [compare.full, compare.ids, compare.mode, selectedId])
 
   /*
-    the index and the note used to spend the same place: opening a take put
-    the list it was picked from away. they stand together instead, the note one
-    panel further left and under the index, so a take can be read without
-    losing the index it came out of. which channel is open is still one value,
-    so this is what remembers the note was opened out of the list rather than
-    on its own.
+    keep the index and note visible together. track whether the list opened
+    the note for panel positioning.
   */
   const [listAside, setListAside] = useState(false)
   const [panelWas, setPanelWas] = useState(panel)
@@ -1456,10 +1422,7 @@ export function SavedList({
   const listShown = panel === 'list' || (panel === 'read' && listAside)
 
   /*
-    a rack the field cannot be seen past is not a comparison. while takes are
-    being stood up the index gives its place to the next panel, so the room a
-    comparison needs is taken from the browsing aid rather than from the field
-    it is being read against.
+    when comparison panels need room, shift the index to keep the field visible.
   */
   const standing = (listShown ? 1 : 0) + (panel === 'read' ? 1 : 0) + compare.ids.length
   const roomForNext = !room
@@ -1473,11 +1436,8 @@ export function SavedList({
   }
 
   /*
-    a note standing beside the index while entries are being picked is the
-    selection's own summary: it went up because the picking put it up, so it
-    comes down when the picking stops rather than being left hanging next to
-    the list. a note that has the whole margin was opened to be read and is
-    left alone.
+    a note opened during entry selection is its summary and closes when
+    selection ends. notes opened for reading remain visible.
   */
   const selectionWas = useRef(selection.mode)
   useEffect(() => {
@@ -1508,8 +1468,7 @@ export function SavedList({
 
     return new Map<string, CompareShare>(takes.map(([id, avg]) => [
       id,
-      /* the best of them is the whole, so it reads as one figure rather than
-         a rounded hundred trailing a decimal that can only ever be zero */
+      /* display the best result as one whole figure. */
       avg === peak
         ? { pct: '100', top: true }
         : { pct: ((avg / peak) * 100).toFixed(1), top: false },
@@ -1545,9 +1504,8 @@ export function SavedList({
     [activeMember?.id, rows],
   )
   /*
-    the same rack the takes use, standing resonators instead. the member in
-    the panel is the anchor, so the mode only ever adds the ones read against
-    it and the panel it is read in stays where it is.
+    use the same comparison rack for resonators. the panel member remains the
+    anchor while this mode adds compared members.
   */
   const [memCmpMode, setMemCmpMode] = useState(false)
   const [memCmpIds, setMemCmpIds] = useState<readonly ResonatorId[]>([])
@@ -1574,7 +1532,7 @@ export function SavedList({
   /*
     the gridlines the next window has no use for. they are handed over by the
     click that changes the window, so they travel with the set that replaced
-    them for one beat instead of vanishing under it.
+    them for one beat during the transition.
   */
   const [fading, setFading] = useState<number[]>([])
   const fadeTimer = useRef<number | null>(null)
@@ -1624,10 +1582,10 @@ export function SavedList({
   const litLead: ResonatorId | null = view === 'groups' ? selected?.lead.id ?? null : null
 
   /*
-    The thread belongs to the viewport, not the scrolling entries, so the
+    the thread belongs to the viewport, not the scrolling entries, so the
     pointer is built once against the panel and kept across selections: the
     cursor has to travel from wherever it already is, and rebuilding it on
-    every pick would teleport it instead.
+    every pick would teleport it.
   */
   const leadPointerRef = useRef<LeadCursor | null>(null)
   const leadPickedRef = useRef<string | null>(null)
@@ -1665,7 +1623,7 @@ export function SavedList({
     }
   }, [rows])
 
-  /* a pick lands on the cursor as well as on the entry */
+  /* update the cursor when the selected entry changes. */
   useLayoutEffect(() => {
     const first = leadPickedRef.current === null
     leadPickedRef.current = selectedId
@@ -1707,8 +1665,8 @@ export function SavedList({
     }
 
     const next = rows.find((row) => row.id === id) ?? null
-    /* picking a take from the lead panel opens the group holding it, so the
-       field never lands on an entry it is not showing a row for */
+    /* picking a take from the lead panel opens its group and keeps the
+       selected entry visible in the field. */
     if (next && shutGroupIds.has(next.lead.id)) {
       onGroupOpenChange(next.lead.id, true)
     }
@@ -1731,13 +1689,10 @@ export function SavedList({
       ? current.filter((held) => held !== id)
       : [...current, id]))
   }
-  /* a compared member keeps its ledger through the beat it folds out over, so
-     it is resolved from the roster rather than from what is still standing */
+  /* resolve a compared member from the roster through its exit fold. */
   const memCmpOf = (id: ResonatorId) => roster.find((member) => member.id === id) ?? null
   /*
-    a compared panel pointed at another member. it keeps its place in the rack
-    rather than being taken down and stood back up at the end, so correcting a
-    comparison costs the one click that was wrong.
+    retarget a compared panel in place within the rack.
   */
   const reaimMemCmp = (from: ResonatorId, to: ResonatorId) => {
     if (to === activeMember?.id || memCmpIds.includes(to)) return
@@ -1748,14 +1703,14 @@ export function SavedList({
     the index and the note can be up at the same time, so the marks have to
     read that way: the index is down whenever it is standing, wherever it is
     standing beside. pressing a mark that is already down folds that one panel
-    away instead of closing the pair.
+    away while preserving the other panel.
   */
   type Channel = Exclude<SavedListPanel, null>
   const markPressed = (channel: Channel) =>
     channel === 'list' ? listShown : panel === channel
 
   const markClick = (channel: Channel) => {
-    /* the note is open: the index joins it or leaves it rather than replacing */
+    /* toggle the index beside the open note. */
     if (channel === 'list' && panel === 'read') {
       setListAside(!listAside)
       return
@@ -1766,7 +1721,7 @@ export function SavedList({
     if (channel === 'read') {
       if (compare.mode) compare.onExit()
 
-      /* and the note folds back under the index, leaving the index standing */
+      /* close the note panel and return to the list. */
       if (panel === 'read' && listAside) {
         setListAside(false)
         onPanelChange('list')
@@ -1782,8 +1737,7 @@ export function SavedList({
     <div className={`rsl rsl--${view}`}>
       {/*
         the field. the axis is the heading, and it is the same axis in both
-        views, so the gridlines behind the rows are one backdrop rather than a
-        set that rebuilds itself section by section.
+        views. share one gridline backdrop across the rows.
       */}
       <div className="rsl-field" style={axisVars(axis)}>
         <div className="rsl-axis">
@@ -1814,8 +1768,7 @@ export function SavedList({
                 style={atVar(tick.value)}
               />
             ))}
-            {/* the selection dropped through the field, so every other mark is
-                read against it rather than against the edge */}
+            {/* the selection line anchors comparison marks across the field. */}
             {selected ? (
               <i className="rsl-plumb"
                 style={{
@@ -1920,8 +1873,7 @@ export function SavedList({
               )
             })}
 
-          {/* the query filters the archive and the live take with it, so the
-              field says what it is no longer drawing rather than losing it */}
+          {/* a search can hide the live take; state that absence in the field. */}
           {liveHidden ? (
             <p className="rsl-live__hidden">Current rotation hidden by this search.</p>
           ) : null}

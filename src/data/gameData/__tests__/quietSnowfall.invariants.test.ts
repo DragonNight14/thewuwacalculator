@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Keeps the two Snowfall consumption outcomes mutually exclusive
+  description: keeps the two snowfall consumption outcomes mutually exclusive
                in source controls and effect evaluation.
 */
 

@@ -1,7 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Owns transient custom-CSS editing and clipboard color sampling
-               while preserving the serialized Showcase style contract.
+  description: handles temporary custom-css edits and clipboard color sampling for showcase cards.
 */
 
 import { useRef, useState } from 'react'

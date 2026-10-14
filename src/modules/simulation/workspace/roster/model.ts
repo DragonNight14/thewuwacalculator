@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Builds ordered roster groups and rotation-presence metadata from canonical profiles.
+  description: builds ordered roster groups and rotation-presence metadata from canonical profiles.
 */
 
 import { getResSeedBy } from '@/data/catalog/resonatorSeedService'
@@ -10,26 +10,26 @@ import { ATTR_COLORS } from '@/modules/simulation/model/display'
 
 import { toTitle } from '@/shared/lib/format'
 import type {
-  BuildAttrGroup,
-  BuildRosterEntry,
-} from './BuildRoster.tsx'
+  AttributeGroup,
+  Entry,
+} from './List.tsx'
 
 const DEF_ACCENT = '#6b7cff'
-const rosterCache = new WeakMap<object, BuildRosterEntry[]>()
+const rosterCache = new WeakMap<object, Entry[]>()
 
 function compareRosterEntries(
-  left: BuildRosterEntry,
-  right: BuildRosterEntry,
+  left: Entry,
+  right: Entry,
 ): number {
   return left.attribute === right.attribute
     ? left.name.localeCompare(right.name)
     : left.attribute.localeCompare(right.attribute)
 }
 
-// One entry per context resonator and therefore one working scenario.
-export function makeRosterEntries(
+// one entry per context resonator and therefore one working scenario.
+export function makeEntries(
   workspace: Pick<ScenarioWorkspace, 'order' | 'scenariosById' | 'summaryById'>,
-): BuildRosterEntry[] {
+): Entry[] {
   const cacheKey = workspace.summaryById ?? workspace
   const cached = rosterCache.get(cacheKey)
   if (cached) return cached
@@ -43,8 +43,7 @@ export function makeRosterEntries(
       if (!summary) return []
       const res = getResSeedBy(id)
       const attribute = res?.attribute ?? 'aero'
-      /* a scenario owns its own program, so this is a fact about the resonator
-         and not about whichever surface happens to be reading it */
+      /* programs are associated with a scenario and resonator. */
       return [{
         id,
         scenarioId,
@@ -62,10 +61,10 @@ export function makeRosterEntries(
   return roster
 }
 
-// The roster is sorted by attribute, so every run of one attribute is contiguous
-// and each group can carry the entries it covers.
-export function makeAttrGroups(roster: BuildRosterEntry[]): BuildAttrGroup[] {
-  const groups: BuildAttrGroup[] = []
+// the roster is sorted by attribute, so every run of one attribute is contiguous
+// and each group contains its matching entries.
+export function groupByAttribute(roster: Entry[]): AttributeGroup[] {
+  const groups: AttributeGroup[] = []
   for (const entry of roster) {
     const last = groups[groups.length - 1]
     if (last && last.attribute === entry.attribute) {

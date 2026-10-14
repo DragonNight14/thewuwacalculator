@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Implements source state service data-flow and calculation invariants.
+  description: implements source state service data-flow and calculation invariants.
 */
 
 import type { ResRuntime } from '@/domain/entities/runtime'
@@ -11,7 +11,7 @@ import { listStatesFor } from '@/data/catalog/gameDataService'
 
 export { mkSrcSttScp, sourceOptions }
 
-/** Resolve dependencies against explicit controls first, then authored defaults. */
+/** resolve dependencies against explicit controls first, then authored defaults. */
 export function meetsStateReqs(srcRt: ResRuntime, state: SourceState): boolean {
   const sttsByCtl = new Map(
     listStatesFor(state.source.type, state.source.id)

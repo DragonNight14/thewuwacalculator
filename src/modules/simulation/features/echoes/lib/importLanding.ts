@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Coordinates the latest Echo-import destination with Modulation's
+  description: coordinates the latest echo-import destination with modulation's
                active seat and transfers pending seat requests between routes.
 */
 
@@ -12,9 +12,9 @@ export interface ImportLanding {
   key: number
   resonatorId: string
   kind: LandingKind
-  // Team members are scenario-scoped; contextId disambiguates the owning team.
+  // contextId identifies the scenario for a team member.
   contextId: string
-  // True when the destination was not the active Modulation seat at import time.
+  // true when the destination was not the active modulation seat at import time.
   linked: boolean
 }
 

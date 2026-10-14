@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: App-wide Lucide Motion exports with the responsive size contract
+  description: app-wide lucide motion exports with the responsive size contract
                used by the shared icon controls.
 */
 

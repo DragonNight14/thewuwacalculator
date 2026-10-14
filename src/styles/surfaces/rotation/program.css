@@ -6736,7 +6736,7 @@ input[type='text'].rte-find__input::placeholder {
 }
 
 .rte-page.is-entering .rte-body {
-  animation: rte-aperture 480ms var(--rte-ease-open) both;
+  animation: rte-reveal 480ms var(--rte-ease-open) both;
 }
 
 .rte-page.is-entering .rte-body::after {
@@ -6797,7 +6797,7 @@ input[type='text'].rte-find__input::placeholder {
   to { transform: none; }
 }
 
-@keyframes rte-aperture {
+@keyframes rte-reveal {
   from { clip-path: inset(50% 0 50% 0); }
   to { clip-path: inset(0 0 0 0); }
 }

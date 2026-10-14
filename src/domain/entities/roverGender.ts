@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Identifies the paired Rover forms used by the app-wide gender preference.
+  description: identifies the paired rover forms used by the app-wide gender preference.
 */
 
 export type RoverGender = 'both' | 'male' | 'female'

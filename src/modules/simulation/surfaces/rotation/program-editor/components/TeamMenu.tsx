@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Aggregates per-member rotation contribution and dispatches
+  description: aggregates per-member rotation contribution and dispatches
                member, skill, and team-selection actions.
 */
 
@@ -209,7 +209,7 @@ export function TeamMenu({ shares }: { shares: Readonly<Record<string, number>> 
           team={scenario.team.members.map((member) => member.resonatorId)}
           onClose={() => picker.hide()}
           onCommit={(supports) => {
-            // The store write renders synchronously, so commit the closing
+            // the store write renders synchronously, so commit the closing
             // phase first or the new team remounts an open picker.
             flushSync(() => picker.hide())
             setTeam(supports)

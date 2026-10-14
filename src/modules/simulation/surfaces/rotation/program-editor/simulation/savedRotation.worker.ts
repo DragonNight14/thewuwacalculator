@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Executes saved rotation simulations outside the main thread.
+  description: executes saved rotation simulations outside the main thread.
 */
 
 import {

@@ -1,19 +1,9 @@
 /*
   Author: Runor Ewhro
-  Description: Reads everything that makes the target take more damage, from
-               whichever side authored it, into one list the console can print.
-
-               Three sources say the same thing in three shapes: an enemy
-               passive that is simply true, an enemy state the fight switches
-               on, and a combat state the resonator brings. What matters to the
-               reader is not which of those a line came from, it is how much
-               damage it is worth right now and whether it is on, so they are
-               gathered into one row type and asked those two questions.
-
-               Two buckets, because the pipeline keeps two: dmgVuln and
-               finalDmg multiply damage separately (see damage.ts), and a
-               vulnerability written against a skill type only pays out on that
-               type, so it is kept aside rather than summed into the whole.
+  description: combines enemy passives, enemy states, and resonator combat states
+               into console rows with current values and active status. dmgVuln
+               and finalDmg use separate multipliers; skill type vulnerability
+               applies only to its specified type.
 */
 
 import type { EnemyProfile } from '@/domain/entities/appState'
@@ -27,7 +17,7 @@ import { getStateText } from '@/modules/simulation/model/sourceStateDisplay'
 import { fmtSkllKey, skllLblMap } from '@/modules/simulation/features/resonator/lib/panel.ts'
 import { evalCond, evalForm } from '@/engine/effects/evaluator'
 
-/** which multiplier a line lands in, since the pipeline keeps them apart */
+/** multiplier for each line; the pipeline keeps these separate */
 export type VulnStat = 'dmgVuln' | 'finalDmg'
 
 export interface VulnRow {
@@ -56,7 +46,7 @@ export interface VulnRead {
   scoped: Array<{ label: string; scope: string; value: number }>
 }
 
-/* the scope an effect is read in. it asks only where the effect came from, so
+/* the scope an effect is read in. it checks only the effect source, so
    a passive with no control of its own can be read the same way a state is. */
 function scopeOf(
   runtime: ResRuntime,
@@ -186,7 +176,7 @@ function stateRow(
   }
 
   const text = getStateText(state)
-  // Select controls are active when their selected branch produces an effect;
+  // select controls are active when their selected branch produces an effect;
   // their stored option has no numeric activation threshold.
   const active = state.kind === 'toggle'
     ? value === true
@@ -209,7 +199,7 @@ function stateRow(
 }
 
 /**
- * Every line that makes this target take more damage, and the two totals they
+ * every line that makes this target take more damage, and the two totals they
  * add up to. `readEnemyState` reads the enemy's own status bag; the resonator's
  * combat states are read from its runtime.
  */

@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Verifies legal substat allocation, shared budgets, and ranking constraints.
+  description: verifies legal substat allocation, shared budgets, and ranking constraints.
 */
 
 import { describe, expect, it } from 'vitest'
@@ -19,7 +19,7 @@ const tiers = () => Object.fromEntries(SUBSTAT_KEYS.map(key => [key, getSbstStep
 const base = () => new Float32Array(ECHO_STAT_STRIDE * 5)
 const ids = Int32Array.from([0, 1, 2, 3, 4])
 const relevantKeys = ['atkPercent', 'atkFlat', 'critRate', 'critDmg', 'heavyAtk']
-// Minimum-value ranking is CR > CD > ATK% > heavy attack > flat ATK, independently of ER.
+// minimum-value ranking is cr > cd > atk% > heavy attack > flat atk, independently of er.
 const score = (stats: Float32Array) => {
   const totals = sumEncodedStats(stats, ids)
   return totals.critRate * 10 + totals.critDmg * 2 + totals.atkP + totals.heavy * 0.5 + totals.atkF * 0.05
@@ -216,10 +216,10 @@ describe('native evaluation slot and step budgets', () => {
       return t.atkF * 10 + t.atkP * 10 + t.critRate + t.critDmg * 0.1
     }
     const result = prepareStepAllocator(tiers(), relevantKeys)(base(), 35, rankFlatFirst)!
-    // Flat ATK ranks first: floor(3 * .29) = 0. ATK% ranks second: floor(7 * .29) = 2.
+    // flat atk ranks first: floor(3 * .29) = 0. atk% ranks second: floor(7 * .29) = 2.
     expect(result.values.atkFlat.every(value => value === 30)).toBe(true)
     expect(result.values.atkPercent.every(value => value <= 7.9)).toBe(true)
-    // ER leaves no room for CD; the required fifth stat still occupies two slots.
+    // er leaves no room for cd; the required fifth stat still occupies two slots.
     expect(result.values.critDmg).toHaveLength(0)
     expect(result.values.heavyAtk.length).toBeGreaterThanOrEqual(2)
     expect(result.values.heavyAtk.every(value => value >= 9.2)).toBe(true)
@@ -235,14 +235,14 @@ describe('native evaluation slot and step budgets', () => {
     }
     const result = prepareStepAllocator(tiers(), keys)(base(), 0, rankedScore)!
     expect(result.values.hpFlat.length).toBeGreaterThanOrEqual(2)
-    // HP ranks fifth. Every selected HP substat must spend ceil(7 / 2) = 4 moves.
+    // hp ranks fifth. every selected hp substat must spend ceil(7 / 2) = 4 moves.
     expect(result.values.hpFlat.every(value => value >= 470)).toBe(true)
     expect(result.stepIncreases).toBeLessThanOrEqual(32)
   })
 
-  it('rejects conflicting rank limits instead of silently relaxing them', () => {
-    // With only two relevant keys, the lowest selected key also has a top-two
-    // cap. Its half-upgrade floor cannot fit under that cap.
+  it('rejects conflicting rank limits', () => {
+    // with only two relevant keys, the lowest selected key also has a top-two
+    // cap. its half-upgrade floor cannot fit under that cap.
     expect(prepareStepAllocator(tiers(), ['critRate', 'atkFlat'])(base(), 0, score)).toBeNull()
   })
 

@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Drafts Echo identity, main stats, Sonata, and legal substat rolls;
+  description: drafts echo identity, main stats, sonata, and legal substat rolls;
                normalizes retained stats when replacing a catalog piece.
 */
 
@@ -25,7 +25,7 @@ import { MobileEchoEdit } from '@/modules/simulation/features/echoes/mobile/Mobi
 
 export { carryTier }
 
-// Accepted aliases resolve to canonical stat keys before committing an edit.
+// accepted aliases resolve to canonical stat keys before committing an edit.
 const STAT_ALIASES: Record<string, string[]> = {
   critRate: ['cr'],
   critDmg: ['cd'],
@@ -67,7 +67,7 @@ interface StatFieldP {
   onPick: (key: string) => void
 }
 
-// Resolve typed labels and aliases to an available stat; Enter or Tab commits it.
+// resolve typed labels and aliases to an available stat; enter or tab commits it.
 export function StatField({ statKey, options, usedKeys, placeholder, ariaLabel, onPick }: StatFieldP) {
   const inputRef = useRef<HTMLInputElement>(null)
   const menuRef = useRef<HTMLDivElement>(null)
@@ -217,7 +217,7 @@ interface RollReelP {
   innerRef?: (node: HTMLDivElement | null) => void
 }
 
-// Wheel, drag, keyboard, and slider input all resolve to a legal roll index.
+// wheel, drag, keyboard, and slider input all resolve to a legal roll index.
 export function RollReel({ statKey, value, onChange, innerRef }: RollReelP) {
   const steps = useMemo(() => getSbstStepP(statKey), [statKey])
   const index = stepIndex(statKey, value)
@@ -358,7 +358,7 @@ interface EchoEditMdlP {
   portalTarget: HTMLElement | null
   echo: EchoInstance
   slotIndex: number
-// Catalog and cost-budget props enable slot replacement; saved-Echo edits omit them.
+// catalog and cost-budget props enable slot replacement; saved-echo edits omit them.
   echoes?: EchoDef[]
   maxCost?: number
   onClear?: () => void

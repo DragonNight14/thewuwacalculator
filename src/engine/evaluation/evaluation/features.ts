@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Evaluates encoded Echo loadouts across objective contexts and
+  description: evaluates encoded echo loadouts across objective contexts and
                derives each skill's weighted contribution to the result.
 */
 

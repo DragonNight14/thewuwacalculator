@@ -1,8 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Session-wide, non-persisted ownership for authored rotation
-               drafts. A draft follows its rotation owner across route mounts
-               without being rewritten by Simulation persistence updates.
+  description: stores non-persisted rotation drafts across route mounts without changing saved simulation state.
 */
 
 import { useCallback, useEffect, useRef, useState } from 'react'
@@ -21,13 +19,13 @@ export interface RotationEditorSession {
   runsByLoopId: LoopRunSelections
   lastRanAt: number | null
   editHistory: RotationEditHistory
-  /** The program against which authored execution changes are considered dirty. */
+  /** the program against which authored execution changes are considered dirty. */
   baselineItems: RotationNode[]
   runBaselineKey: string
 
   runBaselineSigs: Map<string, string>
   simulationKey: string
-  /** Prepared Simulation workspace that produced `result` and evaluated rows. */
+  /** prepared simulation workspace that produced `result` and evaluated rows. */
   runInputIdentity: object | null
 }
 
@@ -42,7 +40,7 @@ const rotationEditorSessionStore = createStore<RotationEditorSessionState>(() =>
   byOwnerId: {},
   generationByOwnerId: {},
 }))
-/** Holds mounted owner leases and releases heavy traces after route transitions. */
+/** tracks mounted editor leases and releases heavy traces after route transitions. */
 export class RotationEditorRetentionController {
   private readonly mountedOwners = new Map<string, number>()
   private readonly dormantTimers = new Map<string, ReturnType<typeof setTimeout>>()
@@ -68,8 +66,8 @@ export class RotationEditorRetentionController {
         return
       }
       this.mountedOwners.delete(ownerId)
-      // Wait past Strict Mode effect replay and route transitions before dropping
-      // the large execution trace. The authored draft and undo stack survive.
+      // wait past strict mode effect replay and route transitions before dropping
+      // the large execution trace. the authored draft and undo stack survive.
       this.dormantTimers.set(ownerId, setTimeout(() => {
         this.dormantTimers.delete(ownerId)
         if (this.mountedOwners.has(ownerId)) return
@@ -91,7 +89,7 @@ export function getRotationEditorSessionGeneration(ownerId: string): number {
   return rotationEditorSessionStore.getState().generationByOwnerId[ownerId] ?? 0
 }
 
-/** Build once for an owner. The factory is deliberately not read again. */
+/** build once for an owner. the factory is deliberately not read again. */
 export function ensureRotationEditorSession(
   ownerId: string,
   create: () => RotationEditorSession,
@@ -110,10 +108,10 @@ export function ensureRotationEditorSession(
 }
 
 /**
- * Refresh only the evaluated side of a standing draft when Simulation inputs
- * change. The caller decides how authored sections/history are preserved; the
+ * refresh only the evaluated side of a standing draft when simulation inputs
+ * change. the caller decides how authored sections/history are preserved; the
  * store makes the refresh once per immutable workspace identity and retains
- * the last authored Run's date and timing for the standing readout.
+ * the last authored run's date and timing for the standing readout.
  */
 export function reconcileRotationEditorSession(
   ownerId: string,
@@ -164,8 +162,8 @@ export function updateRotationEditorSession(
 }
 
 /**
- * Explicit document replacement is the only ordinary workflow that discards a
- * draft. The generation changes even when that owner has not mounted yet, so a
+ * explicit document replacement is the only ordinary workflow that discards a
+ * draft. the generation changes even when that owner has not mounted yet, so a
  * load and a same-owner replacement both seed from the incoming scenario.
  */
 export function clearRotationEditorSession(ownerId: string): void {
@@ -222,7 +220,7 @@ export function useRotationEditorSession(
         : createRef.current()
     ))
     reconcileRotationEditorSession(ownerId, runInputIdentity, reconcile)
-    // The store now owns the session. Do not pin its initial full run through
+    // the store now manages the session. do not pin its initial full run through
     // every later edit and execution for the lifetime of this page mount.
     if (!initial) return
     let canceled = false

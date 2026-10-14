@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Keeps bundled portrait surface lookup complete without browser
+  description: keeps bundled portrait surface lookup complete without browser
                image decoding.
 */
 

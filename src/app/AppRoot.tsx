@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Root application composition for global providers and routing.
+  description: root application composition for global providers and routing.
 */
 import { AppRouter } from '@/app/router/AppRouter'
 import { AppProviders } from '@/app/providers/AppProviders'

@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: runs optimizer cpu and gpu tasks inside a dedicated worker,
+  description: runs optimizer cpu and gpu tasks inside a dedicated worker,
                caching packed payloads and initialized gpu backends across
                messages so later jobs avoid repeated setup cost.
 */

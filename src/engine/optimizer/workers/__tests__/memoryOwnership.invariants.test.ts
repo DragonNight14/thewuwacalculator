@@ -1,7 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Verifies optimizer buffer sharing, transfer ownership, aggregate
-               producer budgets, returned capacity, and cancellation wakeups.
+  description: tests optimizer buffer sharing, transfers, producer budgets, capacity, and cancellation.
 */
 
 import { afterEach, describe, expect, it, vi } from 'vitest'
@@ -10,7 +9,7 @@ import { theoryBufferPlan } from '../theoryBudget'
 
 afterEach(() => { vi.unstubAllGlobals(); vi.doUnmock('@/engine/optimizer/target/theoryBatches.ts') })
 
-describe('optimizer buffer ownership', () => {
+describe('optimizer buffer references', () => {
   it('covers optional weapon arrays and deduplicates views of the same buffer', () => {
     const storage = new Float32Array([1, 2, 3, 4])
     const weapon = new Float32Array([9])

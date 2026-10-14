@@ -1,8 +1,7 @@
 /*
   Author: Runor Ewhro
-  Description: Reads where a state already stands at the point a condition is
-               being added, so a new condition opens on a useful write rather
-               than on the authored default.
+  description: reads state at the point a condition is added. new conditions
+               start from the current write.
 */
 
 import type { ResRuntime } from '@/domain/entities/runtime.ts'
@@ -22,13 +21,13 @@ import { parseRegValue } from './registerValues.ts'
 
 const RT_CONTROLS_PREFIX = 'runtime.state.controls.'
 
-/** Where the node being added lands, which is everything the walk counts. */
+/** insertion position for the new node */
 export type CondAnchor =
   | { kind: 'after' | 'before'; id: string }
   /** appended: into the block named by `id`, or onto the end of the program */
   | { kind: 'end'; id?: string }
 
-/** The shape this module needs from a run's `history`, keyed by state path. */
+/** the shape this module needs from a run's `history`, keyed by state path. */
 export type CondWriteHistory = ReadonlyMap<
   string,
   ReadonlyArray<{ nodeId: string; run: number; to: string }>
@@ -81,7 +80,7 @@ function applyWrite(
   return write.value
 }
 
-/** Match the rotation engine's missing-member fallback for handoff writes. */
+/** match the rotation engine's missing-member fallback for handoff writes. */
 function normalizeStandingValue(
   state: CondChoice['state'],
   value: RuntimeValue | undefined,
@@ -95,7 +94,7 @@ function normalizeStandingValue(
   return value
 }
 
-/** The last pass of a node's write, which is the value it leaves behind. */
+/** the last pass of a node's write, which is the value it leaves behind. */
 function lastRun(
   history: CondWriteHistory | undefined,
   path: string,
@@ -113,9 +112,9 @@ function lastRun(
 }
 
 /**
- * The value a state holds where a new condition would land.
+ * the value of a state where a new condition would land.
  *
- * Writes attached to a step are deliberately not counted: the engine runs them
+ * writes attached to a step are deliberately not counted: the engine runs them
  * in a scope that rolls back, so they never reach a later node.
  */
 export function standingCondValue(
@@ -191,7 +190,7 @@ export function standingCondValue(
     return standing
   }
 
-  // nothing wrote it yet, so the rotation opens on whatever the build carries
+  // nothing wrote it yet, so the rotation opens on the current build value
   const runtime = context.runtimesById?.[choice.resonatorId]
   if (runtime && state.path.startsWith(RT_CONTROLS_PREFIX)) {
     const current = runtime.state.controls[srcSttKey(state)]
@@ -203,7 +202,7 @@ export function standingCondValue(
   return state.defaultValue
 }
 
-/** The write a condition added at this anchor should open on. */
+/** the write a condition added at this anchor should open on. */
 export function seedCondValueFor(
   choice: CondChoice,
   context: CondSeedContext,

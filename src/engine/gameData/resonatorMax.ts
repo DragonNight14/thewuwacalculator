@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Builds a valid maxed resonator runtime for a target sequence,
+  description: builds a valid maxed resonator runtime for a target sequence,
                including state controls and mutually exclusive state paths.
 */
 

@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Loads, normalizes, filters, and resolves enemy catalog data
+  description: loads, normalizes, filters, and resolves enemy catalog data
                from the client-side enemy json source.
 */
 

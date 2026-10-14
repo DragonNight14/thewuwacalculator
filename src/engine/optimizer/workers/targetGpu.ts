@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: builds static gpu payloads for target-skill optimizer runs and
+  description: builds static gpu payloads for target-skill optimizer runs and
                partitions target search space into per-job combo windows,
                including support for locked-main search variants.
 */
@@ -22,8 +22,7 @@ export interface TgtJobSpec {
   lockMainIdx: number
 }
 
-// create a stable content hash for typed-array payload parts so static gpu state
-// can be identified/reused by content rather than by object identity
+// a stable hash of typed-array payloads identifies reusable gpu state by content.
 function hashTypdRry(view: ArrayBufferView): string {
   const bytes = new Uint8Array(
       view.buffer,
@@ -88,8 +87,8 @@ export function mkTgtGpuSttc(payload: TargetGpuState): string {
   ].join('|')
 }
 
-// turn a prepared target run into the static gpu init payload
-// this converts cpu-friendly typed arrays into the exact buffer shapes the gpu path expects
+// convert a prepared target run to the gpu initialization payload.
+// convert typed arrays to the gpu buffer format.
 export function makeTargetGpu(
     prepared: PrepTargetSkill | PrepTheoryTarget,
 ): TargetGpuState {

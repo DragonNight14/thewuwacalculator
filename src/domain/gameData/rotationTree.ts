@@ -1,12 +1,12 @@
 /*
   Author: Runor Ewhro
-  Description: Implements rotation tree data-flow and calculation invariants.
+  description: implements rotation tree data-flow and calculation invariants.
 */
 
 import type { RotationNode } from './contracts.ts'
 import { rmLoopMrkr } from './rotationLoops.ts'
 
-/** Which child list of a container node a position refers to. */
+/** which child list of a container node a position refers to. */
 export type RotationBranch = 'root' | 'items' | 'setup'
 
 export interface RotationInsertTarget {
@@ -159,7 +159,7 @@ export function mapRotGroups(
 
 export function removeRotNode(items: RotationNode[], nodeId: string): RotationNode[] {
   const removedNode = findRotNode(items, nodeId)
-  // A start owns the pair. Removing an end only removes that marker, leaving
+  // a start identifies the pair. removing an end only removes that marker, leaving
   // the start as a no-end loop and otherwise following ordinary recursion.
   if (removedNode?.type === 'loop' && removedNode.kind === 'start') {
     return rmRotLoopMrk(items, removedNode.loopId)
@@ -245,7 +245,7 @@ function canNsrtNodeI(
   }
 
   if (branch === 'setup') {
-    // Setup executes preconditions only; display notes are inert and may sit beside them.
+    // setup executes preconditions only; display notes are inert and may sit beside them.
     return node.type === 'condition' || node.type === 'note'
   }
 
@@ -549,7 +549,7 @@ export function moveRotNode(items: RotationNode[], draggedId: string, target: Ro
   }, detached.node)
 }
 
-/** Every node in the tree by id, containers and their children alike. */
+/** every node in the tree by id, containers and their children alike. */
 export function indexRotNodes(items: RotationNode[]): Map<string, RotationNode> {
   const nodesById = new Map<string, RotationNode>()
 

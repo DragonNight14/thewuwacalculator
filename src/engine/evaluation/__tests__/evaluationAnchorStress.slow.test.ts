@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: opt-in long stress test for evaluation anchor stability across
+  description: opt-in long stress test for evaluation anchor stability across
                randomized normal echo builds.
 */
 
@@ -324,7 +324,7 @@ describe.runIf(RUN_STRESS)('evaluation anchor stress', () => {
 })
 
 describe.skipIf(RUN_STRESS)('evaluation anchor stress', () => {
-  it('is opt-in because it performs 100 exhaustive evaluation searches', () => {
+  it('performs 100 exhaustive evaluation searches when enabled', () => {
     expect(TEST_ENV.WUWA_EVALUATION_STRESS).not.toBe('1')
   })
 })

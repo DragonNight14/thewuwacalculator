@@ -1,6 +1,6 @@
 /*
   Author: Runor Ewhro
-  Description: Drafts rotation-editor column, precision, and execution
+  description: drafts rotation-editor column, precision, and execution
                preferences and commits them at the configuration boundary.
 */
 
@@ -35,10 +35,10 @@ interface ConfigSettings {
   onGhostRepeats: (value: boolean) => void
   showPriors: boolean
   onShowPriors: (value: boolean) => void
-  /** Ordered stat keys enabled for each execution entry. */
+  /** ordered stat keys enabled for each execution entry. */
   statKeys: readonly StatKey[]
   onStatKeys: (value: readonly StatKey[]) => void
-  /** Persisted register-group ordering. */
+  /** persisted register-group ordering. */
   groupOrder: readonly RegisterGroup[]
   onGroupOrder: (value: readonly RegisterGroup[]) => void
 
@@ -46,7 +46,7 @@ interface ConfigSettings {
   onDockPane: (value: boolean) => void
   damageBasis: RotationDamageBasis
   onDamageBasis: (value: RotationDamageBasis) => void
-  /** Decimal precision for formatted rotation values. */
+  /** decimal precision for formatted rotation values. */
   decimals: DamageDecimals
   onDecimals: (value: DamageDecimals) => void
 }
@@ -172,9 +172,8 @@ function Choice<T extends string>({
 }
 
 /*
-  a set of columns rather than one value, so every option stands and the ones
-  taken are filled. taking one it has no room for would mean dropping another
-  without saying which, so past the limit the rest simply stop offering.
+  this setting selects a set of columns. show every option and fill selected
+  ones. disable additional choices when the limit is reached.
 */
 export function ConfigModal({
   state,
@@ -337,7 +336,7 @@ export function ConfigModal({
 
                 {shows('showPriors', concern) ? <Setting
                   name="Show priors"
-                  why="Keep the value a state changed from in view, instead of on hover."
+                  why="Show each state's previous value beside its current value."
                 >
                   <Toggle
                     label="Show priors"
@@ -370,7 +369,7 @@ export function ConfigModal({
 
                 {shows('dockPane', concern) ? <Setting
                   name="Keep the side panel open"
-                  why="Keep the active side panel beside the current list instead of floating over it. The rotation view gives up five stat columns to make room."
+                  why="Dock the active side panel beside the current list. The rotation view gives up five stat columns to make room."
                 >
                   <Toggle
                     label="Keep the side panel open"
@@ -420,7 +419,7 @@ export function ConfigModal({
               <div className="rtcfg__sets">
                 {shows('damageBasis', concern) ? <Setting
                   name="Total damage"
-                  why="Would you rather see the FULL looped damage calculated or let the loop nodes average them out for you?"
+                  why="Choose full loop damage or damage averaged across loop passes."
                 >
                   <Choice
                     label="Total damage"
