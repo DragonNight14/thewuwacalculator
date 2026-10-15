@@ -30,7 +30,7 @@
   pointer-events: none;
 }
 
-.showcase-detail :is(.showcase-detail-score, .showcase-detail-metrics, .showcase-detail-stats, .showcase-detail-team, .showcase-detail-weapon, .showcase-detail-echoes, .showcase-detail-chain) {
+.showcase-detail :is(.showcase-detail-verdict, .showcase-detail-metrics, .showcase-detail-stats, .showcase-detail-team, .showcase-detail-weapon, .showcase-detail-echoes, .showcase-detail-chain) {
   pointer-events: auto;
 }
 
@@ -284,7 +284,7 @@
   line-height: 1;
 }
 
-.showcase-detail-score {
+.showcase-detail-verdict {
   position: absolute;
   left: 24.625rem;
   top: 1.125rem;

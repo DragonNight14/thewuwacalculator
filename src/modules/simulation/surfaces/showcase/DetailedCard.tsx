@@ -295,7 +295,7 @@ export const DetailedCard = memo(function DetailedCard({
         </span>
       </div>
 
-      <div className="showcase-detail-score" ref={scoreRef} style={{ '--grade': tone } as CssVars}>
+      <div className="showcase-detail-verdict" ref={scoreRef} style={{ '--grade': tone } as CssVars}>
         <span className="showcase-detail-grade"><b>{grade || '-'}</b></span>
         <span className="showcase-detail-score">
           {scoreLabel.endsWith('%') ? (

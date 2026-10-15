@@ -510,8 +510,8 @@ const LAYERS: Array<{ key: Layer; label: string }> = [
 ]
 
 const LAYOUTS: Array<{ value: ShowcaseLayout; label: string; hint: string }> = [
-  { value: 'classic', label: 'Classic', hint: 'Free marks' },
-  { value: 'seal', label: 'Detailed', hint: 'Full build summary' },
+  { value: 'classic', label: 'Classic', hint: 'Some free marks' },
+  { value: 'seal', label: 'Seal', hint: 'Less free marks' },
 ]
 
 function LayoutGlyph({ layout }: { layout: ShowcaseLayout }) {
