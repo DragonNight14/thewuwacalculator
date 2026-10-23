@@ -4,10 +4,15 @@
                typed-array memory budget.
 */
 
-/** each producer receives one credit: scratch, queued, executing, or returned. */
-export function theoryBufferPlan(requestedBatch: number, requestedProducers: number, lowMemory: boolean) {
-  const budgetBytes = (lowMemory ? 16 : 64) * 1024 * 1024
-  const batchSize = Math.max(1, Math.min(requestedBatch, Math.floor(budgetBytes / 20)))
-  const producers = Math.max(1, Math.min(requestedProducers, Math.floor(budgetBytes / (batchSize * 20))))
+import { ECHOES_PER_SET } from '@/engine/search/layout/constants'
+import { THEORY_BUFFER_BYTES, THEORY_LOW_MEMORY_BUFFER_BYTES } from '../config/constants'
+
+/** one credit per producer, reserving its maximum adaptive buffer capacity. */
+export function theoryBufferPlan(requestedBatch: number, requestedProducers: number, lowMemory: boolean, maximumBatch = requestedBatch) {
+  const budgetBytes = lowMemory ? THEORY_LOW_MEMORY_BUFFER_BYTES : THEORY_BUFFER_BYTES
+  const bytesPerCombo = ECHOES_PER_SET * Int32Array.BYTES_PER_ELEMENT
+  const batchSize = Math.max(1, Math.min(requestedBatch, Math.floor(budgetBytes / bytesPerCombo)))
+  const reservedBatch = Math.max(batchSize, Math.min(maximumBatch, Math.floor(budgetBytes / bytesPerCombo)))
+  const producers = Math.max(1, Math.min(requestedProducers, Math.floor(budgetBytes / (reservedBatch * bytesPerCombo))))
   return { budgetBytes, batchSize, producers }
 }

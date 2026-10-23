@@ -7,11 +7,12 @@
 
 import type { OptStartPay, PrepTargetSkill } from '@/engine/optimizer/types.ts'
 import { makeRuntimeMap } from '@/engine/runtime/runtimeAdapters.ts'
-import { encStatCstrs } from '@/engine/optimizer/constraints/statConstraints.ts'
-import { mkMainEchoRo, encEchoRows } from '@/engine/optimizer/encode/echoes.ts'
-import { buildSetRows, makeSetMask } from '@/engine/optimizer/encode/sets.ts'
-import { compOptTgtCt } from '@/engine/optimizer/target/context.ts'
-import { mkShrdPay, stripEchoes } from '@/engine/optimizer/compiler/shared.ts'
+import { encTgtStatCstrs } from '@/engine/search/score/statConstraints.ts'
+import { mkMainEchoRo, encEchoRows } from '@/engine/search/encode/echoes.ts'
+import { buildSetRows, makeSetMask } from '@/engine/search/encode/sets.ts'
+import { compOptTgtCt } from '@/engine/search/context/target.ts'
+import { mkShrdPay } from '@/engine/optimizer/compiler/shared.ts'
+import { stripEchoes } from '@/engine/search/context/runtime.ts'
 
 // compile the optimizer for a single selected target skill
 // this is the main bridge from editable runtime state into the packed payload
@@ -36,7 +37,7 @@ export function compTgtRun(input: OptStartPay, baseline = false): PrepTargetSkil
   })
 
   // encode stat-floor and stat-cap style optimizer constraints from settings
-  const constraints = baseline ? new Float32Array(0) : encStatCstrs(input.settings)
+  const constraints = baseline ? new Float32Array(0) : encTgtStatCstrs(input.settings)
 
   // encode the inventory echoes using the selected target skill shape
   const encoded = encEchoRows(input.invChs, target.selectedSkill, 'self')
@@ -44,7 +45,7 @@ export function compTgtRun(input: OptStartPay, baseline = false): PrepTargetSkil
   // build the shared payload used by both target and rotation optimizer modes
   const shared = mkShrdPay(encoded, input, constraints, baseline)
 
-  // capture the current runtime set state so evaluation can merge runtime sets correctly
+  // current runtime set state for evaluation's set merge
   const setRtMask = makeSetMask(runtime, input.setConds)
   const setConstLut = buildSetRows(runtime, input.setConds)
 
@@ -55,7 +56,6 @@ export function compTgtRun(input: OptStartPay, baseline = false): PrepTargetSkil
     sourceBaseStats: target.combat.baseStats,
     sourceFinals: target.combat.finalStats,
     selectedSkill: target.selectedSkill,
-    mode: 'self',
   })
 
   return {

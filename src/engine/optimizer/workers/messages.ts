@@ -1,8 +1,6 @@
 /*
   Author: Runor Ewhro
-  description: defines the message protocol and gpu-static payload shapes used
-               by optimizer workers for cpu/gpu job execution, optional gpu
-               bootstrap, progress, completion, cancellation, and error reporting.
+  description: defines optimizer worker requests, progress messages, and results.
 */
 
 import type {
@@ -18,6 +16,7 @@ import type {
 // static payload uploaded once for target gpu workers
 // this keeps runtime job messages small and avoids resending large buffers
 export interface TargetGpuState {
+  lowMmryMode?: boolean
   // packed target context used by the gpu evaluator
   context: Float32Array
 
@@ -78,7 +77,7 @@ export interface OptTaskRunTg {
   jobResultLimit: number
 }
 
-// target gpu jobs can lazily carry the static bootstrap payload on first use.
+// target gpu jobs can include the static bootstrap payload on first use.
 export interface OptTaskRunac {
   type: 'runTargetGpu'
   runId: number
@@ -154,6 +153,8 @@ export interface OptTaskDoneM {
   runId: number
   results: OptRawResult[]
   rtrnCmbsBtch?: Int32Array
+  /** actual evaluation duration, excluding first-job bootstrap/compilation. */
+  executionMs?: number
 }
 
 // worker failed during init or execution
@@ -177,6 +178,7 @@ export interface OptThryProdSt {
   type: 'startTheoryProducer'
   runId: number
   payload: Pick<PrepTheoryTarget | PrepTheoryRot, 'theoryRows' | 'profs'>
+  bounds?: import('@/engine/rotation/portable/bounds').TheoryBoundsPayload
   echoSetDefs: import('@/data/gameData/echoSets/effects').SetDef[]
   batchSize: number
   // optional shard assignment so multiple producer workers can split the
@@ -192,6 +194,8 @@ export interface OptThryProdRt {
   runId: number
   buffer?: Int32Array
   lowMem?: boolean
+  cutoff?: number
+  nextBatchSize?: number
 }
 
 // cancel an in-flight theory producer run
@@ -221,6 +225,12 @@ export interface OptThryProdDn {
   generated: number
 }
 
+export interface OptThryProdPruned {
+  type: 'theoryPruned'
+  runId: number
+  count: number
+}
+
 // producer failed
 export interface OptThryProdRr {
   type: 'theoryProducerError'
@@ -232,3 +242,4 @@ export type OptThryProdOu =
     | OptThryProdBt
     | OptThryProdDn
     | OptThryProdRr
+    | OptThryProdPruned

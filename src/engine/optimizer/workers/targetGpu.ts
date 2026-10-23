@@ -10,6 +10,8 @@ import type {
 } from '@/engine/optimizer/workers/messages.ts'
 import type { PrepOptShrdP, PrepTheoryTarget, PrepTargetSkill } from '@/engine/optimizer/types.ts'
 import { packTargetSkill } from '@/engine/optimizer/payloads/targetPayload.ts'
+import { mkCostLayout } from '@/engine/optimizer/combos/costLayout.ts'
+import { MAX_ECHO_COST } from '@/engine/search/layout/constants.ts'
 
 export interface TgtJobSpec {
   // starting combo rank for this job window
@@ -68,6 +70,7 @@ function toGpuIntRry(values: Uint16Array): Int32Array {
 // every load-bearing binary blob is included so mismatched payloads cannot collide
 export function mkTgtGpuSttc(payload: TargetGpuState): string {
   return [
+    `memory:${payload.lowMmryMode ? 1 : 0}`,
     `n:${payload.comboN}`,
     `k:${payload.comboK}`,
     `t:${payload.totalCombos}`,
@@ -96,6 +99,7 @@ export function makeTargetGpu(
 
   return {
     context: payload.context,
+    lowMmryMode: prepared.lowMmryMode,
     stats: payload.stats,
     setConstLut: payload.setConstLut,
     costs: toGpuFltRry(payload.costs),
@@ -128,17 +132,39 @@ export function mkTgtJobs(
         ? payload.lockMainCands
         : [-1],
 ): TgtJobSpec[] {
-  const jobs: TgtJobSpec[] = []
+  return [...generateGpuJobs(payload, () => combosPerJob, lckdMainNdcs)]
+}
 
+export function* generateGpuJobs(
+  payload: Pick<PrepOptShrdP, 'totalCombos' | 'lockMainReq' | 'lockMainCands'>,
+  batchSize: () => number,
+  lckdMainNdcs: ReadonlyArray<number> | Int32Array = payload.lockMainReq ? payload.lockMainCands : [-1],
+  totalFor: (lockedMainIndex: number) => number = () => payload.totalCombos,
+): Generator<TgtJobSpec> {
   for (const lockedMainIndex of lckdMainNdcs) {
-    for (let comboStart = 0; comboStart < payload.totalCombos; comboStart += combosPerJob) {
-      jobs.push({
+    const total = totalFor(lockedMainIndex)
+    let comboStart = 0
+    while (comboStart < total) {
+      const comboCount = Math.min(Math.max(1, Math.floor(batchSize())), total - comboStart)
+      yield {
         comboStart,
-        comboCount: Math.min(combosPerJob, payload.totalCombos - comboStart),
+        comboCount,
         lockMainIdx: lockedMainIndex,
-      })
+      }
+      comboStart += comboCount
     }
   }
+}
 
-  return jobs
+// the target gpu search enumerates only cost-legal combos (combos/costLayout.ts),
+// so its job windows and progress span this count per locked main.
+export function costLegalTotals(
+    payload: Pick<PrepTargetSkill, 'costs' | 'comboK' | 'comboBinom' | 'lockMainReq' | 'lockMainCands'>,
+): Map<number, number> {
+  const totals = new Map<number, number>()
+  for (const lockedIndex of payload.lockMainReq ? payload.lockMainCands : [-1]) {
+    if (totals.has(lockedIndex)) continue
+    totals.set(lockedIndex, mkCostLayout(payload.costs, payload.comboK, lockedIndex, MAX_ECHO_COST, payload.comboBinom).total)
+  }
+  return totals
 }

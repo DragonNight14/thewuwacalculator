@@ -11,8 +11,8 @@ import type { EchoDef } from '@/domain/entities/catalog'
 import { getEchoById, listChsByCos } from '@/data/catalog/echoCatalogService'
 import { evalSuggChs } from '@/engine/suggestions/shared'
 import type { RandomEchoEntry, RandomEchoPrep } from './types'
-import { getDefMainSt } from '@/engine/suggestions/mainStat-suggestion/ctx-builder'
-import type { OptStatWeight } from '@/engine/optimizer/search/filtering.ts'
+import { getDefMainSt } from '@/engine/suggestions/mainStat/context.ts'
+import type { OptStatWeight } from '@/engine/search/score/statWeights.ts'
 import {
   makeRandomEchoCostPlans,
   mkMainStatCo,

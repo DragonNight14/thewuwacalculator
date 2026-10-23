@@ -9,12 +9,12 @@ import type {
   MainStatPrep,
   PrepSetPlanS,
   PrepWeaponPlan,
-  SetPlanSuggest,
+  SetPlanSugoi,
   WeaponEntry,
 } from '@/engine/suggestions/types'
-import { runPrepMainS } from '@/engine/suggestions/mainStat-suggestion/suggestMainStat'
-import { runPrepSetSg } from '@/engine/suggestions/setPlan-suggestion/suggestSetPlan'
-import { runPrepWpn } from '@/engine/suggestions/weapon-suggestion/compute'
+import { runPrepMainS } from '@/engine/suggestions/mainStat/suggest'
+import { runPrepSetSg } from '@/engine/suggestions/setPlan/suggest'
+import { runPrepWpn } from '@/engine/suggestions/weapon/compute'
 
 export function runMainStats(
     input: MainStatPrep,
@@ -24,8 +24,8 @@ export function runMainStats(
 
 export function runSetPlanqc(
     input: PrepSetPlanS,
-): SetPlanSuggest[] {
-  return runPrepSetSg(input).results
+): SetPlanSugoi {
+  return runPrepSetSg(input)
 }
 
 export function runWpnSuggs(

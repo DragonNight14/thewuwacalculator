@@ -10,9 +10,10 @@ import type { ResRuntime, ResSeed, EchoInstance } from '@/domain/entities/runtim
 import type { SntSetConds } from '@/domain/entities/sonataSetConditionals'
 import type { FinalStats, UnifiedBuffPool, ResBaseStats, SkillDef } from '@/domain/entities/stats'
 import type { EffectContext } from '@/domain/gameData/contracts'
-import type { MainStatRecipe } from '@/engine/suggestions/mainStat-suggestion/utils'
-import type { OptTargetSkill } from '@/engine/optimizer/target/selectedSkill'
-import type { OptStatWeight } from '@/engine/optimizer/search/filtering.ts'
+import type { MainStatRecipe } from '@/engine/suggestions/mainStat/utils'
+import type { OptTargetSkill } from '@/engine/search/context/selectedSkill'
+import type { OptStatWeight } from '@/engine/search/score/statWeights.ts'
+import type { SetPlanEntry } from '@/engine/search/combos/setPlans.ts'
 import type { GameDataMode } from '@/domain/entities/gameDataMode'
 import type { CombatScenarioId, TeamMemberId } from '@/domain/entities/combatScenario'
 import type { SimResult } from '@/engine/pipeline/types'
@@ -20,6 +21,45 @@ import type { SimResult } from '@/engine/pipeline/types'
 interface SuggsWrkrBase {
   id: number
   gameDataMode?: GameDataMode
+}
+
+export type SuggestionSearchMode = 'mainStats' | 'setPlans' | 'weapons'
+
+export interface SuggestionWorkerDiagnostics {
+  phase: 'gameData' | 'modules' | 'preparation' | 'search' | 'packaging' | 'complete'
+  coldModules: boolean
+  scoring?: ReturnType<typeof import('./shared').getSuggestionScoringDiagnostics>
+  parallel?: import('./parallel').ParallelSuggestionDiagnostics | null
+  error?: { name: string; message: string; stack?: string }
+  timings: {
+    gameDataMs: number
+    modulesMs: number
+    preparationMs: number
+    searchMs: number
+    packagingMs: number
+    totalMs: number
+  }
+  prepared?: {
+    scoringMode: SuggestContext['mode']
+    targetContexts: number
+    fixedTeamDamage: number
+    teammateDamageEvents: number
+    allowedRotationFeatures: number
+    sourceStatsAffectTeam: boolean
+    statSensitiveSets: number[]
+    statSensitiveEchoIds: string[]
+  }
+}
+
+export interface SuggestionRequestDiagnostics {
+  requestId: number | null
+  workerGeneration: number
+  coldWorker: boolean
+  dispatchMs: number
+  roundTripMs: number
+  /** startup, message copying/transfer, queuing, and main-thread scheduling. */
+  outsideWorkerMs: number
+  worker?: SuggestionWorkerDiagnostics
 }
 
 export interface SuggestInput {
@@ -30,6 +70,7 @@ export interface SuggestInput {
   enemy: EnemyProfile
   runtimesById: Record<string, ResRuntime>
   selectedTargets: Record<string, string | null>
+  combatSetup?: import('@/engine/pipeline/index.ts').RotationCombatSetup
   setConds?: SntSetConds
   setStateMode?: 'max' | 'resolved'
   tgtFeatId: string | null
@@ -69,6 +110,9 @@ export interface DrctSuggCtx {
 
 export interface RotSuggCtx {
   mode: 'rotation'
+  candidatePlan?: import('@/engine/rotation/candidatePlan').RotationCandidatePlan
+  fixedTeamDamage: number
+  teamDamagePlan?: import('@/engine/rotation/damagePlan.ts').RotationTeamDamagePlan
   runtime: ResRuntime
   effectContext: EffectContext
   selectedSkill: OptTargetSkill
@@ -124,6 +168,8 @@ export interface PrepWeaponPlan {
   enemy: EnemyProfile
   runtimesById: Record<string, ResRuntime>
   selectedTargets: Record<string, string | null>
+  combatSetup?: import('@/engine/pipeline/index.ts').RotationCombatSetup
+  setConds?: SntSetConds
   includeEchoAttacks?: boolean
   weaponType: number
   level: number
@@ -139,11 +185,6 @@ export interface MainStatSugg {
   isRotation?: boolean
 }
 
-export interface SetPlanEntry {
-  setId: number
-  pieces: number
-}
-
 /** set ids sharing one entry are effect-equivalent at this piece count. */
 export interface SetPlanDisplayEntry {
   setIds: number[]
@@ -154,10 +195,18 @@ export interface SetPlanSuggest {
   avgDamage: number
   setPlan: SetPlanEntry[]
   displayPlan?: SetPlanDisplayEntry[]
+  mainEchoId?: string
+  mainEchoSetId?: number
   echoes: Array<EchoInstance | null>
 }
 
 export type CompactSetPlanSuggest = Omit<SetPlanSuggest, 'echoes'>
+
+/** set rows and their baseline come from the same scoring run. */
+export interface CompactSetPlanRun {
+  baseDamage: number
+  results: CompactSetPlanSuggest[]
+}
 
 export interface WeaponEntry {
   damage: number
@@ -215,13 +264,15 @@ export interface SuggsWrkrCompact extends SuggsWrkrBase {
 export interface SuggsWrkrDon {
   id: number
   ok: true
-  result: MainStatSugg[] | SetPlanSuggest[] | CompactSetPlanSuggest[] | WeaponEntry[]
+  result: MainStatSugg[] | SetPlanSuggest[] | SetPlanSugoi | CompactSetPlanSuggest[] | CompactSetPlanRun | WeaponEntry[]
+  diagnostics?: SuggestionWorkerDiagnostics
 }
 
 export interface SuggsWrkrRrr {
   id: number
   ok: false
   error: string
+  diagnostics?: SuggestionWorkerDiagnostics
 }
 
 export type SuggsWrkrInM =

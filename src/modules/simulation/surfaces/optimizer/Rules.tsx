@@ -73,7 +73,7 @@ export function Rules({ onClose }: { onClose: () => void }) {
             </p>
             <p>
               <strong>Rotation targets change the results.</strong> A rotation target ranks builds
-              by the default rotation’s total damage and hides bonus and Amplify columns. Rankings
+              by the default rotation’s total damage and hides the Amplify column. Rankings
               can differ from a single-skill search {' '}
               {'(✿◠‿◠)'}.
             </p>

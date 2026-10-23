@@ -7,12 +7,12 @@ import { describe, expect, it } from 'vitest'
 import { getSbstStepP, SUBSTAT_KEYS } from '@/data/gameData/catalog/echoStats'
 import { listChsByCos } from '@/data/catalog/echoCatalogService'
 import type { EchoInstance } from '@/domain/entities/runtime'
-import { ECHO_STAT_STRIDE } from '@/engine/optimizer/config/constants'
-import { addStatTotal, sumEncodedStats } from '@/engine/evaluation/evaluation/stats'
+import { ECHO_STAT_STRIDE } from '@/engine/search/layout/constants.ts'
+import { addStatTotal, sumEncodedStats } from '@/engine/evaluation/stats.ts'
 import {
   distributeStepSubstats, prepareStepAllocator, REFERENCE_STEP_MODEL,
   stepSubstatPlan, tierStepIncreases,
-} from '@/engine/evaluation/evaluation/stepAllocation'
+} from '@/engine/evaluation/stepAllocation.ts'
 import { auditFixedLineTiers } from '@/engine/evaluation/evaluation/stepAllocationAudit'
 
 const tiers = () => Object.fromEntries(SUBSTAT_KEYS.map(key => [key, getSbstStepP(key)]))

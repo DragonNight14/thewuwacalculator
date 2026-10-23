@@ -9,14 +9,12 @@ import { createRouteChunk } from '@/shared/navigation/routeChunk'
 import { prefersMobileUi } from '@/shared/responsive/mobileUi'
 import { configureNavigationPreloader } from '@/shared/navigation/navigationPreload'
 import {SIMULATION_SURFACE_CHUNKS} from "@/modules/simulation/api/chunks.ts";
+import { useAppStore } from '@/application/state'
+import { selectedCombatScenario } from '@/domain/entities/scenarioLibrary'
 
 export { createRouteChunk } from '@/shared/navigation/routeChunk'
 export const simulationChunk = createRouteChunk(async () => {
-  const [{ useAppStore }, { selectedCombatScenario }, { initGameData, getGameDataMode }] = await Promise.all([
-    import('@/application/state'),
-    import('@/domain/entities/scenarioLibrary'),
-    import('@/data/gameData'),
-  ])
+  const { initGameData, getGameDataMode } = await import('@/data/gameData')
   const team = selectedCombatScenario(useAppStore.getState().combat).team.members
   await initGameData({ mode: getGameDataMode(), resonatorIds: team.map((member) => member.resonatorId) })
   return (await import('@/modules/simulation/api/page')).SimulationPage

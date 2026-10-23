@@ -9,7 +9,7 @@ import type {
   PrepTheoryTarget,
   PrepTargetSkill,
 } from '@/engine/optimizer/types.ts'
-import { packTargetCtx } from '@/engine/optimizer/context/pack.ts'
+import { packTargetCtx } from '@/engine/search/context/pack.ts'
 
 // choose the first allowed locked main candidate when the run requested one;
 // otherwise default to "no locked echo"

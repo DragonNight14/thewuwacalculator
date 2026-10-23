@@ -1,18 +1,10 @@
 /*
   Author: Runor Ewhro
-  description: message contracts used by the optimizer compile worker for
-               starting compilation, materializing compact result refs, and
-               returning either prepared payloads, final result entries, or errors.
+  description: defines compile worker requests, responses, and result references.
 */
 
-import type {
-  OptStoredResult,
-  OptRawResult,
-  OptResultStats,
-  OptStartPay,
-  PrepOptPay,
-} from '@/engine/optimizer/types.ts'
-import type { SntSetConds } from '@/domain/entities/sonataSetConditionals.ts'
+import type { OptStoredResult, OptRawResult, OptStartPay, PrepOptPay } from '@/engine/optimizer/types.ts'
+import type { OptResultStats } from '@/engine/search/score/core.ts'
 
 // message sent to the compile worker to begin compiling a raw optimizer payload
 export interface OptCompStart {
@@ -37,7 +29,6 @@ export interface OptBaselineStartM {
   runId: number
   payload: OptBaselineInput
   mainIndex: number
-  setConds: SntSetConds
 }
 
 export interface OptBaselineDoneM {

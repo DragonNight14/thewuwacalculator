@@ -1,21 +1,14 @@
 /*
   Author: Runor Ewhro
-  description: allocates reusable cpu-side scratch buffers for combo
-               evaluation so the optimizer can avoid per-iteration
-               allocations during tight loops.
+  description: provides reusable cpu scratch buffers for combo evaluation.
 */
 
-import {
-  ECHOES_PER_SET,
-  SET_SLOT_COUNT,
-  FULL_STAT_STRIDE,
-} from '@/engine/optimizer/config/constants.ts'
+import { ECHOES_PER_SET, SET_SLOT_COUNT, FULL_STAT_STRIDE } from '@/engine/search/layout/constants.ts'
 
 export interface CpuScratch {
   comboIds: Int32Array
   cmbPstn: Int32Array
-  baseCmbVctr: Float32Array
-  comboVector: Float32Array
+  baseCmbVctr: Float64Array
   setCounts: Uint8Array
   tchdSetIds: Uint8Array
   setMasks: Uint32Array
@@ -30,16 +23,14 @@ export function makeCpuScratch(): CpuScratch {
     // optional positional mapping for combo processing
     cmbPstn: new Int32Array(ECHOES_PER_SET),
 
-    // summed combo stats before main-echo-only buffs are applied
-    baseCmbVctr: new Float32Array(FULL_STAT_STRIDE),
-
-    // final combo stats after main-echo-only buffs are applied
-    comboVector: new Float32Array(FULL_STAT_STRIDE),
+    // summed combo stats before main-echo-only buffs are applied. f64 so the
+    // search totals match the row scorer exactly
+    baseCmbVctr: new Float64Array(FULL_STAT_STRIDE),
 
     // per-set piece counts for the active combo
     setCounts: new Uint8Array(SET_SLOT_COUNT),
 
-    // which set ids were touched so clearing can stay cheap
+    // touched set ids for selective clearing
     tchdSetIds: new Uint8Array(ECHOES_PER_SET),
 
     // reusable set masks for encoded set logic

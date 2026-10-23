@@ -100,6 +100,10 @@ export interface ProgramOpts {
   captureNodeIds?: ReadonlySet<string>
   /** borrowed array and object views must be consumed synchronously. */
   onDamageInvocation?: (invocation: DamageInvocation) => void
+  /** score of one executed damage event, keyed by authored node and loop run. */
+  onDamageScore?: (eventKey: string, resonatorId: string, avg: number) => void
+  onFeatureUse?: (occurrenceKey: string) => void
+  allowedFeatureKeys?: ReadonlySet<string>
 }
 
 export interface RunMetrics {

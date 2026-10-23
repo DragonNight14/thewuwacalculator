@@ -22,7 +22,7 @@ export function sameSetPlanCandidate(result: CompactSetPlanSuggest, worn: SetPla
   if (Math.abs(result.avgDamage - base) > tolerance) return false
   if (setPlnsQl(result.setPlan, worn)) return true
   const slots = getSetPlanDisplay(result)
-  if (slots.length === 0) return false
+  if (slots.length === 0) return result.setPlan.length === 0
   const used = new Set<number>()
   const match = (slot: number): boolean => {
     if (slot === slots.length) return true

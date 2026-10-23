@@ -17,15 +17,16 @@ import { getEchoSetDe } from '@/data/gameData/echoSets/effects.ts'
 import { getSntSetIco } from '@/data/gameData/catalog/sonataSets.ts'
 import { getEchoById } from '@/data/catalog/echoCatalogService.ts'
 import { getWpnById } from '@/data/catalog/weaponCatalogService.ts'
+import { truncTo } from '@/shared/lib/number.ts'
 import type {
   OptBagResult,
   OptRawResult,
-  OptResultStats,
   PrepOptPay,
   TheoryResult,
   CompactTheoryResult,
   TheoryResultRow,
 } from '@/engine/optimizer/types.ts'
+import type { OptResultStats } from '@/engine/search/score/core.ts'
 import {
   normEchoLdt,
   smmrEchoLdt,
@@ -60,8 +61,8 @@ export function plchRslt(): OptDisplayRow {
 }
 
 // resolve the chosen weapon (id, icon, name) for one result, if weapon search
-// produced one. raw theory bag results carry an index into the run's weaponIds;
-// materialized theory results carry the resolved weaponId directly.
+// produced one. raw theory results store a weaponIds index; materialized
+// results store the resolved weapon ID.
 function weaponDisplay(
     entry: OptBagResult | LegOptRsltEn | TheoryResult | CompactTheoryResult | TheoryResultRow,
     payload: PrepOptPay | null,
@@ -129,9 +130,7 @@ function cloneRsltChs(echoes: Array<EchoInstance | null>) {
   )
 }
 
-// resolve how many equipped pieces of a set actually clear an activation
-// threshold (2/3/5 depending on the set's max), or null when none do. shared
-// by the display badges and the facet extractor so both agree on the plan.
+// active set piece count for display badges and result facets.
 function effPieces(setId: number, count: number): number | null {
   const setDef = getEchoSetDe(setId)
   if (!setDef) {
@@ -243,8 +242,7 @@ function dsplRowFor(
     const summary = isBagRslt(entry)
       ? thryBagSum(ptmzRsltPyld, entry)
       : thryIdSum(entry)
-    // same resolution the preview uses: when it returns null the build cannot
-    // become a legal loadout, so the row is flagged invalid (no preview/equip).
+    // flag builds that cannot form a legal loadout for preview or equip.
     const invalid = matThryRsltCh(ptmzRsltPyld, entry) === null
     return {
       damage: entry.damage,
@@ -298,18 +296,6 @@ function dsplRowFor(
       ? evalOptBagcz(ptmzRsltPyld, entry)
       : null,
   }
-}
-
-export function vsblRslts(args: {
-  optResults: Array<OptBagResult | LegOptRsltEn | TheoryResult | CompactTheoryResult | TheoryResultRow>
-  pageStart: number
-  pageEnd: number
-  invChsByUid: Map<string, EchoInstance>
-  optResultEchoes: EchoInstance[]
-  optResultData: PrepOptPay | null
-}): OptDisplayRow[] {
-  const { optResults: ptmzRslt, pageEnd, pageStart, ...ctx } = args
-  return ptmzRslt.slice(pageStart, pageEnd).map((entry) => dsplRowFor(entry, ctx))
 }
 
 // render rows for an explicit list of original result indices (the current
@@ -465,8 +451,7 @@ export class ResultFacetTable implements Iterable<ResultFacet> {
 type Facets = ResultFacetTable | ResultFacet[]
 const facetAt = (facets: Facets, index: number) => facets instanceof ResultFacetTable ? facets.get(index) : facets[index]!
 
-// canonical, order-independent string for a set plan so equal plans group and
-// compare cheaply.
+// canonical set plan key for grouping and comparison.
 function planKeyOf(badges: Array<{ id: number; count: number }>): string {
   return [...badges]
     .sort((a, b) => a.id - b.id)
@@ -506,7 +491,8 @@ function facetFromEchoes(echoes: Array<EchoInstance | null>): {
   return { mainId: echoes[0]?.id ?? '', totalCost, counts }
 }
 
-function facetFor(entry: RsltEntry, ctx: RsltDsplCtx): ResultFacet {
+// skip stat rescoring when the view uses no stat columns.
+function facetFor(entry: RsltEntry, ctx: RsltDsplCtx & { withStats: boolean }): ResultFacet {
   const { invChsByUid, optResultEchoes: ptmzRsltChs, optResultData: ptmzRsltPyld } = ctx
 
   let mainId = ''
@@ -515,7 +501,7 @@ function facetFor(entry: RsltEntry, ctx: RsltDsplCtx): ResultFacet {
   let stats: OptResultStats | null = null
 
   if (isThryPay(ptmzRsltPyld) && isRawThry(entry)) {
-    stats = evalThryRsltS(ptmzRsltPyld, entry)
+    stats = ctx.withStats ? evalThryRsltS(ptmzRsltPyld, entry) : null
     if (isBagRslt(entry)) {
       const rowIds = [entry.i0, entry.i1, entry.i2, entry.i3, entry.i4]
       for (const rowId of rowIds) {
@@ -559,24 +545,11 @@ function facetFor(entry: RsltEntry, ctx: RsltDsplCtx): ResultFacet {
     mainId = summary.mainId
     totalCost = summary.totalCost
     counts = summary.counts
-    stats = ptmzRsltPyld ? evalOptBagcz(ptmzRsltPyld, entry) : null
+    stats = ptmzRsltPyld && ctx.withStats ? evalOptBagcz(ptmzRsltPyld, entry) : null
   }
 
   const setBadges = setPlanEntries(counts)
   return { damage: entry.damage, mainId, totalCost, setBadges, planKey: planKeyOf(setBadges), stats }
-}
-
-export function buildFacetTable(args: {
-  optResults: RsltEntry[]
-  invChsByUid: Map<string, EchoInstance>
-  optResultEchoes: EchoInstance[]
-  optResultData: PrepOptPay | null
-}): ResultFacet[] {
-  return buildFacetSlice({
-    ...args,
-    start: 0,
-    end: args.optResults.length,
-  })
 }
 
 export function buildFacetSlice(args: {
@@ -586,12 +559,14 @@ export function buildFacetSlice(args: {
   invChsByUid: Map<string, EchoInstance>
   optResultEchoes: EchoInstance[]
   optResultData: PrepOptPay | null
+  withStats?: boolean
 }): ResultFacet[] {
-  const { optResults: ptmzRslt, start, end, ...ctx } = args
+  const { optResults: ptmzRslt, start, end, withStats = true, ...ctx } = args
   const out: ResultFacet[] = []
   const safeEnd = Math.min(end, ptmzRslt.length)
+  const rowCtx = { ...ctx, withStats }
   for (let index = Math.max(0, start); index < safeEnd; index += 1) {
-    out.push(facetFor(ptmzRslt[index]!, ctx))
+    out.push(facetFor(ptmzRslt[index]!, rowCtx))
   }
   return out
 }
@@ -659,14 +634,27 @@ export function isDefaultViewCriteria(c: ResultViewCriteria): boolean {
 }
 
 // resolve a numeric column off a facet, null when the stat line is unevaluated.
+// match predicates against displayed values: whole-number damage and base
+// stats, or one decimal for percentage stats.
 function facetNum(facet: ResultFacet, col: NumCol): number | null {
   if (col === 'damage') {
-    return facet.damage
+    return Math.floor(facet.damage || 0)
   }
   if (col === 'cost') {
     return facet.totalCost
   }
-  return facet.stats ? facet.stats[col as keyof OptResultStats] : null
+  if (!facet.stats) {
+    return null
+  }
+  const value = facet.stats[col as keyof OptResultStats]
+  return truncTo(value, col === 'atk' || col === 'hp' || col === 'def' ? 0 : 1)
+}
+
+const STAT_COLS = new Set<string>(['atk', 'hp', 'def', 'er', 'cr', 'cd', 'bonus', 'amp'])
+/** whether the view uses a stat column */
+export function viewNeedsStats(criteria: ResultViewCriteria, find: Predicate[]): boolean {
+  return STAT_COLS.has(criteria.sortKey)
+    || [...criteria.filter, ...find].some((pred) => pred.kind === 'num' && STAT_COLS.has(pred.col))
 }
 
 function cmpNum(a: number, op: CmpOp, b: number): boolean {
@@ -711,9 +699,7 @@ function facetSortValue(facet: ResultFacet, key: ViewSortKey): number {
   return facetNum(facet, key) ?? 0
 }
 
-// apply where (filters) then order by (sort) to produce the ordered list of
-// original result indices the view should render. ties break by original index
-// so the order stays stable.
+// filter and sort original result indices; break ties by original index.
 export function buildResultView(
   facets: Facets,
   criteria: ResultViewCriteria,

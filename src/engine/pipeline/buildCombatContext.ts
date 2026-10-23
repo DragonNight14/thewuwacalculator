@@ -1,8 +1,6 @@
 /*
   Author: Runor Ewhro
-  description: builds cached combat contexts and pre/post-stats final stats for
-               optimizer and simulation systems by combining runtime buffs,
-               echo stats, weapon stats, manual buffs, and runtime data effects.
+  description: builds combat contexts from runtime, weapon, Echo, and effect data.
 */
 
 import type {
@@ -20,7 +18,7 @@ import { isNoWeaponId, type EchoInstance, type ResRuntime } from '@/domain/entit
 import { getWpnById } from '@/data/catalog/weaponCatalogService'
 import type { AttributeKey } from '@/domain/entities/stats'
 import type { EnemyProfile } from '@/domain/entities/appState'
-import type { CombatGraph, SlotId } from '@/domain/entities/combatGraph'
+import type { CombatGraph, CombatPart, SlotId } from '@/domain/entities/combatGraph'
 import {
   createNumericTeam,
   materializeNumericContext,
@@ -198,6 +196,14 @@ export function mkRtBaseBuff(runtime: ResRuntime): UnifiedBuffPool {
   return pool
 }
 
+export function makeParticipantBasePool(graph: CombatGraph, participant: CombatPart): UnifiedBuffPool {
+  const pool = mkRtBaseBuff(participant.runtime)
+  const environmentBuffs = graph.environmentBuffsByMemberId?.[participant.memberId]
+  if (environmentBuffs) applyMnlBffs(pool, environmentBuffs)
+  if (graph.environmentTargetModifiers) applyEnvironmentTargetModifiers(pool, graph.environmentTargetModifiers)
+  return pool
+}
+
 // build the full combat context for one target slot
 // this performs a two-stage effect pass:
 // 1. pre-stats effects to produce a pre-stats final snapshot
@@ -207,13 +213,7 @@ export function getNumericCombatTeam(input: GrphCmbtCtxN): NumericTeamState {
   if (!team) {
     const basePools: Partial<Record<SlotId, UnifiedBuffPool>> = {}
     for (const participant of Object.values(input.graph.participants)) {
-      const pool = mkRtBaseBuff(participant.runtime)
-      const environmentBuffs = input.graph.environmentBuffsByMemberId?.[participant.memberId]
-      if (environmentBuffs) applyMnlBffs(pool, environmentBuffs)
-      if (input.graph.environmentTargetModifiers) {
-        applyEnvironmentTargetModifiers(pool, input.graph.environmentTargetModifiers)
-      }
-      basePools[participant.slotId] = pool
+      basePools[participant.slotId] = makeParticipantBasePool(input.graph, participant)
     }
     team = createNumericTeam({ graph: input.graph, enemy: input.enemy, basePools })
     setGrphEnemy(numericTeamCache, input.graph, input.enemy, team)

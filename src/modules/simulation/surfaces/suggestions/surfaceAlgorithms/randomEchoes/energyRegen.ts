@@ -5,7 +5,7 @@
 */
 
 import { getSbstStepP } from '@/data/gameData/catalog/echoStats'
-import type { OptStatWeight } from '@/engine/optimizer/search/filtering.ts'
+import type { OptStatWeight } from '@/engine/search/score/statWeights.ts'
 import type { RandGenEcho } from './echoSetBuilder'
 import { getSbstScr } from './substats'
 

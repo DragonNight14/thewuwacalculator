@@ -35,7 +35,7 @@ import { makeEnemy, makeResRuntime, mkMaxResRt } from '@/engine/runtime/defaults
 import { makeRuntimeMap } from '@/engine/runtime/runtimeAdapters'
 import { combatScenarioId, teamMemberId } from '@/domain/entities/combatScenario'
 import { runResSmlt } from '@/engine/pipeline'
-import { runPrepMainS } from '@/engine/suggestions/mainStat-suggestion/suggestMainStat'
+import { runPrepMainS } from '@/engine/suggestions/mainStat/suggest.ts'
 
 const AUGUSTA_ID = '1306'
 const QINGXIAO_ID = '1413'

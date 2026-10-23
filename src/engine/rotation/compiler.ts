@@ -4,10 +4,8 @@
 */
 
 /*
-  rotation programs are authored as a rich object tree, but execution should
-  not repeatedly rediscover node kinds, loop boundaries, pass bodies, or
-  string-table identities. this module lowers that tree into compact numeric
-  blocks while retaining node references only as cold semantic payloads.
+  compile rotation nodes into numeric blocks for execution, with node
+  references retained for semantic data.
 */
 
 import type { RotationNode } from '@/domain/gameData/contracts.ts'

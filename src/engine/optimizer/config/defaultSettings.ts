@@ -11,7 +11,7 @@ import type { SkillDef } from '@/domain/entities/stats.ts'
 import { getResSeedBy } from '@/data/catalog/resonatorSeedService.ts'
 import { getDefaultRotation } from '@/data/catalog/gameDataService.ts'
 import { makeRuntimeMap } from '@/engine/runtime/runtimeAdapters.ts'
-import { makeStatWeights } from '@/engine/optimizer/search/filtering.ts'
+import { makeStatWeights } from '@/engine/search/score/statWeights.ts'
 import { listOptTrgt } from '@/engine/optimizer/target/skills.ts'
 import { makeSkillCtx, prepareSkill } from '@/engine/pipeline/prepareRuntimeSkill.ts'
 
@@ -94,7 +94,7 @@ function makeTargetSkill(params: {
   return prepareSkill(runtime, targetSkill.id, context)
 }
 
-// carry execution/search preferences across resonator-specific reinitialization.
+// retain execution and search preferences when changing resonators.
 // each new resonator derives its own target independently of search preferences.
 export function preserveToggles(existing?: OptSets | null): Partial<OptSets> {
   if (!existing) {

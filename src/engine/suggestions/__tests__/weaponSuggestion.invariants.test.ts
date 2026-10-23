@@ -11,8 +11,8 @@ import { makeEnemy, mkDefWpnSug, mkMaxResRt } from '@/engine/runtime/defaults'
 import { makeRuntimeMap } from '@/engine/runtime/runtimeAdapters'
 import { getResSeedBy } from '@/data/catalog/resonatorSeedService'
 import { mkPrepWpnSu, resSuggDmg, runSuggSmlt } from '@/engine/suggestions/shared'
-import { runPrepWpn } from '@/engine/suggestions/weapon-suggestion/compute'
-import { isOptRotTgt } from '@/engine/optimizer/rules/eligibility.ts'
+import { runPrepWpn } from '@/engine/suggestions/weapon/compute.ts'
+import { isOptRotTgt } from '@/engine/search/score/eligibility.ts'
 
 describe('weapon suggestion parity', () => {
   it('scores rotation candidates through their fully materialized runtime', () => {

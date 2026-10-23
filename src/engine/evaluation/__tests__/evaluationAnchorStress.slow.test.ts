@@ -16,7 +16,7 @@ import type { EchoInstance, ResRuntime, ResSeed } from '@/domain/entities/runtim
 import { runResSmlt } from '@/engine/pipeline'
 import { mkSuggVltnCt } from '@/engine/suggestions/shared'
 import type { SuggestContext } from '@/engine/suggestions/types'
-import { makeEvaluationCostPlans } from '@/engine/evaluation/evaluation/costPlans'
+import { makeEvaluationCostPlans } from '@/engine/evaluation/costPlans.ts'
 import { ECHO_MAIN_STATS, ECHO_SIDE_STATS, SUBSTAT_KEYS, getSbstStepP } from '@/data/gameData/catalog/echoStats'
 import { ignoresEr } from '@/engine/evaluation/energyRegenPolicy'
 import { SET_RULES, evaluationSetConditions } from '@/engine/evaluation/setStatePolicy'
@@ -26,13 +26,13 @@ import {
   buildEvaluationAnchors,
   materializeEvaluationAnchorBuilds,
   type EvaluationAnchors,
-} from '@/engine/evaluation/evaluation/search.ts'
+} from '@/engine/evaluation/search.ts'
 import {
   hasNonSelfMainEchoBuff,
   preservedMainEchoFor,
   utilityPlanFor,
-} from '@/engine/evaluation/evaluation/echoDiscovery.ts'
-import type { EvaluationBuildSnapshot } from '@/engine/evaluation/evaluation/types.ts'
+} from '@/engine/evaluation/echoDiscovery.ts'
+import type { EvaluationBuildSnapshot } from '@/engine/evaluation/types.ts'
 import { isUtilitySet } from '@/engine/gameData/sonataPlan'
 import { applyEvaluationAsm, EVALUATION_ENEMY } from '@/modules/simulation/model/evaluationAssumptions'
 import { combatScenarioId, teamMemberId } from '@/domain/entities/combatScenario'

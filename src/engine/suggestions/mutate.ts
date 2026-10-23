@@ -13,19 +13,19 @@ import {
   ECHO_SIDE_STATS,
 } from '@/data/gameData/catalog/echoStats'
 import { ECHO_SET_DEFS } from '@/data/gameData/echoSets/effects'
-import type { OptStatWeight } from '@/engine/optimizer/search/filtering.ts'
-import type { SetPlanEntry } from '@/engine/suggestions/types'
-import { MAIN_STAT_IDS } from '@/engine/suggestions/MAIN_STAT_FILTER_ORDER.ts'
+import type { OptStatWeight } from '@/engine/search/score/statWeights.ts'
+import type { SetPlanEntry } from '@/engine/search/combos/setPlans'
+import { MAIN_STAT_IDS } from '@/engine/suggestions/mainStat/filterOrder.ts'
 
 // elemental bonus main stats are handled as a grouped "bonus" filter,
 // but we still need to know the individual keys when resolving the best one.
 const ELEMENT_KEYS = new Set(['aero', 'glacio', 'fusion', 'spectro', 'havoc', 'electro'])
 
-// 3-piece sets behave differently from normal 2/5-piece sets when checking
-// whether accidental extra set activations need to be broken up.
-const THRPCSETIDS = new Set(
-    ECHO_SET_DEFS.filter((entry) => entry.setMax === 3).map((entry) => entry.id),
-)
+// resolve thresholds when building a plan because definitions load after import.
+function setThreshold(setId: number): number {
+  const max = ECHO_SET_DEFS.find((entry) => entry.id === setId)?.setMax
+  return max === 1 ? 1 : max === 3 ? 3 : 2
+}
 
 export type SuggMainStat = (typeof MAIN_STAT_IDS)[number]
 
@@ -36,7 +36,6 @@ export interface SuggMainStsc {
 
 type SetCostAvailability = Map<number, Map<number, Set<string>>>
 let setAvailCache: SetCostAvailability | null = null
-const setPlanCache = new Map<number, SetPlanEntry[][]>()
 
 function getSetAvail(): SetCostAvailability {
   if (setAvailCache) return setAvailCache
@@ -237,101 +236,92 @@ export function applyMainSur(
   })
 }
 
-// expand a compact set plan like [{setId: 4, pieces: 2}] into a slot-aligned
-// list of target set ids, attempting to keep the main echo inside a compatible
-// planned set whenever possible.
+// match requested set pieces to the available slot costs. A positional fill
+// can assign a set to a cost where no Echo of that set exists.
 function xpndSetPlanT(
     setPlan: SetPlanEntry[],
     qppdChs: Array<EchoInstance | null>,
     mainIndex = 0,
-): Array<number | null> {
+    mainSetId?: number,
+): Array<number | null> | null {
   const targets = new Array<number | null>(qppdChs.length).fill(null)
-  if (setPlan.length === 0) {
-    return targets
-  }
-
-  // flatten the requested piece counts into a simple ordered pool
-  const pieces: number[] = []
-  for (const entry of setPlan) {
-    for (let index = 0; index < Math.max(0, entry.pieces); index += 1) {
-      pieces.push(entry.setId)
-    }
-  }
-
-  if (pieces.length === 0) {
-    return targets
-  }
-
-  const nonNullSlots = qppdChs
-      .map((echo, index) => (echo ? index : -1))
-      .filter((index) => index >= 0)
-
-  if (nonNullSlots.length === 0) {
-    return targets
-  }
-
+  const pieces = setPlan.flatMap((entry) => Array.from({ length: Math.max(0, entry.pieces) }, () => entry.setId))
+  if (pieces.length === 0) return targets
+  const available = getSetAvail()
   const mainEcho = qppdChs[mainIndex]
-  // if the main echo can naturally support one of the requested sets,
-  // try to reserve that set for slot 0 first.
-  const mainSpprPlan = setPlan.find((entry) => (
-      mainEcho && getEchoSets(mainEcho.id).includes(entry.setId) && entry.pieces > 0
-  ))?.setId ?? null
+  const costs = qppdChs.map(getEchoCost)
+  const supportedSets = qppdChs.map(echo => echo ? getEchoSets(echo.id) : [])
+  const preferredMainSet = mainSetId ?? setPlan.find((entry) =>
+    mainEcho && supportedSets[mainIndex]!.includes(entry.setId))?.setId
 
-  // use the main echo when its catalog definition supports the plan. its
-  // currently selected set must not influence plan assignment.
-  const mustUseMain = mainSpprPlan != null || pieces.length >= nonNullSlots.length
-  const rmnnPcs = [...pieces]
-  const prfrNdcs: number[] = []
-
-  if (mustUseMain && nonNullSlots.includes(mainIndex)) {
-    prfrNdcs.push(mainIndex)
-
-    if (mainSpprPlan != null) {
-      const removeIndex = rmnnPcs.indexOf(mainSpprPlan)
-      if (removeIndex >= 0) {
-        targets[mainIndex] = mainSpprPlan
-        rmnnPcs.splice(removeIndex, 1)
+  const solve = (reserveMain: boolean): Array<number | null> | null => {
+    const assigned = [...targets]
+    const remaining = [...pieces]
+    const assignedByCost = new Map<string, number>()
+    if (reserveMain && preferredMainSet != null) {
+      const pieceIndex = remaining.indexOf(preferredMainSet)
+      if (pieceIndex < 0 || !mainEcho || !supportedSets[mainIndex]!.includes(preferredMainSet)) return null
+      assigned[mainIndex] = preferredMainSet
+      assignedByCost.set(`${preferredMainSet}:${costs[mainIndex]}`, 1)
+      remaining.splice(pieceIndex, 1)
+    }
+    const excludedMain = mainSetId != null && !reserveMain
+    const options = remaining.map((setId) => ({
+      setId,
+      slots: qppdChs.flatMap((echo, index) => {
+        if (!echo || assigned[index] != null || (excludedMain && index === mainIndex)) return []
+        const cost = costs[index]
+        return cost && available.get(setId)?.get(cost)?.size ? [index] : []
+      }).sort((left, right) =>
+        Number(!supportedSets[left]!.includes(setId))
+          - Number(!supportedSets[right]!.includes(setId))
+          || left - right),
+    })).sort((left, right) => left.slots.length - right.slots.length)
+    const used = new Set<number>()
+    const assign = (index: number): boolean => {
+      if (index === options.length) return true
+      const option = options[index]
+      for (const slot of option.slots) {
+        if (used.has(slot)) continue
+        const key = `${option.setId}:${costs[slot]}`
+        const count = assignedByCost.get(key) ?? 0
+        // two same-cost slots still need distinct catalog bodies in a set.
+        if (count >= (available.get(option.setId)?.get(costs[slot]!)?.size ?? 0)) continue
+        assignedByCost.set(key, count + 1)
+        used.add(slot)
+        assigned[slot] = option.setId
+        if (assign(index + 1)) return true
+        assigned[slot] = null
+        used.delete(slot)
+        assignedByCost.set(key, count)
       }
+      return false
     }
+    return assign(0) ? assigned : null
   }
 
-  // after slot 0, fill remaining live slots in order
-  for (const index of nonNullSlots) {
-    if (index !== mainIndex) {
-      prfrNdcs.push(index)
-    }
-  }
-
-  let pieceIndex = 0
-  for (const slotIndex of prfrNdcs) {
-    if (targets[slotIndex] != null) {
-      continue
-    }
-    if (pieceIndex >= rmnnPcs.length) {
-      break
-    }
-
-    targets[slotIndex] = rmnnPcs[pieceIndex]
-    pieceIndex += 1
-  }
-
-  return targets
+  if (mainSetId != null) return solve(pieces.includes(mainSetId))
+  return (preferredMainSet != null ? solve(true) : null) ?? solve(false)
 }
 
 // choose a replacement echo definition that matches both set and cost if possible
+const templateCandidates = new WeakMap<EchoDef[], Map<string, EchoDef[]>>()
 function pickTmplDefF(
     setId: number,
     cost: number | null,
     usedKeys: Set<string>,
 ): EchoDef | null {
-  const candidates = (cost ? listChsByCos(cost) : listEchoes())
-      .filter((entry) => entry.sets.includes(setId))
+  const catalog = listEchoes(), key = `${cost ?? 0}:${setId}`
+  let byShape = templateCandidates.get(catalog)
+  if (!byShape) { byShape = new Map(); templateCandidates.set(catalog, byShape) }
+  let candidates = byShape.get(key)
+  if (!candidates) {
+    candidates = (cost ? listChsByCos(cost) : catalog).filter(entry => entry.sets.includes(setId))
+    byShape.set(key, candidates)
+  }
 
   // an id is only "used up" for this set; the same id is still free for others.
-  const unused = candidates.filter((entry) => !usedKeys.has(echoSetKey(entry.id, setId)))
-  const pool = unused.length > 0 ? unused : candidates
-
-  return pool[0] ?? null
+  return candidates.find(entry => !usedKeys.has(echoSetKey(entry.id, setId))) ?? candidates[0] ?? null
 }
 
 // choose a replacement echo definition that avoids activating forbidden sets
@@ -339,14 +329,17 @@ function pickRplcDef(
     cost: number | null,
     avoidSetIds: Set<number>,
     usedKeys: Set<string>,
-): EchoDef | null {
-  const candidates = (cost ? listChsByCos(cost) : listEchoes())
-      .filter((entry) => entry.sets.every((setId) => !avoidSetIds.has(setId)))
-
-  const unused = candidates.filter((entry) => !usedKeys.has(echoSetKey(entry.id, entry.sets[0] ?? 0)))
-  const pool = unused.length > 0 ? unused : candidates
-
-  return pool[0] ?? null
+): { definition: EchoDef; setId: number } | null {
+  const candidates = cost ? listChsByCos(cost) : listEchoes()
+  // check each supported set because a body can also provide a valid filler set.
+  for (const definition of candidates) {
+    for (const setId of definition.sets) {
+      if (avoidSetIds.has(setId) || setThreshold(setId) === 1
+        || usedKeys.has(echoSetKey(definition.id, setId))) continue
+      return { definition, setId }
+    }
+  }
+  return null
 }
 
 // after applying a plan, remove accidental over-activation of planned or unplanned sets
@@ -354,6 +347,7 @@ function normSetSlct(
     echoes: Array<EchoInstance | null>,
     setPlan: SetPlanEntry[],
     usedKeys: Set<string>,
+    mainEchoChoice?: { id: string; setId: number },
 ): Array<EchoInstance | null> {
   const planCounts = new Map(setPlan.map((entry) => [entry.setId, entry.pieces]))
   const result = echoes.map((echo, slotIndex) => (
@@ -378,28 +372,32 @@ function normSetSlct(
 
   // replace one echo in a problematic set with a same-cost echo
   // that avoids all currently planned sets plus the set being broken.
-  const rplcAtNdx = (setIdToBreak: number, index: number) => {
+  const rplcAtNdx = (setIdToBreak: number, index: number): boolean => {
     const original = result[index]
     if (!original) {
-      return
+      return false
     }
 
-    const rplcDef = pickRplcDef(
+    const avoid = new Set([...planCounts.keys(), setIdToBreak])
+    for (const [setId, indices] of cntNdcsBySet()) {
+      if (indices.length >= setThreshold(setId) - 1) avoid.add(setId)
+    }
+    const replacement = pickRplcDef(
         getEchoCost(original),
-        new Set([...planCounts.keys(), setIdToBreak]),
+        avoid,
         usedKeys,
     )
 
-    if (!rplcDef) {
-      return
+    if (!replacement) {
+      return false
     }
 
-    usedKeys.add(echoSetKey(rplcDef.id, rplcDef.sets[0] ?? 0))
-
+    const { definition, setId } = replacement
+    usedKeys.add(echoSetKey(definition.id, setId))
     result[index] = {
-      ...mkEchoNstnyk(rplcDef, {
+      ...mkEchoNstnyk(definition, {
         slotIndex: index,
-        setId: rplcDef.sets[0] ?? 0,
+        setId,
         primaryKey: original.mainStats.primary.key,
         substats: original.substats,
       }),
@@ -408,6 +406,7 @@ function normSetSlct(
         secondary: { ...original.mainStats.secondary },
       },
     }
+    return true
   }
 
   let counts = cntNdcsBySet()
@@ -431,8 +430,7 @@ function normSetSlct(
         continue
       }
 
-      rplcAtNdx(setId, index)
-      toRemove -= 1
+      if (rplcAtNdx(setId, index)) toRemove -= 1
     }
   }
 
@@ -444,7 +442,7 @@ function normSetSlct(
       continue
     }
 
-    const threshold = THRPCSETIDS.has(setId) ? 3 : 2
+    const threshold = setThreshold(setId)
     const allowedMax = threshold - 1
 
     if (indices.length <= allowedMax) {
@@ -458,12 +456,14 @@ function normSetSlct(
         break
       }
 
+      if (index === 0 && mainEchoChoice) {
+        continue
+      }
       if (index === 0 && indices.length > 1) {
         continue
       }
 
-      rplcAtNdx(setId, index)
-      toFix -= 1
+      if (rplcAtNdx(setId, index)) toFix -= 1
     }
   }
 
@@ -479,13 +479,38 @@ function echoSetKey(id: string, set: number): string {
 export function applySetPlan(
     setPlan: SetPlanEntry[],
     qppdChs: Array<EchoInstance | null>,
+    mainEchoChoice?: { id: string; setId: number },
 ): Array<EchoInstance | null> {
-  const targetSets = xpndSetPlanT(setPlan, qppdChs)
+  let sourceEchoes = qppdChs
+  let orderedPlan = setPlan
+  if (mainEchoChoice) {
+    const definition = getEchoById(mainEchoChoice.id)
+    const mainIndex = definition && definition.sets.includes(mainEchoChoice.setId)
+      ? qppdChs.findIndex((echo) => getEchoCost(echo) === definition.cost)
+      : -1
+    // a main body must use an existing slot of its cost. move that whole
+    // slot, including its stats, so changing main never changes the build.
+    if (mainIndex < 0) return qppdChs.map((echo, index) => echo ? cloneEchoWit(echo, index) : null)
+    const reordered = [...qppdChs]
+    const previousMain = reordered[0]!
+    reordered[0] = reordered[mainIndex]!
+    reordered[mainIndex] = previousMain
+    sourceEchoes = reordered.map((echo, index) => index === 0 && echo
+      ? { ...echo, id: mainEchoChoice.id, set: mainEchoChoice.setId }
+      : echo)
+    const preferred = setPlan.find((entry) => entry.setId === mainEchoChoice.setId)
+    if (preferred) {
+      orderedPlan = [preferred, ...setPlan.filter((entry) => entry !== preferred)]
+    }
+  }
+
+  const targetSets = xpndSetPlanT(orderedPlan, sourceEchoes, 0, mainEchoChoice?.setId)
+  if (!targetSets) return sourceEchoes.map((echo, index) => echo ? cloneEchoWit(echo, index) : null)
   const usedKeys = new Set<string>()
   const result: Array<EchoInstance | null> = []
 
-  for (let slotIndex = 0; slotIndex < qppdChs.length; slotIndex += 1) {
-    const original = qppdChs[slotIndex]
+  for (let slotIndex = 0; slotIndex < sourceEchoes.length; slotIndex += 1) {
+    const original = sourceEchoes[slotIndex]
     const targetSet = targetSets[slotIndex]
 
     if (!original) {
@@ -516,11 +541,8 @@ export function applySetPlan(
     // otherwise swap in a compatible template of the same cost if possible
     const rplcDef = pickTmplDefF(targetSet, getEchoCost(original), usedKeys)
     if (!rplcDef) {
-      // final fallback: keep the original echo and force the set id anyway
-      result.push({
-        ...cloneEchoWit(original, slotIndex),
-        set: targetSet,
-      })
+      // an unrealizable plan must never produce a body with an unsupported set.
+      result.push(cloneEchoWit(original, slotIndex))
       continue
     }
 
@@ -539,7 +561,7 @@ export function applySetPlan(
     })
   }
 
-  return normSetSlct(result, setPlan, usedKeys)
+  return normSetSlct(result, orderedPlan, usedKeys, mainEchoChoice)
 }
 
 // verify whether a set plan can actually be realized on the current
@@ -574,7 +596,7 @@ export function prepSetPlanFsb(
       }
       if (capacity < entry.pieces) return false
     }
-    return true
+    return xpndSetPlanT(setPlan, slots) != null
   }
 }
 
@@ -585,116 +607,6 @@ export function isSetPlanFsb(
   return prepSetPlanFsb(qppdChs)(setPlan)
 }
 
-// enumerate all simple set-plan candidates allowed by the current slot count
-export function mkSetPlanCnd(slotCount: number): SetPlanEntry[][] {
-  const cached = setPlanCache.get(slotCount)
-  if (cached) return cached
-
-  const fivePcSetIds = ECHO_SET_DEFS
-      .filter((entry) => entry.setMax === 5)
-      .map((entry) => entry.id)
-
-  const thrPcSetIds = ECHO_SET_DEFS
-      .filter((entry) => entry.setMax === 3)
-      .map((entry) => entry.id)
-
-  const onePcSetIds = ECHO_SET_DEFS
-      .filter((entry) => entry.setMax === 1)
-      .map((entry) => entry.id)
-
-  const plans: SetPlanEntry[][] = []
-
-  // standalone 1pc plans
-  for (const setId of onePcSetIds) {
-    if (slotCount >= 1) {
-      plans.push([{ setId, pieces: 1 }])
-    }
-  }
-
-  // standalone 2pc / 5pc plans
-  for (const setId of fivePcSetIds) {
-    if (slotCount >= 2) {
-      plans.push([{ setId, pieces: 2 }])
-    }
-    if (slotCount >= 5) {
-      plans.push([{ setId, pieces: 5 }])
-    }
-  }
-
-  // standalone 3pc plans
-  for (const setId of thrPcSetIds) {
-    if (slotCount >= 3) {
-      plans.push([{ setId, pieces: 3 }])
-    }
-  }
-
-  // two different 2pc plans
-  for (let left = 0; left < fivePcSetIds.length; left += 1) {
-    for (let right = left + 1; right < fivePcSetIds.length; right += 1) {
-      if (slotCount >= 4) {
-        plans.push([
-          { setId: fivePcSetIds[left], pieces: 2 },
-          { setId: fivePcSetIds[right], pieces: 2 },
-        ])
-      }
-    }
-  }
-
-  // mixed 2pc + 3pc plans
-  for (const fiveSetId of fivePcSetIds) {
-    for (const threeSetId of thrPcSetIds) {
-      if (slotCount >= 5) {
-        plans.push([
-          { setId: fiveSetId, pieces: 2 },
-          { setId: threeSetId, pieces: 3 },
-        ])
-      }
-    }
-  }
-
-  // mixed 1pc + other plans
-  for (const oneSetId of onePcSetIds) {
-    // 1pc + 5pc (2pc/5pc)
-    for (const fiveSetId of fivePcSetIds) {
-      if (slotCount >= 3) {
-        plans.push([
-          { setId: oneSetId, pieces: 1 },
-          { setId: fiveSetId, pieces: 2 },
-        ])
-      }
-      if (slotCount >= 6) { // guard the general case beyond five slots.
-        plans.push([
-          { setId: oneSetId, pieces: 1 },
-          { setId: fiveSetId, pieces: 5 },
-        ])
-      }
-    }
-    // 1pc + 3pc
-    for (const threeSetId of thrPcSetIds) {
-      if (slotCount >= 4) {
-        plans.push([
-          { setId: oneSetId, pieces: 1 },
-          { setId: threeSetId, pieces: 3 },
-        ])
-      }
-    }
-    // 1pc + 2pc + 2pc
-    for (let left = 0; left < fivePcSetIds.length; left += 1) {
-      for (let right = left + 1; right < fivePcSetIds.length; right += 1) {
-        if (slotCount >= 5) {
-          plans.push([
-            { setId: oneSetId, pieces: 1 },
-            { setId: fivePcSetIds[left], pieces: 2 },
-            { setId: fivePcSetIds[right], pieces: 2 },
-          ])
-        }
-      }
-    }
-  }
-
-  if (ECHO_SET_DEFS.length > 0) setPlanCache.set(slotCount, plans)
-  return plans
-}
 
 // build a deterministic signature for only the main-stat layout of a loadout.
 // this is useful for deduplication when only cost and main stats matter.

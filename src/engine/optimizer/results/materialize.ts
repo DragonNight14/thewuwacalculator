@@ -12,7 +12,6 @@ import type {
   OptBagResult,
   OptRawResult,
   OptResultEntry,
-  OptResultStats,
   PckdRotXctnP,
   PackedSkill,
   PrepRotRun,
@@ -22,10 +21,12 @@ import type {
   PrepOptPay,
   TheoryResult,
 } from '@/engine/optimizer/types.ts'
-import { evalTarget } from '@/engine/optimizer/target/evaluate.ts'
+import type { OptResultStats } from '@/engine/search/score/core.ts'
+import { evalTarget } from '@/engine/search/score/evaluate.ts'
 import { composeOneWeaponContext } from '@/engine/optimizer/target/cpu.ts'
 import { fillOptBagRs } from '@/engine/optimizer/results/collector.ts'
 import { packRotation } from '@/engine/optimizer/payloads/rotationPayload.ts'
+import { materializePortableDamage, materializePortableStats } from '@/engine/rotation/portable/cpu'
 import { packTargetSkill } from '@/engine/optimizer/payloads/targetPayload.ts'
 
 type ThryPay = PrepTheoryTarget | PrepTheoryRot
@@ -83,6 +84,14 @@ function evalOptBagRs(
   result: OptBagResult,
   contextOverride?: Float32Array,
 ): OptResultStats | null {
+  return evalOptBagEv(execution, result, contextOverride)?.stats ?? null
+}
+
+function evalOptBagEv(
+  execution: PackedSkill,
+  result: OptBagResult,
+  contextOverride?: Float32Array,
+) {
   const comboIds = fillOptBagRs(new Int32Array(5), result)
   const mainIndex = comboIds[0] ?? -1
   if (mainIndex < 0) {
@@ -99,50 +108,41 @@ function evalOptBagRs(
     constraints: execution.constraints,
     comboIds,
     mainIndex,
-  })?.stats ?? null
+  })
 }
 
-// the display context to use for one rotation result row. weapon search recorded
-// the chosen weapon per build, so its own display context (not the equipped
-// weapon's) is used so the stat columns match the result's damage.
-function rotWeaponDisplay(
-  execution: PckdRotXctnP,
-  result: OptBagResult,
-): Float32Array | undefined {
-  const weaponIdx = 'weapon' in result ? (result.weapon ?? -1) : -1
-  const display = execution.weaponDisplayContexts
-  const stride = execution.contextStride
-  if (weaponIdx >= 0 && display && (execution.weaponCount ?? 0) > weaponIdx) {
-    return display.subarray(weaponIdx * stride, (weaponIdx + 1) * stride)
-  }
-  return undefined
-}
-
-// recompute the display-context stat summary for one rotation-mode result row.
-// displayOverride lets weapon search supply the chosen weapon's display context.
-function evalRotRsltS(
-  execution: PckdRotXctnP,
-  result: OptBagResult,
-  displayOverride?: Float32Array,
-): OptResultStats | null {
-  const comboIds = fillOptBagRs(new Int32Array(5), result)
+// one rotation result row through the compiled program, with the weapon search
+// picked. stats are the build's sheet at rest, the values its limits checked
+const rotComboIds = new Int32Array(5)
+function scoreRotRow(execution: PckdRotXctnP, result: OptBagResult, withDamage = true): { damage: number; stats: OptResultStats | null } {
+  const comboIds = fillOptBagRs(rotComboIds, result)
   const mainIndex = comboIds[0] ?? -1
-  if (mainIndex < 0) {
-    return null
+  if (mainIndex < 0) return { damage: result.damage, stats: null }
+  const weapon = 'weapon' in result ? (result.weapon ?? -1) : -1
+  return {
+    damage: withDamage ? materializePortableDamage(execution, comboIds, mainIndex, weapon) : result.damage,
+    stats: materializePortableStats(execution, comboIds, mainIndex, weapon),
   }
-
-  return evalTarget({
-    context: displayOverride ?? execution.displayContext,
-    stats: execution.stats,
-    setConstLut: execution.setConstLut,
-    mainEchoBuffs: execution.mainEchoBuffs,
-    sets: execution.sets,
-    kinds: execution.kinds,
-    constraints: execution.constraints,
-    comboIds,
-    mainIndex,
-  })?.stats ?? null
 }
+
+// one inventory result row: damage and stats rescored on the cpu with the same
+// arithmetic as the base build row, so the equipped build found again reads
+// 100% (the search kernels score in f32 and land a unit or so off). rows the
+// cpu cannot rescore exactly keep the search's damage.
+function scoreOptRow(
+  execution: PackedSkill | PckdRotXctnP,
+  result: OptBagResult,
+): { damage: number; stats: OptResultStats | null } {
+  const weapon = 'weapon' in result ? (result.weapon ?? -1) : -1
+  if (execution.mode === 'rotation') return scoreRotRow(execution, result)
+  const evaluated = evalOptBagEv(execution, result)
+  return {
+    damage: weapon < 0 && evaluated ? evaluated.damage : result.damage,
+    stats: evaluated?.stats ?? null,
+  }
+}
+
+const byDamage = (left: OptResultEntry, right: OptResultEntry) => right.damage - left.damage
 
 // resolve the concrete echo instances referenced by one optimizer result row
 export function resOptRsltCh(
@@ -167,10 +167,7 @@ export function evalOptBagcz(
   }
 
   return payload.mode === 'rotation'
-    ? evalRotRsltS(
-        packRotation(payload),
-        result,
-      )
+    ? scoreRotRow(packRotation(payload), result, false).stats
     : evalOptBagRs(
         packTargetSkill(payload),
         result,
@@ -200,14 +197,11 @@ export function matOptRslts(
       continue
     }
 
+    const scored = execution ? scoreOptRow(execution, result) : { damage: result.damage, stats: null }
     finalized.push({
-      damage: result.damage,
+      damage: scored.damage,
       uids: echoes.map((echo) => echo?.uid ?? ''),
-      stats: execution
-        ? (execution.mode === 'rotation'
-          ? evalRotRsltS(execution, result)
-          : evalOptBagRs(execution, result))
-        : null,
+      stats: scored.stats,
     })
 
     if (finalized.length >= maxItems) {
@@ -215,7 +209,7 @@ export function matOptRslts(
     }
   }
 
-  return finalized
+  return finalized.sort(byDamage)
 }
 
 export function matOptRsltsF(
@@ -262,14 +256,11 @@ export function matOptRsltsF(
       continue
     }
 
+    const scored = execution ? scoreOptRow(execution, result) : { damage: result.damage, stats: null }
     finalized.push({
-      damage: result.damage,
+      damage: scored.damage,
       uids,
-      stats: execution
-        ? (execution.mode === 'rotation'
-          ? evalRotRsltS(execution, result)
-          : evalOptBagRs(execution, result))
-        : null,
+      stats: scored.stats,
     })
 
     if (finalized.length >= maxItems) {
@@ -277,7 +268,7 @@ export function matOptRsltsF(
     }
   }
 
-  return finalized
+  return finalized.sort(byDamage)
 }
 
 // compute the stat line for one raw theory result without expanding echoes.
@@ -290,18 +281,24 @@ export function evalThryRsltS(
   }
 
   const execution = getThryXct(payload)
-  if (execution.mode === 'rotation') {
-    return evalRotRsltS(execution, result, rotWeaponDisplay(execution, result))
-  }
+  return execution.mode === 'rotation' ? scoreRotRow(execution, result, false).stats : scoreThryRow(execution, result).stats
+}
 
-  // recompute displayed stats with the winning weapon from search. the stat
-  // columns must match the result's damage.
-  const weaponIdx = 'weapon' in result ? (result.weapon ?? -1) : -1
+// one theory bag row rescored on the cpu, as scoreOptRow does for inventory
+// rows, with the winning weapon from search so damage and stats match it
+function scoreThryRow(
+  execution: ThryXct,
+  result: OptBagResult,
+): { damage: number; stats: OptResultStats | null } {
+  const weaponIdx = result.weapon ?? -1
+  if (execution.mode === 'rotation') return scoreRotRow(execution, result)
+
   const overlays = execution.weaponOverlays
   const weaponCtx = weaponIdx >= 0 && overlays && (execution.weaponCount ?? 0) > weaponIdx
       ? composeOneWeaponContext(execution.context, overlays, weaponIdx)
       : undefined
-  return evalOptBagRs(execution, result, weaponCtx)
+  const evaluated = evalOptBagEv(execution, result, weaponCtx)
+  return { damage: evaluated?.damage ?? result.damage, stats: evaluated?.stats ?? null }
 }
 
 // materialize compact theory rows only after ranking has already happened
@@ -327,15 +324,12 @@ export function matThryRslts(
         ? (payload.weaponIds?.[weaponIdx] ?? null)
         : null
 
+    const scored = 'ids' in result ? result : scoreThryRow(execution, result)
     finalized.push({
-      damage: result.damage,
+      damage: scored.damage,
       uids: echoes.map((echo) => echo.uid),
       echoes,
-      stats: 'ids' in result
-          ? result.stats
-          : (execution.mode === 'rotation'
-            ? evalRotRsltS(execution, result, rotWeaponDisplay(execution, result))
-            : evalOptBagRs(execution, result)),
+      stats: scored.stats,
       weaponId,
     })
 
@@ -344,7 +338,7 @@ export function matThryRslts(
     }
   }
 
-  return finalized
+  return finalized.sort((left, right) => right.damage - left.damage)
 }
 
 export function evalPrepOptB(
@@ -361,43 +355,8 @@ export function evalPrepOptB(
   }
 
   if (payload.mode === 'rotation') {
-    const execution = packRotation(payload)
-    if (execution.contextCount <= 0) {
-      return {
-        damage: 0,
-        stats: null,
-      }
-    }
-
-    let damage = 0
-    for (let index = 0; index < execution.contextCount; index += 1) {
-      const base = index * execution.contextStride
-      const evaluated = evalTarget({
-        context: execution.contexts.subarray(base, base + execution.contextStride),
-        stats: execution.stats,
-        setConstLut: execution.setConstLut,
-        mainEchoBuffs: execution.mainEchoBuffs,
-        sets: execution.sets,
-        kinds: execution.kinds,
-        comboIds,
-        mainIndex,
-      })
-      damage += (evaluated?.damage ?? 0) * (execution.contextWeight[index] ?? 1)
-    }
-
-    return {
-      damage,
-      stats: evalTarget({
-        context: execution.displayContext,
-        stats: execution.stats,
-        setConstLut: execution.setConstLut,
-        mainEchoBuffs: execution.mainEchoBuffs,
-        sets: execution.sets,
-        kinds: execution.kinds,
-        comboIds,
-        mainIndex,
-      })?.stats ?? null,
-    }
+    const packed = packRotation(payload)
+    return { damage: materializePortableDamage(packed, comboIds, mainIndex), stats: materializePortableStats(packed, comboIds, mainIndex) }
   }
 
   const execution = packTargetSkill(payload)
@@ -428,9 +387,9 @@ export function compactTheoryResults(payload: ThryPay, results: readonly OptRawR
     const entry = compact(result)
     if (!entry) continue
     const weapon = 'weapon' in result ? result.weapon ?? -1 : -1
-    finalized.push({ ...entry, stats: 'ids' in result ? result.stats : execution.mode === 'rotation'
-      ? evalRotRsltS(execution, result, rotWeaponDisplay(execution, result)) : evalOptBagRs(execution, result), weaponId: payload.weaponIds?.[weapon] ?? null })
+    const scored = 'ids' in result ? result : scoreThryRow(execution, result)
+    finalized.push({ ...entry, damage: scored.damage, stats: scored.stats, weaponId: payload.weaponIds?.[weapon] ?? null })
     if (finalized.length >= limit) break
   }
-  return finalized
+  return finalized.sort((left, right) => right.damage - left.damage)
 }

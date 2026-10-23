@@ -3,14 +3,9 @@
   description: compiles participant effects into packed numeric team state for repeated combat evaluation.
 */
 
-/*
-  shader-like simulation effect kernel.
-
-  rich runtimes and authored effect objects are consumed once by compilation.
-  evaluation thereafter uses dense participant lanes, numeric registers and
-  typed instruction streams. the object-shaped simulation context is only a
-  cold materialization boundary for ui and compatibility callers.
-*/
+/* compilation converts runtime and effect objects into numeric lanes and
+   instructions for repeated evaluation; ui and compatibility callers can
+   still request an object-shaped simulation context. */
 
 import { getGameData } from '@/data/gameData/index.ts'
 import type { EnemyProfile } from '@/domain/entities/appState.ts'
@@ -50,19 +45,23 @@ import {
   finalCoreCell,
   finalTopCell,
   packBuffPool,
+  readBuffPoolCell,
   poolAttributeCell,
   poolBaseCell,
   poolFixedCell,
   poolNegativeCell,
   poolSkillTypeCell,
   poolTopCell,
+  FINAL_TOP_OFFSET,
+  POOL_TOP_OFFSET,
+  NUMERIC_BASE_KEYS,
   unpackBuffPool,
   unpackFinalStats,
 } from '@/engine/rotation/numericLayout.ts'
 
 const MAX_LANES = 3
 
-const DIRECT_RUNTIME_POOL_CELL: Readonly<Record<string, number>> = {
+export const DIRECT_RUNTIME_POOL_CELL: Readonly<Record<string, number>> = {
   'state.manualBuffs.quick.atk.percent': poolBaseCell('atk', 'percent'),
   'state.manualBuffs.quick.atk.flat': poolBaseCell('atk', 'flat'),
   'state.manualBuffs.quick.hp.percent': poolBaseCell('hp', 'percent'),
@@ -195,6 +194,7 @@ interface NumericSkillProgram {
 }
 
 interface CompileState {
+  canRebaseEchoStats: boolean
   graph: CombatGraph
   enemy: EnemyProfile
   laneIds: string[]
@@ -208,6 +208,8 @@ interface CompileState {
 }
 
 export interface NumericTeamProgram {
+  /** static runtime expressions require a fresh compile for candidate builds. */
+  readonly canRebaseEchoStats: boolean
   readonly laneIds: readonly string[]
   readonly slotIds: readonly SlotId[]
   readonly laneById: Readonly<Record<string, number>>
@@ -219,9 +221,13 @@ export interface NumericTeamProgram {
   readonly symbols: Map<string, number>
   readonly symbolValues: readonly string[]
   readonly programsByTarget: readonly (readonly NumericRuntimeProgram[])[]
+  readonly programsByStage: readonly (readonly (readonly NumericRuntimeProgram[])[])[]
   readonly skillProgramsByTarget: readonly (readonly NumericSkillProgram[])[]
   readonly conditionsByTarget: readonly ReadonlyMap<CondExpr, NumericConditionProgram>[]
   readonly sourceFinalTargetMasks: Uint8Array
+  /** target masks for individual source-final cells. */
+  readonly sourceFinalCellTargetMasks: Uint8Array
+  readonly sourceFinalCellsByLane: readonly Uint16Array[]
   readonly runtimeDependencyMasks: Uint8Array
   readonly activeDependencyMask: number
   readonly enemyDependencyMask: number
@@ -234,6 +240,7 @@ export interface NumericTeamProgram {
 export interface NumericTeamState {
   readonly program: NumericTeamProgram
   activeLane: number
+  readonly initialActiveLane: number
   /*
     a write does not rebuild the buff graph; it records which lanes went stale.
     a rotation writes several states in a row before it reads anything, and
@@ -262,15 +269,12 @@ export interface NumericTeamState {
   readonly immunityNegative: Uint32Array
   readonly effectScales: Float64Array
   readonly routes: Int8Array
+  readonly routeOverrides: Uint8Array
   readonly formulaStack: Float64Array
   readonly skillBuffScratch: Float64Array
   readonly skillScalarScratch: Float64Array
-  /*
-    who moved a figure, not just by how much. the sum alone cannot say which
-    buff put the off-tune there, and a register readout that names no source is
-    a number the reader has to take on faith. off by default: the search paths
-    run the same kernel and have nothing to read it with.
-  */
+  /* record contribution sources for inspection; search runs disable tracing
+     because they do not consume the contribution details. */
   traceContributions: boolean
   skillScalarTrace: SkillScalarWrite[]
   /* one list per lane, since a lane is recomputed on its own */
@@ -297,7 +301,7 @@ type NumericUndoEntry =
   | { kind: 'runtime'; index: number; valueKind: number; value: number; numeric: number; poolIndex: number; poolValue: number }
   | { kind: 'enemy'; index: number; valueKind: number; value: number; numeric: number }
   | { kind: 'active'; lane: number }
-  | { kind: 'route'; index: number; lane: number }
+  | { kind: 'route'; index: number; lane: number; overridden: number }
   | { kind: 'scale'; index: number; value: number }
 
 export interface NumericTeamCheckpoint {
@@ -451,6 +455,7 @@ function compileRef(
   if (normalized.from === 'context') {
     if (normalized.path === 'activeResonatorId') return { kind: REF_ACTIVE_ID, index: 0, lane: -1, constant: 0 }
     if (normalized.path.startsWith('enemy.')) return { kind: REF_ENEMY, index: enemyPathIndex(state, normalized.path.slice(6)), lane: -1, constant: 0 }
+    if (/Runtime\./.test(normalized.path)) state.canRebaseEchoStats = false
     return { kind: REF_CONST, index: 0, lane: -1, constant: numericValue(staticContextValue(context, normalized.path)) }
   }
   return { kind: REF_CONST, index: 0, lane: -1, constant: 0 }
@@ -548,6 +553,7 @@ function compileCondition(
     if (entry.type === 'always') return node
     const normalized = normalizePath(entry.path, entry.from)
     if (entry.type === 'includes' || (normalized.from === 'context' && normalized.path !== 'activeResonatorId' && !normalized.path.startsWith('enemy.'))) {
+      if (normalized.from !== 'context' || /Runtime\./.test(normalized.path)) state.canRebaseEchoStats = false
       const actual = staticContextValue(context, normalized.path)
       let result = false
       if (entry.type === 'includes' && Array.isArray(actual)) {
@@ -886,12 +892,15 @@ function programTargetsActive(
   if (program.targetScope === TARGET_TEAM) return true
   if (program.targetScope === TARGET_OTHER) return program.sourceLane !== program.targetLane
   const routed = state.routes[program.routeIndex] ?? program.routedLane
-  if (routed === -2) return false
-  const target = routed >= 0
-    ? routed
-    : program.targetScope === TARGET_ACTIVE_OTHER && state.activeLane === program.sourceLane
-      ? (program.sourceLane === 0 && state.program.laneIds.length > 1 ? 1 : 0)
-      : state.activeLane
+  const useRotationActive = state.activeLane !== state.initialActiveLane
+    && state.routeOverrides[program.routeIndex] !== 1
+  if (routed === -2 && !useRotationActive) return false
+  let target = state.activeLane
+  if (!useRotationActive && routed >= 0) {
+    target = routed
+  } else if (!useRotationActive && program.targetScope === TARGET_ACTIVE_OTHER && state.activeLane === program.sourceLane) {
+    target = program.sourceLane === 0 && state.program.laneIds.length > 1 ? 1 : 0
+  }
   return target === program.targetLane && (program.targetScope !== TARGET_ACTIVE_OTHER || target !== program.sourceLane)
 }
 
@@ -916,8 +925,8 @@ function executePrograms(
   const poolOffset = lane * NUMERIC_POOL_CELL_COUNT
   const rateTrace = state.traceContributions ? state.buildupRateTrace[lane] : undefined
   const rateCell = poolOffset + RATE_POOL_CELL
-  for (const program of state.program.programsByTarget[lane] ?? []) {
-    if (program.stage !== stage || !programTargetsActive(state, program)) continue
+  for (const program of state.program.programsByStage[lane]?.[stage] ?? []) {
+    if (!programTargetsActive(state, program)) continue
     if (!executeConditionNode(state, program.condition, 0)) continue
     const effectScale = conditionScale(state, program.condition, 0)
     for (let op = 0; op < program.opcodes.length; op += 1) {
@@ -982,14 +991,24 @@ function recomputeTargetLane(state: NumericTeamState, lane: number): void {
   deriveFinalPlane(base, state.weaponAttack[lane] ?? 0,
     state.pools.subarray(poolOffset, poolOffset + NUMERIC_POOL_CELL_COUNT),
     state.preFinals.subarray(lane * NUMERIC_FINAL_CELL_COUNT, (lane + 1) * NUMERIC_FINAL_CELL_COUNT))
-  executePrograms(state, lane, 1, true)
-  deriveFinalPlane(base, state.weaponAttack[lane] ?? 0,
-    state.pools.subarray(poolOffset, poolOffset + NUMERIC_POOL_CELL_COUNT),
-    state.preFinals.subarray(lane * NUMERIC_FINAL_CELL_COUNT, (lane + 1) * NUMERIC_FINAL_CELL_COUNT))
-  executePrograms(state, lane, 2, true)
-  deriveFinalPlane(base, state.weaponAttack[lane] ?? 0,
-    state.pools.subarray(poolOffset, poolOffset + NUMERIC_POOL_CELL_COUNT),
-    state.finals.subarray(lane * NUMERIC_FINAL_CELL_COUNT, (lane + 1) * NUMERIC_FINAL_CELL_COUNT))
+  if (state.program.programsByStage[lane]?.[1]?.length) {
+    executePrograms(state, lane, 1, true)
+    deriveFinalPlane(base, state.weaponAttack[lane] ?? 0,
+      state.pools.subarray(poolOffset, poolOffset + NUMERIC_POOL_CELL_COUNT),
+      state.preFinals.subarray(lane * NUMERIC_FINAL_CELL_COUNT, (lane + 1) * NUMERIC_FINAL_CELL_COUNT))
+  }
+  if (state.program.programsByStage[lane]?.[2]?.length) {
+    executePrograms(state, lane, 2, true)
+    deriveFinalPlane(base, state.weaponAttack[lane] ?? 0,
+      state.pools.subarray(poolOffset, poolOffset + NUMERIC_POOL_CELL_COUNT),
+      state.finals.subarray(lane * NUMERIC_FINAL_CELL_COUNT, (lane + 1) * NUMERIC_FINAL_CELL_COUNT))
+  } else {
+    // no final-stage operation can distinguish these planes. keep their banks
+    // separate for later writes, without deriving the same stats again.
+    state.finals.set(state.preFinals.subarray(
+      lane * NUMERIC_FINAL_CELL_COUNT, (lane + 1) * NUMERIC_FINAL_CELL_COUNT,
+    ), lane * NUMERIC_FINAL_CELL_COUNT)
+  }
 }
 
 function markNumericDirty(state: NumericTeamState, sourceMask: number, targetMask: number): void {
@@ -1015,16 +1034,20 @@ function recomputeMask(state: NumericTeamState, sourceMask: number, targetMask: 
   let expanded = targetMask
   for (let lane = 0; lane < laneCount; lane += 1) {
     if (!(sourceMask & (1 << lane))) continue
-    /*
-      a source plane is what a lane offers to the lanes that read it. when no
-      program reads this one, deriving it is work nothing can observe, and a
-      team where only the active member buffs others has more such lanes than
-      not.
-    */
+    // skip source-final calculation when no target reads this lane.
     const consumers = state.program.sourceFinalTargetMasks[lane] ?? 0
     if (consumers === 0) continue
+    const offset = lane * NUMERIC_FINAL_CELL_COUNT
+    // source-final reads are sparse, such as Energy Regen; a
+    // changed HP or ATK value must not invalidate every recipient of ER.
+    const cells = state.program.sourceFinalCellsByLane[lane]!
+    const previous = Float64Array.from(cells, (cell) => state.sourceFinals[offset + cell]!)
     recomputeSourceLane(state, lane)
-    expanded |= consumers
+    for (let index = 0; index < cells.length; index += 1) {
+      const cell = cells[index]!
+      const mask = state.program.sourceFinalCellTargetMasks[offset + cell] ?? 0
+      if (!Object.is(previous[index], state.sourceFinals[offset + cell])) expanded |= mask
+    }
   }
   for (let lane = 0; lane < laneCount; lane += 1) if (expanded & (1 << lane)) recomputeTargetLane(state, lane)
 }
@@ -1055,6 +1078,7 @@ function writeEnemyRegister(state: NumericTeamState, pathIndex: number, value: u
 function compileProgram(input: NumericTeamInput): NumericTeamProgram {
   const participants = Object.values(input.graph.participants).slice(0, MAX_LANES)
   const state: CompileState = {
+    canRebaseEchoStats: true,
     graph: input.graph, enemy: input.enemy,
     laneIds: participants.map((part) => part.resonatorId),
     laneById: Object.fromEntries(participants.map((part, index) => [part.resonatorId, index])),
@@ -1069,6 +1093,7 @@ function compileProgram(input: NumericTeamInput): NumericTeamProgram {
   const flatSkillPrograms: NumericSkillProgram[] = []
   let routeCount = 0
   const sourceFinalTargetMasks = new Uint8Array(participants.length)
+  const sourceFinalCellTargetMasks = new Uint8Array(participants.length * NUMERIC_FINAL_CELL_COUNT)
   for (let targetLane = 0; targetLane < participants.length; targetLane += 1) {
     const target = participants[targetLane]!
     const rows = listGraphEffectRows(input.graph, target.slotId)
@@ -1076,19 +1101,31 @@ function compileProgram(input: NumericTeamInput): NumericTeamProgram {
       if (input.includeEffectSource && !input.includeEffectSource(row.baseContext.source)) continue
       const sourceLane = state.laneById[row.baseContext.sourceRuntime.id]
       if (sourceLane === undefined) continue
+      // source rows are expanded for every participant. self effects can
+      // never run on another lane; other-only effects can never run on self.
+      // eliminate them before compiling refs, routes and dependency masks.
+      const canTarget = (effect: EffectDef) => {
+        const scope = effect.targetScope ?? 'self'
+        return scope === 'self' ? sourceLane === targetLane
+          : scope === 'otherTeammates' || scope === 'activeOther' ? sourceLane !== targetLane : true
+      }
       for (const effect of row.rtPreSttsExe) {
+        if (!canTarget(effect)) continue
         const program = compileRuntimeProgram(state, effect, row.baseContext, sourceLane, targetLane, 0, routeCount++)
         programsByTarget[targetLane]!.push(program); flatPrograms.push(program)
       }
       for (const effect of row.postStatEffects) {
+        if (!canTarget(effect)) continue
         const program = compileRuntimeProgram(state, effect, row.baseContext, sourceLane, targetLane, 1, routeCount++)
         programsByTarget[targetLane]!.push(program); flatPrograms.push(program)
       }
       for (const effect of row.finalStatEffects) {
+        if (!canTarget(effect)) continue
         const program = compileRuntimeProgram(state, effect, row.baseContext, sourceLane, targetLane, 2, routeCount++)
         programsByTarget[targetLane]!.push(program); flatPrograms.push(program)
       }
       for (const effect of row.skillEffects) {
+        if (!canTarget(effect)) continue
         const program = compileSkillProgram(state, effect, row.baseContext, sourceLane, targetLane, routeCount++)
         skillProgramsByTarget[targetLane]!.push(program); flatSkillPrograms.push(program)
       }
@@ -1165,12 +1202,28 @@ function compileProgram(input: NumericTeamInput): NumericTeamProgram {
   for (const programs of programsByTarget) for (const program of programs) {
     if (program.readsSourceFinal) sourceFinalTargetMasks[program.sourceLane] |= 1 << program.targetLane
     for (const ref of [...program.condition.refs, ...program.formulas.flatMap((formula) => formula?.refs ?? [])]) {
+      if (ref.kind === REF_SOURCE_FINAL) sourceFinalCellTargetMasks[ref.lane * NUMERIC_FINAL_CELL_COUNT + ref.index] |= 1 << program.targetLane
       if (ref.kind === REF_SOURCE_RUNTIME || ref.kind === REF_TARGET_RUNTIME) runtimeDependencyMasks[ref.lane * stride + ref.index] |= 1 << program.targetLane
       else if (ref.kind === REF_ACTIVE_RUNTIME) activeDependencyMask |= 1 << program.targetLane
       else if (ref.kind === REF_ENEMY) enemyDependencyMask |= 1 << program.targetLane
     }
     if (program.targetScope === TARGET_ACTIVE || program.targetScope === TARGET_ACTIVE_OTHER) activeDependencyMask |= 1 << program.targetLane
   }
+  // source planes can also be consumed directly by skill operations and
+  // visibility/variant conditions. their readiness must not depend on an
+  // unrelated runtime effect having happened to request the same plane.
+  const sourceRead = (ref: NumericRef, targetLane: number) => {
+    if (ref.kind !== REF_SOURCE_FINAL) return
+    sourceFinalTargetMasks[ref.lane] |= 1 << targetLane
+    sourceFinalCellTargetMasks[ref.lane * NUMERIC_FINAL_CELL_COUNT + ref.index] |= 1 << targetLane
+  }
+  for (const entries of skillProgramsByTarget) for (const entry of entries) {
+    for (const ref of entry.condition.refs) sourceRead(ref, entry.targetLane)
+    for (const operation of entry.operations) for (const ref of operation.formula.refs) sourceRead(ref, entry.targetLane)
+  }
+  conditionsByTarget.forEach((conditions, lane) => {
+    for (const condition of conditions.values()) for (const ref of condition.refs) sourceRead(ref, lane)
+  })
   const routeProgramsByKey: Record<string, number[]> = {}
   const allTargetPrograms = [...flatPrograms, ...flatSkillPrograms].sort((left, right) => left.routeIndex - right.routeIndex)
   for (const program of allTargetPrograms) {
@@ -1190,11 +1243,19 @@ function compileProgram(input: NumericTeamInput): NumericTeamProgram {
     }
   }
   return {
+    canRebaseEchoStats: state.canRebaseEchoStats,
     laneIds: state.laneIds, slotIds: participants.map((part) => part.slotId), laneById: state.laneById,
     paths: state.paths, pathIndexByName: state.pathIndexes,
     enemyPaths: state.enemyPaths, enemyPathIndexByName: state.enemyPathIndexes, symbols: state.symbols,
     combatPathIndexes,
-    symbolValues: state.symbolValues, programsByTarget, skillProgramsByTarget, conditionsByTarget, sourceFinalTargetMasks,
+    symbolValues: state.symbolValues, programsByTarget,
+    programsByStage: programsByTarget.map((programs) => [0, 1, 2].map((stage) =>
+      programs.filter((program) => program.stage === stage))),
+    skillProgramsByTarget, conditionsByTarget, sourceFinalTargetMasks, sourceFinalCellTargetMasks,
+    sourceFinalCellsByLane: participants.map((_, lane) => Uint16Array.from(
+      Array.from({ length: NUMERIC_FINAL_CELL_COUNT }, (__, cell) => cell)
+        .filter((cell) => sourceFinalCellTargetMasks[lane * NUMERIC_FINAL_CELL_COUNT + cell]),
+    )),
     runtimeDependencyMasks, activeDependencyMask, enemyDependencyMask,
     routeProgramsByKey,
     routeTargetLanes: Int8Array.from(allTargetPrograms.map((entry) => entry.targetLane)),
@@ -1206,11 +1267,13 @@ function compileProgram(input: NumericTeamInput): NumericTeamProgram {
 export function createNumericTeam(input: NumericTeamInput): NumericTeamState {
   const program = compileProgram(input)
   const laneCount = program.laneIds.length
+  const initialActiveLane = Math.max(0, program.slotIds.indexOf(input.graph.activeSlotId))
   const poolCells = laneCount * NUMERIC_POOL_CELL_COUNT
   const finalCells = laneCount * NUMERIC_FINAL_CELL_COUNT
   const state: NumericTeamState = {
     program,
-    activeLane: Math.max(0, program.slotIds.indexOf(input.graph.activeSlotId)),
+    activeLane: initialActiveLane,
+    initialActiveLane,
     baseStats: new Float64Array(laneCount * 8), weaponAttack: new Float64Array(laneCount),
     basePools: new Float64Array(poolCells), sourceFinals: new Float64Array(finalCells),
     pools: new Float64Array(poolCells), preFinals: new Float64Array(finalCells), finals: new Float64Array(finalCells),
@@ -1223,6 +1286,7 @@ export function createNumericTeam(input: NumericTeamInput): NumericTeamState {
     immunitySkillTypes: new Uint32Array(laneCount), immunityNegative: new Uint32Array(laneCount),
     effectScales: new Float64Array(laneCount * program.paths.length).fill(1),
     routes: program.routeDefaults.slice(),
+    routeOverrides: new Uint8Array(program.routeDefaults.length),
     formulaStack: new Float64Array(program.maxFormulaStack),
     skillBuffScratch: new Float64Array(skillModFields.length),
     skillScalarScratch: new Float64Array(skillScalarFields.length),
@@ -1259,12 +1323,8 @@ export function createNumericTeam(input: NumericTeamInput): NumericTeamState {
   return state
 }
 
-/*
-  recompute every lane so the contribution traces describe the state as it
-  stands. a trace is only written while a lane is being recomputed, so a lane
-  that never goes dirty during a run would otherwise have nothing to show and
-  its whole figure would fall to the unattributed remainder.
-*/
+/* recompute every lane before reading traces, including lanes that did not
+   become dirty during the run. */
 export function primeNumericTraces(state: NumericTeamState): void {
   const all = (1 << state.program.laneIds.length) - 1
   markNumericDirty(state, all, all)
@@ -1283,6 +1343,7 @@ export function forkNumericTeam(source: NumericTeamState): NumericTeamState {
     immunitySkillTypes: source.immunitySkillTypes.slice(), immunityNegative: source.immunityNegative.slice(),
     effectScales: source.effectScales.slice(),
     routes: source.routes.slice(),
+    routeOverrides: source.routeOverrides.slice(),
     formulaStack: new Float64Array(source.program.maxFormulaStack),
     skillBuffScratch: new Float64Array(skillModFields.length),
     skillScalarScratch: new Float64Array(skillScalarFields.length),
@@ -1291,6 +1352,297 @@ export function forkNumericTeam(source: NumericTeamState): NumericTeamState {
     transactionLog: [],
     transactionDepth: 0,
   }
+}
+
+/**
+ * reuse a compiled team for an Echo-stat candidate with identical sources,
+ * set counts and initial controls; the returned register banks are specific
+ * to this candidate.
+ */
+export function rebaseNumericTeamEchoStats(
+  source: NumericTeamState,
+  runtime: ResRuntime,
+  pool: UnifiedBuffPool,
+): NumericTeamState {
+  const state = forkNumericTeam(source)
+  const lane = state.program.laneById[runtime.id]
+  if (lane === undefined) throw new Error(`Missing candidate lane ${runtime.id}`)
+  packBuffPool(pool, state.basePools.subarray(lane * NUMERIC_POOL_CELL_COUNT, (lane + 1) * NUMERIC_POOL_CELL_COUNT))
+  let sourceMask = 1 << lane
+  for (let index = 0; index < state.program.paths.length; index += 1) {
+    const register = lane * state.program.paths.length + index
+    const previousKind = state.runtimeKinds[register]
+    const previousValue = state.runtimeValues[register]
+    writeRegister(state, lane, index, readRtPath(runtime, state.program.paths[index]!))
+    if (previousKind !== state.runtimeKinds[register] || !Object.is(previousValue, state.runtimeValues[register])) {
+      sourceMask |= state.program.runtimeDependencyMasks[register] ?? 0
+    }
+  }
+  // only this lane's base pool changed. preserve fixed source planes; normal
+  // dependency propagation refreshes recipients of its stat-scaled effects.
+  markNumericDirty(state, sourceMask, sourceMask)
+  state.revision += 1
+  syncNumericTeam(state)
+  return state
+}
+
+export interface NumericReplayCandidate {
+  pool: UnifiedBuffPool
+}
+type TeammateReplayProjection = ((
+  state: NumericTeamState,
+  candidate?: NumericReplayCandidate,
+  internStructure?: (structure: string) => number,
+) => string) & { echoInputs: (echoes: readonly NonNullable<ResRuntime['build']['echoes'][number]>[]) => string }
+const teammateReplayProjections = new WeakMap<NumericTeamProgram, Map<string, TeammateReplayProjection>>()
+const initialTeammateProjections = new WeakMap<NumericTeamState, {
+  resonatorId: string; revision: number; project: TeammateReplayProjection
+}>()
+
+/** match initial Echo contributions to reuse identical numeric pools. */
+export function numericTeammateEchoInputProjector(state: NumericTeamState, resonatorId: string) {
+  const initial = initialTeammateProjections.get(state)
+  return initial?.resonatorId === resonatorId && initial.revision === state.revision
+    ? initial.project.echoInputs : null
+}
+
+type EchoInputProjector = TeammateReplayProjection['echoInputs']
+const echoContributionProjectors = new Map<string, EchoInputProjector>()
+function prepareEchoContributionProjector(keys: string[]): EchoInputProjector {
+  const signature = JSON.stringify(keys)
+  const known = echoContributionProjectors.get(signature)
+  if (known) return known
+  const relevant = new Set(keys)
+  const contributions = new WeakMap<NonNullable<ResRuntime['build']['echoes'][number]>['mainStats'],
+    WeakMap<NonNullable<ResRuntime['build']['echoes'][number]>['substats'], string>>()
+  const project: EchoInputProjector = (echoes) => {
+    let key = ''
+    for (const echo of echoes) {
+      let stats = contributions.get(echo.mainStats)
+      let value = stats?.get(echo.substats)
+      if (value === undefined) {
+        value = JSON.stringify([
+          ...[echo.mainStats.primary, echo.mainStats.secondary].filter((stat) => relevant.has(stat.key)).map((stat) => [stat.key, stat.value]),
+          ...Object.entries(echo.substats).filter(([stat]) => relevant.has(stat)),
+        ], (_, field: unknown) => typeof field === 'number' && !Number.isFinite(field) ? String(field) : field)
+        if (!stats) contributions.set(echo.mainStats, stats = new WeakMap())
+        stats.set(echo.substats, value)
+      }
+      key += `${value}|`
+    }
+    return key
+  }
+  if (echoContributionProjectors.size >= 16) echoContributionProjectors.delete(echoContributionProjectors.keys().next().value!)
+  echoContributionProjectors.set(signature, project)
+  return project
+}
+
+const echoStatCells: Record<string, number> = {
+  atkPercent: poolBaseCell('atk', 'percent'), atkFlat: poolBaseCell('atk', 'flat'),
+  hpPercent: poolBaseCell('hp', 'percent'), hpFlat: poolBaseCell('hp', 'flat'),
+  defPercent: poolBaseCell('def', 'percent'), defFlat: poolBaseCell('def', 'flat'),
+  critRate: poolTopCell('critRate'), critDmg: poolTopCell('critDmg'),
+  energyRegen: poolTopCell('energyRegen'), healingBonus: poolTopCell('healingBonus'),
+  tuneBreakBoost: poolTopCell('tuneBreakBoost'),
+  ...Object.fromEntries(['aero', 'glacio', 'electro', 'fusion', 'havoc', 'spectro', 'physical'].map((key) =>
+    [key, poolAttributeCell(key as AttributeKey, 'dmgBonus')])),
+  ...Object.fromEntries(['basicAtk', 'heavyAtk', 'resonanceSkill', 'resonanceLiberation'].map((key) =>
+    [key, poolSkillTypeCell(key as SkillTypeKey, 'dmgBonus')])),
+}
+
+/** project teammate replay dependencies while retaining the searched member's
+ * off-tune and skill decisions; use full replay for static runtime reads. */
+export function numericTeammateReplayKey(
+  state: NumericTeamState,
+  resonatorId: string,
+  candidate?: NumericReplayCandidate,
+  internStructure?: (structure: string) => number,
+): string | null {
+  const initial = candidate ? initialTeammateProjections.get(state) : undefined
+  if (initial?.resonatorId === resonatorId && initial.revision === state.revision) {
+    return initial.project(state, candidate, internStructure)
+  }
+  const program = state.program
+  const candidateLane = program.laneById[resonatorId]
+  if (candidateLane === undefined || !program.canRebaseEchoStats
+    || program.paths.some((path) => path.startsWith('build.echoes'))) return null
+  const projectionKey = JSON.stringify([
+    candidateLane, state.activeLane, state.initialActiveLane, Array.from(state.routes), Array.from(state.routeOverrides),
+    program.paths.flatMap((path, index) => /^state\.controls\.(echoSet|echo):/.test(path) ? [[
+      state.runtimeKinds[candidateLane * program.paths.length + index],
+      state.runtimeValues[candidateLane * program.paths.length + index],
+    ]] : []),
+  ], (_, value: unknown) => typeof value === 'number' && !Number.isFinite(value) ? String(value) : value)
+  let projections = teammateReplayProjections.get(program)
+  const knownProjection = projections?.get(projectionKey)
+  if (knownProjection) {
+    initialTeammateProjections.set(state, { resonatorId, revision: state.revision, project: knownProjection })
+    return knownProjection(state, candidate, internStructure)
+  }
+  const pools = program.laneIds.map((_, lane) => new Set<number>(lane === candidateLane
+    ? [poolTopCell('offTuneBuildupRate')]
+    : Array.from({ length: NUMERIC_POOL_CELL_COUNT }, (__, cell) => cell)))
+  const references = new Map<string, NumericRef>()
+  // clean rotation normalization removes every authored write to the searched
+  // member's Echo controls. they are fixed inputs throughout this replay.
+  const immutableEchoControl = (ref: NumericRef) => ref.lane === candidateLane
+    && (ref.kind === REF_SOURCE_RUNTIME || ref.kind === REF_TARGET_RUNTIME)
+    && /^state\.controls\.(echoSet|echo):/.test(program.paths[ref.index] ?? '')
+  const describeRef = (ref: NumericRef): unknown[] => [
+    ref.kind, ref.lane,
+    ref.kind >= REF_SOURCE_RUNTIME && ref.kind <= REF_ACTIVE_RUNTIME ? program.paths[ref.index]
+      : ref.kind === REF_ENEMY ? program.enemyPaths[ref.index] : ref.index,
+    ref.constant,
+  ]
+  const needFinal = (lane: number, cell: number) => {
+    if (cell < FINAL_TOP_OFFSET) {
+      const stat = NUMERIC_BASE_KEYS[Math.floor(cell / 2)]!
+      if (cell % 2) {
+        pools[lane]!.add(poolBaseCell(stat, 'percent'))
+        pools[lane]!.add(poolBaseCell(stat, 'flat'))
+        pools[lane]!.add(poolFixedCell(stat))
+      }
+    } else pools[lane]!.add(cell - FINAL_TOP_OFFSET + POOL_TOP_OFFSET)
+  }
+  const addRef = (ref: NumericRef) => {
+    references.set(JSON.stringify(describeRef(ref)), ref)
+    if (ref.kind === REF_POOL) pools[ref.lane]!.add(ref.index)
+    else if (ref.kind === REF_FINAL || ref.kind === REF_SOURCE_FINAL) needFinal(ref.lane, ref.index)
+  }
+  const always = (condition: NumericConditionProgram, node = 0): boolean | undefined => {
+    const opcode = condition.opcodes[node]
+    if (opcode === COND_CONST) return Boolean(condition.expectedValues[node])
+    const ref = condition.refs[condition.refIndexes[node]!]
+    if (ref && immutableEchoControl(ref)) return executeConditionNode(state, condition, node)
+    const start = condition.childStarts[node] ?? 0
+    if (opcode === COND_NOT) {
+      const value = always(condition, condition.children[start]!)
+      return value === undefined ? undefined : !value
+    }
+    if (opcode !== COND_AND && opcode !== COND_OR) return undefined
+    let unknown = false
+    for (let index = 0; index < condition.childCounts[node]!; index += 1) {
+      const value = always(condition, condition.children[start + index]!)
+      if (opcode === COND_AND && value === false) return false
+      if (opcode === COND_OR && value === true) return true
+      unknown ||= value === undefined
+    }
+    return unknown ? undefined : opcode === COND_AND
+  }
+  const describeCondition = (condition: NumericConditionProgram, node = 0): unknown => {
+    const constant = always(condition, node)
+    if (constant !== undefined) return constant
+    const index = condition.refIndexes[node]!
+    const expected = condition.expectedValues[node]!
+    const children = Array.from({ length: condition.childCounts[node]! }, (_, child) => describeCondition(
+      condition, condition.children[condition.childStarts[node]! + child]!,
+    )).filter((child) => condition.opcodes[node] === COND_AND ? child !== true
+      : condition.opcodes[node] === COND_OR ? child !== false : true)
+    if ((condition.opcodes[node] === COND_AND || condition.opcodes[node] === COND_OR) && children.length === 1) return children[0]
+    return [condition.opcodes[node], index < 0 ? null : describeRef(condition.refs[index]!),
+      condition.expectedKinds[node], condition.expectedKinds[node] === VALUE_STRING ? program.symbolValues[expected] : expected,
+      children,
+    ]
+  }
+  const describeFormula = (formula: NumericFormulaProgram | null) => formula && [
+    Array.from(formula.opcodes), Array.from(formula.a), Array.from(formula.x), Array.from(formula.y),
+    Array.from(formula.defaults), formula.tables, formula.refs.map(describeRef),
+  ]
+  // skill changes can alter damage, off-tune, or feature availability. keep
+  // every skill operation; this is deliberately conservative for the source.
+  const skills = program.skillProgramsByTarget.flat().filter((entry) => always(entry.condition) !== false)
+  for (const entry of skills) {
+    for (const ref of entry.condition.refs) addRef(ref)
+    for (const operation of entry.operations) for (const ref of operation.formula.refs) addRef(ref)
+  }
+  for (const conditions of program.conditionsByTarget) for (const condition of conditions.values()) {
+    for (const ref of condition.refs) addRef(ref)
+  }
+  const rows = program.programsByTarget.flat().filter((entry) => always(entry.condition) !== false)
+  // close over dependencies until conversions that read another pool/final
+  // cell can no longer add a relevant operation.
+  let changed = true
+  while (changed) {
+    const before = pools.reduce((sum, cells) => sum + cells.size, 0)
+    for (const entry of rows) {
+      for (let op = 0; op < entry.opcodes.length; op += 1) {
+        if (!pools[entry.targetLane]!.has(entry.destinations[op]!)
+          && !(entry.opcodes[op] === OP_IMMUNITY && entry.targetLane !== candidateLane)) continue
+        for (const ref of entry.condition.refs) addRef(ref)
+        for (const ref of entry.formulas[op]?.refs ?? []) addRef(ref)
+      }
+    }
+    changed = before !== pools.reduce((sum, cells) => sum + cells.size, 0)
+  }
+  const route = (entry: NumericRuntimeProgram | NumericSkillProgram) => [
+    entry.sourceLane, entry.targetLane, entry.targetScope,
+    // only active scopes consult owner routing. attribution names on a self
+    // or team-wide effect cannot distinguish its score-only arithmetic.
+    entry.targetScope === TARGET_ACTIVE || entry.targetScope === TARGET_ACTIVE_OTHER
+      ? [entry.ownerKey, state.routes[entry.routeIndex], state.routeOverrides[entry.routeIndex]] : null,
+  ]
+  // fixed teammate definitions and base inputs come from the damage plan;
+  // their dependency reads still participate in the closure.
+  // only candidate-source definitions vary across candidates.
+  const runtimePrograms = rows.filter((entry) => entry.sourceLane === candidateLane).flatMap((entry) => {
+    const operations = Array.from(entry.opcodes).flatMap((opcode, index) =>
+      pools[entry.targetLane]!.has(entry.destinations[index]!) || (opcode === OP_IMMUNITY && entry.targetLane !== candidateLane)
+        ? [[opcode, entry.destinations[index], describeFormula(entry.formulas[index]!),
+          Array.from(entry.immunityMasks.subarray(index * 4, index * 4 + 4))]] : [],
+    )
+    return operations.length ? [[route(entry), entry.stage, describeCondition(entry.condition), operations]] : []
+  })
+  const runtimeRefs = [...references.entries()].sort(([a], [b]) => a.localeCompare(b))
+    .map(([, ref]) => ref).filter((ref) => ref.kind >= REF_SOURCE_RUNTIME && ref.kind <= REF_ACTIVE_RUNTIME
+      && (ref.lane === candidateLane || ref.kind === REF_ACTIVE_RUNTIME))
+  const poolCells = [...pools[candidateLane]!].sort((a, b) => a - b)
+  const stringify = (value: unknown) => JSON.stringify(value, (_, field: unknown) =>
+    typeof field === 'number' && !Number.isFinite(field) ? String(field) : field)
+  const structure = stringify([
+    poolCells,
+    runtimePrograms,
+    skills.filter((entry) => entry.sourceLane === candidateLane).map((entry) => [route(entry), describeCondition(entry.condition), entry.operations.map((operation) => [
+      operation.opcode, operation.destination, operation.skillIds, operation.tabs, operation.skillTypes,
+      operation.elements, operation.labelIncludes, describeFormula(operation.formula),
+    ])]),
+    program.conditionsByTarget.map((conditions) => [...conditions.values()].map((condition) => describeCondition(condition))),
+    runtimeRefs.map(describeRef),
+  ])
+  const initialInputs = new WeakMap<NumericTeamState, { revision: number; structure: string }>()
+  const project = ((input: NumericTeamState, candidate?: NumericReplayCandidate, internStructure?: (structure: string) => number) => {
+    // an Echo-only candidate has the template's exact sources and controls.
+    // its non-Echo runtime registers are fixed. retain that prefix once per
+    // initial state instead of rebuilding all nested reference values per row.
+    let fixed = candidate ? initialInputs.get(input) : undefined
+    if (!fixed || fixed.revision !== input.revision) {
+      const values = runtimeRefs.map((ref) => {
+        const lanes = ref.kind === REF_ACTIVE_RUNTIME ? program.laneIds.map((_, lane) => lane) : [ref.lane]
+        return lanes.map((lane) => {
+          const register = lane * program.paths.length + ref.index
+          const kind = input.runtimeKinds[register]
+          const value = input.runtimeValues[register]!
+          return [kind, kind === VALUE_STRING ? program.symbolValues[value] : value, input.effectScales[register]]
+        })
+      })
+      fixed = {
+        revision: input.revision,
+        structure: `${structure}|${stringify([input.activeLane, input.initialActiveLane, values])}`,
+      }
+      initialInputs.set(input, fixed)
+    }
+    return `${internStructure ? internStructure(fixed.structure) : fixed.structure}|${stringify(
+      poolCells.map((cell) => candidate ? readBuffPoolCell(candidate.pool, cell) : input.basePools[candidateLane * NUMERIC_POOL_CELL_COUNT + cell]),
+    )}`
+  }) as TeammateReplayProjection
+  project.echoInputs = prepareEchoContributionProjector(Object.keys(echoStatCells).filter((key) => pools[candidateLane]!.has(echoStatCells[key]!)))
+  if (!projections) {
+    projections = new Map()
+    teammateReplayProjections.set(program, projections)
+  }
+  if (projections.size >= 16) projections.delete(projections.keys().next().value!)
+  projections.set(projectionKey, project)
+  initialTeammateProjections.set(state, { resonatorId, revision: state.revision, project })
+  return project(state, candidate, internStructure)
 }
 
 /** begin a scoped branch without copying the team's register banks. */
@@ -1317,6 +1669,7 @@ export function rollbackNumericTeam(checkpoint: NumericTeamCheckpoint): void {
       state.activeLane = entry.lane
     } else if (entry.kind === 'route') {
       state.routes[entry.index] = entry.lane
+      state.routeOverrides[entry.index] = entry.overridden
     } else {
       state.effectScales[entry.index] = entry.value
     }
@@ -1475,11 +1828,15 @@ export function writeNumericRoute(
   const route = targetId === null ? -1 : (state.program.laneById[targetId] ?? -2)
   let mask = 0
   for (const index of state.program.routeProgramsByKey[`${sourceLane}:${ownerKey}`] ?? []) {
-    if (state.routes[index] === route) continue
+    if (state.routes[index] === route && state.routeOverrides[index] === 1) continue
     if (state.transactionDepth > 0) {
-      state.transactionLog.push({ kind: 'route', index, lane: state.routes[index] ?? -1 })
+      state.transactionLog.push({
+        kind: 'route', index, lane: state.routes[index] ?? -1,
+        overridden: state.routeOverrides[index] ?? 0,
+      })
     }
     state.routes[index] = route
+    state.routeOverrides[index] = 1
     state.revision += 1
     mask |= 1 << (state.program.routeTargetLanes[index] ?? 0)
   }
@@ -1497,6 +1854,7 @@ function skillOperationMatches(skill: SkillDef, operation: NumericSkillOperation
 }
 
 /** apply compiled skill effects without rebuilding an effect context or graph. */
+const numericSkillCache = new WeakMap<SkillDef, Map<string, SkillDef>>()
 export function prepareNumericSkill(state: NumericTeamState, lane: number, skill: SkillDef): SkillDef {
   syncNumericTeam(state)
   let multiplier = skill.multiplier
@@ -1517,6 +1875,7 @@ export function prepareNumericSkill(state: NumericTeamState, lane: number, skill
       for (const ref of operation.formula.scaleRefs) formulaScale = Math.min(formulaScale, refScale(state, ref))
       const raw = executeFormula(state, operation.formula, true)
       const scale = Math.min(effectScale, formulaScale)
+      if (operation.opcode === SKILL_SCALE_MULTIPLIER ? (raw - 1) * scale === 0 : raw * scale === 0) continue
       changed = true
       if (operation.opcode === SKILL_MOD) {
         buffs[operation.destination] = (buffs[operation.destination] ?? 0) + raw * scale
@@ -1557,9 +1916,17 @@ export function prepareNumericSkill(state: NumericTeamState, lane: number, skill
     }
   }
   if (!changed) return skill
+  const signature = JSON.stringify([multiplier, hits === skill.hits ? null : hits, Array.from(buffs), Array.from(scalars)])
+  let bySignature = numericSkillCache.get(skill)
+  const cached = bySignature?.get(signature)
+  if (cached) return cached
   const skillBuffs = Object.fromEntries(skillModFields.map((field, index) => [field, buffs[index] ?? 0])) as unknown as ModBuff
   const scalarPatch = Object.fromEntries(skillScalarFields.map((field, index) => [field, scalars[index] ?? 0]))
-  return { ...skill, ...scalarPatch, multiplier, hits, skillBuffs }
+  const resolved = { ...skill, ...scalarPatch, multiplier, hits, skillBuffs }
+  if (!bySignature) numericSkillCache.set(skill, bySignature = new Map())
+  if (bySignature.size >= 64) bySignature.delete(bySignature.keys().next().value!)
+  bySignature.set(signature, resolved)
+  return resolved
 }
 
 export function writeNumericEffectScale(

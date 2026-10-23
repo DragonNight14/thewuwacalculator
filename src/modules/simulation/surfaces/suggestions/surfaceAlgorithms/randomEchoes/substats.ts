@@ -5,7 +5,7 @@
 */
 
 import { SUBSTAT_KEYS, getSbstStepP } from '@/data/gameData/catalog/echoStats'
-import type { OptStatWeight } from '@/engine/optimizer/search/filtering.ts'
+import type { OptStatWeight } from '@/engine/search/score/statWeights.ts'
 
 export function randSubVl(statKey: string, rollQuality = 0): number {
   const options = getSbstStepP(statKey)

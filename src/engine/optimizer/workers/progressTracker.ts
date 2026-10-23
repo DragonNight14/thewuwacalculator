@@ -6,8 +6,7 @@
 
 import type { OptPrgr } from '@/engine/optimizer/types'
 
-const PRGRRATEMIN = 1_500
-const PRGRRATEWND = 8_000
+import { PROGRESS_RATE_MIN_MS, PROGRESS_RATE_WINDOW_MS } from '../config/constants'
 
 export function mkPrgrTrck(
     ttlForPrgr: number,
@@ -32,18 +31,18 @@ export function mkPrgrTrck(
 
     const done = curTotal > 0 ? Math.min(ttlPrcs, curTotal) : ttlPrcs
     const elapsed = now - evalStart
-    if (done <= 0 || elapsed < PRGRRATEMIN) {
+    if (done <= 0 || elapsed < PROGRESS_RATE_MIN_MS) {
       return 0
     }
 
     const fullRate = done / elapsed
-    const cutoff = now - PRGRRATEWND
+    const cutoff = now - PROGRESS_RATE_WINDOW_MS
     while (ratePts.length > 1 && ratePts[0].time < cutoff) {
       ratePts.shift()
     }
 
     const base = ratePts[0]
-    if (!base || now - base.time < PRGRRATEMIN || done <= base.done) {
+    if (!base || now - base.time < PROGRESS_RATE_MIN_MS || done <= base.done) {
       return fullRate
     }
 

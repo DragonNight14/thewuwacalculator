@@ -1,9 +1,6 @@
 /*
   Author: Runor Ewhro
-  description: executes feature and rotation simulations by walking rotation
-               nodes, applying runtime changes, resolving feature owners/skills,
-               and collecting weighted damage feature rows for rotation
-               programs.
+  description: executes rotation steps and collects damage results.
 */
 
 import type {
@@ -44,6 +41,7 @@ import {
 import type { CombatGraph, SlotId } from '@/domain/entities/combatGraph'
 import { findCombatPart, rbldCmbtPart } from '@/engine/runtime/combatGraph'
 import type { ResRuntime, ResSeed } from '@/domain/entities/runtime'
+import { cloneEchoLoadout } from '@/domain/entities/inventoryStorage'
 import type {
   DamageResult,
   OffTuneHit,
@@ -67,7 +65,7 @@ import { getTuneStrainMaxForTeam } from '@/engine/gameData/tuneStrain'
 import { UNISON_BOON_RUNTIME_PATH, UNISON_BOON_TEAM_PATH, unisonBoonMaxForRuntimes } from '@/domain/gameData/unisonBoon'
 import { getEnemyMaxOffTune } from '@/engine/formulas/tuneRupture'
 import { getSrcNumMax } from '@/engine/gameData/controlOptions'
-import { readRtPath, writeBjctPat, writeRtPath } from '@/domain/gameData/runtimePath'
+import { readRtPath, writeBjctPat, writeRtPaths } from '@/domain/gameData/runtimePath'
 import { getOwnForKey, listStatesFor } from '@/data/catalog/gameDataService'
 import {
   listMnlSclrWrites,
@@ -84,6 +82,7 @@ import {
   calcNumericPlaneSkillDamage,
   calcNumericPlaneSkillDamageScoreInto,
   calcPackedSkillDamageScoreInto,
+  type NumericDamageMemo,
   resolveNumericEffectiveStats,
   type CalcSkillDamageOptions,
   type DamageCombatState,
@@ -96,7 +95,7 @@ import {
   finalTopCell,
 } from '@/engine/rotation/numericLayout.ts'
 import { evalCond, evalForm } from '@/engine/effects/evaluator'
-import { getNumericCombatTeam } from '@/engine/pipeline/buildCombatContext'
+import { getNumericCombatTeam, makeParticipantBasePool } from '@/engine/pipeline/buildCombatContext'
 import type { CombatContext } from '@/engine/pipeline/types'
 import { prprRtSkll } from '@/engine/pipeline/prepareRuntimeSkill'
 import { resolveSkill } from '@/engine/pipeline/resolveSkill'
@@ -134,6 +133,8 @@ import {
   type SkillScalarWrite,
   prepareNumericSkill,
   primeNumericTraces,
+  rebaseNumericTeamEchoStats,
+  numericTeammateReplayKey,
   rollbackNumericTeam,
 } from '@/engine/effects/numericTeam.ts'
 import type {
@@ -255,6 +256,7 @@ interface RotVrlyStt {
 
 export interface RunEnvironment {
   prmrResId: string
+  initialActiveResId: string
   prmrSlotId: SlotId
   enemy: EnemyProfile
   graph: CombatGraph
@@ -337,6 +339,8 @@ interface RotationExec {
   normalizedScoreValues: Float64Array | null
   /** optional rowless aggregation filter; null preserves the general score api. */
   scoreAggregationType: SkillAggType | null
+  scoreResonatorIds?: ReadonlySet<string>
+  damageMemo?: NumericDamageMemo
 
   // six reusable scalar cells: one accumulated triple and one evaluation
   // triple. score-only execution never allocates a DamageResult or sub-hit row.
@@ -347,6 +351,10 @@ interface RotationExec {
   combatBaseRevisionByLane: Int32Array
   activeEnemyCache: { version: number; value: EnemyProfile }
   onDamageInvocation?: (invocation: DamageInvocation) => void
+  onDamageScore?: ProgramOpts['onDamageScore']
+  onFeatureUse?: ProgramOpts['onFeatureUse']
+  allowedFeatureKeys?: ProgramOpts['allowedFeatureKeys']
+  featureRunOrdinals: Map<string, number>
 
   // optional read-only per-node execution trace used by rotation inspectors
   nspcNtrs: InspectEntry[] | null
@@ -806,10 +814,13 @@ function scaleSkill(skill: SkillDef, multiplier: number): SkillDef {
 
 // for sub-hit features, carve out one concrete hit from the full skill
 // otherwise return the skill unchanged
+const featureSkillCache = new WeakMap<SkillDef, WeakMap<FeatDef, SkillDef>>()
 function slcSkllForFe(skill: SkillDef, feature: FeatDef): SkillDef {
   if (feature.variant !== 'subHit' || typeof feature.hitIndex !== 'number') {
     return skill
   }
+  const cached = featureSkillCache.get(skill)?.get(feature)
+  if (cached) return cached
 
   const damageEntry = feature.damageEntryId
     ? skill.damageEntries?.find((entry) =>
@@ -823,7 +834,7 @@ function slcSkllForFe(skill: SkillDef, feature: FeatDef): SkillDef {
 
   const hitTblEnt = skill.hitTable?.[hitIndex]
 
-  return {
+  const selected: SkillDef = {
     ...skill,
     label: feature.label,
     ...(damageEntry
@@ -842,6 +853,10 @@ function slcSkllForFe(skill: SkillDef, feature: FeatDef): SkillDef {
       values: hitTblEnt?.values ?? [],
     }] : undefined,
   }
+  let byFeature = featureSkillCache.get(skill)
+  if (!byFeature) featureSkillCache.set(skill, byFeature = new WeakMap())
+  byFeature.set(feature, selected)
+  return selected
 }
 
 // multiply a full damage result by a branch weight
@@ -928,6 +943,7 @@ export function prepareRunEnv(
 
   return {
     prmrResId: prmrPart.resonatorId,
+    initialActiveResId: graph.participants[graph.activeSlotId]?.resonatorId ?? prmrPart.resonatorId,
     prmrSlotId: context.targetSlotId,
     enemy: context.enemy,
     graph,
@@ -947,6 +963,74 @@ export function prepareRunEnv(
       scalarFeatures: 0,
     },
   }
+}
+
+/** prepared catalogs, routing and teammate lanes stay fixed during Echo search. */
+export function prepareEchoCandidateRunEnv(
+  environment: RunEnvironment,
+  runtime: ResRuntime,
+  reuseEffects: boolean,
+): RunEnvironment {
+  const slotId = findCombatPart(environment.graph, runtime.id)
+  if (!slotId) throw new Error(`Missing candidate participant ${runtime.id}`)
+  const previous = environment.graph.participants[slotId]!
+  // only Echoes and their initialized controls vary. keep the graph's already
+  // materialized progression, weapon, team and rotation, including canonical
+  // slot flags for candidates whose main flag arrives on another slot.
+  runtime = {
+    ...previous.runtime,
+    build: { ...previous.runtime.build, echoes: cloneEchoLoadout(runtime.build.echoes) },
+    state: { ...previous.runtime.state, controls: runtime.state.controls },
+  }
+  reuseEffects &&= environment.numericBase.program.canRebaseEchoStats
+  const participant = {
+    ...previous,
+    runtime,
+    slot: { ...previous.slot, local: cloneSlotLuo(runtime.state) },
+  }
+  const graph = {
+    ...environment.graph,
+    participants: { ...environment.graph.participants, [slotId]: participant },
+  }
+  return {
+    ...environment,
+    graph,
+    numericBase: reuseEffects
+      ? rebaseNumericTeamEchoStats(environment.numericBase, runtime, makeParticipantBasePool(graph, participant))
+      : getNumericCombatTeam({ graph, targetSlotId: slotId, enemy: environment.enemy }),
+    ...(reuseEffects ? {} : {
+      catalogByResonator: {
+        ...environment.catalogByResonator,
+        [runtime.id]: makeRuntimeCat(runtime, environment.seedLookup[runtime.id]),
+      },
+      stateDefsByResonator: {
+        ...environment.stateDefsByResonator,
+        [runtime.id]: stateDefsByPath(
+          listEquippedSourceStates(runtime, environment.seedLookup[runtime.id]), runtimeStatePathKey,
+        ),
+      },
+    }),
+    kernelMetrics: { scalarFeatures: 0 },
+  }
+}
+
+/** project initial candidate inputs without allocating an execution team. the
+ * caller has already matched sources, set counts and initialized controls. */
+export function echoCandidateTeammateReplayKey(
+  environment: RunEnvironment,
+  runtime: ResRuntime,
+  internStructure: (structure: string) => number,
+): string | null {
+  const previous = environment.graph.participants[environment.prmrSlotId]
+  if (!previous || previous.resonatorId !== runtime.id) return null
+  const candidate = {
+    ...previous.runtime,
+    build: { ...previous.runtime.build, echoes: cloneEchoLoadout(runtime.build.echoes) },
+    state: { ...previous.runtime.state, controls: runtime.state.controls },
+  }
+  return numericTeammateReplayKey(environment.numericBase, runtime.id, {
+    pool: makeParticipantBasePool(environment.graph, { ...previous, runtime: candidate }),
+  }, internStructure)
 }
 
 // create the initial execution state for one run
@@ -1014,6 +1098,10 @@ function mkRotStt(
     ).fill(-1),
     activeEnemyCache: { version: -1, value: environment.enemy },
     onDamageInvocation: undefined,
+    onDamageScore: undefined,
+    onFeatureUse: undefined,
+    allowedFeatureKeys: undefined,
+    featureRunOrdinals: new Map(),
     nspcNtrs: inspect ? [] : null,
     actLoopRuns: {},
     actLoopRunqi: {},
@@ -1047,15 +1135,15 @@ export function prepareRotationProgram(items: RotationNode[]): PreparedRotationP
   return prepared
 }
 
-const offTuneSealCache = new WeakMap<
-  RunEnvironment,
-  WeakMap<PreparedRotationProgram, OffTuneSealPlan>
->()
+const offTuneSealCache = new WeakMap<PreparedRotationProgram, Map<string, OffTuneSealPlan>>()
+const offTuneCatalogIds = new WeakMap<object, number>()
+let nextOffTuneCatalogId = 0
+const offTuneFeatureOrder = new WeakMap<PreparedRotationProgram, Array<Extract<RotationNode, { type: 'feature' }>>>()
 
 /**
  * expand the compiled structural order used by literal repeats and loop
- * passes. the cooldown itself still advances at runtime; this cold pass only
- * tells a break whether an authored landing exists before the next break.
+ * passes; cooldown still advances at runtime, while this pass finds authored
+ * landing steps before the next break.
  */
 function appendOffTuneFeatureOrder(
   block: CompiledRotationBlock,
@@ -1136,19 +1224,34 @@ function offTuneSealFor(
   environment: RunEnvironment,
   program: PreparedRotationProgram,
 ): OffTuneSealPlan {
-  let byProgram = offTuneSealCache.get(environment)
-  if (!byProgram) {
-    byProgram = new WeakMap()
-    offTuneSealCache.set(environment, byProgram)
+  // candidate environments replace the record when a set changes; cache by
+  // source catalog identity and lookup order, which remain stable.
+  const catalogs = Object.entries(environment.catalogByResonator).map(([id, catalog]) => {
+    let key = offTuneCatalogIds.get(catalog)
+    if (key === undefined) {
+      key = ++nextOffTuneCatalogId
+      offTuneCatalogIds.set(catalog, key)
+    }
+    return `${id}:${key}`
+  }).join('|')
+  let byCatalog = offTuneSealCache.get(program)
+  if (!byCatalog) {
+    byCatalog = new Map()
+    offTuneSealCache.set(program, byCatalog)
   }
-  const cached = byProgram.get(program)
+  const cached = byCatalog.get(catalogs)
   if (cached) return cached
-  const executionOrder: Array<Extract<RotationNode, { type: 'feature' }>> = []
-  appendOffTuneFeatureOrder(program.plan.root, program.plan, executionOrder)
+  let executionOrder = offTuneFeatureOrder.get(program)
+  if (!executionOrder) {
+    executionOrder = []
+    appendOffTuneFeatureOrder(program.plan.root, program.plan, executionOrder)
+    offTuneFeatureOrder.set(program, executionOrder)
+  }
   const sealPlan = executionOrder.length > 0
     ? planOffTuneSealOrder(executionOrder, (node) => isTuneBreakFeat(environment, node))
     : planOffTuneSeal(program.items, (node) => isTuneBreakFeat(environment, node))
-  byProgram.set(program, sealPlan)
+  if (byCatalog.size >= 64) byCatalog.delete(byCatalog.keys().next().value!)
+  byCatalog.set(catalogs, sealPlan)
   return sealPlan
 }
 
@@ -1167,6 +1270,9 @@ export function executeRotationProgram(
     })
   executionState.offTuneSeal = makeOffTuneSealState(offTuneSealFor(environment, program))
   executionState.onDamageInvocation = options.onDamageInvocation
+  executionState.onDamageScore = options.onDamageScore
+  executionState.onFeatureUse = options.onFeatureUse
+  executionState.allowedFeatureKeys = options.allowedFeatureKeys
   const result = runRotTimes(
     executionState,
     program.items,
@@ -1187,7 +1293,16 @@ export function executeRotationProgram(
 export function executeRotationScore(
   environment: RunEnvironment,
   program: PreparedRotationProgram,
-  options: { aggregationType?: SkillAggType } = {},
+  options: {
+    aggregationType?: SkillAggType
+    onDamageInvocation?: ProgramOpts['onDamageInvocation']
+    onDamageScore?: ProgramOpts['onDamageScore']
+    onFeatureUse?: ProgramOpts['onFeatureUse']
+    allowedFeatureKeys?: ProgramOpts['allowedFeatureKeys']
+    /** state changes and off-tune still run for every allowed feature. */
+    scoreResonatorIds?: ReadonlySet<string>
+    damageMemo?: NumericDamageMemo
+  } = {},
 ): NumericScore {
   const executionState = mkRotStt(environment, program.plan, false, {
     detail: 'summary',
@@ -1195,6 +1310,12 @@ export function executeRotationScore(
     scoreAggregationType: options.aggregationType ?? null,
   })
   executionState.offTuneSeal = makeOffTuneSealState(offTuneSealFor(environment, program))
+  executionState.onDamageInvocation = options.onDamageInvocation
+  executionState.onDamageScore = options.onDamageScore
+  executionState.onFeatureUse = options.onFeatureUse
+  executionState.allowedFeatureKeys = options.allowedFeatureKeys
+  executionState.scoreResonatorIds = options.scoreResonatorIds
+  executionState.damageMemo = options.damageMemo
   const result = runRotTimes(executionState, program.items)
   const values = result.scoreValues ?? new Float64Array(0)
   const normalizedValues = result.normalizedScoreValues ?? new Float64Array(0)
@@ -1552,7 +1673,7 @@ function getPrmrRt(state: RotationExec): ResRuntime | null {
 // active-targeted effects resolve through the combat graph, but rotations can
 // temporarily move the active slot without mutating the user's saved team setup.
 function getActResId(state: RotationExec): string {
-  return state.overlay.activeResonatorId ?? state.environment.prmrResId
+  return state.overlay.activeResonatorId ?? state.environment.initialActiveResId
 }
 
 function getActRt(state: RotationExec): ResRuntime | null {
@@ -1703,6 +1824,7 @@ function hasVrlyForRe(state: RotationExec, resonatorId: string): boolean {
 
 // get the current runtime for one participant after applying overlay writes
 // results are cached per overlay version
+const teammateRuntimeOverlays = new WeakMap<ResRuntime, Map<string, ResRuntime>>()
 function getRslvPartR(state: RotationExec, resonatorId: string): ResRuntime | null {
   const slotId = findCombatPart(getBaseGraph(state), resonatorId)
   if (!slotId) {
@@ -1723,11 +1845,21 @@ function getRslvPartR(state: RotationExec, resonatorId: string): ResRuntime | nu
     return null
   }
 
-  let nextRuntime = baseRuntime
   state.metrics.runtimeMaterializations += 1
   const runtimePaths = state.overlay.rtPthsByRejq[resonatorId] ?? {}
-  for (const [path, value] of Object.entries(runtimePaths)) {
-    nextRuntime = writeRtPath(nextRuntime, path, value)
+  // fixed teammates revisit the same authored states for every candidate.
+  // their immutable projections are independent of the searched Echo stats.
+  const fixedTeammate = resonatorId !== state.environment.prmrResId
+  const signature = fixedTeammate ? JSON.stringify(runtimePaths) : ''
+  let byOverlay = fixedTeammate ? teammateRuntimeOverlays.get(baseRuntime) : undefined
+  let nextRuntime = byOverlay?.get(signature)
+  if (!nextRuntime) {
+    nextRuntime = writeRtPaths(baseRuntime, runtimePaths)
+    if (fixedTeammate) {
+      if (!byOverlay) teammateRuntimeOverlays.set(baseRuntime, byOverlay = new Map())
+      if (byOverlay.size >= 512) byOverlay.delete(byOverlay.keys().next().value!)
+      byOverlay.set(signature, nextRuntime)
+    }
   }
 
   state.rslvRtCch[resonatorId] = {
@@ -2717,7 +2849,7 @@ interface RunFeatOptions {
    * its body.
    */
   multiplierScale?: number
-  /** child attach runs never carry attachments of their own. */
+  /** child attachment runs do not include nested attachments. */
   asAttachment?: boolean
   /**
    * writes already applied by the parent's local attachment scope. an attached
@@ -2731,23 +2863,24 @@ interface RunFeatOptions {
   offTuneSeal?: FeatOffTuneSeal
 }
 
-/**
- * execute one feature node.
- *
- * attachments (or legacy `changes`) open a local overlay scope:
- * 1. attached conditions apply first
- * 2. the parent feature evaluates under that overlay
- * 3. sibling attached features evaluate under the same overlay, with
- *    effective multiplier = parentMultiplier × childMultiplier
- * 4. only damage/inspection rows leave the scope — overlay writes do not
- *    leak to later siblings in the main list
- */
+/** execute attached conditions before the parent and child features within
+ * one overlay scope; child damage uses both multipliers, and overlay writes
+ * are discarded after the scope. */
 function runFeatNode(
   state: RotationExec,
   node: Extract<RotationNode, { type: 'feature' }>,
   fallbackResId: string,
   options: RunFeatOptions = {},
 ): RotationExec {
+  let occurrenceKey = ''
+  if (state.onDamageScore || state.onFeatureUse || state.allowedFeatureKeys) {
+    const ordinal = state.featureRunOrdinals.get(node.id) ?? 0
+    state.featureRunOrdinals.set(node.id, ordinal + 1)
+    occurrenceKey = `${node.id}|${ordinal}`
+    if (state.allowedFeatureKeys && !state.allowedFeatureKeys.has(occurrenceKey)) {
+      return ppndNspcEnt(state, { nodeId: node.id, nodeType: node.type, executed: false })
+    }
+  }
   const multiplierScale = options.multiplierScale ?? 1
   const asAttachment = options.asAttachment === true
 
@@ -2829,6 +2962,7 @@ function runFeatNode(
     preAppliedWrites,
     options.compiledFeatureId,
     offTuneSeal,
+    occurrenceKey,
   )
 
   if (!asAttachment) {
@@ -2870,6 +3004,7 @@ function runFeatBody(
   preAppliedWrites: AppliedRotWrite[] = [],
   compiledFeatureId?: string,
   entryOffTuneSeal?: FeatOffTuneSeal,
+  occurrenceKey = '',
 ): RotationExec {
   const ownResId = resNodeResId(state, node, fallbackResId)
   const lclFeatStt = state
@@ -2921,6 +3056,8 @@ function runFeatBody(
       executed: true,
     })
   }
+
+  lclFeatStt.onFeatureUse?.(occurrenceKey)
 
   const ftrdSkll = slcSkllForFe(skillResult, feature)
   const hasFormulaStats = hasRotFormulaStats(lclFeatStt)
@@ -3017,6 +3154,13 @@ function runFeatBody(
     }
     : undefined
 
+  // teammate correction does not consume the searched member's damage or
+  // healing totals. its feature effects and off-tune transition above remain
+  // authoritative; only the unobserved damage arithmetic is omitted.
+  if (flatScoreOnly && lclFeatStt.scoreResonatorIds
+    && !lclFeatStt.scoreResonatorIds.has(participant.seed.id)
+    && !lclFeatStt.onDamageInvocation) return lclFeatStt
+
   // negative-effect skills depend on stack count in combat state
   // this block supports:
   // - explicit node stack override
@@ -3062,6 +3206,10 @@ function runFeatBody(
   lclFeatStt.combatBaseRevisionByLane[participant.lane] = numericRevision
   const invocationGroup = lclFeatStt.invocationGroup.value
   lclFeatStt.invocationGroup.value += 1
+  const eventPrefix = lclFeatStt.onDamageScore
+    ? `${occurrenceKey}|`
+    : ''
+  let eventOrdinal = 0
   const emitInvocation = (combat: DamageCombatState): void => {
     lclFeatStt.onDamageInvocation?.({
       resonatorId: participant.seed.id,
@@ -3102,7 +3250,14 @@ function runFeatBody(
       combat: DamageCombatState,
     ): void => {
       emitInvocation(combat)
-      if (formulaFinalPlane) {
+      if (lclFeatStt.damageMemo) {
+        lclFeatStt.damageMemo.score(
+          `${occurrenceKey}|${eventOrdinal}`, { values: scratch, offset },
+          lclFeatStt.numericTeam, participant.lane,
+          formulaFinalPlane ?? lclFeatStt.numericTeam.finals,
+          scaledSkill, enemy, participant.runtime.base.level, combat, nodeState.multiplier,
+        )
+      } else if (formulaFinalPlane) {
         calcNumericPlaneSkillDamageScoreInto(
           { values: scratch, offset },
           lclFeatStt.numericTeam,
@@ -3124,6 +3279,13 @@ function runFeatBody(
           participant.runtime.base.level,
           combat,
           nodeState.multiplier,
+        )
+      }
+      if (lclFeatStt.onDamageScore && scaledSkill.aggregationType === 'damage') {
+        lclFeatStt.onDamageScore(
+          `${eventPrefix}${eventOrdinal++}`,
+          participant.seed.id,
+          (scratch[offset + 2] ?? 0) * lclFeatStt.weight,
         )
       }
     }
@@ -3798,8 +3960,8 @@ function isLoopBndrFo(
 ): boolean { return node.type === 'loop' && node.loopId === loopId }
 
 /**
- * a loop reports its furthest executed position. a nested loop may carry the
- * sequence past the outer end marker; callers resume after that position.
+ * a loop reports its furthest executed position, including nested execution
+ * past the outer end marker; callers resume after that position.
  */
 interface RotLoopRun {
   state: RotationExec
@@ -3962,11 +4124,8 @@ function runLoopNodeFrameStack(
     cross this loop's end marker; the caller resumes after that position.
   */
   let furthest = startIndex
-  /*
-    a circular cursor can revisit the start marker of a completed loop.
-    skip that marker after one call per enclosing pass. the enclosing frame's
-    pass stores the record; each parent pass invokes a nested loop afresh.
-  */
+  /* skip a completed loop's start marker within the current enclosing pass;
+     each new parent pass can invoke the nested loop again. */
   const closeTopFrame = () => {
     const closing = stack[stack.length - 1]
     const finished = fnshLoopFrm(nextState, stack)
@@ -4052,7 +4211,7 @@ function runLoopNodeFrameStack(
         }
 
         const nstdStartNdx = frame.cursor
-        // nested loops that already carry lazy pass forks must run those
+        // nested loops with lazy pass forks must run those
         // bodies, not re-walk the shared marker template.
         if (Object.keys(readPassForks(runItem)).length > 0) {
           const nested = runLoopNode(
@@ -4074,14 +4233,9 @@ function runLoopNodeFrameStack(
         }
 
         const nestedFrame = mkLoopFrm(frame.items, nstdStartNdx, frame.fallbackResId)
-        /*
-          a loop is a call: the nested frame processes nodes through its end
-          marker, and this frame resumes after it. advancing only past the
-          nested start would leave this cursor inside the nested body, so the
-          body would run once more per enclosing pass outside the nested run
-          context. a nested loop with no reachable end marker runs until it
-          wraps to its own start, and this frame resumes after that start.
-        */
+        /* resume after the nested loop's end marker to avoid repeating its
+           body in the parent frame; loops without a reachable end resume
+           after their start marker. */
         const nestedEnd = findLoopEndN(nextState, frame.items, runItem, frame.cursor)
         if (nestedEnd != null && nestedEnd > frame.cursor) {
           stack = rplcTopLoopF(stack, {

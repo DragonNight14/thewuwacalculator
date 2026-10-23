@@ -1,8 +1,6 @@
 /*
   Author: Runor Ewhro
-  description: runs optimizer cpu and gpu tasks inside a dedicated worker,
-               caching packed payloads and initialized gpu backends across
-               messages so later jobs avoid repeated setup cost.
+  description: runs optimizer tasks in a worker with reusable payload and gpu caches.
 */
 
 import { runRotSrchBt } from '@/engine/optimizer/search/rotationCpu.ts'
@@ -20,8 +18,8 @@ import type {
   OptTaskPrgrM,
 } from '@/engine/optimizer/workers/messages.ts'
 import { errorOpt, logOptimizer } from '@/engine/optimizer/config/log.ts'
-
-const FLUSH_MS = 80
+import { PROGRESS_INTERVAL_MS } from '../config/constants'
+import { preparePortableScorer } from '@/engine/rotation/portable/cpu'
 
 // cpu workers cache the packed payload locally after the first task.
 // gpu workers keep their initialized backend alive across later tasks.
@@ -53,6 +51,7 @@ async function ensCpuPay(
   // the first cpu task seeds the worker-local packed payload.
   if (msg.payload) {
     pckdTgtPay = msg.payload
+    if (msg.payload.mode === 'rotation') preparePortableScorer(msg.payload)
     tgtBckn = 'cpu'
     tgtGpuInit = false
     canUseGpuBck = false
@@ -184,7 +183,7 @@ self.onmessage = async (event: MessageEvent<OptTaskInMsg>) => {
       const onProcessed = (prcsDlt: number) => {
         pndnPrcs += prcsDlt
         const now = performance.now()
-        if (now - lastFlshAt >= FLUSH_MS) {
+        if (now - lastFlshAt >= PROGRESS_INTERVAL_MS) {
           flshPrcs()
         }
       }
@@ -243,6 +242,7 @@ self.onmessage = async (event: MessageEvent<OptTaskInMsg>) => {
         runId: msg.runId,
         results,
         rtrnCmbsBtch: msg.combosBatch,
+        executionMs: runMs,
       }
       self.postMessage(doneMessage, [msg.combosBatch.buffer])
       logOptimizer('[optimizer:task-worker] CPU result posted', {
@@ -259,6 +259,7 @@ self.onmessage = async (event: MessageEvent<OptTaskInMsg>) => {
       msg.type === 'runRotationGpuBatch'
     ) {
       await ensGpuBckn(msg)
+      const runT0 = performance.now()
 
       const results = msg.type === 'runTargetGpu'
         ? await runTgtGpuJob(
@@ -270,6 +271,7 @@ self.onmessage = async (event: MessageEvent<OptTaskInMsg>) => {
             },
             {
               isCancelled: () => isCancelled(msg.runId),
+              runId: msg.runId,
             },
           )
         : msg.type === 'runRotationGpu'
@@ -282,6 +284,7 @@ self.onmessage = async (event: MessageEvent<OptTaskInMsg>) => {
             },
             {
               isCancelled: () => isCancelled(msg.runId),
+              runId: msg.runId,
             },
           )
           : msg.type === 'runTargetGpuBatch'
@@ -294,6 +297,7 @@ self.onmessage = async (event: MessageEvent<OptTaskInMsg>) => {
               },
               {
                 isCancelled: () => isCancelled(msg.runId),
+                runId: msg.runId,
               },
             )
             : await runRotGpuBtc(
@@ -318,6 +322,7 @@ self.onmessage = async (event: MessageEvent<OptTaskInMsg>) => {
         type: 'done',
         runId: msg.runId,
         results,
+        executionMs: performance.now() - runT0,
         rtrnCmbsBtch:
           msg.type === 'runTargetGpuBatch' || msg.type === 'runRotationGpuBatch'
             ? msg.combosBatch

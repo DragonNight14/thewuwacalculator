@@ -130,8 +130,27 @@ function responsivePolicyPlugin(): Plugin {
   }
 }
 
+function lucideMotionTreeShakingPlugin(): Plugin {
+  return {
+    name: 'lucide-motion-tree-shaking',
+    transform(source, id) {
+      if (!id.replaceAll('\\', '/').endsWith('/node_modules/lucide-react-motion/dist/index.js')) return null
+      // lucide-react-motion 0.5.1 retains unused signatures and components
+      // through their displayName writes. keep those writes inside pure
+      // constructors so used icons keep their names and animation definitions.
+      const code = source
+        .replaceAll('= compose(', '= /* @__PURE__ */ compose(')
+        .replace(
+          /function (\w+)\(props\) \{([\s\S]*?)\n\}\n\1\.displayName = ("[^"]+");/g,
+          'var $1 = /* @__PURE__ */ Object.assign(function $1(props) {$2\n}, { displayName: $3 });',
+        )
+      return code === source ? null : { code, map: null }
+    },
+  }
+}
+
 export default defineConfig(({ mode }) => ({
-  plugins: [responsivePolicyPlugin(), react(), svgr(), googleAuthDevPlugin(buildGoogleAuthEnv(mode))],
+  plugins: [responsivePolicyPlugin(), lucideMotionTreeShakingPlugin(), react(), svgr(), googleAuthDevPlugin(buildGoogleAuthEnv(mode))],
   // brotli-wasm resolves its .wasm asset through import.meta.url, which dep
   // pre-bundling would break; excluding it lets vite serve the module as-is.
   optimizeDeps: {
@@ -149,7 +168,16 @@ export default defineConfig(({ mode }) => ({
     rollupOptions: {
       output: {
         manualChunks(id) {
+          if (id.endsWith('/src/shared/lib/displayAssets.generated.json')) {
+            return 'display-assets'
+          }
           if (id.includes('node_modules')) {
+            if (id.includes('/lucide-react-motion/')) {
+              return 'motion-icons-vendor'
+            }
+            if (['/motion/', '/framer-motion/', '/motion-dom/', '/motion-utils/'].some((name) => id.includes(name))) {
+              return 'motion-vendor'
+            }
             // stable vendor groups keep high-churn simulation code from
             // invalidating framework and icon chunks on every feature edit.
             if (

@@ -83,19 +83,43 @@ export function makeSavedRotClip(entries: readonly SavedRotation[]): RotClipPayl
   }
 }
 
+function copyTextWithDocumentCommand(text: string): boolean {
+  if (typeof document === 'undefined' || !document.body || !document.execCommand) {
+    return false
+  }
+
+  const input = document.createElement('textarea')
+  input.value = text
+  input.setAttribute('readonly', '')
+  input.style.position = 'fixed'
+  input.style.opacity = '0'
+  input.style.pointerEvents = 'none'
+  document.body.append(input)
+
+  try {
+    input.select()
+    return document.execCommand('copy')
+  } catch {
+    return false
+  } finally {
+    input.remove()
+  }
+}
+
 export async function writeRotClip(payload: RotClipPayload): Promise<boolean> {
   const normalized = cloneRotClip(payload)
+  const text = serializeRotClip(normalized)
   rotClipCache = normalized
 
   if (typeof navigator === 'undefined' || !navigator.clipboard?.writeText) {
-    return true
+    return copyTextWithDocumentCommand(text)
   }
 
   try {
-    await navigator.clipboard.writeText(serializeRotClip(normalized))
+    await navigator.clipboard.writeText(text)
     return true
   } catch {
-    return false
+    return copyTextWithDocumentCommand(text)
   }
 }
 

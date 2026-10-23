@@ -1,22 +1,13 @@
 /*
   Author: Runor Ewhro
-  description: generates explicit optimizer combo batches for theory mode by
-               walking synthetic packed rows. the search no longer enforces
-               cross-row catalog id uniqueness or scoring-equivalence dedupe;
-               the count of emitted combos is therefore a pure function of
-               cost feasibility + set-plan satisfaction, and is computable
-               in milliseconds by cntThryEmt without running the full
-               iteration.
+  description: enumerates cost-legal theory combinations under each set plan.
 */
 
-import type { SetPlanEntry } from '@/engine/suggestions/types.ts'
-import { mkSetPlanCnd } from '@/engine/suggestions/mutate.ts'
+import type { SetPlanEntry } from '@/engine/search/combos/setPlans.ts'
+import { mkSetPlanCnd } from '@/engine/search/combos/setPlans.ts'
 import { ECHO_SET_DEFS } from '@/data/gameData/echoSets/effects'
-import {
-  MAX_ECHO_COST,
-  MAIN_FIRST,
-  ECHOES_PER_SET,
-} from '@/engine/optimizer/config/constants.ts'
+import { MAX_ECHO_COST, MAIN_FIRST, ECHOES_PER_SET } from '@/engine/search/layout/constants.ts'
+import { THEORY_BOUND_MIN_BRANCH } from '@/engine/optimizer/config/constants.ts'
 import type {
   PrepTheoryRot,
   PrepTheoryTarget,
@@ -49,10 +40,8 @@ export function buildSlotReps(
   return new Int8Array(profs.length)
 }
 
-// setMax==1 ("1pc") set lookup by id. these are the only sets a build can carry
-// as a single off-plan piece that is *also* promotable to a plan requirement,
-// so they are the sole degree of freedom in which set-plan a given build matches
-// (see canonOnePc / the plan-subsumption canonicalization below).
+// one-piece sets can be off-plan pieces or plan requirements; canonOnePc
+// chooses one matching plan when a build fits several plans.
 const IS_ONE_PC: Uint8Array = (() => {
   const maxId = ECHO_SET_DEFS.reduce((max, def) => Math.max(max, def.id), 0)
   const flags = new Uint8Array(maxId + 1)
@@ -98,13 +87,12 @@ interface PlanReq {
   reqIndex: Int8Array
   reqNeed: number
   // the single 1pc set this plan requires (pieces==1, setMax==1), or -1. plans
-  // carry at most one such entry, so a combo is emitted under its canonical plan
+  // include at most one such entry, so emit each combo under its canonical plan
   // iff this equals canonOnePc(combo).
   onePcReq: number
 }
 
-// convert a set-plan shape into small arrays so the hot loop can track
-// required pieces without using maps or sets per candidate combo.
+// encode required set pieces in arrays for the candidate loop.
 function compPlan(plan: SetPlanEntry[]): PlanReq {
   const req = new Map<number, number>()
   for (const entry of plan) {
@@ -234,11 +222,38 @@ function mainRows(rows: readonly TheoryRow[], req: Map<number, number>): number[
   return out
 }
 
+/** count the last slot by (set,cost) suffixes. its identity/main-stat rows
+ * have identical feasibility, so counting need not visit every candidate. */
+function tailCounter(indices: readonly number[], rows: readonly TheoryRow[], plan: PlanReq, canon: boolean) {
+  const grouped = new Map<string, { set: number; cost: number; positions: number[] }>()
+  indices.forEach((rowIndex, position) => {
+    const row = rows[rowIndex]!, key = `${row.set}:${row.cost}`
+    let group = grouped.get(key)
+    if (!group) { group = { set: row.set, cost: row.cost, positions: [] }; grouped.set(key, group) }
+    group.positions.push(position)
+  })
+  const groups = [...grouped.values()]
+  return (start: number, budget: number, counts: Uint8Array, off: Uint8Array, need: number, a: number, b: number, c: number, d: number): number => {
+    let total = 0
+    for (const group of groups) {
+      if (group.cost > budget) continue
+      const index = plan.reqIndex[group.set] ?? -1
+      if (index >= 0 ? need !== 1 || counts[index]! >= plan.reqCounts[index]! : need !== 0 || off[group.set]) continue
+      if (canon && plan.onePcReq !== canonOnePc(a, b, c, d, group.set)) continue
+      let low = 0, high = group.positions.length
+      while (low < high) { const mid = (low + high) >>> 1; if (group.positions[mid]! < start) low = mid + 1; else high = mid }
+      total += group.positions.length - low
+    }
+    return total
+  }
+}
+
 // emit concrete optimizer batches from the compact theory row space.
 // one fixed main row is paired with the four remaining profile slots.
 export function* gnrtThryCpuCm(options: {
   payload: ThryPay
   batchSize: number
+  getBatchSize?: () => number
   borrowBuffer?: (length: number) => Int32Array
   // when set, only emit the (plan, main-row) units whose running index is
   // congruent to shard.index modulo shard.count. the union of all shards over
@@ -249,6 +264,10 @@ export function* gnrtThryCpuCm(options: {
   // substats). on by default; off emits the full permutation-inclusive space,
   // which is useful for verifying the canonical set covers the same builds.
   canonicalize?: boolean
+  /** a conservative upper bound may reject a whole (main, first) subtree.
+   * exact skipped counts still advance the original progress denominator. */
+  prune?: (main: number, first: number, remaining: readonly (readonly number[])[]) => boolean
+  onPruned?: (count: number) => void
 }): Generator<ThryBtc> {
   const { payload, batchSize } = options
   const shardCount = options.shard && options.shard.count > 1 ? options.shard.count : 1
@@ -257,7 +276,7 @@ export function* gnrtThryCpuCm(options: {
   const canon = options.canonicalize ?? true
   const slotReps = canon && payload.profs ? buildSlotReps(payload.profs) : null
   const plans = buildPlans(rows)
-  const batchLength = Math.max(1, batchSize) * ECHOES_PER_SET
+  let activeBatchSize = Math.max(1, batchSize)
   let scratch: Int32Array | null = null
   let cursor = 0
   let fillers = Array.from({ length: ECHOES_PER_SET }, () => [] as number[])
@@ -381,7 +400,7 @@ export function* gnrtThryCpuCm(options: {
       // filler-slot canonicalization: filler lists are parallel across slots
       // (position i == same spec everywhere), so for filler positions whose
       // slots share a substat class we require non-decreasing positions. prevEq
-      // gives the nearest earlier filler position in the same class (-1 = none),
+      // returns the nearest earlier filler position in the same class (-1 = none),
       // and the inner loops start at that position's current index.
       const prevEq = (p: number): number => {
         if (!slotReps) return -1
@@ -394,6 +413,7 @@ export function* gnrtThryCpuCm(options: {
       const prev1 = prevEq(1)
       const prev2 = prevEq(2)
       const prev3 = prevEq(3)
+      const countTail = options.prune ? tailCounter(fourthRows, rows, plan, canon) : null
 
       // cost-feasible inner-combo counts for this main, as a function of the
       // budget left after the main + first filler.
@@ -436,6 +456,30 @@ export function* gnrtThryCpuCm(options: {
         const needAfterFirst = needAfterMain - (firstToken > 0 ? 1 : 0)
 
         const i1Start = prev1 === 0 ? i0 : 0
+        if (options.prune && secondRows.length * thirdRows.length * fourthRows.length >= THEORY_BOUND_MIN_BRANCH
+          && options.prune(mainIndex, firstRowIndex, [secondRows, thirdRows, fourthRows])) {
+          let skipped = 0
+          for (let i1 = i1Start; i1 < secondRows.length; i1++) {
+            const second = rows[secondRows[i1]!]!, cost2 = costAfterFirst + second.cost
+            if (cost2 > MAX_ECHO_COST) continue
+            const token2 = addSet(second.set, counts, offUsed, plan)
+            if (token2 < 0) continue
+            const need2 = needAfterFirst - Number(token2 > 0), start2 = prev2 === 1 ? i1 : prev2 === 0 ? i0 : 0
+            for (let i2 = start2; i2 < thirdRows.length; i2++) {
+              const third = rows[thirdRows[i2]!]!, cost3 = cost2 + third.cost
+              if (cost3 > MAX_ECHO_COST) continue
+              const token3 = addSet(third.set, counts, offUsed, plan)
+              if (token3 < 0) continue
+              const start3 = prev3 === 2 ? i2 : prev3 === 1 ? i1 : prev3 === 0 ? i0 : 0
+              skipped += countTail!(start3, MAX_ECHO_COST - cost3, counts, offUsed, need2 - Number(token3 > 0), main.set, firstRow.set, second.set, third.set)
+              undoSet(third.set, token3, counts, offUsed)
+            }
+            undoSet(second.set, token2, counts, offUsed)
+          }
+          options.onPruned?.(skipped)
+          undoSet(firstRow.set, firstToken, counts, offUsed)
+          continue
+        }
         for (let i1 = i1Start; i1 < secondRows.length; i1 += 1) {
           const secondRowIndex = secondRows[i1] ?? -1
           const secondRow = rows[secondRowIndex]
@@ -506,7 +550,11 @@ export function* gnrtThryCpuCm(options: {
                 ) {
                   continue
                 }
-                scratch ??= options.borrowBuffer?.(batchLength) ?? new Int32Array(batchLength)
+                if (!scratch) {
+                  activeBatchSize = Math.max(1, Math.floor(options.getBatchSize?.() ?? batchSize))
+                  const batchLength = activeBatchSize * ECHOES_PER_SET
+                  scratch = options.borrowBuffer?.(batchLength) ?? new Int32Array(batchLength)
+                }
                 const base = cursor * ECHOES_PER_SET
                 scratch[base] = mainIndex
                 scratch[base + 1] = firstRowIndex
@@ -514,7 +562,7 @@ export function* gnrtThryCpuCm(options: {
                 scratch[base + 3] = thirdRowIndex
                 scratch[base + 4] = fourthRowIndex
                 cursor += 1
-                if (cursor >= batchSize) {
+                if (cursor >= activeBatchSize) {
                   const out = flush()
                   if (out) {
                     yield out
@@ -546,6 +594,8 @@ export function* gnrtThryCpuCm(options: {
 // walk the same combo space as gnrtThryCpuCm and return the exact emit count.
 // no allocations per combo; just increments a counter when the set-plan is
 // satisfied. completes in ms for the row catalogs the optimizer compiles.
+// count depends on cost feasibility and set plans because theory search does
+// not deduplicate catalog IDs or score-equivalent rows.
 export function cntThryEmt(
     rows: readonly TheoryRow[],
     slotReps: Int8Array | null = null,
@@ -561,6 +611,7 @@ export function cntThryEmt(
   for (const plan of plans) {
     const fillers = rowsBySlot(rows, plan.req)
     const mains = mainRows(rows, plan.req)
+    const mainCounts = new Map<string, number>()
 
     for (const mainIndex of mains) {
       const main = rows[mainIndex]
@@ -568,6 +619,10 @@ export function cntThryEmt(
 
       // canonical main slot (see gnrtThryCpuCm)
       if (slotReps && slotReps[main.slot] !== main.slot) continue
+
+      const key = `${main.slot}:${main.set}:${main.cost}`, known = mainCounts.get(key)
+      if (known !== undefined) { total += known; continue }
+      const beforeMain = total
 
       const counts = new Uint8Array(plan.reqCounts.length)
       const offUsed = new Uint8Array(setSlots)
@@ -599,6 +654,7 @@ export function cntThryEmt(
       const prev1 = prevEq(1)
       const prev2 = prevEq(2)
       const prev3 = prevEq(3)
+      const countTail = tailCounter(fourthRows, rows, plan, slotReps !== null)
 
       for (let i0 = 0; i0 < firstRows.length; i0 += 1) {
         const firstRow = rows[firstRows[i0] ?? -1]
@@ -632,27 +688,7 @@ export function cntThryEmt(
             const needAfterThird = needAfterSecond - (thirdToken > 0 ? 1 : 0)
 
             const i3Start = prev3 === 2 ? i2 : (prev3 === 1 ? i1 : (prev3 === 0 ? i0 : 0))
-            for (let i3 = i3Start; i3 < fourthRows.length; i3 += 1) {
-              const fourthRow = rows[fourthRows[i3] ?? -1]
-              if (!fourthRow) continue
-              const costAfterFourth = costAfterThird + fourthRow.cost
-              if (costAfterFourth > MAX_ECHO_COST) continue
-              const fourthToken = addSet(fourthRow.set, counts, offUsed, plan)
-              if (fourthToken < 0) continue
-              const needAfterFourth = needAfterThird - (fourthToken > 0 ? 1 : 0)
-
-              if (
-                  needAfterFourth === 0 &&
-                  (slotReps === null ||
-                      plan.onePcReq === canonOnePc(
-                          main.set, firstRow.set, secondRow.set, thirdRow.set, fourthRow.set,
-                      ))
-              ) {
-                total += 1
-              }
-
-              undoSet(fourthRow.set, fourthToken, counts, offUsed)
-            }
+            total += countTail(i3Start, MAX_ECHO_COST - costAfterThird, counts, offUsed, needAfterThird, main.set, firstRow.set, secondRow.set, thirdRow.set)
             undoSet(thirdRow.set, thirdToken, counts, offUsed)
           }
           undoSet(secondRow.set, secondToken, counts, offUsed)
@@ -660,6 +696,7 @@ export function cntThryEmt(
         undoSet(firstRow.set, firstToken, counts, offUsed)
       }
       undoSet(main.set, mainToken, counts, offUsed)
+      mainCounts.set(key, total - beforeMain)
     }
   }
 

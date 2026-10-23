@@ -5,7 +5,7 @@
 */
 
 import { ECHO_MAIN_STATS, ECHO_SIDE_STATS, SUBSTAT_KEYS } from '@/data/gameData/catalog/echoStats'
-import type { OptStatWeight } from '@/engine/optimizer/search/filtering.ts'
+import type { OptStatWeight } from '@/engine/search/score/statWeights.ts'
 import { getRandSbst, randSubVl } from './substats'
 
 // zero stays outside the authored set-id range until a plan assigns a real set.

@@ -14,11 +14,11 @@ import { getEchoById } from '@/data/catalog/echoCatalogService'
 import { getResSeedBy } from '@/data/catalog/resonatorSeedService'
 import { mkPrepMainSt, mkPrepSetPla, resSuggDmg, runSuggSmlt } from '@/engine/suggestions/shared'
 import { runMainStats, runSetPlanqc } from '@/engine/suggestions/core'
-import { applyMainSta } from '@/engine/suggestions/mainStat-suggestion/utils'
+import { applyMainSta } from '@/engine/suggestions/mainStat/utils.ts'
 import { applySetPlan } from '@/engine/suggestions/mutate'
 import { ECHO_SET_DEFS } from '@/data/gameData/echoSets/effects'
-import { sggsSetPlns } from '@/engine/suggestions/setPlan-suggestion/suggestSetPlan'
-import { isOptRotTgt } from '@/engine/optimizer/rules/eligibility.ts'
+import { sggsSetPlns } from '@/engine/suggestions/setPlan/suggest.ts'
+import { isOptRotTgt } from '@/engine/search/score/eligibility.ts'
 
 describe('main-stat suggestion worker payload', () => {
   it.each([true, false])('returns canonical Galbrena scores after structured clone (rotation: %s)', (rotationMode) => {
@@ -85,7 +85,7 @@ describe('main-stat suggestion worker payload', () => {
     } else if (compactSets?.context.mode === 'target' && preparedSets.context.mode === 'target') {
       expect(compactSets.context.pckdCtx).toEqual(preparedSets.context.pckdCtx)
     }
-    const setResults = runSetPlanqc(structuredClone(preparedSets))
+    const setResults = runSetPlanqc(structuredClone(preparedSets)).results
     expect(setResults.length).toBeGreaterThan(0)
     // changing echo bodies during full simulation must not reintroduce plans
     // suppressed by the original isolated useful-piece comparisons.
@@ -99,8 +99,8 @@ describe('main-stat suggestion worker payload', () => {
     const signature = (plan: typeof setResults[number]['setPlan']) => JSON.stringify(plan)
     const usefulSignatures = new Set(isolated.map((result) => signature(result.setPlan)))
     for (const result of setResults) {
-      expect(usefulSignatures.has(signature(result.setPlan))).toBe(true)
-      const candidate = { ...input, runtime: { ...runtime, build: { ...runtime.build, echoes: applySetPlan(result.setPlan, runtime.build.echoes) } } }
+      if (result.setPlan.length) expect(usefulSignatures.has(signature(result.setPlan))).toBe(true)
+      const candidate = { ...input, runtime: { ...runtime, build: { ...runtime.build, echoes: applySetPlan(result.setPlan, runtime.build.echoes, result.mainEchoId && result.mainEchoSetId != null ? { id: result.mainEchoId, setId: result.mainEchoSetId } : undefined) } } }
       expect(result.avgDamage).toBeCloseTo(resSuggDmg(runSuggSmlt(candidate), candidate), 8)
     }
   }, 30_000)

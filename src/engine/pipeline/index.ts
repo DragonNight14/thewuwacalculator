@@ -1,15 +1,14 @@
 /*
   Author: Runor Ewhro
-  description: runs full resonator or combat-graph simulations by constructing
-               the needed transient combat graph and combat context, then
-               delegating the actual skill/rotation evaluation to simulateRotation.
+  description: prepares combat graphs and contexts for feature and rotation simulation.
 */
 
 import type { CombatGraph, SlotId } from '@/domain/entities/combatGraph'
 import type { ResSeed } from '@/domain/entities/runtime'
 import type { EnemyProfile } from '@/domain/entities/appState'
 import type { ResRuntime } from '@/domain/entities/runtime'
-import { makeCombatGraph } from '@/engine/runtime/combatGraph'
+import { findCombatPart, makeCombatGraph } from '@/engine/runtime/combatGraph'
+import type { EnvironmentTargetModifiers, TeamMemberId } from '@/domain/entities/combatScenario.ts'
 import { makeCombatEnv } from '@/engine/pipeline/buildCombatContext'
 import { smltRot } from '@/engine/pipeline/simulateRotation'
 import {
@@ -54,6 +53,13 @@ export interface PreparedResSimulation {
   runtimesById: Record<string, ResRuntime>
 }
 
+/** saved team context used by rotation search without importing its enemy or searched build. */
+export interface RotationCombatSetup {
+  memberIdByResonatorId: Readonly<Record<string, TeamMemberId>>
+  environmentTargetModifiers: EnvironmentTargetModifiers
+  initialOnFieldResonatorId?: string
+}
+
 // construct the shared graph/context boundary used by live simulation,
 // inspection, optimizer compilation, and suggestion evaluation.
 export function prepareResSimulation(
@@ -62,6 +68,7 @@ export function prepareResSimulation(
     enemy: EnemyProfile,
     runtimesById: Record<string, ResRuntime> = {},
     selTrgtByOwn: Record<string, string | null> = {},
+    combatSetup?: RotationCombatSetup,
 ): PreparedResSimulation {
   const graph = makeCombatGraph({
     actRt: runtime,
@@ -70,10 +77,16 @@ export function prepareResSimulation(
     targetsByRes: {
       [runtime.id]: selTrgtByOwn,
     },
+    memberIdByResonatorId: combatSetup?.memberIdByResonatorId,
+    environmentTargetModifiers: combatSetup?.environmentTargetModifiers,
   })
+  if (combatSetup?.initialOnFieldResonatorId) {
+    const slot = findCombatPart(graph, combatSetup.initialOnFieldResonatorId)
+    if (slot) graph.activeSlotId = slot
+  }
   const context = makeCombatEnv({
     graph,
-    targetSlotId: 'active',
+    targetSlotId: findCombatPart(graph, runtime.id) ?? 'active',
     enemy,
   })
 
@@ -133,9 +146,10 @@ export function runResSmlt(
       sequence?: RotationNode[]
       program?: RotationNode[]
       detail?: RunDetail
+      combatSetup?: RotationCombatSetup
     } = {},
 ): SimResult {
-  const { context } = prepareResSimulation(runtime, seed, enemy, runtimesById, selTrgtByOwn)
+  const { context } = prepareResSimulation(runtime, seed, enemy, runtimesById, selTrgtByOwn, options.combatSetup)
 
   // simulate the full rotation/damage pipeline from the resolved context
   return smltRot(context, seed, runtimesById, options)

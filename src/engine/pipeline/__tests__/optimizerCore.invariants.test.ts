@@ -10,26 +10,23 @@ import { listChsByCos } from '@/data/catalog/echoCatalogService'
 import { listResSds } from '@/data/catalog/resonatorSeedService'
 import { makeEnemy, makeOptSets, makeResRuntime } from '@/engine/runtime/defaults'
 import { makeRuntimeMap } from '@/engine/runtime/runtimeAdapters'
-import {
-  OPT_RDC_K,
-  SET_SLOT_COUNT,
-} from '@/engine/optimizer/config/constants'
+import { GPU_REDUCE_K } from '@/engine/optimizer/config/constants.ts'
+import { SET_SLOT_COUNT } from '@/engine/search/layout/constants.ts'
 import { ECHO_SET_DEFS, getEchoSetCn } from '@/data/gameData/echoSets/effects'
 import { runOptSrch } from '@/engine/optimizer/engine'
-import { psssCstrs as passesCpuConstraints, encStatCstrs } from '@/engine/optimizer/constraints/statConstraints'
+import { psssCstrs as passesCpuConstraints, encStatCstrs } from '@/engine/search/score/statConstraints.ts'
 import {
   applySetVec,
   buildSetRows,
   listDynamicSetStateParts,
   SETCNSTLUTSE,
-} from '@/engine/optimizer/encode/sets'
+} from '@/engine/search/encode/sets.ts'
 import { countOptCombos, countOptRows } from '@/engine/optimizer/search/counting'
 import { mkTgtGpuSttc } from '@/engine/optimizer/workers/targetGpu'
 import { runResSmlt } from '@/engine/pipeline'
 import { combatScenarioId, teamMemberId } from '@/domain/entities/combatScenario'
-import targetShader from '@/engine/optimizer/shaders/target.wgsl?raw'
-import rotationShader from '@/engine/optimizer/shaders/rotation.wgsl?raw'
-import weaponSearchShader from '@/engine/optimizer/shaders/weaponSearch.wgsl?raw'
+import targetCommonShader from '@/engine/optimizer/shaders/targetCommon.wgsl?raw'
+import { withOptimizerShaderConfig } from '@/engine/optimizer/config/shaders'
 
 function makeEchoInstance(
   id: string,
@@ -110,7 +107,7 @@ describe('optimizer core invariants', () => {
 
     expect(SETCNSTLUTSE).toBe(SET_SLOT_COUNT)
     expect(maxSetId).toBeLessThan(SET_SLOT_COUNT)
-    for (const shader of [targetShader, rotationShader, weaponSearchShader]) {
+    for (const shader of [withOptimizerShaderConfig(targetCommonShader)]) {
       expect(shader).toContain(`const SET_SLOTS : u32 = ${SET_SLOT_COUNT}u;`)
     }
   })
@@ -133,7 +130,7 @@ describe('optimizer core invariants', () => {
   })
 
   it('keeps the GPU reduce fan-out in sync with the target shaders', () => {
-    expect(OPT_RDC_K).toBe(8)
+    expect(GPU_REDUCE_K).toBe(8)
   })
 
   it('hashes GPU static payloads using full typed-array bytes', () => {

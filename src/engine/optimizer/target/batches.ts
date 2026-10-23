@@ -5,10 +5,7 @@
                branch whose accumulated echo cost already exceeds the max.
 */
 
-import {
-  MAX_ECHO_COST,
-  ECHOES_PER_SET,
-} from '@/engine/optimizer/config/constants.ts'
+import { MAX_ECHO_COST, ECHOES_PER_SET } from '@/engine/search/layout/constants.ts'
 
 export interface TgtCpuCmbBtc {
   // flat packed combo indices, stored as consecutive groups of 5
@@ -18,11 +15,55 @@ export interface TgtCpuCmbBtc {
   comboCount: number
 }
 
+// legal completions of a prefix: picks of `free` echoes from index `after` on
+// with total cost within `budget`, holding the locked echo when it is still
+// owed. counted per cost class so a pruned branch reports its exact size.
+function mkTailCounter(costs: Uint8Array, lockedMainIndex: number) {
+  const classes = [...new Set(costs)].sort((a, b) => a - b)
+  const n = costs.length
+  // suffix[index][class] = echoes at or after index in that class, lock excluded
+  const suffix = new Int32Array((n + 1) * classes.length)
+  for (let index = n - 1; index >= 0; index -= 1) {
+    suffix.copyWithin(index * classes.length, (index + 1) * classes.length, (index + 2) * classes.length)
+    if (index !== lockedMainIndex) suffix[index * classes.length + classes.indexOf(costs[index]!)]! += 1
+  }
+  const choose = (m: number, k: number) => {
+    if (k < 0 || k > m) return 0
+    let out = 1
+    for (let i = 0; i < k; i += 1) out = out * (m - i) / (i + 1)
+    return out
+  }
+  const count = (after: number, free: number, budget: number, cls = 0): number => {
+    if (free === 0) return 1
+    if (cls >= classes.length || budget < 0) return 0
+    let total = 0
+    const have = suffix[after * classes.length + cls]!
+    for (let take = 0; take <= free && take * classes[cls]! <= budget; take += 1) {
+      const ways = choose(have, take)
+      if (ways > 0) total += ways * count(after, free - take, budget - take * classes[cls]!, cls + 1)
+    }
+    return total
+  }
+  return (after: number, free: number, budget: number, hasLocked: boolean): number => {
+    if (lockedMainIndex < 0 || hasLocked) return count(after, free, budget)
+    if (lockedMainIndex < after) return 0
+    return count(after, free - 1, budget - costs[lockedMainIndex]!)
+  }
+}
+
 export function* gnrtTgtCpuCm(options: {
   costs: Uint8Array
   batchSize: number
   lockMainIdx?: number
   borrowBuffer?: (length: number) => Int32Array
+  // walk order over echo indices (identity when absent); any order emits the
+  // same combos, a strongest-first order just lets prune cut sooner
+  order?: Int32Array
+  // asked after two and after three picks, with the walk position the next
+  // pick starts from: true skips every completion
+  prune?: (prefix: Int32Array, depth: number, costSum: number, after: number) => boolean
+  // combos skipped by prune, for progress
+  onPruned?: (count: number) => void
 }): Generator<TgtCpuCmbBtc> {
   const { costs, batchSize } = options
   const lockedMainIndex = options.lockMainIdx ?? -1
@@ -40,6 +81,10 @@ export function* gnrtTgtCpuCm(options: {
 
   // stores the current five-echo combination during dfs
   const combo = new Int32Array(ECHOES_PER_SET)
+  const order = options.order
+  const walkCosts = order ? Uint8Array.from(order, (echo) => costs[echo]!) : costs
+  const lockPosition = order ? order.indexOf(lockedMainIndex) : lockedMainIndex
+  const tail = options.prune ? mkTailCounter(walkCosts, lockPosition) : null
 
   // one batch stores `batchSize` combos, each combo taking 5 slots
   const batchLength = Math.max(1, batchSize) * ECHOES_PER_SET
@@ -104,7 +149,12 @@ export function* gnrtTgtCpuCm(options: {
     // latest valid starting point that still leaves enough items to fill the combo
     const maxStart = n - rmnnSlts
 
-    for (let index = start; index <= maxStart; index += 1) {
+    for (let position = start; position <= maxStart; position += 1) {
+      // past the locked echo without holding it, nothing below can hold it
+      if (lockedMainIndex >= 0 && !hasLocked && position > lockPosition) {
+        break
+      }
+      const index = order ? order[position]! : position
       const nextCost = costSum + (costs[index] | 0)
 
       // prune branches that already exceed the total echo cost cap
@@ -114,11 +164,18 @@ export function* gnrtTgtCpuCm(options: {
 
       combo[depth] = index
 
+      const picked = depth + 1
+      const containsLocked = hasLocked || index === lockedMainIndex
+      if (tail && (picked === 2 || picked === 3) && options.prune!(combo, picked, nextCost, position + 1)) {
+        options.onPruned?.(tail(position + 1, ECHOES_PER_SET - picked, MAX_ECHO_COST - nextCost, containsLocked))
+        continue
+      }
+
       yield* dfs(
           depth + 1,
-          index + 1,
+          position + 1,
           nextCost,
-          hasLocked || index === lockedMainIndex,
+          containsLocked,
       )
     }
   }

@@ -1171,6 +1171,42 @@ export const curChngEnts: ChngRcrd[] = [
     },
     shortDesc: `New... EVERYTHING!? („°0°„)`,
   },
+  {
+    date: '23/10/2026',
+    entries: [
+      {
+        type: 'paragraph',
+        content: `
+          <strong>optimizer</strong> and <strong>suggestions</strong> can select default rotations, the current live rotation, other live scenarios, and saved rotations containing the resonator in question. saved sources supply their team/environment while using the current searched build
+        `,
+      },
+      {
+        type: 'paragraph',
+        content: `
+          for the <storng>optimizer</storng>, added cost-aware combination enumeration, cput/gpu pruning, specialized target shaders, adaptive batch sizing, and pipelined gpu readbacks. theory searches also gain pruning and revised buffer scheduling (tldr; more speed, better performance)
+        `,
+      },
+      {
+        type: 'paragraph',
+        content: `
+          for the <strong>opimizer</strong>, results consistently use the weapon selected by the search. rotation constraints and displayed rows use the final set of stats. retained results receive more precise cpu rescoring, and a result deduplication bug during table growth is fixed
+        `,
+      },
+      {
+        type: 'paragraph',
+        content: `
+          main-echo search in <strong>sonata set plan suggestions</strong> considers compatible equipped cost classes, including useful off-set main echoes. also, you can now see the main echo in the result list ui
+        `,
+      },
+      {
+        type: 'paragraph',
+        content: `
+          in the <strong>optimizer</strong>, rotation results now show the final stat damage bonus column. sonata set conditional controls now show previously hidden teammate targeted effects
+        `,
+      }
+    ],
+    shortDesc: `searcher systems optimizations`,
+  },
 ]
 
 export const ltstCurChngE =

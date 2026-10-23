@@ -7,6 +7,7 @@
 export interface SuggSets {
   targetFeatureId: string | null
   rotationMode: boolean
+  rotationSourceId?: string | null
 }
 
 export type SuggsViewMod = 'mainStats' | 'setPlans' | 'weapons' | 'random' | 'substats'
