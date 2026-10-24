@@ -7,7 +7,8 @@
 import type { OptimizerRunState } from './optimizerRunStore'
 import type { OptBckn, OptPrgr, OptStartPay } from '@/engine/optimizer/types'
 import { runOptWithWr, rstOptWrkrPo, cnclActOptWr } from '@/engine/optimizer/workers/poolClient'
-import { ROT_GPU_JOB, CPU_THEORY_JOB, GPU_THEORY_JOB } from '@/engine/optimizer/config/constants'
+import { ROT_GPU_JOB } from '@/engine/optimizer/config/constants'
+import { adaptiveTheoryBatch, rotationGpuBatchSize } from '@/engine/optimizer/config/batching'
 import { errorOpt, logOptimizer } from '@/engine/optimizer/config/log'
 import {
   bgnOptRun, compOptPayIn, ensOptCompWr, nvldOptRun, isOptRunCur,
@@ -61,6 +62,10 @@ export function startOptimizerRun(
       const compPay = await compOptPayIn(compWrkr, runToken, input)
       if (!current()) return
       const backend: OptBckn = input.settings.enableGpu ? 'gpu' : 'cpu'
+      const programBatch = compPay.mode === 'theoryTarget' || compPay.mode === 'theoryRotation'
+        ? adaptiveTheoryBatch(backend === 'gpu', compPay.lowMmryMode).size
+        : backend === 'gpu' && compPay.mode === 'rotation' && compPay.rotationProgram
+          ? rotationGpuBatchSize(compPay.lowMmryMode) : undefined
       logOptimizer('[optimizer:store] starting pool search', {
         runToken,
         backend,
@@ -68,13 +73,13 @@ export function startOptimizerRun(
         totalCombos: compPay.totalCombos,
         resultsLimit: compPay.resultsLimit,
         lowMem: compPay.lowMmryMode,
+        rotationProgram: (compPay.mode === 'rotation' || compPay.mode === 'theoryRotation') && compPay.rotationProgram
+          ? { instructions: compPay.rotationProgram.scalar.instructions.length / 5, registers: compPay.rotationProgram.scalar.registers, gpuBatch: programBatch } : undefined,
       })
       set((state) => ({
         ...state,
-        batchSize: compPay.mode === 'theoryTarget' || compPay.mode === 'theoryRotation'
-          ? backend === 'gpu' ? GPU_THEORY_JOB : CPU_THEORY_JOB
-          : compPay.mode === 'rotation' && backend === 'gpu'
-            ? ROT_GPU_JOB : resOptBtchSi(backend),
+        batchSize: programBatch ?? (compPay.mode === 'rotation' && backend === 'gpu'
+            ? ROT_GPU_JOB : resOptBtchSi(backend)),
         resPay: null,
       }))
 

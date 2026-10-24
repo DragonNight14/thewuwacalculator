@@ -1,7 +1,7 @@
 /*
   Author: Runor Ewhro
-  description: derives the runtime and simulation used by suggestions for
-               a catalog default rotation.
+  description: runs the selected rotation program against the active runtime
+               and combat context for suggestions.
 */
 
 import { useMemo } from 'react'
@@ -14,6 +14,8 @@ import { runResSmlt } from '@/engine/pipeline'
 import type { SimResult } from '@/engine/pipeline/types.ts'
 import { makeRuntimeMap } from '@/engine/runtime/runtimeAdapters.ts'
 import { cloneRotationNodes } from '@/domain/entities/inventoryStorage.ts'
+import type { RotationNode } from '@/domain/gameData/contracts.ts'
+import type { RotationCombatSetup } from '@/engine/pipeline/index.ts'
 
 export function useSuggestionTarget(
   liveRuntime: ResRuntime,
@@ -22,27 +24,32 @@ export function useSuggestionTarget(
   enemy: EnemyProfile,
   participants: Record<string, ResRuntime>,
   selectedTargets: Record<string, string | null>,
+  rotationItems?: RotationNode[] | null,
+  combatSetup?: RotationCombatSetup,
+  ready = true,
 ) {
   const runtime = useMemo(() => {
-    const preset = settings.rotationMode
+    const preset = settings.rotationMode && !rotationItems
       ? getDefaultRotation(liveRuntime.id)
       : null
-    if (!preset) return liveRuntime
+    const items = rotationItems ?? preset?.items
+    if (!settings.rotationMode || !items) return liveRuntime
     return {
       ...liveRuntime,
       rotation: {
         ...liveRuntime.rotation,
-        sequence: cloneRotationNodes(preset.items),
-        program: cloneRotationNodes(preset.items),
+        sequence: cloneRotationNodes(items),
+        program: cloneRotationNodes(items),
       },
     }
-  }, [liveRuntime, settings.rotationMode])
+  }, [liveRuntime, settings.rotationMode, rotationItems])
 
   const simulation = useMemo(() => {
+    if (!ready) return null
     if (runtime === liveRuntime) return liveSimulation
     const seed = getResSeedBy(runtime.id)
-    return seed ? runResSmlt(runtime, seed, enemy, makeRuntimeMap(runtime, participants), selectedTargets) : null
-  }, [runtime, liveRuntime, liveSimulation, enemy, participants, selectedTargets])
+    return seed ? runResSmlt(runtime, seed, enemy, makeRuntimeMap(runtime, participants), selectedTargets, { combatSetup }) : null
+  }, [runtime, liveRuntime, liveSimulation, enemy, participants, selectedTargets, combatSetup, ready])
 
   return { runtime, simulation }
 }

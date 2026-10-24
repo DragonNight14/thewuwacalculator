@@ -1,275 +1,21 @@
 /*
   Author: Runor Ewhro
-  description: evaluates one target-mode optimizer combo on the cpu by
-               aggregating echo stats, applying set effects, testing each
-               valid main-echo choice, and returning the best passing result.
+  description: scores a target optimizer combination for each valid main Echo.
 */
 
 import type { CpuScratch } from '@/engine/optimizer/cpu/scratch.ts'
-import { psssCstrs } from '@/engine/optimizer/constraints/statConstraints.ts'
+import { applySetVec } from '@/engine/search/encode/sets.ts'
 import {
-  applySetVec,
-  SETRTTGLALL,
-  SETRTTGLST14,
-  SETRTTGLST33,
-} from '@/engine/optimizer/encode/sets.ts'
-import {
-  ARCH_AERO,
-  ARCH_DAMAGE,
-  ARCH_ELECTRO,
-  ARCH_FUSION,
-  ARCH_GLACIO,
-  ARCH_HACK,
-  ARCH_SPECTRO,
-  ARCH_TUNE,
-  CTX_FLOATS,
-  ARCHETYPE,
-  AUX0,
-  BASE_ATK,
-  BASE_DEF,
-  BASE_ER,
-  BASE_HP,
-  CRIT_DMG,
-  CRIT_RATE,
-  DEF_MUL,
-  DMG_AMP,
-  DMG_BNS,
-  DMG_RED,
-  FINAL_ATK,
-  FINAL_DEF,
-  FINAL_HP,
-  FLAT_DMG,
-  META0,
-  MV,
-  RES_MUL,
-  SCALING_ATK,
-  SCALING_DEF,
-  SCALING_ER,
-  SCALING_HP,
-  SET_MASK,
-  SKILL_ID,
-  DMG_VULN,
-  TOGGLES,
   MAIN_FIRST,
   WEAPON_OVERLAY_SLOTS,
   WEAPON_OVERLAY_STRIDE,
   ECHO_STAT_STRIDE,
-  MAIN_BUFF_LEN,
   SET_SLOT_COUNT,
-} from '@/engine/optimizer/config/constants.ts'
-import {
-  calcJingranFireOfLifeMultiplier,
-  getJingranFortune,
-  hasJingranEverflow,
-} from '@/engine/optimizer/jingran.ts'
-import {
-  calcConvert,
-  calcCritConvert,
-  calcErToAtk,
-  calcJingranAtk,
-  calcJingranFusion,
-  calcShoreCritDmg,
-  calcShoreCritRate,
-  countOneBits,
-} from '@/engine/optimizer/specialMath.ts'
-import { optimizerAverageDamage } from '@/engine/optimizer/damageSpec.ts'
+} from '@/engine/search/layout/constants.ts'
+import { countOneBits } from '@/engine/search/score/specialMath.ts'
+import { mkTgtComboTerms, tgtComboTerms, tgtCtx, tgtMainDamage, type SetBonus } from '@/engine/search/score/core.ts'
 
-// offsets for the packed per-echo stat rows
-const STAT_ATK_PCT = 0
-const STATATKFLAT = 1
-const STAT_HP_PRCN = 2
-const STAT_HP_FLAT = 3
-const STAT_DEF_PCT = 4
-const STATDEFFLAT = 5
-const STATCRITRATE = 6
-const STATCRITDMG = 7
-const STAT_ER = 8
-const STAT_BASIC = 10
-const STAT_HEAVY = 11
-const STAT_SKILL = 12
-const STAT_LIB = 13
-const STAT_AERO = 14
-const STAT_SPECTRO = 15
-const STAT_FUSION = 16
-const STAT_GLACIO = 17
-const STAT_HAVOC = 18
-const STAT_ELECTRO = 19
-
-// offsets for the packed main-echo bonus rows
-const MAIN_ATK_PCT = 0
-const MAINATKFLAT = 1
-const MAIN_BASIC = 2
-const MAIN_HEAVY = 3
-const MAIN_SKILL = 4
-const MAIN_LIB = 5
-const MAIN_AERO = 6
-const MAIN_GLACIO = 7
-const MAIN_FUSION = 8
-const MAIN_SPECTRO = 9
-const MAIN_HAVOC = 10
-const MAIN_ELECTRO = 11
-const MAIN_ER = 12
-const MAIN_ECHO_SKILL = 13
-const MAIN_COORD = 14
-// see encode/echoes.ts for the layout; these three slots carry the main echo's
-// top_stat contributions (cr/cd/dmgBonus).
-const MAIN_CR = 15
-const MAIN_CD = 16
-const MAIN_DMG_BNS = 17
-interface PrepTgtCpuCt {
-  // static values unpacked once from the target context buffer
-  archetype: number
-  skillId: number
-  skillMask: number
-  elementIdx: number
-  charId: number
-  sequence: number
-  toggle0: number
-  shoreInner: boolean
-  shoreSupernal: boolean
-  togglesBits: number
-  jingranFortune: number
-  jingranEverflow: boolean
-  setRtMask: number
-  st14FiveOn: boolean
-  st33ChongmingOn: boolean
-  baseAtk: number
-  baseHp: number
-  baseDef: number
-  baseER: number
-  finalAtk: number
-  finalHp: number
-  finalDef: number
-  critRate: number
-  critDmg: number
-  scalingAtk: number
-  scalingHp: number
-  scalingDef: number
-  scalingER: number
-  multiplier: number
-  flatDmg: number
-  resMult: number
-  defMult: number
-  dmgReduction: number
-  dmgBonus: number
-  dmgAmplify: number
-  dmgVulnPct: number
-  aux0: number
-}
-
-// cache parsed contexts across repeated combo checks.
-const prsdCtxCch = new WeakMap<Float32Array, PrepTgtCpuCt>()
-
-// select the matching elemental bonus bucket from base stats + set bonus
-function selSetElemBn(
-    base: Float32Array,
-    setBonus: ReturnType<typeof applySetVec>,
-    elementIdx: number,
-): number {
-  switch (elementIdx) {
-    case 0: return base[STAT_AERO] + setBonus.aero
-    case 1: return base[STAT_GLACIO] + setBonus.glacio
-    case 2: return base[STAT_FUSION] + setBonus.fusion
-    case 3: return base[STAT_SPECTRO] + setBonus.spectro
-    case 4: return base[STAT_HAVOC] + setBonus.havoc
-    default: return base[STAT_ELECTRO] + setBonus.electro
-  }
-}
-
-// sum all skill-type-specific bonus buckets that match the current skill mask
-function selSkllTypeB(
-    base: Float32Array,
-    setBonus: ReturnType<typeof applySetVec>,
-    skillMask: number,
-): number {
-  return (
-      ((skillMask >>> 0) & 1 ? base[STAT_BASIC] + setBonus.basic : 0) +
-      ((skillMask >>> 1) & 1 ? base[STAT_HEAVY] + setBonus.heavy : 0) +
-      ((skillMask >>> 2) & 1 ? base[STAT_SKILL] + setBonus.skill : 0) +
-      ((skillMask >>> 3) & 1 ? base[STAT_LIB] + setBonus.lib : 0) +
-      ((skillMask >>> 6) & 1 ? setBonus.echoSkill : 0) +
-      ((skillMask >>> 7) & 1 ? setBonus.coord : 0)
-  )
-}
-
-// select the current main echo's elemental bonus bucket
-function selMainElemB(
-    mainEchoBuffs: Float32Array,
-    base: number,
-    elementIdx: number,
-): number {
-  switch (elementIdx) {
-    case 0: return mainEchoBuffs[base + MAIN_AERO]
-    case 1: return mainEchoBuffs[base + MAIN_GLACIO]
-    case 2: return mainEchoBuffs[base + MAIN_FUSION]
-    case 3: return mainEchoBuffs[base + MAIN_SPECTRO]
-    case 4: return mainEchoBuffs[base + MAIN_HAVOC]
-    default: return mainEchoBuffs[base + MAIN_ELECTRO]
-  }
-}
-
-// parse and cache the packed target context so combo evaluation can stay lightweight
-function prprTgtCpuCt(context: Float32Array): PrepTgtCpuCt {
-  const cached = prsdCtxCch.get(context)
-  if (cached) {
-    return cached
-  }
-
-  if (context.length !== CTX_FLOATS) {
-    throw new Error(`Target optimizer context length mismatch: expected ${CTX_FLOATS}, received ${context.length}`)
-  }
-
-  const u32 = new Uint32Array(context.buffer, context.byteOffset, context.length)
-  const skillId = u32[SKILL_ID] >>> 0
-  const skillMask = skillId & 0x7fff
-  const meta0 = u32[META0] >>> 0
-  const togglesBits = u32[TOGGLES] >>> 0
-  const pckdRtMask = u32[SET_MASK] >>> 0
-  const setRtMask = pckdRtMask !== 0 ? pckdRtMask : SETRTTGLALL
-
-  const prepared: PrepTgtCpuCt = {
-    archetype: context[ARCHETYPE],
-    skillId,
-    skillMask,
-    elementIdx: Math.max(0, Math.min(5, (skillId >>> 15) & 0x7)),
-    charId: meta0 & 0xfff,
-    sequence: (meta0 >>> 12) & 0xf,
-    toggle0: (togglesBits & 1) ? 1 : 0,
-    shoreInner: (togglesBits & (1 << 1)) !== 0,
-    shoreSupernal: (togglesBits & (1 << 2)) !== 0,
-    togglesBits,
-    jingranFortune: getJingranFortune(togglesBits),
-    jingranEverflow: hasJingranEverflow(togglesBits),
-    setRtMask: setRtMask,
-    st14FiveOn: (setRtMask & SETRTTGLST14) !== 0,
-    st33ChongmingOn: (setRtMask & SETRTTGLST33) !== 0,
-    baseAtk: context[BASE_ATK],
-    baseHp: context[BASE_HP],
-    baseDef: context[BASE_DEF],
-    baseER: context[BASE_ER],
-    finalAtk: context[FINAL_ATK],
-    finalHp: context[FINAL_HP],
-    finalDef: context[FINAL_DEF],
-    critRate: context[CRIT_RATE],
-    critDmg: context[CRIT_DMG],
-    scalingAtk: context[SCALING_ATK],
-    scalingHp: context[SCALING_HP],
-    scalingDef: context[SCALING_DEF],
-    scalingER: context[SCALING_ER],
-    multiplier: context[MV],
-    flatDmg: context[FLAT_DMG],
-    resMult: context[RES_MUL],
-    defMult: context[DEF_MUL],
-    dmgReduction: context[DMG_RED],
-    dmgBonus: context[DMG_BNS],
-    dmgAmplify: context[DMG_AMP],
-    dmgVulnPct: context[DMG_VULN],
-    aux0: context[AUX0],
-  }
-
-  prsdCtxCch.set(context, prepared)
-  return prepared
-}
+const terms = mkTgtComboTerms()
 
 // build the raw combo stat vector and per-set unique-kind counts for one 5-echo
 // combo. depends only on the combo, so a caller evaluating one combo against
@@ -328,13 +74,26 @@ export function mkCmbBaseStt(
   return tchdSetCnt
 }
 
-// clear only the touched set slots so the scratch buffer can be reused cheaply.
+// clear touched set slots for scratch buffer reuse.
 // exported alongside mkCmbBaseStt so callers that aggregate once can also clear once.
 export function clrCmbSetStt(scratch: CpuScratch, tchdSetCnt: number): void {
   for (let index = 0; index < tchdSetCnt; index += 1) {
     const setId = scratch.tchdSetIds[index]
     scratch.setCounts[setId] = 0
     scratch.setMasks[setId] = 0
+  }
+}
+
+// add a set lut row (field order of encode/sets.ts) onto a set bonus
+function addSetBonus(bonus: SetBonus, row: Float32Array): SetBonus {
+  return {
+    atkP: bonus.atkP + row[0]!, atkF: bonus.atkF + row[1]!, hpP: bonus.hpP + row[2]!, hpF: bonus.hpF + row[3]!,
+    defP: bonus.defP + row[4]!, defF: bonus.defF + row[5]!, critRate: bonus.critRate + row[6]!, critDmg: bonus.critDmg + row[7]!,
+    er: bonus.er + row[8]!, basic: bonus.basic + row[9]!, heavy: bonus.heavy + row[10]!, skill: bonus.skill + row[11]!,
+    lib: bonus.lib + row[12]!, aero: bonus.aero + row[13]!, spectro: bonus.spectro + row[14]!, fusion: bonus.fusion + row[15]!,
+    glacio: bonus.glacio + row[16]!, havoc: bonus.havoc + row[17]!, electro: bonus.electro + row[18]!,
+    echoSkill: bonus.echoSkill + row[19]!, coord: bonus.coord + row[20]!, bonusBase: bonus.bonusBase + row[21]!,
+    erSetBonus: bonus.erSetBonus + row[22]!,
   }
 }
 
@@ -349,277 +108,45 @@ export function evalTgtCpuCmPrepped(options: {
   comboIds: Int32Array
   lockMainIdx: number
   scratch: CpuScratch
+  /** one combo may reuse set arithmetic across rotation contexts and mains. */
+  setBonusCache?: Map<string, SetBonus>
+  /** added to the set bonus in set lut field order (search bounds only). */
+  setBonusExtra?: Float32Array
 }): { damage: number; mainIndex: number } | null {
-  const {
-    context,
-    setConstLut,
-    mainEchoBuffs: mainEchoBuffs,
-    constraints,
-    comboIds,
-    lockMainIdx: lockMainNdx,
-    scratch,
-  } = options
-
-  const prepared = prprTgtCpuCt(context)
-  const base = scratch.baseCmbVctr
+  const { comboIds, lockMainIdx, scratch, mainEchoBuffs, constraints } = options
+  const ctx = tgtCtx(options.context)
   const setCounts = scratch.setCounts
 
   // apply encoded set bonuses once for the full combo before trying each main slot
-  const setBonus = applySetVec(setCounts, prepared.skillMask, setConstLut, prepared.setRtMask)
-
-  const finalHpBase =
-      prepared.baseHp * ((base[STAT_HP_PRCN] + setBonus.hpP) / 100) +
-      base[STAT_HP_FLAT] +
-      setBonus.hpF +
-      prepared.finalHp
-
-  let finalDefBase =
-      prepared.baseDef * ((base[STAT_DEF_PCT] + setBonus.defP) / 100) +
-      base[STATDEFFLAT] +
-      setBonus.defF +
-      prepared.finalDef
-  if (prepared.charId === 1212) {
-    finalDefBase = 0
+  let setBonus = options.setBonusCache?.get(ctx.setGroupKey)
+  if (!setBonus) {
+    setBonus = applySetVec(setCounts, ctx.skillMask, options.setConstLut, ctx.setRtMask)
+    options.setBonusCache?.set(ctx.setGroupKey, setBonus)
   }
-
-  const finalERBase = prepared.baseER + base[STAT_ER] + setBonus.erSetBonus
-
-  const atkBaseTerm =
-      prepared.baseAtk * ((base[STAT_ATK_PCT] + setBonus.atkP) / 100) +
-      base[STATATKFLAT] +
-      setBonus.atkF +
-      prepared.finalAtk
-
-  const critRateTotal = prepared.critRate + ((base[STATCRITRATE] + setBonus.critRate) / 100)
-  let critDmgTotal = prepared.critDmg + ((base[STATCRITDMG] + setBonus.critDmg) / 100)
-
-  if (prepared.charId === 1306) {
-    critDmgTotal += calcCritConvert(prepared.charId, prepared.sequence, critRateTotal)
+  if (options.setBonusExtra) {
+    setBonus = addSetBonus(setBonus, options.setBonusExtra)
   }
-
-  const bnsBaseTtl =
-      setBonus.bonusBase +
-      selSetElemBn(base, setBonus, prepared.elementIdx) +
-      selSkllTypeB(base, setBonus, prepared.skillMask)
+  tgtComboTerms(ctx, scratch.baseCmbVctr, setBonus, terms)
 
   let bestDamage = 0
   let bestMainIndex = -1
-  const firstSlotMain = lockMainNdx === MAIN_FIRST
-  const fixedMain = firstSlotMain || lockMainNdx >= 0
+  const firstSlotMain = lockMainIdx === MAIN_FIRST
+  const fixedMain = firstSlotMain || lockMainIdx >= 0
 
   // try every combo member as the main echo unless one is explicitly locked
   for (let index = 0; index < comboIds.length; index += 1) {
-    const mainIndex = firstSlotMain
-        ? comboIds[0]
-        : lockMainNdx >= 0
-          ? lockMainNdx
-          : comboIds[index]
-
-    const mainBase = mainIndex * MAIN_BUFF_LEN
-    const finalER = finalERBase + mainEchoBuffs[mainBase + MAIN_ER]
-    const set33Active = prepared.st33ChongmingOn && setCounts[33] >= 5
-    const s33AtkBonus = set33Active ? Math.min(Math.max(0, finalER * 0.1), 25) : 0
-
-    // set 14 conditional er threshold bonus
-    const set14Active = prepared.st14FiveOn && setCounts[14] >= 5
-    const s14ErBonus = set14Active && finalER >= 250 ? 30 : 0
-
-    // assemble the final dmg bonus pool for this chosen main echo
-    let bonus = bnsBaseTtl + s14ErBonus + selMainElemB(mainEchoBuffs, mainBase, prepared.elementIdx)
-    bonus += mainEchoBuffs[mainBase + MAIN_BASIC] * ((prepared.skillMask >>> 0) & 1)
-    bonus += mainEchoBuffs[mainBase + MAIN_HEAVY] * ((prepared.skillMask >>> 1) & 1)
-    bonus += mainEchoBuffs[mainBase + MAIN_SKILL] * ((prepared.skillMask >>> 2) & 1)
-    bonus += mainEchoBuffs[mainBase + MAIN_LIB] * ((prepared.skillMask >>> 3) & 1)
-    bonus += mainEchoBuffs[mainBase + MAIN_ECHO_SKILL] * ((prepared.skillMask >>> 6) & 1)
-    bonus += mainEchoBuffs[mainBase + MAIN_COORD] * ((prepared.skillMask >>> 7) & 1)
-    // generic top_stat dmgBonus (e.g. set effects or conditional echo passives
-    // that grant +n% damage regardless of skill type or element)
-    bonus += mainEchoBuffs[mainBase + MAIN_DMG_BNS]
-
-    const dmgBonus =
-        prepared.dmgBonus +
-        (bonus / 100) +
-        (calcConvert(prepared.charId, finalER) * ((prepared.skillMask >>> 6) & 1)) +
-        calcJingranFusion(prepared.charId, finalHpBase, prepared.jingranFortune)
-
-    // final atk depends on the chosen main echo's atk bonuses
-    let finalAtk =
-        atkBaseTerm +
-        (prepared.baseAtk * ((mainEchoBuffs[mainBase + MAIN_ATK_PCT] + s33AtkBonus) / 100)) +
-        mainEchoBuffs[mainBase + MAINATKFLAT]
-
-    finalAtk += calcErToAtk(prepared.charId, finalER, prepared.toggle0)
-    finalAtk += calcJingranAtk(
-        prepared.charId,
-        prepared.sequence,
-        finalHpBase,
-        prepared.jingranEverflow,
-    )
-
-    // 1209-specific er-derived bonuses + main-echo cr/cd contributions
-    // (the latter are %-typed top_stat operations, normalized to the same
-    // 0..1 scale critRateTotal/critDmgTotal use).
-    let mrnyDmgBns = 0
-    let critRateBns = mainEchoBuffs[mainBase + MAIN_CR] / 100
-    let critDmgBonus = mainEchoBuffs[mainBase + MAIN_CD] / 100
-    critRateBns += calcShoreCritRate(prepared.charId, finalER, prepared.shoreInner)
-    critDmgBonus += calcShoreCritDmg(
-        prepared.charId,
-        finalER,
-        prepared.shoreInner,
-        prepared.shoreSupernal,
-    )
-
-    if (prepared.charId === 1209 && finalER > 0) {
-      const erOver = Math.max(0, finalER - 100)
-      mrnyDmgBns = Math.min(erOver * 0.25, 40) / 100
-
-      if (((prepared.skillMask >>> 3) & 1) !== 0) {
-        critRateBns += Math.min(erOver * 0.5, 80) / 100
-        critDmgBonus += Math.min(erOver, 160) / 100
-      }
-    }
-
-    // compute the final scaling bucket used by normal damage archetypes
-    const scaled =
-        (finalHpBase * prepared.scalingHp) +
-        (finalDefBase * prepared.scalingDef) +
-        (finalAtk * prepared.scalingAtk) +
-        (finalER * prepared.scalingER)
-
-    let cstrCritRate = critRateTotal
-    let cstrCritDmg = critDmgTotal
-    let cstrDmgBns = dmgBonus
-    let avg = 0
-
-    // archetype-specific average damage evaluation
-    switch (prepared.archetype) {
-      case ARCH_TUNE: {
-        const normal =
-            prepared.multiplier *
-            prepared.resMult *
-            prepared.defMult *
-            prepared.dmgReduction *
-            prepared.dmgBonus *
-            prepared.dmgAmplify *
-            prepared.aux0
-
-        avg = optimizerAverageDamage(normal, prepared.critRate, prepared.critDmg)
-
-        // tune rupture uses packed crit/bonus values directly
-        cstrCritRate = prepared.critRate
-        cstrCritDmg = prepared.critDmg
-        cstrDmgBns = prepared.dmgBonus
-        break
-      }
-
-      case ARCH_HACK: {
-        const normal =
-            prepared.multiplier *
-            prepared.resMult *
-            prepared.defMult *
-            prepared.dmgReduction *
-            prepared.dmgBonus *
-            prepared.dmgAmplify *
-            prepared.aux0
-
-        avg = optimizerAverageDamage(normal, prepared.critRate, prepared.critDmg)
-
-        cstrCritRate = prepared.critRate
-        cstrCritDmg = prepared.critDmg
-        cstrDmgBns = prepared.dmgBonus
-        break
-      }
-
-      case ARCH_SPECTRO:
-      case ARCH_AERO:
-      case ARCH_FUSION:
-      case ARCH_GLACIO:
-      case ARCH_ELECTRO: {
-        const normal =
-            prepared.multiplier *
-            prepared.resMult *
-            prepared.defMult *
-            prepared.dmgReduction *
-            prepared.dmgBonus *
-            prepared.dmgAmplify *
-            prepared.aux0
-
-        avg = optimizerAverageDamage(normal, prepared.critRate, prepared.critDmg)
-
-        // negative-effect archetypes also use packed crit/bonus values
-        cstrCritRate = prepared.critRate
-        cstrCritDmg = prepared.critDmg
-        cstrDmgBns = prepared.dmgBonus
-        break
-      }
-
-      case ARCH_DAMAGE:
-      default: {
-        const baseMul =
-            prepared.resMult *
-            prepared.defMult *
-            prepared.dmgReduction *
-            prepared.dmgAmplify *
-            prepared.aux0
-
-        const effectiveMultiplier =
-            prepared.multiplier +
-            calcJingranFireOfLifeMultiplier(
-                prepared.charId,
-                prepared.sequence,
-                prepared.skillId,
-                finalHpBase,
-                prepared.togglesBits,
-            )
-
-        const baseDamage =
-            (scaled * effectiveMultiplier + prepared.flatDmg) *
-            baseMul *
-            (dmgBonus + (mrnyDmgBns * prepared.toggle0))
-
-        const critRateForD = critRateTotal + critRateBns
-        const critDmgForDm = critDmgTotal + critDmgBonus
-        avg = optimizerAverageDamage(baseDamage, critRateForD, critDmgForDm)
-        break
-      }
-    }
-
-    // reject this main choice if it fails any active constraint window
-    if (constraints && !psssCstrs(
-        constraints,
-        finalAtk,
-        finalHpBase,
-        finalDefBase,
-        cstrCritRate,
-        cstrCritDmg,
-        finalER,
-        cstrDmgBns,
-        avg,
-    )) {
-      if (fixedMain) {
-        break
-      }
-      continue
-    }
-
+    const mainIndex = firstSlotMain ? comboIds[0] : lockMainIdx >= 0 ? lockMainIdx : comboIds[index]
+    // a failed limit (LIMIT_FAILED) never beats the best
+    const avg = tgtMainDamage(ctx, terms, setCounts, mainEchoBuffs, mainIndex, constraints)
     if (avg > bestDamage) {
       bestDamage = avg
       bestMainIndex = mainIndex
     }
-
     // when the main is locked there is only one candidate to test
-    if (fixedMain) {
-      break
-    }
+    if (fixedMain) break
   }
 
-  return bestMainIndex >= 0
-      ? {
-        damage: bestDamage,
-        mainIndex: bestMainIndex,
-      }
-      : null
+  return bestMainIndex >= 0 ? { damage: bestDamage, mainIndex: bestMainIndex } : null
 }
 
 // evaluate one combo against one context, aggregating the combo's echo stats

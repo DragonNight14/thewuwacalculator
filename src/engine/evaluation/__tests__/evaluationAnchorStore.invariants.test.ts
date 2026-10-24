@@ -4,12 +4,12 @@
 */
 
 import { describe, expect, it } from 'vitest'
-import type { EvaluationAnchors } from '@/engine/evaluation/evaluation/search.ts'
+import type { EvaluationAnchors } from '@/engine/evaluation/search.ts'
 import {
   EVALUATION_ANCHOR_CACHE_REVISION,
   selectCurrentAnchorEntries,
   type StoredAnchor,
-} from '@/engine/evaluation/evaluation/anchorStore.ts'
+} from '@/engine/evaluation/anchorStore.ts'
 
 describe('evaluation anchor persistence', () => {
   it('rejects legacy scoring revisions before hydrating the anchor cache', () => {

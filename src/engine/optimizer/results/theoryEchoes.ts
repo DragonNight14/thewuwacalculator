@@ -186,3 +186,12 @@ export function theoryResultCompactor(payload: ThryPay) {
     return indices.some((index) => index < 0) ? null : { theory, indices, mainSlot, damage: result.damage }
   }
 }
+
+// theory rows use the slot as kind ID, preventing two rows
+// resolving to one echo. merge results through this before ranking: an
+// illegal build would take a top-k slot, drop out at compaction and leave the
+// list short, and its damage would raise the producer's pruning cutoff.
+export function theoryResultLegality(payload: ThryPay): (result: OptRawResult) => boolean {
+  const compact = theoryResultCompactor(payload)
+  return (result) => compact(result) != null
+}

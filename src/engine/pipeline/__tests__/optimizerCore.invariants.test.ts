@@ -10,26 +10,24 @@ import { listChsByCos } from '@/data/catalog/echoCatalogService'
 import { listResSds } from '@/data/catalog/resonatorSeedService'
 import { makeEnemy, makeOptSets, makeResRuntime } from '@/engine/runtime/defaults'
 import { makeRuntimeMap } from '@/engine/runtime/runtimeAdapters'
-import {
-  OPT_RDC_K,
-  SET_SLOT_COUNT,
-} from '@/engine/optimizer/config/constants'
+import { GPU_REDUCE_K } from '@/engine/optimizer/config/constants'
+import { SET_SLOT_COUNT } from '@/engine/search/layout/constants'
+import { withOptimizerShaderConfig } from '@/engine/optimizer/config/shaders'
+import { MAIN_BUFF } from '@/engine/search/layout/echoLayout'
 import { ECHO_SET_DEFS, getEchoSetCn } from '@/data/gameData/echoSets/effects'
 import { runOptSrch } from '@/engine/optimizer/engine'
-import { psssCstrs as passesCpuConstraints, encStatCstrs } from '@/engine/optimizer/constraints/statConstraints'
+import { psssCstrs as passesCpuConstraints, encStatCstrs } from '@/engine/search/score/statConstraints'
 import {
   applySetVec,
   buildSetRows,
   listDynamicSetStateParts,
   SETCNSTLUTSE,
-} from '@/engine/optimizer/encode/sets'
+} from '@/engine/search/encode/sets'
 import { countOptCombos, countOptRows } from '@/engine/optimizer/search/counting'
 import { mkTgtGpuSttc } from '@/engine/optimizer/workers/targetGpu'
 import { runResSmlt } from '@/engine/pipeline'
 import { combatScenarioId, teamMemberId } from '@/domain/entities/combatScenario'
-import targetShader from '@/engine/optimizer/shaders/target.wgsl?raw'
-import rotationShader from '@/engine/optimizer/shaders/rotation.wgsl?raw'
-import weaponSearchShader from '@/engine/optimizer/shaders/weaponSearch.wgsl?raw'
+import targetCommonShader from '@/engine/optimizer/shaders/targetCommon.wgsl?raw'
 
 function makeEchoInstance(
   id: string,
@@ -105,13 +103,20 @@ function echoSetStateMax(state: (typeof ECHO_SET_DEFS)[number]['states'][string]
 }
 
 describe('optimizer core invariants', () => {
+  it('keeps main Echo element bonuses contiguous for the selected-element GPU load', () => {
+    expect([
+      MAIN_BUFF.aero, MAIN_BUFF.glacio, MAIN_BUFF.fusion,
+      MAIN_BUFF.spectro, MAIN_BUFF.havoc, MAIN_BUFF.electro,
+    ]).toEqual(Array.from({ length: 6 }, (_, index) => MAIN_BUFF.aero + index))
+  })
+
   it('keeps every authored Sonata set addressable by CPU and GPU set buffers', () => {
     const maxSetId = Math.max(...ECHO_SET_DEFS.map((definition) => definition.id))
 
     expect(SETCNSTLUTSE).toBe(SET_SLOT_COUNT)
     expect(maxSetId).toBeLessThan(SET_SLOT_COUNT)
-    for (const shader of [targetShader, rotationShader, weaponSearchShader]) {
-      expect(shader).toContain(`const SET_SLOTS : u32 = ${SET_SLOT_COUNT}u;`)
+    for (const shader of [targetCommonShader]) {
+      expect(withOptimizerShaderConfig(shader)).toContain(`const SET_SLOTS : u32 = ${SET_SLOT_COUNT}u;`)
     }
   })
 
@@ -133,7 +138,7 @@ describe('optimizer core invariants', () => {
   })
 
   it('keeps the GPU reduce fan-out in sync with the target shaders', () => {
-    expect(OPT_RDC_K).toBe(8)
+    expect(GPU_REDUCE_K).toBe(8)
   })
 
   it('hashes GPU static payloads using full typed-array bytes', () => {

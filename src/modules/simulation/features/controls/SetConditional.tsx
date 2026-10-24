@@ -47,8 +47,7 @@ function partType(
     setMeta: (typeof ECHO_SET_DEFS)[number],
     partKey = '',
 ): PieceFilter | 'other' {
-  // generated set parts do not always carry an explicit piece desc, so infer from the part key first and then from
-  // available description fields.
+  // infer the piece count from the part key when its description is missing.
   if (partKey === 'onePiece') return 'one'
   if (partKey === 'twoPiece') return 'two'
   if (partKey === 'threePiece') return 'three'
@@ -69,55 +68,6 @@ function partDesc(
   if (part.key === 'threePiece') return part.description ?? setMeta.desc.threePiece ?? part.label ?? '3pc effect'
   if (part.key === 'fivePiece') return part.description ?? setMeta.desc.fivePiece ?? part.label ?? '5pc effect'
   return part.description ?? part.label ?? part.key
-}
-
-function partEntries(
-    setMeta: (typeof ECHO_SET_DEFS)[number],
-    partKey: string,
-) {
-  if (partKey === 'onePiece') {
-    return Array.isArray(setMeta.onePiece) ? setMeta.onePiece : []
-  }
-
-  if (partKey === 'twoPiece') {
-    return Array.isArray(setMeta.twoPiece) ? setMeta.twoPiece : []
-  }
-
-  if (partKey === 'fivePiece' || partKey === 'threePiece') {
-    return Array.isArray(setMeta.fivePiece) ? setMeta.fivePiece : []
-  }
-
-  const state = setMeta.states?.[partKey as keyof typeof setMeta.states]
-  if (!state) {
-    return []
-  }
-
-  if (Array.isArray(state.max) && state.max.length > 0) {
-    return state.max
-  }
-
-  if (Array.isArray(state.perStep) && state.perStep.length > 0) {
-    return state.perStep
-  }
-
-  if (Array.isArray(state.perStack) && state.perStack.length > 0) {
-    return state.perStack
-  }
-
-  return []
-}
-
-function includePart(
-    setMeta: (typeof ECHO_SET_DEFS)[number],
-    partKey: string,
-): boolean {
-  // character-local conditionals hide teammate-only parts because those are controlled from team/optimizer surfaces.
-  const entries = partEntries(setMeta, partKey)
-  if (entries.length === 0) {
-    return true
-  }
-
-  return entries.some((entry) => entry.targetScope !== 'activeOther' && entry.targetScope !== 'otherTeammates')
 }
 
 export function SetCond(props: {
@@ -165,7 +115,6 @@ export function SetCond(props: {
       icon: getSntSetIco(setMeta.id),
       color: getSntSetClr(setMeta.id),
       parts: (setMeta.parts ?? [])
-        .filter((part) => includePart(setMeta, part.key))
         .map((part) => ({
           ...part,
           desc: partDesc(setMeta, part),

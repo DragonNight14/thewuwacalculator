@@ -1,16 +1,14 @@
 /*
   Author: Runor Ewhro
-  description: evaluates a build's substats against an optimally rolled set of
-               25 substats for the active target, evaluated at floor and ceiling
-               roll values, while preserving the build's energy regen investment.
+  description: evaluates build substats against 25 optimal rolls while preserving energy regen investment.
 */
 
 import type { EchoInstance } from '@/domain/entities/runtime'
-import { ECHO_STAT_STRIDE } from '@/engine/optimizer/config/constants'
-import { addEchoStat, encEchoRows } from '@/engine/optimizer/encode/echoes'
+import { ECHO_STAT_STRIDE } from '@/engine/search/layout/constants'
+import { addEchoStat, encEchoRows } from '@/engine/search/encode/echoes'
 import { mkSuggMainEc } from '@/engine/suggestions/shared'
 import type { SuggestContext } from '@/engine/suggestions/types'
-import { scoreStats } from '@/engine/evaluation/evaluation/scoring'
+import { prepareEvaluationScorer } from '@/engine/evaluation/scoring'
 import {
   aggregateSubstats,
   allSubstatRollBounds,
@@ -61,8 +59,7 @@ export function calcSubEvaluation(
   const { stats, sets, kinds } = encEchoRows(echoes, ctx.selectedSkill, 'self')
   const comboIds = Int32Array.from(echoes.map((_, index) => index))
   const mainIndex = Math.max(0, echoes.findIndex((echo) => echo.mainEcho))
-  const score = (buffer: Float32Array) =>
-      scoreStats(ctx, buffer, sets, kinds, comboIds, mainEchoBuffs, mainIndex)
+  const score = prepareEvaluationScorer(ctx, { sets, kinds, comboIds, mainEchoBuffs, mainIndex, echoes })
 
   const baseDamage = score(stats)
 

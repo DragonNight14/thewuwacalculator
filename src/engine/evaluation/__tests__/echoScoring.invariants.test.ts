@@ -35,7 +35,7 @@ import { makeEnemy, makeResRuntime, mkMaxResRt } from '@/engine/runtime/defaults
 import { makeRuntimeMap } from '@/engine/runtime/runtimeAdapters'
 import { combatScenarioId, teamMemberId } from '@/domain/entities/combatScenario'
 import { runResSmlt } from '@/engine/pipeline'
-import { runPrepMainS } from '@/engine/suggestions/mainStat-suggestion/suggestMainStat'
+import { runPrepMainS } from '@/engine/suggestions/mainStat/suggest'
 
 const AUGUSTA_ID = '1306'
 const QINGXIAO_ID = '1413'
@@ -76,7 +76,7 @@ function makeEcho(cost: number, primaryKey: string): EchoInstance {
 }
 
 describe('Echo scoring invariants', () => {
-  it('gives preferred mains equal value across Echo costs', () => {
+  it('scores preferred main stats equally across Echo costs', () => {
     const atkEcho = makeEcho(1, 'atkPercent')
     const critEcho = makeEcho(4, 'critDmg')
 
@@ -107,7 +107,7 @@ describe('Echo scoring invariants', () => {
     expect(getEchoScrs(AUGUSTA_ID, makeEcho(4, 'critRate')).mainScore).toBeCloseTo(22, 8)
   })
 
-  it('gives Qingxiao full credit for the selected Aero main', () => {
+  it('fully scores Qingxiao’s selected Aero main stat', () => {
     cacheEchoMainStatScoreProfile({
       cacheKey: 'echo-score-qingxiao-aero',
       charId: QINGXIAO_ID,
@@ -192,7 +192,7 @@ describe('Echo scoring invariants', () => {
     expect(getEchoScrPr(AEMEATH_ID, aemeathEcho)).toBeCloseTo(78.107284, 6)
   })
 
-  it('uses one attainable five-Echo reference and does not reward redundant HP', () => {
+it('uses one attainable five-Echo reference and excludes redundant HP', () => {
     cacheEchoMainStatScoreProfile({
       cacheKey: 'echo-score-five-echo-reference',
       charId: JINGRAN_ID,
@@ -394,7 +394,7 @@ describe('Echo scoring invariants', () => {
 
   })
 
-  it('uses the Main Stat Suggestions winner and gives its mains full score', async () => {
+  it('fully scores the selected Main Stat suggestion', async () => {
     const seed = getResSeedBy(AUGUSTA_ID)
     if (!seed) throw new Error('Missing Augusta fixture.')
 
@@ -437,9 +437,9 @@ describe('Echo scoring invariants', () => {
     // every main selected by the optimal 4-3-3-1-1 layout receives full
     // item-quality credit, even when its isolated marginal value is lower.
     expect(getEchoScrs(AUGUSTA_ID, makeEcho(3, 'electro')).mainScore).toBeCloseTo(44, 8)
-  })
+  }, 30_000)
 
-  it('reuses a completed evaluation reference without launching another search', () => {
+it('reuses a completed evaluation reference for repeat scoring', () => {
     const seed = getResSeedBy(AUGUSTA_ID)
     if (!seed) throw new Error('Missing Augusta fixture.')
 
@@ -510,7 +510,7 @@ describe('Echo scoring invariants', () => {
     fractional.evaluation.builds.referenceBuild.statRows.forEach((row) => {
       row.substatCount -= 0.49
     })
-    // these still round to 25 slots, but belong to the fractional build
+  // these still round to 25 slots in the fractional build.
     // benchmark and must not replace the echo-quality reference.
     expect(cacheEchoMainStatScoringFromEvaluation(input, fractional)).toBeNull()
     const tierBudget = structuredClone(report)

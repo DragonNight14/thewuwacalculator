@@ -1,12 +1,11 @@
 /*
   Author: Runor Ewhro
-  description: builds throttled optimizer progress snapshots so long-running
-               search jobs can report elapsed time, speed, and remaining work.
+  description: reports elapsed time, speed, and remaining work during optimizer searches.
 */
 
 import type { OptPrgr } from '@/engine/optimizer/types.ts'
 
-const PRGRUPDNTRVM = 80
+import { PROGRESS_INTERVAL_MS } from '../config/constants'
 
 // compute one progress snapshot from current counters and elapsed time
 export function mkOptPrgr(
@@ -54,7 +53,7 @@ export function mkOptPrgrTrc(
     }
 
     const now = performance.now()
-    if (!force && now - lastPrgrAt < PRGRUPDNTRVM) {
+    if (!force && now - lastPrgrAt < PROGRESS_INTERVAL_MS) {
       return
     }
 

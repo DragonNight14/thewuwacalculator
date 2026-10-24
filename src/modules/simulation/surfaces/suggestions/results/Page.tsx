@@ -23,7 +23,7 @@ import { getResonator, WPNTYPETOKEY } from '@/modules/simulation/features/resona
 import { OptimizerEchoPreview } from '@/modules/simulation/surfaces/optimizer/transport/OptimizerEchoPreview.tsx'
 import { useSuggRuns } from '@/modules/simulation/surfaces/suggestions/lib/useSuggRuns.ts'
 import { smmrCurSetPl } from '@/modules/simulation/surfaces/suggestions/lib/suggestions.ts'
-import { Results } from '@/modules/simulation/surfaces/suggestions/results/Results.tsx'
+import { List } from '@/modules/simulation/surfaces/suggestions/results/List.tsx'
 import { Comparison } from '@/modules/simulation/surfaces/suggestions/results/Comparison.tsx'
 import {
   buildRows,
@@ -106,6 +106,8 @@ export function Page() {
     worn,
     wornSetPlan,
   ])
+  const running = kind === 'mainStats' ? search.rnnnMainStat
+    : kind === 'setPlans' ? search.rnnnSetPlns : search.rnnnWpns
 
   const heldRow = rows[held] ?? null
   const preview = useMemo(
@@ -164,7 +166,7 @@ export function Page() {
       />
 
       <section className="wk-section wk-span wk-ink sgl-run">
-        <Results
+        <List
           kind={kind}
           onKind={(next) => {
             setHeld(0)
@@ -183,11 +185,7 @@ export function Page() {
           comparison={heldRow ? (
             <Comparison kind={kind} row={heldRow} weapon={runtime.build.weapon} echoes={echoes} preview={preview} />
           ) : null}
-          running={
-            kind === 'mainStats' ? search.rnnnMainStat
-              : kind === 'setPlans' ? search.rnnnSetPlns
-                : search.rnnnWpns
-          }
+          running={running}
           targetValue={search.selTgtVl}
           targetGroups={search.targetSkillGroups}
           onTarget={onTarget}

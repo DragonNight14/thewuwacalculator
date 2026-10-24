@@ -9,7 +9,7 @@ import type { OptPrgr, PckdOptXctnP, PckdRotXctnP } from '@/engine/optimizer/typ
 import type { TargetGpuState, OptTaskDoneM, OptTaskInMsg, OptTaskOutMs } from './messages'
 import type { TgtJobSpec } from './targetGpu'
 
-const WORKER_TASK_MS = 300_000
+import { WORKER_TASK_TIMEOUT_MS } from '../config/constants'
 
 export interface PoolRunHooks {
   isCancelled?: () => boolean
@@ -359,7 +359,7 @@ function dispWrkrJob(pool: OptimizerWorkerPool, handle: OptPoolWrkr, job: OptPoo
     // progress rearms the deadline; complete silence terminates the request.
     timeoutId = setTimeout(() => {
       fnshWithRrr(new Error(`Optimizer worker task timed out: ${timeoutLabel}`))
-    }, WORKER_TASK_MS)
+    }, WORKER_TASK_TIMEOUT_MS)
   }
 
   const onMessage = (event: MessageEvent<OptTaskOutMs>) => {

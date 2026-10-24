@@ -9,7 +9,7 @@ import type {
   EvaluationFeature,
   BuildEvaluationReport,
 } from '@/engine/evaluation/buildEvaluation.ts'
-import { GRADE_LADDER } from '@/engine/evaluation/evaluation/grades.ts'
+import { GRADE_LADDER } from '@/engine/evaluation/grades.ts'
 import {
   formatBuildEvaluationScore,
   getBuildEvaluationTone,
@@ -76,12 +76,8 @@ function windowScale(lo: number, hi: number): string {
   return `linear-gradient(90deg, ${stops.join(', ')})`
 }
 
-/*
-  a pointer crossing the list on its way somewhere else is not a reading. every
-  aim, arriving or leaving, waits out the same dwell. scrolling under the
-  cursor leaves the wheel and band still; adjacent row changes animate as one
-  continuous move.
-*/
+/* delay hover selection equally on entry and exit; scrolling does not change
+   the selected row until the pointer settles. */
 const DWELL_MS = 150
 
 /* how far apart, in percent of the window, two marks have to be to share a lane */
@@ -180,11 +176,8 @@ export function EvaluationAside({
 
   const build = report.evaluation.builds[buildKey] ?? report.evaluation.builds.active
 
-  /*
-    the features are grouped by node so the inner ring's arcs are contiguous,
-    which is what lets one drawing carry both cuts. within a node they keep the
-    report's own order, which is damage first.
-  */
+  /* group features by node for contiguous inner arcs, preserving the report's
+     damage-first order within each group. */
   const wheel = useMemo(() => {
     const ranked = groupRotationFeatureRows(build.features)
 

@@ -16,17 +16,17 @@ import { getResDtlsBy } from '@/data/gameData/resonators/resonatorDataStore'
 import type { ResProf } from '@/domain/entities/profile'
 import type { EchoInstance } from '@/domain/entities/runtime'
 import { runResSmlt } from '@/engine/pipeline'
-import { sumOptRotDmg } from '@/engine/optimizer/rules/eligibility'
+import { sumOptRotDmg } from '@/engine/search/score/eligibility'
 import { mkSuggMainEc, mkSuggVltnCt } from '@/engine/suggestions/shared'
 import type { SuggestContext } from '@/engine/suggestions/types'
 import { ECHO_MAIN_STATS, ECHO_SIDE_STATS, getSbstStepP } from '@/data/gameData/catalog/echoStats'
-import { assembleEvaluation, buildEvaluation, buildEvaluationAnchors, evaluationErTarget } from '@/engine/evaluation/evaluation/search.ts'
-import { findUsefulStatImpacts, makeEvaluationEchoFrame, preservedMainEchoFor } from '@/engine/evaluation/evaluation/echoDiscovery.ts'
-import { prepareRotationBuildScore, rotationBuildEvaluationScore, evaluationAnchorCacheKey } from '@/engine/evaluation/evaluation/report.ts'
-import { makeEvaluationOverviewStats, sumEncodedEnergyRegen } from '@/engine/evaluation/evaluation/stats.ts'
-import { REFERENCE_STEP_MODEL, tierStepIncreases } from '@/engine/evaluation/evaluation/stepAllocation'
-import { resolveEvaluationStats, scoreStats } from '@/engine/evaluation/evaluation/scoring.ts'
-import { CTX_FLOATS, ECHO_STAT_STRIDE, MAIN_BUFF_LEN, MV, SET_MASK, SKILL_ID } from '@/engine/optimizer/config/constants'
+import { assembleEvaluation, buildEvaluation, buildEvaluationAnchors, evaluationErTarget } from '@/engine/evaluation/search.ts'
+import { findUsefulStatImpacts, makeEvaluationEchoFrame, preservedMainEchoFor } from '@/engine/evaluation/echoDiscovery.ts'
+import { prepareRotationBuildScore, rotationBuildEvaluationScore, evaluationAnchorCacheKey } from '@/engine/evaluation/report.ts'
+import { makeEvaluationOverviewStats, sumEncodedEnergyRegen } from '@/engine/evaluation/stats.ts'
+import { REFERENCE_STEP_MODEL, tierStepIncreases } from '@/engine/evaluation/stepAllocation'
+import { resolveEvaluationStats, scoreStats } from '@/engine/evaluation/scoring.ts'
+import { CTX_FLOATS, ECHO_STAT_STRIDE, MAIN_BUFF_LEN, MV, SET_MASK, SKILL_ID } from '@/engine/search/layout/constants'
 import { rotationBuildEvaluationReport } from '@/engine/evaluation/buildEvaluation.ts'
 import { makeEvaluationKey } from '@/engine/evaluation/buildEvaluationKey'
 import {
@@ -41,7 +41,7 @@ import referenceCalibration from './fixtures/referenceCalibration.json?raw'
 import { computeShowcaseAnalysis, type ShowcaseAnalysisProgress } from '../showcaseAnalysis'
 import { computeShowcaseStats } from '../showcaseStats'
 import { makeEchoMainStatProfileKey } from '../echoMainStatProfile'
-import * as evaluationReport from '../evaluation/report'
+import * as evaluationReport from '../report'
 
 function buildInvariantEchoes(subKey: string): Array<EchoInstance | null> {
   // keep cost and main-stat structure stable while swapping one rolled substat
@@ -141,8 +141,10 @@ describe('evaluation scoring invariants', () => {
     expect(report).toBeTruthy()
     // pin the real build's score under the 16-line reference budget; its
     // equipped damage is independent of the reference allocation.
-    expect(report.evaluation.percent * 100).toBeCloseTo(100.73, 2)
-    expect(report.evaluation.userDamage).toBeCloseTo(2128773.54, 0)
+    expect(report.evaluation.percent * 100).toBeCloseTo(100.99, 2)
+    expect(report.evaluation.userDamage).toBeCloseTo(2053496.66, 0)
+    expect(report.evaluation.userDamage)
+      .toBeCloseTo(sumOptRotDmg(simulation.rotation.sequence.entries, runtime.id), 0)
     const reference = report.evaluation.builds.referenceBuild
     const relevant = new Set(['atkPercent', 'atkFlat', 'critRate', 'critDmg', 'basicAtk', 'heavyAtk', 'energyRegen'])
     expect(reference.statRows.reduce((sum, row) => sum + (relevant.has(row.key) ? row.substatCount : 0), 0)).toBe(16)
@@ -269,6 +271,7 @@ describe('evaluation scoring invariants', () => {
       const rotation: SuggestContext = {
         ...direct,
         mode: 'rotation',
+        fixedTeamDamage: 0,
         sklls: [direct.skll],
         resIds: [seedId],
         contexts,
@@ -498,7 +501,7 @@ describe('evaluation scoring invariants', () => {
     expect(makeEvaluationKey(left)).toBe(makeEvaluationKey(right))
   })
 
-  it('reuses one build anchor set to score another build without changing the result', () => {
+it('reuses build anchors across builds with stable scores', () => {
     // anchor generation is expensive; this proves cached anchors can be reused
     // when the target context is the same but equipped substats differ
     const seedIds = listResSds().slice(0, 5).map((seed) => seed.id)
@@ -648,7 +651,7 @@ describe('evaluation scoring invariants', () => {
       .toBeCloseTo(25, 8)
   }, 120000)
 
-  it('does not lock a self-only non-4-cost main echo into generated evaluation anchors', () => {
+it('leaves self-only non-4-cost main Echoes unlocked in generated anchors', () => {
     const seed = getResSeedBy('1506')
     if (!seed) throw new Error('missing Phoebe seed')
 

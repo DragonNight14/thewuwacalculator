@@ -623,6 +623,7 @@ const suggSetsSchm = z.lazy(() => z.pipe(z.transform((value) => {
 }), z.strictObject({
   targetFeatureId: z._default(z.nullable(z.string()), null),
   rotationMode: z._default(z.boolean(), false),
+  rotationSourceId: z.optional(z.nullable(z.string())),
 })))
 
 // random suggestion set preference

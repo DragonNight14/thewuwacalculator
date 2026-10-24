@@ -5,7 +5,11 @@
                and normal optimizer target or rotation contexts.
 */
 
-import { optimizerFloats } from '@/engine/optimizer/workers/payloadBuffers'
+import { ECHO_STAT, MAIN_BUFF } from '@/engine/search/layout/echoLayout'
+import { optimizerFloats } from '@/engine/search/layout/buffers'
+import { ScalarOp, scalarSpecializer } from '@/engine/rotation/portable/ir'
+import type { PortableRotationProgram } from '@/engine/rotation/portable/compiler'
+import { TEAM_INPUT } from '@/engine/rotation/portable/layout'
 import { listEchoes } from '@/data/catalog/echoCatalogService.ts'
 import { getGameData } from '@/data/gameData'
 import {
@@ -30,62 +34,11 @@ import { cntThryEmt, buildSlotReps } from '@/engine/optimizer/target/theoryBatch
 import { optSetIdSet } from '@/engine/optimizer/config/allowedSets.ts'
 import {
   encEchoRows,
-  mkGnrcMainEc,
   mkMainEchoRo,
-} from '@/engine/optimizer/encode/echoes.ts'
-import {
-  ARCH_DAMAGE,
-  ARCHETYPE,
-  ECHO_STAT_STRIDE,
-  MAIN_BUFF_LEN,
-  META0,
-  SCALING_ATK,
-  SCALING_DEF,
-  SCALING_ER,
-  SCALING_HP,
-  SKILL_ID,
-} from '@/engine/optimizer/config/constants.ts'
+} from '@/engine/search/encode/echoes.ts'
+import { ARCH_DAMAGE, ECHO_STAT_STRIDE, MAIN_BUFF_LEN } from '@/engine/search/layout/constants.ts'
 
 const ELEMBNSKEYS = new Set(['aero', 'glacio', 'fusion', 'spectro', 'havoc', 'electro'])
-const STAT_ATK_P = 0
-const STAT_ATK_F = 1
-const STAT_HP_P = 2
-const STAT_HP_F = 3
-const STAT_DEF_P = 4
-const STAT_DEF_F = 5
-const STAT_CR = 6
-const STAT_CD = 7
-const STAT_ER = 8
-const STAT_BASIC = 10
-const STAT_HEAVY = 11
-const STAT_SKILL = 12
-const STAT_LIB = 13
-const STAT_AERO = 14
-const STAT_SPECTRO = 15
-const STAT_FUSION = 16
-const STAT_GLACIO = 17
-const STAT_HAVOC = 18
-const STAT_ELECTRO = 19
-const MAIN_ATK_P = 0
-const MAIN_ATK_F = 1
-const MAIN_BASIC = 2
-const MAIN_HEAVY = 3
-const MAIN_SKILL = 4
-const MAIN_LIB = 5
-const MAIN_AERO = 6
-const MAIN_GLACIO = 7
-const MAIN_FUSION = 8
-const MAIN_SPECTRO = 9
-const MAIN_HAVOC = 10
-const MAIN_ELECTRO = 11
-const MAIN_ER = 12
-const MAIN_ECHO = 13
-const MAIN_COORD = 14
-// see encode/echoes.ts for the layout. these slots receive top_stat
-// contributions (cr/cd/dmgBonus) routed by addMainOp.
-const MAIN_CR = 15
-const MAIN_CD = 16
-const MAIN_DMG_BNS = 17
 
 function fltrKey(key: string): string | null {
   if (key === 'atkPercent') return 'atk%'
@@ -267,16 +220,19 @@ function mkThryRows(
       continue
     }
 
-    for (const [key, cat] of catByKey.entries()) {
+    const fillers = input.settings.rotationMode
+      ? cats.flatMap((cat) => cat.sets.map((set) => [`${cat.cost}|${set}`, cat] as const))
+      : [...catByKey.entries()]
+    for (const [key, cat] of fillers) {
       const [, setPart] = key.split('|')
       const setId = Number(setPart)
-      const ids = idsByShape.get(key) ?? []
+      const ids = input.settings.rotationMode ? [cat.id] : idsByShape.get(key) ?? []
       for (const main of mainOpts(input, cat.cost)) {
         pushRow({
           slot,
           cat,
           ids,
-          id: null,
+          id: input.settings.rotationMode ? cat.id : null,
           setId,
           main,
           mainOk: false,
@@ -285,7 +241,7 @@ function mkThryRows(
     }
 
     for (const cat of cats) {
-      const canMain = locked ? cat.id === locked : cat.hasSelfBff
+      const canMain = locked ? cat.id === locked : input.settings.rotationMode || cat.hasSelfBff
       if (!canMain) {
         continue
       }
@@ -328,24 +284,24 @@ function hasActCstr(values: Float32Array): boolean {
 
 function elemStatIdx(element: string): number | null {
   switch (element) {
-    case 'aero': return STAT_AERO
-    case 'glacio': return STAT_GLACIO
-    case 'fusion': return STAT_FUSION
-    case 'spectro': return STAT_SPECTRO
-    case 'havoc': return STAT_HAVOC
-    case 'electro': return STAT_ELECTRO
+    case 'aero': return ECHO_STAT.aero
+    case 'glacio': return ECHO_STAT.glacio
+    case 'fusion': return ECHO_STAT.fusion
+    case 'spectro': return ECHO_STAT.spectro
+    case 'havoc': return ECHO_STAT.havoc
+    case 'electro': return ECHO_STAT.electro
     default: return null
   }
 }
 
 function elemMainIdx(element: string): number | null {
   switch (element) {
-    case 'aero': return MAIN_AERO
-    case 'glacio': return MAIN_GLACIO
-    case 'fusion': return MAIN_FUSION
-    case 'spectro': return MAIN_SPECTRO
-    case 'havoc': return MAIN_HAVOC
-    case 'electro': return MAIN_ELECTRO
+    case 'aero': return MAIN_BUFF.aero
+    case 'glacio': return MAIN_BUFF.glacio
+    case 'fusion': return MAIN_BUFF.fusion
+    case 'spectro': return MAIN_BUFF.spectro
+    case 'havoc': return MAIN_BUFF.havoc
+    case 'electro': return MAIN_BUFF.electro
     default: return null
   }
 }
@@ -357,26 +313,26 @@ function addSkllMasks(
 ): void {
   const all = skillTypes.includes('all')
   if (all || skillTypes.includes('basicAtk')) {
-    statMask[STAT_BASIC] = true
-    mainMask[MAIN_BASIC] = true
+    statMask[ECHO_STAT.basicAtk] = true
+    mainMask[MAIN_BUFF.basicAtk] = true
   }
   if (all || skillTypes.includes('heavyAtk')) {
-    statMask[STAT_HEAVY] = true
-    mainMask[MAIN_HEAVY] = true
+    statMask[ECHO_STAT.heavyAtk] = true
+    mainMask[MAIN_BUFF.heavyAtk] = true
   }
   if (all || skillTypes.includes('resonanceSkill')) {
-    statMask[STAT_SKILL] = true
-    mainMask[MAIN_SKILL] = true
+    statMask[ECHO_STAT.resonanceSkill] = true
+    mainMask[MAIN_BUFF.resonanceSkill] = true
   }
   if (all || skillTypes.includes('resonanceLiberation')) {
-    statMask[STAT_LIB] = true
-    mainMask[MAIN_LIB] = true
+    statMask[ECHO_STAT.resonanceLiberation] = true
+    mainMask[MAIN_BUFF.resonanceLiberation] = true
   }
   if (all || skillTypes.includes('echoSkill')) {
-    mainMask[MAIN_ECHO] = true
+    mainMask[MAIN_BUFF.echoSkill] = true
   }
   if (all || skillTypes.includes('coord')) {
-    mainMask[MAIN_COORD] = true
+    mainMask[MAIN_BUFF.coord] = true
   }
 }
 
@@ -386,26 +342,26 @@ function addSkllBits(
     skillMask: number,
 ): void {
   if ((skillMask & (1 << 0)) !== 0) {
-    statMask[STAT_BASIC] = true
-    mainMask[MAIN_BASIC] = true
+    statMask[ECHO_STAT.basicAtk] = true
+    mainMask[MAIN_BUFF.basicAtk] = true
   }
   if ((skillMask & (1 << 1)) !== 0) {
-    statMask[STAT_HEAVY] = true
-    mainMask[MAIN_HEAVY] = true
+    statMask[ECHO_STAT.heavyAtk] = true
+    mainMask[MAIN_BUFF.heavyAtk] = true
   }
   if ((skillMask & (1 << 2)) !== 0) {
-    statMask[STAT_SKILL] = true
-    mainMask[MAIN_SKILL] = true
+    statMask[ECHO_STAT.resonanceSkill] = true
+    mainMask[MAIN_BUFF.resonanceSkill] = true
   }
   if ((skillMask & (1 << 3)) !== 0) {
-    statMask[STAT_LIB] = true
-    mainMask[MAIN_LIB] = true
+    statMask[ECHO_STAT.resonanceLiberation] = true
+    mainMask[MAIN_BUFF.resonanceLiberation] = true
   }
   if ((skillMask & (1 << 6)) !== 0) {
-    mainMask[MAIN_ECHO] = true
+    mainMask[MAIN_BUFF.echoSkill] = true
   }
   if ((skillMask & (1 << 7)) !== 0) {
-    mainMask[MAIN_COORD] = true
+    mainMask[MAIN_BUFF.coord] = true
   }
 }
 
@@ -415,20 +371,20 @@ function addElemBits(
     elemIndex: number,
 ): void {
   const statByElem = [
-    STAT_AERO,
-    STAT_GLACIO,
-    STAT_FUSION,
-    STAT_SPECTRO,
-    STAT_HAVOC,
-    STAT_ELECTRO,
+    ECHO_STAT.aero,
+    ECHO_STAT.glacio,
+    ECHO_STAT.fusion,
+    ECHO_STAT.spectro,
+    ECHO_STAT.havoc,
+    ECHO_STAT.electro,
   ]
   const mainByElem = [
-    MAIN_AERO,
-    MAIN_GLACIO,
-    MAIN_FUSION,
-    MAIN_SPECTRO,
-    MAIN_HAVOC,
-    MAIN_ELECTRO,
+    MAIN_BUFF.aero,
+    MAIN_BUFF.glacio,
+    MAIN_BUFF.fusion,
+    MAIN_BUFF.spectro,
+    MAIN_BUFF.havoc,
+    MAIN_BUFF.electro,
   ]
   const statIndex = statByElem[elemIndex]
   const mainIndex = mainByElem[elemIndex]
@@ -450,36 +406,33 @@ function addNormalCtxMs(
     },
 ): void {
   if (options.scalingAtk !== 0) {
-    statMask[STAT_ATK_P] = true
-    statMask[STAT_ATK_F] = true
-    mainMask[MAIN_ATK_P] = true
-    mainMask[MAIN_ATK_F] = true
+    statMask[ECHO_STAT.atkPercent] = true
+    statMask[ECHO_STAT.atkFlat] = true
+    mainMask[MAIN_BUFF.atkPercent] = true
+    mainMask[MAIN_BUFF.atkFlat] = true
   }
   if (options.scalingHp !== 0) {
-    statMask[STAT_HP_P] = true
-    statMask[STAT_HP_F] = true
+    statMask[ECHO_STAT.hpPercent] = true
+    statMask[ECHO_STAT.hpFlat] = true
   }
   if (options.scalingDef !== 0) {
-    statMask[STAT_DEF_P] = true
-    statMask[STAT_DEF_F] = true
+    statMask[ECHO_STAT.defPercent] = true
+    statMask[ECHO_STAT.defFlat] = true
   }
   if (
       options.scalingEr !== 0 ||
-      (options.characterId != null && [1206, 1209, 1412, 1505].includes(options.characterId))
+      (options.characterId != null && [1206, 1209, 1412, 1505, 1512].includes(options.characterId))
   ) {
-    statMask[STAT_ER] = true
-    mainMask[MAIN_ER] = true
+    statMask[ECHO_STAT.energyRegen] = true
+    mainMask[MAIN_BUFF.energyRegen] = true
   }
 
-  statMask[STAT_CR] = true
-  statMask[STAT_CD] = true
-  // main-echo cr/cd/dmgBonus contributions always affect damage, so include
-  // them in the mainSig dedupe key. without this, prnThryRows would treat
-  // rows that differ only in their main-echo cr/cd contribution as
-  // equivalent and collapse them away.
-  mainMask[MAIN_CR] = true
-  mainMask[MAIN_CD] = true
-  mainMask[MAIN_DMG_BNS] = true
+  statMask[ECHO_STAT.critRate] = true
+  statMask[ECHO_STAT.critDmg] = true
+  // include main-echo crit and damage bonuses in the dedupe key.
+  mainMask[MAIN_BUFF.critRate] = true
+  mainMask[MAIN_BUFF.critDmg] = true
+  mainMask[MAIN_BUFF.dmgBonus] = true
   if (options.skillMask !== 0) {
     addSkllBits(statMask, mainMask, options.skillMask)
   }
@@ -488,38 +441,7 @@ function addNormalCtxMs(
   }
 }
 
-function addRotCtxMs(
-    statMask: boolean[],
-    mainMask: boolean[],
-    context: Float32Array,
-    base: number,
-): void {
-  if ((context[base + ARCHETYPE] ?? 0) !== ARCH_DAMAGE) {
-    return
-  }
-
-  const u32 = new Uint32Array(
-      context.buffer,
-      context.byteOffset,
-      context.length,
-  )
-  const packedSkill = u32[base + SKILL_ID] ?? 0
-  const meta0 = u32[base + META0] ?? 0
-
-  addNormalCtxMs(statMask, mainMask, {
-    scalingAtk: context[base + SCALING_ATK] ?? 0,
-    scalingHp: context[base + SCALING_HP] ?? 0,
-    scalingDef: context[base + SCALING_DEF] ?? 0,
-    scalingEr: context[base + SCALING_ER] ?? 0,
-    characterId: meta0 & 0xfff,
-    skillMask: packedSkill & 0x7fff,
-    elemIndex: Math.max(0, Math.min(5, (packedSkill >>> 15) & 0x7)),
-  })
-}
-
-// build contribution masks for row compaction.
-// fields outside the mask cannot affect the selected calculation, so they
-// should not multiply the theory search space.
+// contribution masks exclude fields unused by the selected calculation.
 function mkCntrMasks(payload: PrepTheoryTarget | PrepTheoryRot): {
   statMask: boolean[]
   mainMask: boolean[]
@@ -535,15 +457,12 @@ function mkCntrMasks(payload: PrepTheoryTarget | PrepTheoryRot): {
   const mainMask = emptyMask(MAIN_BUFF_LEN)
 
   if (payload.mode === 'theoryRotation') {
-    const scan = (contexts: Float32Array): void => {
-      for (let base = 0; base + payload.contextStride <= contexts.length; base += payload.contextStride) {
-        addRotCtxMs(statMask, mainMask, contexts, base)
-      }
-    }
-
-    scan(payload.contexts)
-    if (payload.weaponContexts) {
-      scan(payload.weaponContexts)
+    const programs = payload.weaponPrograms?.length ? payload.weaponPrograms : [payload.rotationProgram]
+    for (const program of programs) for (let pc = 0; pc < program.scalar.instructions.length; pc += 5) {
+      if (program.scalar.instructions[pc] !== ScalarOp.input) continue
+      const input = program.scalar.instructions[pc + 2]!
+      if (input < TEAM_INPUT.setCounts) statMask[input % ECHO_STAT_STRIDE] = true
+      if (input >= TEAM_INPUT.totals && input < TEAM_INPUT.totals + ECHO_STAT_STRIDE) statMask[input - TEAM_INPUT.totals] = true
     }
     return { statMask, mainMask }
   }
@@ -609,10 +528,16 @@ function prnThryRows<T extends PrepTheoryTarget | PrepTheoryRot>(
     mainEchoBuffs: Float32Array,
 ): T {
   const { statMask, mainMask } = mkCntrMasks(payload)
+  const programs = payload.mode === 'theoryRotation' ? payload.weaponPrograms?.length ? payload.weaponPrograms : [payload.rotationProgram] : []
+  const usedInputs = new Set<number>()
+  for (const program of programs) for (let pc = 0; pc < program.scalar.instructions.length; pc += 5) if (program.scalar.instructions[pc] === ScalarOp.input) usedInputs.add(program.scalar.instructions[pc + 2]!)
+  const mainIdentity = usedInputs.has(149)
+  const echoIdentity = [...usedInputs].some((index) => index >= 139 && index < 144)
+  const identityKeys = portableIdentityKeys(programs, mainIdentity, echoIdentity)
   const rowMap = new Map<string, number>()
   const outRows: TheoryRow[] = []
   const sourceRows: number[] = []
-  const keepSet = statMask.some(Boolean) || mainMask.some(Boolean)
+  const keepSet = programs.length ? [...usedInputs].some((index) => (index >= 100 && index < 139) || (index >= 144 && index < 149)) : statMask.some(Boolean) || mainMask.some(Boolean)
 
   for (let index = 0; index < rows.length; index += 1) {
     const row = rows[index]
@@ -630,6 +555,7 @@ function prnThryRows<T extends PrepTheoryTarget | PrepTheoryRot>(
       row.mainOk ? 1 : 0,
       statSig,
       mainSig,
+      programs.length ? identityKeys(row.mainOk, index) : '',
     ].join('|')
     const seen = rowMap.get(key)
 
@@ -679,17 +605,20 @@ function prnThryRows<T extends PrepTheoryTarget | PrepTheoryRot>(
     kinds[index] = outRows[index]?.slot ?? 0
   }
 
-  // walk the (dedupe-free) combo space once on this thread to derive the exact
-  // count the producer will emit. cntThryEmt mirrors gnrtThryCpuCm's loop
-  // structure with no per-combo allocation. it gives an
-  // exact progress denominator from t=0 (countTheory only gives a looser upper
-  // bound). the same slot-equivalence reps the producer uses for
-  // canonicalization are passed so the count matches the emitted set.
+  // count the same combinations emitted by gnrtThryCpuCm without allocating
+  // each combo; use matching slot representatives for an exact progress total.
   const slotReps = payload.profs ? buildSlotReps(payload.profs) : null
   const exactTtl = cntThryEmt(outRows, slotReps)
 
   return {
     ...payload,
+    ...(payload.mode === 'theoryRotation' ? {
+      rotationProgram: remapPortableRows(payload.rotationProgram, sourceRows),
+      weaponPrograms: payload.weaponPrograms?.map((program) => remapPortableRows(program, sourceRows)),
+    } : {}),
+    ...(payload.mode === 'theoryRotation' && payload.candidateEchoes
+      ? { candidateEchoes: sourceRows.map((index) => payload.candidateEchoes![index]!) }
+      : {}),
     costs,
     sets,
     kinds,
@@ -702,6 +631,37 @@ function prnThryRows<T extends PrepTheoryTarget | PrepTheoryRot>(
     mainEchoBuffs: mains,
     theoryTotal: exactTtl,
     theoryRows: outRows,
+  }
+}
+
+function remapPortableRows(program: PortableRotationProgram, rows: number[]): PortableRotationProgram {
+  return { ...program, echoSymbols: Uint32Array.from(rows, (row) => program.echoSymbols[row]!) }
+}
+
+/** main and filler identities are merged only after partial evaluation proves
+ * they have the same full-program behavior, including the sheet stats. */
+function portableIdentityKeys(programs: PortableRotationProgram[], mainIdentity: boolean, echoIdentity: boolean) {
+  const specialize = programs.map((program) => scalarSpecializer(program.displayScalar))
+  const cache = programs.map(() => new Map<string, string>())
+  return (main: boolean, row: number): string => {
+    if (main ? !mainIdentity && !echoIdentity : !echoIdentity) return ''
+    return programs.map((program, index) => {
+      const symbol = program.echoSymbols[row]!, key = `${main ? 'm' : 'f'}:${symbol}`
+      const known = cache[index]!.get(key)
+      if (known !== undefined) return known
+      const presence = new Map<number, number>(Array.from({ length: 5 }, (_, slot) => [151 + slot, 1]))
+      const results: string[] = []
+      if (main) {
+        presence.set(149, symbol); presence.set(139, symbol)
+        results.push(specialize[index]!(presence))
+      } else for (let slot = 1; slot < 5; slot++) {
+        const bindings = new Map(presence); bindings.set(139 + slot, symbol)
+        results.push(specialize[index]!(bindings))
+      }
+      const signature = results.join(';')
+      cache[index]!.set(key, signature)
+      return signature
+    }).join('|')
   }
 }
 
@@ -729,18 +689,10 @@ function applyTheoryRows<T extends PrepTheoryTarget | PrepTheoryRot>(
         sourceBaseStats: payload.sourceBaseStats,
         sourceFinals: payload.sourceFinals,
         selectedSkill: payload.selectedSkill,
-        mode: 'self',
       })
-      : mkGnrcMainEc({
-        echoes,
-        runtime: input.runtime,
-        sourceBaseStats: payload.sourceBaseStats,
-        sourceFinals: payload.sourceFinals,
-        mode: 'self',
-      })
+      : new Float32Array(rows.length * MAIN_BUFF_LEN)
 
-  // theory rows use profile slots as kind ids so set-piece counting mirrors a
-  // legal five-echo build even when abstract filler rows share placeholder ids.
+  // use profile slots as kind ids for legal five-echo set counts.
   const kinds = new Uint16Array(rows.length)
   for (let index = 0; index < rows.length; index += 1) {
     kinds[index] = rows[index]?.slot ?? 0
@@ -760,6 +712,7 @@ function applyTheoryRows<T extends PrepTheoryTarget | PrepTheoryRot>(
     progFact: 1,
     stats: encoded.stats,
     mainEchoBuffs,
+    ...(payload.mode === 'theoryRotation' ? { candidateEchoes: echoes } : {}),
     theoryTotal: thryTotal,
     theoryRows: rows,
   }
@@ -778,10 +731,8 @@ export function compThryTgt(input: OptStartPay): PrepTheoryTarget {
     invChs: [],
   })
 
-  // weapon search: score each build against every visible weapon and tag it
-  // with the best. weapons
-  // are a context axis, so the combo space (theory.rows) is unchanged, only
-  // evaluation gains the weapon overlay loop.
+  // score each build with every visible weapon and record the best result.
+  // weapon options leave the echo combination space unchanged.
   const weapons = input.settings.includeWeapons
       ? buildWeaponOverlays(input)
       : null
@@ -818,7 +769,7 @@ export function compThryRot(input: OptStartPay): PrepTheoryRot {
         ...input,
         invChs: [],
       },
-      { weaponSearch: true },
+      { weaponSearch: true, teamCandidates: theory.echoes },
   )
 
   const payload: PrepTheoryRot = {

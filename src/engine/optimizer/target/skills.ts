@@ -11,7 +11,7 @@ import type { SkillDef } from '@/domain/entities/stats.ts'
 import { listRtSkills } from '@/engine/services/runtimeSourceService.ts'
 import { resolveSkill } from '@/engine/pipeline/resolveSkill.ts'
 import { prepareSkill } from '@/engine/pipeline/prepareRuntimeSkill.ts'
-import { isOptDmgSkll } from '@/engine/optimizer/rules/eligibility.ts'
+import { isOptDmgSkll } from '@/engine/search/score/eligibility.ts'
 
 // local helper that defines which prepared skills can be selected
 // as direct optimizer targets

@@ -3,7 +3,7 @@
   description: shared display helpers for default-rotation build evaluation scores.
 */
 
-import { GRADE_LADDER } from '@/engine/evaluation/evaluation/grades.ts'
+import { GRADE_LADDER } from '@/engine/evaluation/grades.ts'
 
 const BUILD_EVALUATION_GRADE_TONES = {
   'SOLON?!': { color: '#ff0033', bg: 14, border: 38, text: 92, score: 96},

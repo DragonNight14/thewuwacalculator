@@ -5,8 +5,8 @@
 */
 
 import type { SimResult } from '@/engine/pipeline/types.ts'
-import { isOptDmgSkll } from '@/engine/optimizer/rules/eligibility.ts'
-import type { OptDamageEligibilityOptions as DmgEligOpts } from '@/engine/optimizer/rules/eligibility.ts'
+import { isOptDmgSkll } from '@/engine/search/score/eligibility.ts'
+import type { OptDamageEligibilityOptions as DmgEligOpts } from '@/engine/search/score/eligibility.ts'
 import type { SelectGroup, SelectOption } from '@/application/ui/Select'
 import { ROT_SKILL_TABS, getSkillTabLabel } from '@/modules/simulation/model/skillTabs.ts'
 import { getDefaultRotation } from '@/data/catalog/gameDataService.ts'
@@ -16,16 +16,23 @@ export const DEFAULT_ROTATION_TARGET = '__default_rotation__'
 
 export function suggestionTargetValue(settings: SuggSets): string {
   return settings.rotationMode
-    ? DEFAULT_ROTATION_TARGET
+    ? settings.rotationSourceId ?? DEFAULT_ROTATION_TARGET
     : settings.targetFeatureId ?? ''
 }
 
 export function selectSuggestionTarget(settings: SuggSets, value: string): SuggSets {
   const rotationMode = value === DEFAULT_ROTATION_TARGET
+    || value === 'live'
+    || value.startsWith('default:')
+    || value.startsWith('saved:')
+    || value.startsWith('scenario:')
   return {
     ...settings,
     rotationMode,
     targetFeatureId: rotationMode ? settings.targetFeatureId : value,
+    rotationSourceId: rotationMode
+      ? value === DEFAULT_ROTATION_TARGET ? null : value
+      : settings.rotationSourceId,
   }
 }
 
@@ -42,6 +49,7 @@ export function targetOpts(
   runtimeId: string,
   simulation: SimResult | null,
   options: DmgEligOpts = {},
+  rotationSources?: Array<{ id: string; label: string }>,
 ): SuggTgtPtn[] {
   // a pending simulation cannot establish whether a saved manual target is valid.
   if (!simulation) return []
@@ -59,9 +67,14 @@ export function targetOpts(
       tab: entry.skill.tab,
     }))
 
-  const defaults: SuggTgtPtn[] = getDefaultRotation(runtimeId)
-    ? [{ value: DEFAULT_ROTATION_TARGET, label: 'Default Rotation' }]
-    : []
+  const defaults: SuggTgtPtn[] = rotationSources
+    ? rotationSources.map((source) => ({
+      value: source.id === `default:${runtimeId}` ? DEFAULT_ROTATION_TARGET : source.id,
+      label: source.label,
+    }))
+    : getDefaultRotation(runtimeId)
+      ? [{ value: DEFAULT_ROTATION_TARGET, label: 'Default Rotation' }]
+      : []
 
   return [...defaults, ...direct]
 }

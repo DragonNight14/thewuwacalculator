@@ -64,13 +64,17 @@ Important output formats:
 
 Tracked build tools under `tools/` prepare assets and catalogs for development and production builds.
 
+Standalone authoring, validation, and benchmark tools live under the local, Git-ignored `scripts/` directory. `npm run check:architecture` uses `scripts/architecture`, and `npm run benchmark:rotation` uses `scripts/analysis`.
+
 ## Authored App Content
 
 Authored app content is stored in `src/data/content`:
 
 - guides content
 - changelog entries
--
+
+The latest `curChngEnts` record supplies the app's update notice. Give each new latest entry a unique `id` and keep that ID when correcting its date or wording. Development and build commands generate `currentChangelogNotice.generated.json`; the dev server also refreshes it when the changelog changes. Edit `changelogEntries.ts`, not the generated notice. The shell imports only the compact generated file, and dismissals use the entry ID.
+
 ## Related Docs
 
 - [architecture.md](./architecture.md)

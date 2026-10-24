@@ -8,8 +8,14 @@ import type { ResRuntime } from '@/domain/entities/runtime'
 import type { RuntimeValue } from '@/domain/gameData/contracts'
 
 // normalize a runtime path into key segments
+const runtimePathSegments = new Map<string, string[]>()
 function normPath(path: string): string[] {
-  return path.replace(/^runtime\./, '').split('.').filter(Boolean)
+  const cached = runtimePathSegments.get(path)
+  if (cached) return cached
+  const keys = path.replace(/^runtime\./, '').split('.').filter(Boolean)
+  if (runtimePathSegments.size >= 2048) runtimePathSegments.clear()
+  runtimePathSegments.set(path, keys)
+  return keys
 }
 
 function shldUseRryCn(key: string): boolean {
@@ -24,12 +30,13 @@ function writeNstdPat(
     current: unknown,
     keys: string[],
     value: unknown,
+    depth = 0,
 ): unknown {
-  if (keys.length === 0) {
+  if (depth === keys.length) {
     return Object.is(current, value) ? current : value
   }
 
-  const [key, ...rest] = keys
+  const key = keys[depth]!
   const source =
       current && typeof current === 'object'
           ? current as Record<string, unknown> | unknown[]
@@ -37,7 +44,7 @@ function writeNstdPat(
               ? []
               : {}
   const childBefore = (source as Record<string, unknown>)[key]
-  const childAfter = writeNstdPat(childBefore, rest, value)
+  const childAfter = writeNstdPat(childBefore, keys, value, depth + 1)
 
   if (childAfter === childBefore && source === current) {
     return current
@@ -87,4 +94,29 @@ export function writeRtPath(
   }
 
   return writeBjctPat(runtime as unknown as Record<string, unknown>, keys, value) as unknown as ResRuntime
+}
+
+/** apply an ordered overlay, copying each shared ancestor at most once. */
+export function writeRtPaths(runtime: ResRuntime, paths: Readonly<Record<string, RuntimeValue>>): ResRuntime {
+  const owned = new WeakSet<object>()
+  const write = (current: unknown, keys: string[], depth: number, value: RuntimeValue): unknown => {
+    if (depth === keys.length) return Object.is(current, value) ? current : value
+    const key = keys[depth]!
+    const source = current && typeof current === 'object'
+      ? current as Record<string, unknown>
+      : shldUseRryCn(key) ? [] : {}
+    const before = (source as Record<string, unknown>)[key]
+    const after = write(before, keys, depth + 1, value)
+    if (after === before && source === current) return current
+    const next = owned.has(source) ? source : cloneCntn(source)
+    owned.add(next)
+    ;(next as Record<string, unknown>)[key] = after
+    return next
+  }
+  let next = runtime
+  for (const [path, value] of Object.entries(paths)) {
+    const keys = normPath(path)
+    if (keys.length > 0) next = write(next, keys, 0, value) as ResRuntime
+  }
+  return next
 }

@@ -4,13 +4,10 @@
                execution payloads for worker jobs.
 */
 
-import { packTargetCtx } from '@/engine/optimizer/context/pack'
+import { packTargetCtx } from '@/engine/search/context/pack'
+import { packRotation } from '@/engine/optimizer/payloads/rotationPayload'
 import type { PckdOptXctnP, PrepTheoryRot, PrepTheoryTarget } from '@/engine/optimizer/types'
-
-// bound both local result buffers and the merged heap independently of caller input.
-const GPU_RESULT_LIMIT = 65536
-const TGTGPUJOBVRS = 1
-const GPU_COLLECT_MUL = 2
+import { GPU_RESULT_LIMIT, GPU_JOB_RESULT_OVERSAMPLE, GPU_COLLECT_RESULT_OVERSAMPLE, LOW_MEMORY_BATCH_DIVISOR } from '../config/constants'
 
 function clmpTgtGpuRs(resultsLimit: number, oversample: number): number {
   const baseLimit = Math.max(1, Math.floor(resultsLimit || 1))
@@ -22,28 +19,25 @@ function clmpTgtGpuRs(resultsLimit: number, oversample: number): number {
 
 /** caps one gpu job at the requested top-k and the global allocation ceiling. */
 export function resTgtGpuJob(resultsLimit: number, lowMem = false): number {
-  return clmpTgtGpuRs(resultsLimit, lowMem ? 1 : TGTGPUJOBVRS)
+  return clmpTgtGpuRs(resultsLimit, lowMem ? 1 : GPU_JOB_RESULT_OVERSAMPLE)
 }
 
 /** lets the merged collector retain twice the requested top-k unless low-memory mode is active. */
 export function resTgtGpuCll(resultsLimit: number, lowMem = false): number {
-  return clmpTgtGpuRs(resultsLimit, lowMem ? 1 : GPU_COLLECT_MUL)
+  return clmpTgtGpuRs(resultsLimit, lowMem ? 1 : GPU_COLLECT_RESULT_OVERSAMPLE)
 }
 
 // five int32 values represent each combo, so halving the low-memory batch
 // directly halves its largest remaining transient allocation.
 export function bchSzFr(normal: number, lowMem: boolean): number {
-  return lowMem ? Math.max(1, Math.floor(normal / 2)) : normal
+  return lowMem ? Math.max(1, Math.floor(normal / LOW_MEMORY_BATCH_DIVISOR)) : normal
 }
 
 export function mkThryXctPay(
     payload: PrepTheoryTarget | PrepTheoryRot,
 ): PckdOptXctnP {
   if (payload.mode === 'theoryRotation') {
-    return {
-      ...payload,
-      mode: 'rotation',
-    }
+    return packRotation(payload)
   }
 
   return {

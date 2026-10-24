@@ -3,7 +3,7 @@
   description: manages optimizer worker requests, run tokens, payload transfers, compilation, and result materialization.
 */
 
-import { payloadTransfers } from '@/engine/optimizer/workers/payloadBuffers'
+import { payloadTransfers } from '@/engine/search/layout/buffers'
 import type {
   OptBckn,
   OptStoredResult,

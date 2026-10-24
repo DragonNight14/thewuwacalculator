@@ -11,7 +11,7 @@ import {
   ensureAnchorStoreHydrated,
   rotationBuildEvaluationReport,
 } from '@/engine/evaluation/buildEvaluation'
-import { prepareRotationBuildScore } from '@/engine/evaluation/evaluation/report.ts'
+import { prepareRotationBuildScore } from '@/engine/evaluation/report.ts'
 import type {
   EvaluationWorkerIn,
   EvaluationWorkerOut,

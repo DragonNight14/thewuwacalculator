@@ -34,9 +34,7 @@ import {
 } from '@/engine/formulas/skillRecord.ts'
 import {
   defenseReduction,
-  gatherPools,
   getEnemyRes,
-  layerModifier,
   resistMult,
   resolveDamageFactors,
   resolveHits,
@@ -102,35 +100,6 @@ export interface SkillDamageScoreTarget {
 interface HitSummary {
   hitScale: number
   hitCount: number
-}
-
-/**
- * resolve enemy factors for one skill using sheet, attribute, skill-type, and
- * skill-buff contributions. final stats alone omit the latter contributions
- * and can report incorrect defence ignore and shred values.
- */
-export function resolveSkillFactors(
-    finalStats: FinalStats,
-    skill: SkillDef,
-    enemy: EnemyProfile,
-): {
-  defIgnore: number
-  defShred: number
-  dmgVuln: number
-  /** the enemy's resistance to this element after every shred, or null when
-      there is no enemy to resist */
-  resistance: number | null
-} {
-  const pools = gatherPools(finalStats, skill)
-
-  return {
-    defIgnore: finalStats.defIgnore + layerModifier(pools, (pool) => pool.defIgnore),
-    defShred: finalStats.defShred + layerModifier(pools, (pool) => pool.defShred),
-    dmgVuln: finalStats.dmgVuln + layerModifier(pools, (pool) => pool.dmgVuln),
-    resistance: isNoEnemy(enemy)
-      ? null
-      : getEnemyRes(enemy, skill.element) - layerModifier(pools, (pool) => pool.resShred),
-  }
 }
 
 /**
@@ -250,6 +219,8 @@ export interface NumericDamageLane {
   immunityElements: number
   immunitySkillTypes: number
   immunityNegative: number
+  /** only search replay records reads; normal simulation pays no Set cost. */
+  reads?: Set<number>
 }
 
 export interface NumericEffectiveStats {
@@ -320,7 +291,87 @@ function teamDamageLane(
 }
 
 function numericFinal(lane: NumericDamageLane, cell: number): number {
+  lane.reads?.add(cell)
   return lane.finals[lane.offset + cell] ?? 0
+}
+
+interface MemoizedNumericDamage {
+  skill: SkillDef
+  enemy: string
+  level: number
+  multiplier: number
+  immunities: number[]
+  combat: Array<[string, unknown]>
+  cells: Uint16Array
+  values: Float64Array
+  result: Float64Array
+}
+
+/** cache event results within one search using only values read by that
+ * invocation; rotation writes still execute in order. */
+export class NumericDamageMemo {
+  private readonly events = new Map<string, MemoizedNumericDamage[]>()
+  private readonly enemies = new WeakMap<EnemyProfile, string>()
+  hits = 0
+  misses = 0
+
+  score(
+    key: string,
+    target: SkillDamageScoreTarget,
+    state: NumericTeamState,
+    laneIndex: number,
+    finals: Float64Array,
+    skill: SkillDef,
+    enemy: EnemyProfile,
+    level: number,
+    combat: DamageCombatState,
+    multiplier: number,
+  ): void {
+    const lane = teamDamageLane(state, laneIndex, finals)
+    let enemyKey = this.enemies.get(enemy)
+    if (enemyKey === undefined) {
+      enemyKey = JSON.stringify(enemy)
+      this.enemies.set(enemy, enemyKey)
+    }
+    const entries = this.events.get(key) ?? []
+    const combatKeys = Object.keys(combat)
+    for (const entry of entries) {
+      if (entry.skill !== skill || entry.enemy !== enemyKey || entry.level !== level
+        || !Object.is(entry.multiplier, multiplier)
+        || entry.immunities[0] !== lane.immunityAll
+        || entry.immunities[1] !== lane.immunityElements
+        || entry.immunities[2] !== lane.immunitySkillTypes
+        || entry.immunities[3] !== lane.immunityNegative
+        || entry.combat.length !== combatKeys.length
+        || entry.combat.some(([path, value]) => !Object.hasOwn(combat, path)
+          || !Object.is((combat as Record<string, unknown>)[path], value))) continue
+      let matches = true
+      for (let index = 0; index < entry.cells.length; index += 1) {
+        if (!Object.is(entry.values[index], lane.finals[lane.offset + entry.cells[index]!])) {
+          matches = false
+          break
+        }
+      }
+      if (!matches) continue
+      target.values.set(entry.result, target.offset ?? 0)
+      this.hits += 1
+      return
+    }
+    this.misses += 1
+    lane.reads = new Set()
+    runNumericDamageKernel(target, lane, skill, enemy, level, combat, multiplier)
+    const cells = Uint16Array.from(lane.reads)
+    // bound variants per event; the finite authored event list bounds keys.
+    if (entries.length >= 4) entries.shift()
+    entries.push({
+      skill, enemy: enemyKey, level, multiplier,
+      immunities: [lane.immunityAll, lane.immunityElements, lane.immunitySkillTypes, lane.immunityNegative],
+      combat: combatKeys.map((path) => [path, (combat as Record<string, unknown>)[path]]),
+      cells, values: Float64Array.from(cells, (cell) => lane.finals[lane.offset + cell]!),
+      result: target.values.slice(target.offset ?? 0, (target.offset ?? 0) + 3),
+    })
+    this.events.set(key, entries)
+  }
 }
 
 function numericTop(lane: NumericDamageLane, stat: Parameters<typeof finalTopCell>[0]): number {
@@ -403,12 +454,8 @@ function numericSkillMultiplier(skill: SkillDef): number {
     : skill.multiplier
 }
 
-/**
- * extract the rotation register directly from the exact numeric final plane
- * used by the damage kernel. this projection performs no second calculation:
- * no FinalStats, buff-pool, or CombatContext object
- * is materialized for captured feature rows.
- */
+/** read the rotation register from the damage kernel's numeric final plane
+ * without recalculating stats or building context objects. */
 export function resolveNumericEffectiveStats(
     state: NumericTeamState,
     laneIndex: number,
@@ -611,6 +658,12 @@ function runNumericDamageKernel(
   if (!subHits) {
     const record = compileSkillRecord(skill)
     if (record.lowered) {
+      if (lane.reads) {
+        for (const cell of record.fieldCells) lane.reads.add(cell)
+        for (const cell of record.fieldTopCell) if (cell >= 0) lane.reads.add(cell)
+        for (const cell of [record.finalDmgCell, record.coreAtkCell, record.coreHpCell,
+          record.coreDefCell, record.energyRegenCell, record.flatDmgCell]) lane.reads.add(cell)
+      }
       runLoweredSkillDamage(target, lane, record, enemy, level, multiplierScale)
       return
     }
@@ -814,22 +867,6 @@ function runNumericDamageKernel(
     emit(hit, normal, crit, avg)
   }
   writeScore(target, normalTotal, critTotal, avgTotal)
-}
-
-/**
- * score a recorded invocation against a supplied stat plane. replay uses a
- * separate lane view because the original team state is no longer available.
- */
-export function scoreDamageAgainstLane(
-    target: SkillDamageScoreTarget,
-    lane: NumericDamageLane,
-    skill: SkillDef,
-    enemy: EnemyProfile,
-    level: number,
-    combatState: DamageCombatState | undefined,
-    multiplierScale: number,
-): void {
-  runNumericDamageKernel(target, lane, skill, enemy, level, combatState, multiplierScale)
 }
 
 /** object compatibility boundary. object stats are packed once, then use the same kernel. */

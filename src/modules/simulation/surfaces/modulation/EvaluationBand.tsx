@@ -3,7 +3,7 @@
   description: shared evaluation score band used by every build-analysis page.
 */
 
-import { GRADE_LADDER } from '@/engine/evaluation/evaluation/grades.ts'
+import { GRADE_LADDER } from '@/engine/evaluation/grades.ts'
 import type { EvaluationSummary } from '@/engine/evaluation/buildEvaluationWorkerTypes'
 import {
   formatBuildEvaluationScore,

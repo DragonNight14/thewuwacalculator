@@ -1,0 +1,201 @@
+/*
+  Author: Runor Ewhro
+  description: generates main-stat suggestions by exploring valid
+               main-stat recipe combinations, evaluating their damage,
+               and keeping the top-performing results.
+*/
+
+import type {
+  MainStatSugg,
+  MainStatSuwo,
+  MainStatPrep,
+} from '@/engine/suggestions/types'
+import type { SuggestContext } from '@/engine/suggestions/types'
+import {
+  evalSuggChs,
+  mkPrepMainSt,
+  runSuggSmlt,
+  resSuggDmg,
+} from '@/engine/suggestions/shared'
+import { mkMainStatPo } from '@/engine/suggestions/mainStat/context'
+import { makeMainStatScorer } from '@/engine/suggestions/mainStat/compute'
+import type { MainStatRecipe } from '@/engine/suggestions/mainStat/utils'
+import type { EchoInstance } from '@/domain/entities/runtime'
+import { getEchoById } from '@/data/catalog/echoCatalogService'
+import { applyMainSta } from '@/engine/suggestions/mainStat/utils'
+
+// search through valid main-stat recipes and return the best-scoring options
+export function sggsMainStts({
+                                   ctx,
+                                   rotationCtx = null,
+                                   charId,
+                                   statWeight = {},
+                                   mainStatFilter: mainStatFilter = null,
+                                   maxSlots = 5,
+                                   minSlots = 1,
+                                   maxCost = 12,
+                                   topK = 5,
+                                   qppdChs: qppdChs = [],
+                                 }: {
+  ctx: SuggestContext | null
+  rotationCtx?: SuggestContext | null
+  charId?: string | null
+  statWeight?: Partial<Record<string, number>>
+  mainStatFilter?: Record<string, boolean> | null
+  maxSlots?: number
+  minSlots?: number
+  maxCost?: number
+  topK?: number
+  qppdChs?: Array<EchoInstance | null>
+}): MainStatSugg[] {
+  // build the candidate pool of legal main stats
+  const pool = mkMainStatPo({ statWeight, charId, mainStatFilter: mainStatFilter })
+
+  const results: MainStatSugg[] = []
+
+  // determine whether we are evaluating direct damage or rotation damage
+  const isRotMode = rotationCtx != null
+  const scoreRecipes = makeMainStatScorer(rotationCtx ?? ctx!, qppdChs)
+  // mutable path used during dfs
+  const curRcps: MainStatRecipe[] = []
+
+  // evaluate the current recipe set and insert it into the ranked results
+  function mybNsrtRslt(costUsed: number) {
+    const avgDamage = scoreRecipes(curRcps)
+    // stable insertion retains the dfs tie order used by array.sort, while
+    // avoiding recipe clones and a full sort for candidates below the cutoff.
+    let insertAt = results.findIndex((entry) => avgDamage > entry.damage)
+    if (insertAt < 0) insertAt = results.length
+    if (insertAt >= topK) return
+    results.splice(insertAt, 0, {
+      damage: avgDamage,
+      totalCost: costUsed,
+      isRotation: isRotMode,
+      recipes: curRcps.map((recipe) => ({ ...recipe })),
+    })
+    if (results.length > topK) results.length = topK
+  }
+
+  // depth-first search over non-decreasing recipe choices
+  function dfs(startIndex: number, slotsUsed: number, costUsed: number) {
+    // once the minimum slot count is met, the current path is a valid candidate
+    if (slotsUsed >= minSlots) {
+      mybNsrtRslt(costUsed)
+    }
+
+    // stop when the slot cap is reached
+    if (slotsUsed === maxSlots) {
+      return
+    }
+
+    // continue adding more main-stat choices, allowing reuse of the same option
+    for (let i = startIndex; i < pool.length; i++) {
+      const option = pool[i]
+      const newCost = costUsed + option.cost
+
+      // skip combinations that exceed the total echo cost budget
+      if (newCost > maxCost) {
+        continue
+      }
+
+      curRcps.push({
+        cost: option.cost,
+        primaryKey: option.key,
+      })
+
+      dfs(i, slotsUsed + 1, newCost)
+
+      curRcps.pop()
+    }
+  }
+
+  dfs(0, 0, 0)
+
+  return results
+}
+
+// run the full main-stat suggestor pipeline from simulation to ranked outputs
+export function runMainStats(
+    input: MainStatSuwo,
+    options: {
+      maxSlots?: number
+      minSlots?: number
+      maxCost?: number
+      topK?: number
+    } = {},
+): MainStatSugg[] {
+  const rotationMode = input.rotationMode
+
+  // the current-build simulation supplies context and stat weights.
+  const simulation = runSuggSmlt(input)
+  const prepared = mkPrepMainSt(input, simulation)
+  if (!prepared) {
+    return []
+  }
+
+  // dispatch to the shared search routine
+  const topK = options.topK ?? prepared.topK ?? 10
+  return scoreMainStatFinalists(prepared, sggsMainStts({
+    ctx: rotationMode ? null : prepared.context,
+    rotationCtx: rotationMode ? prepared.context : null,
+    charId: prepared.charId,
+    statWeight: prepared.statWeight,
+    maxSlots: options.maxSlots ?? 5,
+    minSlots: options.minSlots ?? 1,
+    maxCost: options.maxCost ?? 12,
+    topK: Math.max(30, topK * 3),
+    qppdChs: prepared.qppdChs,
+  }), topK, options)
+}
+
+/* keep the worn recipe as a contender. rotation finalists reuse the frozen
+   damage plan; direct-skill finalists retain their detailed simulation. */
+function scoreMainStatFinalists(
+    input: MainStatPrep,
+    finalists: MainStatSugg[],
+    topK: number,
+    limits: { maxSlots?: number, minSlots?: number, maxCost?: number } = {},
+): MainStatSugg[] {
+  const worn = input.qppdChs.flatMap((echo) => {
+    const cost = echo ? getEchoById(echo.id)?.cost : null
+    return echo && cost ? [{ cost, primaryKey: echo.mainStats.primary.key }] : []
+  })
+  const wornCost = worn.reduce((sum, entry) => sum + entry.cost, 0)
+  const canIncludeWorn = worn.length >= (limits.minSlots ?? 1)
+    && worn.length <= (limits.maxSlots ?? 5) && wornCost <= (limits.maxCost ?? 12)
+  const candidates = canIncludeWorn ? [...finalists, {
+    damage: 0, recipes: worn, totalCost: wornCost, isRotation: input.rotationMode,
+  }] : finalists
+  const seen = new Set<string>()
+  return candidates.flatMap((candidate) => {
+    const signature = candidate.recipes.map((recipe) => `${recipe.cost}:${recipe.primaryKey}`).sort().join('|')
+    if (seen.has(signature)) return []
+    seen.add(signature)
+    const echoes = applyMainSta(candidate.recipes, input.qppdChs)
+    if (input.rotationMode) {
+      return [{ ...candidate, damage: evalSuggChs(input.context, echoes) }]
+    }
+    const runtime = { ...input.scoringInput.runtime, build: { ...input.scoringInput.runtime.build, echoes } }
+    const scoring = { ...input.scoringInput, runtime }
+    return [{ ...candidate, damage: resSuggDmg(runSuggSmlt(scoring), scoring) }]
+  }).sort((left, right) => right.damage - left.damage).slice(0, topK)
+}
+
+export function runPrepMainS(
+    input: MainStatPrep,
+): MainStatSugg[] {
+  const nonNullCount = input.qppdChs.filter((echo) => echo != null).length
+  if (nonNullCount === 0) {
+    return []
+  }
+
+  const topK = input.topK ?? 10
+  return scoreMainStatFinalists(input, sggsMainStts({
+    ctx: input.rotationMode ? null : input.context,
+    rotationCtx: input.rotationMode ? input.context : null,
+    charId: input.charId,
+    statWeight: input.statWeight,
+    topK: Math.max(30, topK * 3),
+    qppdChs: input.qppdChs,
+  }), topK)
+}

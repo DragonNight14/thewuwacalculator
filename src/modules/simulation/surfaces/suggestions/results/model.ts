@@ -8,19 +8,13 @@ import type { EchoInstance, ResRuntime } from '@/domain/entities/runtime.ts'
 import { ECHO_MAIN_STATS, ECHO_SIDE_STATS } from '@/data/gameData/catalog/echoStats.ts'
 import { getSntSetClr, getSntSetIco, getSntSetNam } from '@/data/gameData/catalog/sonataSets.ts'
 import { applySetPlan, mkEchoMainSt } from '@/engine/suggestions/mutate.ts'
-import { applyMainSta } from '@/engine/suggestions/mainStat-suggestion/utils.ts'
-import type {
-  CompactSetPlanSuggest,
-  MainStatSugg,
-  SetPlanDisplayEntry,
-  SetPlanEntry,
-  WeaponEntry,
-} from '@/engine/suggestions/types.ts'
-import type { MainStatRecipe } from '@/engine/suggestions/mainStat-suggestion/utils.ts'
+import { applyMainSta } from '@/engine/suggestions/mainStat/utils.ts'
+import type { CompactSetPlanSuggest, MainStatSugg, WeaponEntry } from '@/engine/suggestions/types.ts'
+import type { SetPlanEntry } from '@/engine/search/combos/setPlans.ts'
+import type { MainStatRecipe } from '@/engine/suggestions/mainStat/utils.ts'
 import { formatStatKeyLabel, formatStatKeyValue } from '@/modules/simulation/model/statsView.ts'
 import { getRarityColor } from '@/modules/simulation/model/display.ts'
 import { statIconSrc } from '@/modules/simulation/workspace/ui.tsx'
-import { readSetTiers } from '@/modules/simulation/workspace/LoadoutEffects.tsx'
 import { getEchoById } from '@/data/catalog/echoCatalogService.ts'
 import {
   recipeSig,
@@ -63,7 +57,7 @@ export interface EchoSlot {
   lead: string
   leadUnit: string
   coins: Array<string | null>
-  /** one name per coin for set trays, the stat name for main-stat trays. */
+  /** one semantic label per alternative represented by `coins`. */
   names: string[]
   name: string | null
   primary: { icon: string | null; value: string } | null
@@ -71,11 +65,22 @@ export interface EchoSlot {
   held: boolean
 }
 
-/* a weapon is scored per passive state; the lead variant ranks the row. */
+/* the lead passive-state variant determines a weapon row's rank. */
 export interface WeaponVariant {
   mode: WeaponEntry['mode']
   damage: number
   delta: number
+}
+
+/* the Main Echo and concrete set-plan slot used by candidate scoring. */
+export interface RowEcho {
+  id: string
+  name: string
+  icon: string | null
+  color: string | null
+  worn: boolean
+  /** index into `trays`, or -1 when the scored Echo belongs to no plan entry. */
+  seat: number
 }
 
 export interface Row {
@@ -91,6 +96,9 @@ export interface Row {
   trays: EchoSlot[]
   recipe: MainStatRecipe[] | null
   setPlan: SetPlanEntry[] | null
+  mainEchoId?: string
+  mainEchoSetId?: number
+  echo?: RowEcho | null
   weapon: WeaponEntry | null
   variants: WeaponVariant[]
 }
@@ -195,82 +203,11 @@ function mainStatRows(
   })
 }
 
-/* a row's slots list effect-equivalent sets that the engine scored alike.
-   prefer the ones already worn so materializing the plan changes as few echoes
-   as possible. ties keep the engine's pick. concrete entries outside these
-   slots change no scored effect, so their echoes remain worn. */
-export function preferWornSets(
-  display: SetPlanDisplayEntry[],
-  concrete: SetPlanEntry[],
-  worn: SetPlanSmmrE[],
-): { setPlan: SetPlanEntry[], display: SetPlanDisplayEntry[] } {
-  const have = new Map<number, number>()
-  for (const entry of worn) have.set(entry.setId, (have.get(entry.setId) ?? 0) + entry.pieces)
-
-  // pair each display slot with the concrete entry it was drawn from.
-  const taken = new Set<number>()
-  const slots = display.map((entry) => {
-    const at = concrete.findIndex((plan, index) => (
-      !taken.has(index) && plan.pieces === entry.pieces && entry.setIds.includes(plan.setId)
-    ))
-    if (at >= 0) taken.add(at)
-    return at
-  })
-
-  let best: number[] | null = null
-  let bestScore = -1
-  const pick: number[] = []
-  const walk = (slot: number) => {
-    if (slot === display.length) {
-      let score = 0
-      pick.forEach((setId, index) => {
-        score += Math.min(have.get(setId) ?? 0, display[index].pieces) * 100
-        if (slots[index] >= 0 && concrete[slots[index]].setId === setId) score += 1
-      })
-      if (score > bestScore) { bestScore = score; best = [...pick] }
-      return
-    }
-    for (const setId of display[slot].setIds) {
-      // each slot is its own bonus: two slots never share one set.
-      if (pick.includes(setId)) continue
-      pick.push(setId)
-      walk(slot + 1)
-      pick.pop()
-    }
-  }
-  walk(0)
-  const chosen: number[] | null = best
-  // unpaired slots mean the display is not drawn from this plan; keep it whole.
-  if (!chosen || slots.includes(-1)) return { setPlan: concrete, display }
-
-  // worn echoes left in free slots add to whatever set they carry. never let
-  // them lift a set over a tier the scored plan did not reach.
-  const crossesTier = (plan: SetPlanEntry[]) => {
-    const free = Math.max(0, 5 - plan.reduce((total, entry) => total + entry.pieces, 0))
-    return [...have].some(([setId, pieces]) => {
-      const planned = plan.reduce((total, entry) => total + (entry.setId === setId ? entry.pieces : 0), 0)
-      const most = planned + Math.min(pieces, free)
-      return (readSetTiers(setId)?.tiers ?? []).some((tier) => planned < tier.pieces && most >= tier.pieces)
-    })
-  }
-  const swapped = display.map((entry, index) => ({ setId: chosen[index], pieces: entry.pieces }))
-  const fillers = concrete.filter((_, index) => !taken.has(index))
-  const setPlan = !crossesTier(swapped) ? swapped
-    : !crossesTier([...swapped, ...fillers]) ? [...swapped, ...fillers]
-      : null
-  if (!setPlan) return { setPlan: concrete, display }
-  // put the materialized set first while retaining its effect-equivalent alternatives.
-  const led = display.map((entry, index) => ({
-    ...entry,
-    setIds: [chosen[index], ...entry.setIds.filter((id) => id !== chosen[index])],
-  }))
-  return { setPlan, display: led }
-}
-
 function setPlanRows(
   results: CompactSetPlanSuggest[],
   base: number,
   worn: SetPlanSmmrE[],
+  echoes: Array<EchoInstance | null>,
 ): Row[] {
   return results.map((result, index) => {
     const have = new Map<number, number>()
@@ -278,26 +215,39 @@ function setPlanRows(
       have.set(entry.setId, (have.get(entry.setId) ?? 0) + entry.pieces)
     }
 
-    const { setPlan, display: displayPlan } = preferWornSets(getSetPlanDisplay(result), result.setPlan, worn)
+    // materialize the scored plan; displayPlan contains only score-equivalent alternatives.
+    const setPlan = result.setPlan
+    const displayPlan = getSetPlanDisplay(result)
 
     const marks: Change[] = []
     const trays: EchoSlot[] = []
 
-    for (const entry of displayPlan) {
-      const lead = entry.setIds[0]
-      const held = (have.get(lead) ?? 0) >= entry.pieces
-      if (held) have.set(lead, (have.get(lead) ?? 0) - entry.pieces)
-      const color = getSntSetClr(lead)
+    // equivalence metadata must never replace the concrete plan used for mutation.
+    for (const entry of setPlan) {
+      const held = (have.get(entry.setId) ?? 0) >= entry.pieces
+      if (held) have.set(entry.setId, (have.get(entry.setId) ?? 0) - entry.pieces)
       if (!held) {
         marks.push({
-          key: `${lead}:${entry.pieces}`,
-          icon: getSntSetIco(lead),
-          text: `${entry.setIds.map((id) => getSntSetNam(id)).join(' or ')}, ${entry.pieces}pc`,
+          key: `${entry.setId}:${entry.pieces}`,
+          icon: getSntSetIco(entry.setId),
+          text: `${getSntSetNam(entry.setId)}, ${entry.pieces}pc`,
           cost: null,
           sup: String(entry.pieces),
-          color,
+          color: getSntSetClr(entry.setId),
         })
       }
+    }
+
+    const trayHave = new Map<number, number>()
+    for (const entry of worn) {
+      trayHave.set(entry.setId, (trayHave.get(entry.setId) ?? 0) + entry.pieces)
+    }
+    for (const entry of displayPlan) {
+      const lead = entry.setIds.find((setId) => (trayHave.get(setId) ?? 0) >= entry.pieces)
+        ?? entry.setIds[0]
+      const held = (trayHave.get(lead) ?? 0) >= entry.pieces
+      if (held) trayHave.set(lead, (trayHave.get(lead) ?? 0) - entry.pieces)
+      const color = getSntSetClr(lead)
       trays.push({
         key: `${lead}:${entry.pieces}`,
         color,
@@ -313,7 +263,21 @@ function setPlanRows(
       })
     }
 
+    const mainDef = result.mainEchoId ? getEchoById(result.mainEchoId) : null
+    const seatPieces = result.setPlan.find((entry) => entry.setId === result.mainEchoSetId)?.pieces
+    const echo: RowEcho | null = mainDef ? {
+      id: mainDef.id,
+      name: mainDef.name,
+      icon: mainDef.icon,
+      color: result.mainEchoSetId != null ? getSntSetClr(result.mainEchoSetId) : null,
+      worn: mainDef.id === (echoes.find((entry) => entry?.mainEcho) ?? echoes[0])?.id,
+      seat: displayPlan.findIndex((entry) => entry.pieces === seatPieces
+        && result.mainEchoSetId != null && entry.setIds.includes(result.mainEchoSetId)),
+    } : null
+
     const now = sameSetPlanCandidate(result, worn, base)
+      && (!result.mainEchoId || result.mainEchoId === echoes[0]?.id)
+      && (result.mainEchoSetId == null || result.mainEchoSetId === echoes[0]?.set)
     return {
       key: `sets:${index}`,
       rank: index + 1,
@@ -326,6 +290,9 @@ function setPlanRows(
       trays,
       recipe: null,
       setPlan,
+      mainEchoId: result.mainEchoId,
+      mainEchoSetId: result.mainEchoSetId,
+      echo,
       weapon: null,
       variants: [],
     }
@@ -405,12 +372,17 @@ export function buildRows({
   runtime: ResRuntime
 }): Row[] {
   if (kind === 'mainStats') return mainStatRows(mainStatRslt, base, echoes, worn)
-  if (kind === 'setPlans') return setPlanRows(setPlanRslt, base, wornSetPlan)
+  if (kind === 'setPlans') return setPlanRows(setPlanRslt, base, wornSetPlan, echoes)
   return weaponRows(wpnRslt, base, runtime)
 }
 
 export function materializeRowEchoes(row: Row, echoes: Array<EchoInstance | null>): Array<EchoInstance | null> | null {
   if (row.recipe) return applyMainSta(row.recipe, echoes)
-  if (row.setPlan) return applySetPlan(row.setPlan, echoes)
+  if (row.setPlan) {
+    const mainEchoChoice = row.mainEchoId && row.mainEchoSetId != null
+      ? { id: row.mainEchoId, setId: row.mainEchoSetId }
+      : undefined
+    return applySetPlan(row.setPlan, echoes, mainEchoChoice)
+  }
   return null
 }

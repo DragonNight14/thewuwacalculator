@@ -537,6 +537,7 @@ input.opt-qc__num:focus {
     minmax(0, 1fr)
     minmax(0, 1fr)
     minmax(0, 1fr)
+    minmax(0, 1fr)
     minmax(0, 1fr);
 }
 
@@ -566,6 +567,7 @@ input.opt-qc__num:focus {
     minmax(0, 0.72fr)
     minmax(0, 0.72fr)
     minmax(0, 1.24fr)
+    minmax(0, 0.86fr)
     minmax(0, 0.86fr)
     minmax(0, 0.86fr)
     minmax(0, 0.86fr)

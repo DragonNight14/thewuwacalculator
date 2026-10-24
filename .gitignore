@@ -1,8 +1,6 @@
 ideas
 .node-version
 .nvmrc
-
-.claude
 .idea
 /.idea-backup/
 .DS_Store
@@ -33,3 +31,9 @@ prod-app.json
 /public/assets/display/
 
 /legacy/
+
+/src/application/imports/gameCapture*.ts
+/src/application/imports/__tests__/gameCapture*.ts
+/src/application/imports/data/resonatorSkillNodeIds.*.json
+/example.json
+/sample-yumeo*.json

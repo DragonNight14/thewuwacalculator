@@ -58,14 +58,14 @@ export const STAT_ICON_MAP: Record<string, string> = {
 }
 
 // compact number formatter for large damage/stat readouts
-export function formatCompactNum(raw: number | null): string {
+export function formatCompactNum(raw: number | null, cut: boolean = true): string {
   if (raw === null || !Number.isFinite(raw)) {
     return '--'
   }
 
   const num = Math.floor(raw)
-  if (num >= 1e9) return `${formatTruncCompact(num / 1e9, 1)}B`
-  if (num >= 1e7) return `${formatTruncCompact(num / 1e6, 1)}M`
+  if ((num >= 1e9) && cut) return `${formatTruncCompact(num / 1e9, 1)}B`
+  if ((num >= 1e7) && cut) return `${formatTruncCompact(num / 1e6, 1)}M`
   return num.toLocaleString()
 }
 

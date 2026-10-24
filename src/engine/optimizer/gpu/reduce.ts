@@ -1,10 +1,6 @@
 /*
   Author: Runor Ewhro
-  description: runs an optional gpu-side candidate reduction pass.
-               if the raw candidate count is already small enough, it
-               returns the original buffer unchanged. otherwise it launches
-               a compute shader that reduces candidates in workgroup-sized
-               chunks into a smaller output buffer.
+  description: reduces gpu candidates in workgroups when the result buffer is large.
 */
 
 import rdcShdrCode from '@/engine/optimizer/shaders/reduceCandidates.wgsl?raw'
@@ -17,7 +13,8 @@ import {
 } from '@/engine/optimizer/gpu/common.ts'
 
 // must stay aligned with the workgroup size expected by reduceCandidates.wgsl
-const RDC_WG_SIZE = 256
+import { REDUCTION_WORKGROUP_SIZE as RDC_WG_SIZE } from '../config/constants'
+import { withOptimizerShaderConfig } from '../config/shaders'
 
 interface RdcRsblBffr {
   // destination buffer reused across reduction calls
@@ -68,7 +65,7 @@ async function getRdcPpln(device: GPUDevice): Promise<{
     device,
     label: 'optimizer-reduce-pipeline',
     layout: cachedLayout,
-    code: rdcShdrCode,
+    code: withOptimizerShaderConfig(rdcShdrCode),
     entryPoint: 'reduceCandidates',
   })
 

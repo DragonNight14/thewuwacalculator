@@ -11,7 +11,7 @@ import type {
   OptPrgr,
 } from '@/engine/optimizer/types.ts'
 import { CPU_JOB_SIZE } from '@/engine/optimizer/config/constants.ts'
-import { MAIN_FIRST } from '@/engine/optimizer/config/constants.ts'
+import { MAIN_FIRST } from '@/engine/search/layout/constants.ts'
 import { makeCpuScratch } from '@/engine/optimizer/cpu/scratch.ts'
 import { countMainCombos } from '@/engine/optimizer/search/counting.ts'
 import { mkOptPrgrTrc } from '@/engine/optimizer/search/progress.ts'

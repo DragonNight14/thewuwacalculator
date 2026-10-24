@@ -6,6 +6,7 @@
 */
 
 import type { OptBagResult } from '@/engine/optimizer/types.ts'
+import { RESULT_PRUNE_MULTIPLIER, RESULT_PRUNE_MIN_ENTRIES } from '../config/constants'
 
 type OptBagRsltSe = bigint | string
 
@@ -121,8 +122,9 @@ class OptBagRsltLk {
   }
 
   recordDamage(i0: number, i1: number, i2: number, i3: number, i4: number, damage: number): number | null {
-    const normalized = this.normIntoScrt(i0, i1, i2, i3, i4)
+    // grow first: the rehash reuses the shared scratch key
     this.ensCpct()
+    const normalized = this.normIntoScrt(i0, i1, i2, i3, i4)
     const slot = this.findSlot(
       normalized[0],
       normalized[1],
@@ -407,7 +409,6 @@ export class OptResultSet {
   // set; the weapon is the optimizer's choice for that build).
   private readonly heapWeapon: Int32Array
   private heapLen = 0
-  private static readonly PRUNE_TRIGGER_MULTIPLIER = 8
 
   constructor(k: number, lowMem = false) {
     this.k = Math.max(1, Math.floor(k))
@@ -426,6 +427,13 @@ export class OptResultSet {
 
   get size(): number {
     return this.bestDamageBySet.size
+  }
+
+  // damage a new set must reach to enter the top-k (0 until the heap fills).
+  // exact only while every pushed set is distinct, since a superseded entry
+  // still occupies a heap slot.
+  get floor(): number {
+    return this.heapLen >= this.k ? this.heapDmg[0]! : 0
   }
 
   push(entry: OptBagResult): void {
@@ -578,7 +586,7 @@ export class OptResultSet {
       return
     }
 
-    const prnThrs = Math.max(this.k * OptResultSet.PRUNE_TRIGGER_MULTIPLIER, 256)
+    const prnThrs = Math.max(this.k * RESULT_PRUNE_MULTIPLIER, RESULT_PRUNE_MIN_ENTRIES)
     if (this.bestDamageBySet.size <= prnThrs) {
       return
     }

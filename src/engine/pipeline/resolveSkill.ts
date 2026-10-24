@@ -6,6 +6,7 @@
 */
 
 import type { ResRuntime } from '@/domain/entities/runtime'
+import type { ManualBuffs } from '@/domain/entities/manualBuffs'
 import type { EffectScope } from '@/domain/gameData/contracts'
 import { makeTeamComp } from '@/engine/gameData/teamComposition'
 import {
@@ -13,6 +14,7 @@ import {
   getNegFfctqf,
   getNegFfctEn,
   isNegFfctVsb,
+  type NegativeSourceEvaluator,
 } from '@/engine/gameData/negativeEffects'
 import type { SkillDamageEntry, SkillDef } from '@/domain/entities/stats'
 import { evalCond } from '@/engine/effects/evaluator'
@@ -188,6 +190,7 @@ export function isSkllVsbl(
     skill: SkillDef,
     evaluate: SkillConditionEvaluator = (condition) => evalRuntimeSkillCondition(runtime, condition),
     runtimesById?: Readonly<Record<string, ResRuntime>>,
+    evaluateNegative?: NegativeSourceEvaluator,
 ): boolean {
   if (skill.visible === false) {
     return false
@@ -197,7 +200,7 @@ export function isSkllVsbl(
       ? getNegFfctCm(skill.archetype)
       : null
 
-  if (negFfctCmbtK && !isNegFfctVsb(runtime, negFfctCmbtK, runtimesById)) {
+  if (negFfctCmbtK && !isNegFfctVsb(runtime, negFfctCmbtK, runtimesById, evaluateNegative)) {
     return false
   }
 
@@ -208,22 +211,20 @@ export function isSkllVsbl(
   return evaluate(skill.visibleWhen)
 }
 
-/*
-  resolving a skill expands its hit table, resolves level scaling, and applies
-  manual overrides, which allocates a skill and a row per hit. none of that
-  depends on anything but the runtime, the skill, and the three condition
-  outcomes below. build it once per distinct combination.
+/* cache hit expansion, scaling, and manual overrides by runtime, skill, and
+   condition outcomes; evaluate conditions on every call because rotation
+   writes can change them. */
+const resolvedSkillCache = new WeakMap<SkillDef, Map<string, SkillDef>>()
+const manualSkillSignatures = new WeakMap<ManualBuffs['modifiers'], string>()
 
-  rotation execution resolves a skill on every feature node, hundreds of times
-  per run, almost always reaching the same combination it reached last time.
-  the conditions are still evaluated on every call, because rotation state
-  writes can change them mid-run; only the construction is reused.
-*/
-const resolvedSkillCache = new WeakMap<ResRuntime, WeakMap<SkillDef, Map<string, SkillDef>>>()
-const resolvedTeamSkillCache = new WeakMap<
-  ResRuntime,
-  WeakMap<Readonly<Record<string, ResRuntime>>, WeakMap<SkillDef, Map<string, SkillDef>>>
->()
+function manualSkillSignature(modifiers: ManualBuffs['modifiers']): string {
+  let signature = manualSkillSignatures.get(modifiers)
+  if (signature === undefined) {
+    signature = JSON.stringify(modifiers.filter((modifier) => modifier.scope === 'skill'))
+    manualSkillSignatures.set(modifiers, signature)
+  }
+  return signature
+}
 
 // resolve one skill into its runtime-ready form
 // this applies visibility, level-scaled multiplier/flat/fixed values,
@@ -233,33 +234,32 @@ export function resolveSkill(
     skill: SkillDef,
     evaluate: SkillConditionEvaluator = (condition) => evalRuntimeSkillCondition(runtime, condition),
     runtimesById?: Readonly<Record<string, ResRuntime>>,
+    evaluateNegative?: NegativeSourceEvaluator,
 ): SkillDef {
   const variantIndex = pickSkllVrntI(skill, evaluate)
   const rslvSkll = skllVrntAt(skill, variantIndex)
-  const visible = isSkllVsbl(runtime, rslvSkll, evaluate, runtimesById)
+  const visible = isSkllVsbl(runtime, rslvSkll, evaluate, runtimesById, evaluateNegative)
   const skillTypeIndex = pickSkllTypeI(rslvSkll, evaluate)
   const damageEntries = selectDamageEntries(rslvSkll, evaluate)
 
-  let bySkill: WeakMap<SkillDef, Map<string, SkillDef>>
-  if (runtimesById) {
-    let byTeam = resolvedTeamSkillCache.get(runtime)
-    if (!byTeam) {
-      byTeam = new WeakMap()
-      resolvedTeamSkillCache.set(runtime, byTeam)
-    }
-    bySkill = byTeam.get(runtimesById) ?? new WeakMap()
-    byTeam.set(runtimesById, bySkill)
-  } else {
-    bySkill = resolvedSkillCache.get(runtime) ?? new WeakMap()
-    resolvedSkillCache.set(runtime, bySkill)
-  }
-  let bySignature = bySkill.get(skill)
+  let bySignature = resolvedSkillCache.get(skill)
   if (!bySignature) {
     bySignature = new Map()
-    bySkill.set(skill, bySignature)
+    resolvedSkillCache.set(skill, bySignature)
   }
+  const negativeKey = rslvSkll.stackMode === 'fixedMax' || rslvSkll.tab === 'negativeEffect'
+    ? getNegFfctCm(rslvSkll.archetype)
+    : null
+  const negative = negativeKey ? getNegFfctEn(runtime, negativeKey, runtimesById, evaluateNegative) : null
   const damageEntrySignature = damageEntries?.map((entry) => entry.id).join(',') ?? ''
-  const signature = `${variantIndex}|${visible ? 1 : 0}|${skillTypeIndex}|${damageEntrySignature}`
+  // overlay writes and candidate graphs have different runtime identities.
+  // construction depends only on these resolved inputs, so keep sharing the
+  // immutable skill (and its lowered damage record) across those identities.
+  const signature = JSON.stringify([
+    resLvlNdx(runtime, rslvSkll), variantIndex, visible, skillTypeIndex,
+    damageEntrySignature, negative?.max, negative?.label,
+    manualSkillSignature(runtime.state.manualBuffs.modifiers),
+  ])
   const cached = bySignature.get(signature)
   if (cached) {
     return cached
@@ -272,7 +272,9 @@ export function resolveSkill(
     skllTypeAt(rslvSkll, skillTypeIndex),
     damageEntries,
     runtimesById,
+    evaluateNegative,
   )
+  if (bySignature.size >= 256) bySignature.delete(bySignature.keys().next().value!)
   bySignature.set(signature, resolved)
   return resolved
 }
@@ -284,14 +286,15 @@ function buildResolvedSkill(
     skillType: SkillDef['skillType'],
     damageEntries: SkillDamageEntry[] | undefined,
     runtimesById?: Readonly<Record<string, ResRuntime>>,
+    evaluateNegative?: NegativeSourceEvaluator,
 ): SkillDef {
   const levelIndex = resLvlNdx(runtime, rslvSkll)
   const stackKey = rslvSkll.stackMode === 'fixedMax' ? getNegFfctCm(rslvSkll.archetype) : null
-  const stackMax = stackKey ? getNegFfctEn(runtime, stackKey, runtimesById)?.max : undefined
+  const stackMax = stackKey ? getNegFfctEn(runtime, stackKey, runtimesById, evaluateNegative)?.max : undefined
   const negFfctKey = rslvSkll.tab === 'negativeEffect' ? getNegFfctCm(rslvSkll.archetype) : null
   const label = negFfctKey
     ? (() => {
-      const rslvLbl = getNegFfctEn(runtime, negFfctKey, runtimesById)?.label
+      const rslvLbl = getNegFfctEn(runtime, negFfctKey, runtimesById, evaluateNegative)?.label
       if (!rslvLbl) {
         return rslvSkll.label
       }

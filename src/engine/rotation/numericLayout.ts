@@ -141,6 +141,23 @@ export function packBuffPool(pool: UnifiedBuffPool, output: Float64Array = new F
   return output
 }
 
+/** read a projected input without allocating/packing the entire pool bank. */
+export function readBuffPoolCell(pool: UnifiedBuffPool, cell: number): number {
+  if (cell < POOL_FIXED_OFFSET) return pool[NUMERIC_BASE_KEYS[Math.floor(cell / 2)]!][cell % 2 ? 'flat' : 'percent']
+  if (cell < POOL_TOP_OFFSET) return pool.fixedStats[NUMERIC_BASE_KEYS[cell - POOL_FIXED_OFFSET]!] ?? Number.NaN
+  if (cell < POOL_ATTRIBUTE_OFFSET) return pool[NUMERIC_TOP_STATS[cell - POOL_TOP_OFFSET]!]
+  if (cell < POOL_SKILL_TYPE_OFFSET) {
+    const offset = cell - POOL_ATTRIBUTE_OFFSET
+    return pool.attribute[NUMERIC_ATTRIBUTES[Math.floor(offset / NUMERIC_MOD_FIELDS.length)]!][NUMERIC_MOD_FIELDS[offset % NUMERIC_MOD_FIELDS.length]!]
+  }
+  if (cell < POOL_NEGATIVE_OFFSET) {
+    const offset = cell - POOL_SKILL_TYPE_OFFSET
+    return pool.skillType[NUMERIC_SKILL_TYPES[Math.floor(offset / NUMERIC_MOD_FIELDS.length)]!][NUMERIC_MOD_FIELDS[offset % NUMERIC_MOD_FIELDS.length]!]
+  }
+  const offset = cell - POOL_NEGATIVE_OFFSET
+  return pool.negativeEffect[NUMERIC_NEGATIVE_EFFECTS[Math.floor(offset / NUMERIC_NEGATIVE_FIELDS.length)]!][NUMERIC_NEGATIVE_FIELDS[offset % NUMERIC_NEGATIVE_FIELDS.length]!]
+}
+
 /** recalculate one participant's final numeric plane without allocating objects. */
 export function deriveFinalPlane(
     base: ResBaseStats,

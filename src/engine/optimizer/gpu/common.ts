@@ -4,6 +4,9 @@
                validated pipeline creation, and candidate readback.
 */
 
+import { GPU_APPEND_HEADER } from '@/engine/optimizer/config/constants.ts'
+
+export { GPU_APPEND_HEADER }
 export const GPU_CAND_STRIDE = 8
 
 // anything that can be directly uploaded into a gpu buffer
@@ -174,6 +177,10 @@ export async function readCandBffr(
     candidateBuffer: GPUBuffer,
     candCnt: number,
     reuse: ReusableBuffer = { buffer: null, size: 0 },
+    resultLimit?: number,
+    submission?: GPUCommandEncoder,
+    // byte offset of the first candidate (an appended buffer's 8-byte header)
+    srcOffset = 0,
 ): Promise<{ results: Array<{ damage: number; rank: number }>; reuse: ReusableBuffer }> {
   // each candidate occupies 8 bytes:
   // float32 damage + uint32 rank/index
@@ -188,20 +195,68 @@ export async function readCandBffr(
   )
 
   // schedule a copy from the gpu-only candidate buffer into the readable staging buffer
-  const encoder = device.createCommandEncoder()
-  encoder.copyBufferToBuffer(candidateBuffer, 0, readBuffer, 0, byteLength)
+  const encoder = submission ?? device.createCommandEncoder()
+  encoder.copyBufferToBuffer(candidateBuffer, srcOffset, readBuffer, 0, byteLength)
   device.queue.submit([encoder.finish()])
 
   // wait for gpu work to finish and map the buffer for cpu access
   await readBuffer.mapAsync(GPUMapMode.READ)
 
   const mapped = readBuffer.getMappedRange()
+  const results = selectCandidates(mapped, 0, candCnt, resultLimit)
+  readBuffer.unmap()
 
+  return { results, reuse }
+}
+
+// pick candidates from mapped [damage f32, rank u32] pairs, strongest first
+// when a limit applies. empty or invalid slots (damage <= 0) are skipped.
+function selectCandidates(
+    mapped: ArrayBuffer,
+    first: number,
+    candCnt: number,
+    resultLimit?: number,
+): Array<{ damage: number; rank: number }> {
   // same bytes are viewed as both float and uint to decode paired fields
-  const floatView = new Float32Array(mapped)
-  const uintView = new Uint32Array(mapped)
+  const floatView = new Float32Array(mapped, first * GPU_CAND_STRIDE, candCnt * 2)
+  const uintView = new Uint32Array(mapped, first * GPU_CAND_STRIDE, candCnt * 2)
 
   const results: Array<{ damage: number; rank: number }> = []
+
+  // select in mapped numeric storage before creating JS objects. large
+  // arithmetic batches must not allocate and sort an object per combination.
+  if (resultLimit !== undefined && resultLimit < candCnt) {
+    const limit = Math.max(1, Math.floor(resultLimit))
+    const scores = new Float32Array(limit), ranks = new Uint32Array(limit), order = new Uint32Array(limit)
+    let count = 0
+    const worse = (a: number, b: number) => scores[a]! < scores[b]! || (scores[a] === scores[b] && order[a]! > order[b]!)
+    const swap = (a: number, b: number) => {
+      const score = scores[a]!, rank = ranks[a]!, index = order[a]!
+      scores[a] = scores[b]!; ranks[a] = ranks[b]!; order[a] = order[b]!
+      scores[b] = score; ranks[b] = rank; order[b] = index
+    }
+    for (let index = 0; index < candCnt; index++) {
+      const damage = floatView[index * 2]!
+      if (!(damage > 0)) continue
+      if (count < limit) {
+        let slot = count++
+        scores[slot] = damage; ranks[slot] = uintView[index * 2 + 1]!; order[slot] = index
+        while (slot > 0) { const parent = (slot - 1) >>> 1; if (!worse(slot, parent)) break; swap(slot, parent); slot = parent }
+      } else if (damage > scores[0]!) {
+        scores[0] = damage; ranks[0] = uintView[index * 2 + 1]!; order[0] = index
+        let slot = 0
+        while (slot * 2 + 1 < count) {
+          const left = slot * 2 + 1, right = left + 1
+          const child = right < count && worse(right, left) ? right : left
+          if (!worse(child, slot)) break
+          swap(child, slot); slot = child
+        }
+      }
+    }
+    const selected = Array.from({ length: count }, (_, index) => index).sort((a, b) => scores[b]! - scores[a]! || order[a]! - order[b]!)
+    for (const index of selected) results.push({ damage: scores[index]!, rank: ranks[index]! })
+    return results
+  }
 
   for (let index = 0; index < candCnt; index += 1) {
     const base = index * 2
@@ -218,10 +273,43 @@ export async function readCandBffr(
     })
   }
 
-  // unmap so the buffer can be reused later
-  readBuffer.unmap()
+  return results
+}
 
-  return { results, reuse }
+
+// read back a buffer the shader appended into: copy the header and a small
+// inline window first, and only copy the rest when the window overflowed.
+export async function readAppendedCands(
+    device: GPUDevice,
+    candidateBuffer: GPUBuffer,
+    maxCount: number,
+    inlineCount: number,
+    inlineReuse: ReusableBuffer,
+    overflowReuse: ReusableBuffer,
+    resultLimit: number,
+    submission: GPUCommandEncoder,
+): Promise<{ results: Array<{ damage: number; rank: number }>; count: number }> {
+  const window = Math.min(inlineCount, maxCount)
+  const inlineBytes = GPU_APPEND_HEADER + window * GPU_CAND_STRIDE
+  const inlineBuffer = ensureGpuBuffer(device, inlineReuse, inlineBytes, GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ)
+
+  submission.copyBufferToBuffer(candidateBuffer, 0, inlineBuffer, 0, inlineBytes)
+  device.queue.submit([submission.finish()])
+  await inlineBuffer.mapAsync(GPUMapMode.READ, 0, inlineBytes)
+
+  const mapped = inlineBuffer.getMappedRange(0, inlineBytes)
+  const count = Math.min(new Uint32Array(mapped, 0, 1)[0]!, maxCount)
+  if (count <= window) {
+    const results = selectCandidates(mapped, GPU_APPEND_HEADER / GPU_CAND_STRIDE, count, resultLimit)
+    inlineBuffer.unmap()
+    return { results, count }
+  }
+  inlineBuffer.unmap()
+
+  // the floor was too low for this frame: fetch every appended candidate
+  const { results } = await readCandBffr(device, candidateBuffer, count, overflowReuse, resultLimit,
+    undefined, GPU_APPEND_HEADER)
+  return { results, count }
 }
 
 // candidates are read back unsorted; sort strongest-first before decoding.

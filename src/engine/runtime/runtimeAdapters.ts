@@ -236,8 +236,8 @@ export function makeRuntimeMap(
     [runtime.id]: runtime,
   }
 
-  for (const memberId of runtime.build.team.slice(1)) {
-    if (!memberId) {
+  for (const memberId of runtime.build.team) {
+    if (!memberId || memberId === runtime.id) {
       continue
     }
 

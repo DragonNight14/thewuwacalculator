@@ -1,14 +1,11 @@
 /*
   Author: Runor Ewhro
-  description: exposes the latest release summary without importing the complete
-               changelog dataset into persistent application code.
+  description: exposes the generated release summary without importing the
+               complete changelog dataset into persistent application code.
 */
 
-export const CURRENT_CHANGE_NOTICE = {
-  date: '28/09/2026',
-  patchVersion: '3.7 live',
-  shortDesc: '3.7 patch update',
-} as const
+import notice from './currentChangelogNotice.generated.json'
 
-export const CURRENT_CHANGE_NOTICE_KEY =
-  `${CURRENT_CHANGE_NOTICE.date}:${CURRENT_CHANGE_NOTICE.shortDesc}`
+export const CURRENT_CHANGE_NOTICE = notice
+
+export const CURRENT_CHANGE_NOTICE_KEY = notice.id

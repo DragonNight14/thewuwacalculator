@@ -10,10 +10,10 @@ import { getResSeedBy } from '@/data/catalog/resonatorSeedService'
 import { mkPrepWork, runPrepWorkS } from '@/engine/pipeline/preparedWorkspace'
 import { makeCombatGraph } from '@/engine/runtime/combatGraph'
 import { makeRuntimeMap } from '@/engine/runtime/runtimeAdapters'
-import { ensureAnchorStoreHydrated, prepareRotationBuildScore } from './evaluation/report'
+import { ensureAnchorStoreHydrated, prepareRotationBuildScore } from './report'
 import { prepareEchoMainStatScoring } from './echoMainStatProfile'
 import { activeMainStatProfile, type EchoMainStatScoreProfile } from './echoScoring'
-import { runPrepMainS } from '@/engine/suggestions/mainStat-suggestion/suggestMainStat'
+import { runPrepMainS } from '@/engine/suggestions/mainStat/suggest'
 
 export interface ShowcaseContext {
   runtime: ResRuntime

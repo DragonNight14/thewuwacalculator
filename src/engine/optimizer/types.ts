@@ -19,6 +19,8 @@ import type { GenWpn } from '@/domain/entities/weapon'
 import type { GameDataMode } from '@/domain/entities/gameDataMode'
 import type { SetDef } from '@/data/gameData/echoSets/effects'
 import type { EchoSttsCatD } from '@/data/gameData/catalog/echoStats'
+import type { OptResultStats } from '@/engine/search/score/core.ts'
+import type { CompTargetSkill } from '@/engine/search/context/compiled.ts'
 
 // lifecycle states for an optimizer run
 export type OptStts = 'idle' | 'running' | 'done' | 'error' | 'cancelled'
@@ -41,18 +43,6 @@ export interface OptPrgr {
   total?: number
   phase?: OptPrgrPh
   discovered?: number
-}
-
-// compact stat summary attached to one optimizer result entry
-export interface OptResultStats {
-  atk: number
-  hp: number
-  def: number
-  er: number
-  cr: number
-  cd: number
-  bonus: number
-  amp: number
 }
 
 // one resolved optimizer result, usually storing selected echo ids plus damage
@@ -149,15 +139,6 @@ export interface PrepOptShrdP {
   weaponOverlays?: Float32Array
   weaponCount?: number
   weaponIds?: string[]
-
-  // rotation weapon search uses full per-weapon context sets. weapon-affected
-  // slots (e.g. the per-node move multiplier) vary by context, so a single
-  // overlay cannot represent a weapon across the whole rotation. layout:
-  //   weaponContexts: weaponCount × contextCount × contextStride floats
-  //   weaponDisplayContexts: weaponCount × contextStride floats (constraints/UI)
-  // both fields are absent in target mode, which uses weaponOverlays.
-  weaponContexts?: Float32Array
-  weaponDisplayContexts?: Float32Array
 }
 
 // high-level compilation request before numeric packing. catalog snapshots
@@ -186,74 +167,13 @@ export interface OptStartPay {
   invChs: EchoInstance[]
   enemyProfile: EnemyProfile
   selectedTargets?: Record<string, string | null>
+  combatSetup?: import('@/engine/pipeline/index.ts').RotationCombatSetup
   setConds?: SntSetConds
   rotTms?: RotationNode[] | null
   // global weapon-search plan (rarity visibility + ranks). when present, theory
   // weapon search restricts candidates to visible rarities at the configured
   // ranks, mirroring weapon suggestions. absent -> the built-in 4★/5★ defaults.
   weaponPlan?: WeaponPlanSet
-}
-
-// fully compiled scalar context for a single target skill evaluation
-// this dense numeric form replaces repeated high-level reads in the
-// optimizer inner loop.
-// fields are grouped by final stats, scaling, skill bonuses, and combat
-// counters in the same order used by the packed float context.
-export interface CompTargetSkill {
-  archetype: number
-  characterId: number
-  sequence: number
-  level: number
-  enemyLevel: number
-  enemyBaseRes: number
-  enemyClass: number
-  baseAtk: number
-  baseHp: number
-  baseDef: number
-  statFinAtk: number
-  statFinHp: number
-  statFinDef: number
-  statFinEr: number
-  statCritRate: number
-  statCritDmg: number
-  statHealBosi: number
-  statShieldna: number
-  statDmgBonus: number
-  statAmp: number
-  statFlatDmg: number
-  statFinalDmg: number
-  resMult: number
-  defMult: number
-  dmgReduction: number
-  statTuneBrcq: number
-  statResShrd: number
-  statDefGnr: number
-  statDefShrd: number
-  statDmgVuln: number
-  scalingAtk: number
-  scalingHp: number
-  scalingDef: number
-  scalingER: number
-  hitScale: number
-  hitCount: number
-  multiplier: number
-  flat: number
-  fixedDmg: number
-  skillHealBonus: number
-  skillShield: number
-  tuneRptrScl: number
-  tuneRptrCrny: number
-  tuneCritDmg: number
-  negEfxMult: number
-  negEfxFxdMv: number
-  negEfxCritoo: number
-  negEfxCritsa: number
-  combatSpectro: number
-  combatAero: number
-  combatFusion: number
-  combatGlacio: number
-  combatElectro: number
-  combatElecRage: number
 }
 
 // prepared target-skill optimizer run before final packed execution handoff
@@ -290,15 +210,16 @@ export interface PackedSkill extends PrepOptShrdP {
 // prepared rotation optimizer run containing multiple packed contexts
 // and one display context used for presenting representative stats/results.
 export interface PrepRotRun extends PrepOptShrdP {
+  rotationProgram: import('@/engine/rotation/portable/compiler').PortableRotationProgram
+  weaponPrograms?: import('@/engine/rotation/portable/compiler').PortableRotationProgram[]
   mode: 'rotation'
+  gameDataMode?: GameDataMode
+  staticData?: OptStartPay['staticData']
+  fixedTeamDamage: number
+  candidateEchoes?: EchoInstance[]
   runtime: ResRuntime
   sourceBaseStats: ResBaseStats
   sourceFinals: FinalStats
-  contextStride: number
-  contextCount: number
-  contexts: Float32Array
-  contextWeight: Float32Array
-  displayContext: Float32Array
   stats: Float32Array
   setConstLut: Float32Array
   mainEchoBuffs: Float32Array
@@ -354,18 +275,17 @@ export interface PrepTheoryTarget extends PrepOptShrdP {
 
 // prepared rotation theory run with the same display/evaluation context shape
 export interface PrepTheoryRot extends PrepOptShrdP {
+  rotationProgram: import('@/engine/rotation/portable/compiler').PortableRotationProgram
+  weaponPrograms?: import('@/engine/rotation/portable/compiler').PortableRotationProgram[]
   mode: 'theoryRotation'
+  fixedTeamDamage: number
+  candidateEchoes?: EchoInstance[]
   gameDataMode?: GameDataMode
   staticData?: OptStartPay['staticData']
   theoryTotal: number
   runtime: ResRuntime
   sourceBaseStats: ResBaseStats
   sourceFinals: FinalStats
-  contextStride: number
-  contextCount: number
-  contexts: Float32Array
-  contextWeight: Float32Array
-  displayContext: Float32Array
   stats: Float32Array
   setConstLut: Float32Array
   mainEchoBuffs: Float32Array
@@ -378,12 +298,13 @@ export interface PrepTheoryRot extends PrepOptShrdP {
 
 // final packed rotation payload sent into the execution layer
 export interface PckdRotXctnP extends PrepOptShrdP {
+  rotationProgram: import('@/engine/rotation/portable/compiler').PortableRotationProgram
+  weaponPrograms?: import('@/engine/rotation/portable/compiler').PortableRotationProgram[]
   mode: 'rotation'
-  contextStride: number
-  contextCount: number
-  contexts: Float32Array
-  contextWeight: Float32Array
-  displayContext: Float32Array
+  gameDataMode?: GameDataMode
+  staticData?: OptStartPay['staticData']
+  fixedTeamDamage: number
+  candidateEchoes?: EchoInstance[]
   stats: Float32Array
   setConstLut: Float32Array
   mainEchoBuffs: Float32Array

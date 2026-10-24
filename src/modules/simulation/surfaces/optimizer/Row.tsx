@@ -10,7 +10,7 @@ import { ContextTrigger } from '@/application/context-menu/ContextTrigger'
 import type { MenuEntry } from '@/shared/ui/CtxMenu'
 import { DisplayImage } from '@/shared/ui/DisplayImage'
 import { withDefEchoMg, withDefIconM } from '@/shared/lib/imageFallback.ts'
-import { formatTruncCompact } from '@/shared/lib/number.ts'
+import { formatTruncCompact, truncTo } from '@/shared/lib/number.ts'
 import { SonataTokens } from '@/modules/simulation/workspace/ui.tsx'
 import { getEchoSetDe } from '@/data/gameData/echoSets/effects.ts'
 
@@ -180,15 +180,13 @@ export const Row = memo(function Row({
         </div>
       ) : null}
       <div className="opt-result-row__col opt-result-row__col--cost">{viewCostCombo()}</div>
-      <div className="opt-result-row__col">{renderStat(stats?.atk, (value) => Math.floor(value).toString())}</div>
-      <div className="opt-result-row__col">{renderStat(stats?.hp, (value) => Math.floor(value).toString())}</div>
-      <div className="opt-result-row__col">{renderStat(stats?.def, (value) => Math.floor(value).toString())}</div>
+      <div className="opt-result-row__col">{renderStat(stats?.atk, (value) => truncTo(value).toString())}</div>
+      <div className="opt-result-row__col">{renderStat(stats?.hp, (value) => truncTo(value).toString())}</div>
+      <div className="opt-result-row__col">{renderStat(stats?.def, (value) => truncTo(value).toString())}</div>
       <div className="opt-result-row__col">{renderStat(stats?.er, (value) => formatTruncCompact(value, 1))}</div>
       <div className="opt-result-row__col">{renderStat(stats?.cr, (value) => formatTruncCompact(value, 1))}</div>
       <div className="opt-result-row__col">{renderStat(stats?.cd, (value) => formatTruncCompact(value, 1))}</div>
-      {!rotationMode ? (
-        <div className="opt-result-row__col">{renderStat(stats?.bonus, (value) => formatTruncCompact(value, 1))}</div>
-      ) : null}
+      <div className="opt-result-row__col">{renderStat(stats?.bonus, (value) => formatTruncCompact(value, 1))}</div>
       {!rotationMode ? (
         <div className="opt-result-row__col">{renderStat(stats?.amp, (value) => formatTruncCompact(value, 1))}</div>
       ) : null}

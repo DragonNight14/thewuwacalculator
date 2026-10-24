@@ -274,13 +274,13 @@ function clrEchoCtrls(controls: RtCtlMap): void {
   }
 }
 
-function echoSetPieceReq(def: SetDef): number {
+export function echoSetPieceReq(def: SetDef): number {
   if (def.setMax === 1) return 1
   if (def.setMax === 3) return 3
   return 5
 }
 
-function echoSetMax(state: SetDef['states'][string]): boolean | number {
+export function echoSetMax(state: SetDef['states'][string]): boolean | number {
   const perStep = state.perStep ?? state.perStack ?? state.max
   const isToggle = perStep.every((step, index) => step.value === state.max[index].value)
 
