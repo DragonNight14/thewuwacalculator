@@ -5,10 +5,10 @@
 
 import { describe, expect, it } from 'vitest'
 import type { RotationNode } from '@/domain/gameData/contracts.ts'
-import { stripRotLoops } from '@/engine/optimizer/rotation/runtime.ts'
+import { stripRotLoops } from '@/engine/rotation/programRuntime.ts'
 
 describe('optimizer rotation runtime', () => {
-  it('strips loop markers recursively without dropping authored nodes', () => {
+it('strips loop markers recursively and preserves authored nodes', () => {
     const parent: RotationNode = {
       id: 'parent', type: 'feature', featureId: 'parent-skill',
       attached: {

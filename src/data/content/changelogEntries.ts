@@ -4,8 +4,6 @@
                update toast surfaces.
 */
 
-import { CURRENT_CHANGE_NOTICE } from './currentChangelogNotice'
-
 export interface ChngEnt {
   type: 'paragraph'
   content: string
@@ -53,6 +51,8 @@ export interface WnEntry {
 }
 
 export interface ChngRcrd {
+  /** Required for the latest notice; keep this ID when editing a published entry. */
+  id?: string
   date: string
   shortDesc?: string
   patchVersion?: string
@@ -880,7 +880,9 @@ export const curChngEnts: ChngRcrd[] = [
     shortDesc: `3.7.0 beta update`,
   },
   {
-    ...CURRENT_CHANGE_NOTICE,
+    date: '28/09/2026',
+    patchVersion: '3.7 live',
+    shortDesc: '3.7 patch update',
     entries: [
       {
         type: 'paragraph',
@@ -1206,6 +1208,20 @@ export const curChngEnts: ChngRcrd[] = [
       }
     ],
     shortDesc: `searcher systems optimizations`,
+  },
+  {
+    id: '2026-10-24-3-8-1-beta',
+    date: '24/10/2026',
+    patchVersion: '3.8.1 beta',
+    entries: [
+      {
+        type: 'paragraph',
+        content: `
+          <strong>3.8.1 beta data</strong> is now included. Well, that's just <strong>Lily</strong> and <strong>Lullaby</strong>.
+        `,
+      }
+    ],
+    shortDesc: `3.8.1 beta update (,; ⩌ ;,)`,
   },
 ]
 

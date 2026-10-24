@@ -8,6 +8,7 @@
 import type { ResRuntime } from '@/domain/entities/runtime.ts'
 import type { SkillDef } from '@/domain/entities/stats.ts'
 import type { CompTargetSkill } from '@/engine/search/context/compiled.ts'
+import { isLilyErCritSkill, lilyExcessEr } from '@/engine/search/score/lily'
 import { getNegBase } from '@/engine/formulas/negativeEffects.ts'
 import {
   MAX_ECHO_COST,
@@ -237,6 +238,12 @@ function normPckdCtx(options: {
   let critRate = compiled.statCritRate
   let critDmg = compiled.statCritDmg
 
+  if (isLilyErCritSkill(compiled.characterId, skill.id)) {
+    const excess = lilyExcessEr(compiled.statFinEr)
+    critRate -= excess * 0.5
+    critDmg -= excess
+  }
+
   finalAtk -= calcErToAtk(compiled.characterId, compiled.statFinEr, toggle0)
   finalAtk -= calcJingranAtk(
       compiled.characterId,
@@ -374,6 +381,7 @@ export function packTargetCtx(options: {
   const ttlHitScl = compiled.hitScale > 0 ? compiled.hitScale : compiled.multiplier
   const ttlHitCnt = Math.max(1, compiled.hitCount || 1)
   const toggles = mkSpecTggl(runtime, compiled.characterId)
+    | (isLilyErCritSkill(compiled.characterId, skill.id) ? 1 : 0)
   const skillId = encSkllId({
     label: skill.label,
     skillType: skill.skillType,

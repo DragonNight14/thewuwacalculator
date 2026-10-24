@@ -6,6 +6,7 @@
 */
 
 import { ECHO_STAT, MAIN_BUFF } from '@/engine/search/layout/echoLayout'
+import { lilyExcessEr } from '@/engine/search/score/lily'
 import { psssCstrs } from '@/engine/search/score/statConstraints.ts'
 import {
   ARCH_AERO,
@@ -292,6 +293,11 @@ export function tgtMainDamage(
   let critDmgBns = mainEchoBuffs[mainBase + MAIN_BUFF.critDmg] / 100
   critRateBns += calcShoreCritRate(ctx.charId, finalER, ctx.shoreInner)
   critDmgBns += calcShoreCritDmg(ctx.charId, finalER, ctx.shoreInner, ctx.shoreSupernal)
+  if (ctx.charId === 1512 && ctx.toggle0) {
+    const excess = lilyExcessEr(finalER)
+    critRateBns += excess * 0.005
+    critDmgBns += excess / 100
+  }
   if (ctx.charId === 1209 && finalER > 0) {
     const erOver = Math.max(0, finalER - 100)
     mrnyDmgBns = Math.min(erOver * 0.25, 40) / 100

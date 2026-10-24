@@ -27,6 +27,9 @@ import { gnrtThryCpuCm } from '@/engine/optimizer/target/theoryBatches.ts'
 import { OptResultSet } from '@/engine/optimizer/results/collector.ts'
 import { mkOptPrgrTrc } from '@/engine/optimizer/search/progress.ts'
 import { CPU_THEORY_JOB } from '@/engine/optimizer/config/constants.ts'
+import { adaptiveTheoryBatch } from '@/engine/optimizer/config/batching'
+import { theoryBranchBound } from '@/engine/rotation/portable/bounds'
+import { preparePortableScorer } from '@/engine/rotation/portable/cpu'
 
 // hooks used during optimizer execution for cancellation and progress reporting
 interface OptRunHks {
@@ -63,10 +66,20 @@ async function runThryBtchFo(
     onProcessed: hooks.onProcessed,
   })
   let genCmbs = 0
+  const adaptive = adaptiveTheoryBatch(false, payload.lowMmryMode)
+  const bound = execution.mode === 'rotation' ? theoryBranchBound({
+    stats: execution.stats, sets: execution.sets,
+    programs: execution.weaponPrograms?.length ? execution.weaponPrograms : [execution.rotationProgram],
+  }) : null
+  if (execution.mode === 'rotation') preparePortableScorer(execution)
+  let cutoff = 0
 
   for (const batch of gnrtThryCpuCm({
     payload,
     batchSize: CPU_THEORY_JOB,
+    getBatchSize: adaptive ? () => adaptive.size : undefined,
+    prune: bound ? (main, first, remaining) => bound(main, first, remaining, cutoff) : undefined,
+    onPruned: (count) => { genCmbs += count; progress.onProcessed(count) },
   })) {
     const rmnnCmbs = payload.theoryTotal - genCmbs
     if (rmnnCmbs <= 0) {
@@ -81,6 +94,7 @@ async function runThryBtchFo(
       return collector.sorted()
     }
 
+    const evaluatedAt = performance.now()
     const results = execution.mode === 'rotation'
         ? await runRotSrchBt(
             execution,
@@ -109,8 +123,13 @@ async function runThryBtchFo(
             },
           )
 
+    adaptive?.observe(comboCount, performance.now() - evaluatedAt)
     for (const result of results) {
       collector.push(result)
+    }
+    if (bound) {
+      const ranked = collector.sorted(payload.resultsLimit)
+      cutoff = ranked.length >= payload.resultsLimit ? ranked.at(-1)!.damage : 0
     }
 
     if (hooks.isCancelled?.()) {
@@ -133,7 +152,7 @@ async function runThryBtchFo(
 export function cllcOptMainC(
     payload: OptStartPay | PrepOptPay,
 ): number[] {
-  // prepared payloads already carry the filtered candidate list
+  // prepared payloads include the filtered candidate list.
   if ('lockMainCands' in payload) {
     return Array.from(payload.lockMainCands)
   }

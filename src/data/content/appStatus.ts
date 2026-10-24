@@ -33,9 +33,7 @@ export const STATUS_DATA = {
   ],
   notes: [
     'hello my lovelies~! ٩(ˊᗜˋ*)و ♡',
-    'i fixed some bugs and added some optimizations to the optimizer and suggestions systems. you can see more in the changelog... i\'m tired.',
-    '3.8.1 beta is available, i\'ll work on getting it\'s data on here.',
-    'i will also update the docs for the scoring and optimization engine... later.',
+    'as promised, lily is here.',
   ],
   // consumers join these status records with live catalog counts by key.
   coverage: [
@@ -45,7 +43,7 @@ export const STATUS_DATA = {
     { key: 'enemies',    title: 'Enemies',    status: 'ok', note: '' },
   ] as CoverageDomain[],
   recentChanges: [
-    'optimizations and bug fixes to searcher systems..',
+    'added lily.',
   ],
 
   knownIssues: [] as string[]

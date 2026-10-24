@@ -16,7 +16,7 @@ import type { EchoInstance, ResRuntime, ResSeed } from '@/domain/entities/runtim
 import { runResSmlt } from '@/engine/pipeline'
 import { mkSuggVltnCt } from '@/engine/suggestions/shared'
 import type { SuggestContext } from '@/engine/suggestions/types'
-import { makeEvaluationCostPlans } from '@/engine/evaluation/costPlans.ts'
+import { makeEvaluationCostPlans } from '@/engine/evaluation/costPlans'
 import { ECHO_MAIN_STATS, ECHO_SIDE_STATS, SUBSTAT_KEYS, getSbstStepP } from '@/data/gameData/catalog/echoStats'
 import { ignoresEr } from '@/engine/evaluation/energyRegenPolicy'
 import { SET_RULES, evaluationSetConditions } from '@/engine/evaluation/setStatePolicy'
@@ -54,7 +54,7 @@ const TEST_TIMEOUT_MS = 20 * 60 * 1000
 const NON_ER_SUBSTATS = () => SUBSTAT_KEYS.filter((key) => key !== 'energyRegen')
 
 function mulberry32(seed: number): Rng {
-  // deterministic pseudo-randomness gives broad scenario coverage while keeping
+  // deterministic pseudo-randomness covers varied scenarios while keeping
   // stress failures reproducible from the resonator id and scenario index
   let value = seed >>> 0
   return () => {
@@ -153,11 +153,13 @@ function randomEchoes(resonatorId: string, scenarioIndex: number): Array<EchoIns
   // energy regen so the expected anchor input stays intentionally constant
   const rng = mulberry32(0x51A7E000 ^ Number(resonatorId) ^ scenarioIndex)
   const setIds = legalSetIds(resonatorId)
-  const costPlan = pick(rng, makeEvaluationCostPlans())
+  const costPlan = pick(rng, makeEvaluationCostPlans().filter((plan) =>
+    plan.every((cost, slot) => setIds.some((setId) => echoPool(cost, setId, slot === 0).length > 0)),
+  ))
 
   return costPlan.map((cost, slot) => {
     const mainEcho = slot === 0
-    const setId = pick(rng, setIds)
+    const setId = pick(rng, setIds.filter((id) => echoPool(cost, id, mainEcho).length > 0))
     const pool = echoPool(cost, setId, mainEcho)
     const echo = pick(rng, pool)
     const primary = randomPrimary(rng, cost)
@@ -266,7 +268,7 @@ function expectStableAnchors(resonatorId: string): void {
     const context = buildContext(seed, runtime)
     const equipped = runtime.build.echoes
     const inputSignature = anchorInputSignature(context, equipped)
-    expect(inputSignature.targetEr).toBe(0)
+    expect(inputSignature.targetEr).toBeGreaterThanOrEqual(100)
     expect(inputSignature.utility).toEqual([])
     expect(inputSignature.mainEcho).toBeNull()
 

@@ -3,7 +3,7 @@
   description: defines the team unison boon effect and its team-derived rules.
 */
 
-import type { SourceState, SrcPkg } from '@/domain/gameData/contracts'
+import type { CondExpr, SourceState, SrcPkg } from '@/domain/gameData/contracts'
 import type { ResRuntime } from '@/domain/entities/runtime'
 
 const UNISON_BOON_ID = 'unisonBoon'
@@ -27,6 +27,19 @@ function hsinInUnison(member: Member): boolean {
 
 export function canTriggerUnisonResponse(member: Member): boolean {
   return member.resonatorId === '1312' || hsinInUnison(member)
+}
+
+/** recipient condition shared by authored effects that require Unison Response. */
+export function unisonResponseCondition(): CondExpr {
+  return {
+    type: 'or', values: [
+      { type: 'eq', from: 'targetRuntime', path: 'id', value: '1312' },
+      { type: 'and', values: [
+        { type: 'eq', from: 'targetRuntime', path: 'id', value: '1311' },
+        { type: 'eq', from: 'targetRuntime', path: 'state.controls.resonator:1311:mode:value', value: 'unison' },
+      ] },
+    ],
+  }
 }
 
 /** each rule can be roster-passive or gated by its owner's active state. */
@@ -111,16 +124,7 @@ export const unisonBoonSource: SrcPkg = {
     ownerKey: UNISON_BOON_OWNER_KEY,
     trigger: 'runtime',
     targetScope: 'self',
-    condition: {
-      type: 'or',
-      values: [
-        { type: 'eq', from: 'targetRuntime', path: 'id', value: '1312' },
-        { type: 'and', values: [
-          { type: 'eq', from: 'targetRuntime', path: 'id', value: '1311' },
-          { type: 'eq', from: 'targetRuntime', path: 'state.controls.resonator:1311:mode:value', value: 'unison' },
-        ] },
-      ],
-    },
+    condition: unisonResponseCondition(),
     operations: [{
       type: 'add_top_stat',
       stat: 'finalDmg',

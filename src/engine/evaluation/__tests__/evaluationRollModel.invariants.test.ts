@@ -7,13 +7,13 @@ import { describe, expect, it } from 'vitest'
 import { getSbstStepP, SUBSTAT_KEYS } from '@/data/gameData/catalog/echoStats'
 import { listChsByCos } from '@/data/catalog/echoCatalogService'
 import type { EchoInstance } from '@/domain/entities/runtime'
-import { ECHO_STAT_STRIDE } from '@/engine/search/layout/constants.ts'
-import { addStatTotal, sumEncodedStats } from '@/engine/evaluation/stats.ts'
+import { ECHO_STAT_STRIDE } from '@/engine/search/layout/constants'
+import { addStatTotal, sumEncodedStats } from '@/engine/evaluation/stats'
 import {
   distributeStepSubstats, prepareStepAllocator, REFERENCE_STEP_MODEL,
   stepSubstatPlan, tierStepIncreases,
-} from '@/engine/evaluation/stepAllocation.ts'
-import { auditFixedLineTiers } from '@/engine/evaluation/evaluation/stepAllocationAudit'
+} from '@/engine/evaluation/stepAllocation'
+import { auditFixedLineTiers } from '@/engine/evaluation/stepAllocationAudit'
 
 const tiers = () => Object.fromEntries(SUBSTAT_KEYS.map(key => [key, getSbstStepP(key)]))
 const base = () => new Float32Array(ECHO_STAT_STRIDE * 5)
@@ -61,7 +61,7 @@ describe('native evaluation slot and step budgets', () => {
     expect(REFERENCE_STEP_MODEL.maxStepIncreases).toBe(32)
   })
 
-  it('requires two copies of the fifth-ranked damage stat, including when it is not flat', () => {
+it('requires two copies of the fifth-ranked damage stat for flat and percent stats', () => {
     const catalog = tiers()
     expect(prepareStepAllocator(catalog, [], 32)(base(), 0, score)).toBeNull()
     const threeStats = prepareStepAllocator(catalog, ['critRate', 'critDmg', 'atkPercent'])(base(), 0, score)!
@@ -86,7 +86,7 @@ describe('native evaluation slot and step budgets', () => {
     expect(nonflat.values.resonanceLiberation.every(value => value >= 9.2)).toBe(true)
   })
 
-  it('scores exactly the selected tier totals without accumulating Float32 upgrade drift', () => {
+it('scores selected tier totals with stable Float32 upgrades', () => {
     const mains = base()
     addStatTotal(mains, 'critDmg', 44)
     const original = mains.slice()
@@ -210,7 +210,7 @@ describe('native evaluation slot and step budgets', () => {
     expect(allocate(base(), 62.0000019, score)).toBeNull()
   })
 
-  it('ranks non-crit keys too and does not apply damage-ranking caps to ER', () => {
+it('ranks non-crit keys and exempts ER from damage-ranking caps', () => {
     const rankFlatFirst = (stats: Float32Array) => {
       const t = sumEncodedStats(stats, ids)
       return t.atkF * 10 + t.atkP * 10 + t.critRate + t.critDmg * 0.1

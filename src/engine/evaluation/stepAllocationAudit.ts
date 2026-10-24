@@ -3,9 +3,9 @@
   description: exhaustively audits tier spending for one fixed reference line layout offline.
 */
 
-import { ECHO_STAT_STRIDE } from '@/engine/search/layout/constants.ts'
-import { addStatTotal, ENERGY_REGEN } from '@/engine/evaluation/stats.ts'
-import { REFERENCE_STEP_MODEL, type StepAllocation } from '@/engine/evaluation/stepAllocation.ts'
+import { ECHO_STAT_STRIDE } from '@/engine/search/layout/constants'
+import { addStatTotal, ENERGY_REGEN } from './stats'
+import { REFERENCE_STEP_MODEL, type StepAllocation } from './stepAllocation'
 
 export interface FixedLineTierAudit {
   complete: boolean

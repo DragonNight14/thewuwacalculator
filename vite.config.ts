@@ -11,6 +11,7 @@ import { loadEnv, type Plugin } from 'vite'
 import react from '@vitejs/plugin-react'
 import svgr from 'vite-plugin-svgr'
 import responsivePolicy from './src/shared/responsive/policy.json'
+import { changelogNoticePlugin } from './tools/content/buildChangelogNotice'
 import {
   onExchangeCode,
   onRefreshToken,
@@ -150,7 +151,7 @@ function lucideMotionTreeShakingPlugin(): Plugin {
 }
 
 export default defineConfig(({ mode }) => ({
-  plugins: [responsivePolicyPlugin(), lucideMotionTreeShakingPlugin(), react(), svgr(), googleAuthDevPlugin(buildGoogleAuthEnv(mode))],
+  plugins: [changelogNoticePlugin(), responsivePolicyPlugin(), lucideMotionTreeShakingPlugin(), react(), svgr(), googleAuthDevPlugin(buildGoogleAuthEnv(mode))],
   // brotli-wasm resolves its .wasm asset through import.meta.url, which dep
   // pre-bundling would break; excluding it lets vite serve the module as-is.
   optimizeDeps: {
@@ -158,6 +159,9 @@ export default defineConfig(({ mode }) => ({
   },
   test: {
     setupFiles: ['vitest.setup.ts'],
+    // calculation suites hydrate large registries; bound concurrent workers
+    // so the full suite does not exhaust memory alongside lint and builds.
+    maxWorkers: 4,
     // local-only archives are not part of the maintained test surface
     exclude: [...configDefaults.exclude, 'legacy/**', 'scripts/**', 'wip/**'],
   },

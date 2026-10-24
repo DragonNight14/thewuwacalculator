@@ -81,6 +81,7 @@ export const SET_RULES: Partial<Record<string, SetRule>> = {
   '1509': { type: 'include', sets: [5, 9, 26] }, // lynae
   '1510': { type: 'include', sets: [5, 9, 26] }, // luuk herssen
   '1511': { type: 'include', sets: [5, 9, 32] }, // lucy
+  '1512': {type: 'include', sets: [5, 38] }, // lily
   '1601': { type: 'include', sets: [6] }, // taoqi
   '1602': { type: 'include', sets: [6, 9] }, // danjin
   '1603': { type: 'include', sets: [6, 9] }, // camellya

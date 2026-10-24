@@ -40,7 +40,7 @@ export function getRandSbst(
   const nonZeroKeys = filteredKeys.filter((key) => (weights[key] ?? 0) > 0)
   const zeroKeys = filteredKeys.filter((key) => (weights[key] ?? 0) <= 0)
 
-  // explicit er inclusion keeps it eligible even when the objective gives it no weight.
+  // include ER explicitly even when its objective weight is zero.
   if (
       ncldNrgyRgn &&
       !nonZeroKeys.includes('energyRegen') &&
@@ -74,7 +74,7 @@ export function getRandSbst(
 
   const avg = total / (count || 1)
 
-  // blend toward the mean and retain a floor so every eligible stat remains possible.
+  // blend toward the mean with a nonzero floor for each eligible stat.
   const adjusted: Array<[string, number]> = new Array(chosenPool.length)
   let totalWeight = 0
 

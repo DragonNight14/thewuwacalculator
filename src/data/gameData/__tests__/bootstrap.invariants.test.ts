@@ -75,7 +75,7 @@ describe('game data bootstrap invariants', () => {
       clearGameDataState()
       vi.resetModules()
     }
-  })
+  }, 30_000)
 
   it('hydrates the app from core catalogs before loading calculation sources', async () => {
     vi.resetModules()

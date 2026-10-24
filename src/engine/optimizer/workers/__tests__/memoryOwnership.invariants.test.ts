@@ -4,7 +4,7 @@
 */
 
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { payloadTransfers, sharePayload } from '@/engine/search/layout/buffers.ts'
+import { payloadTransfers, sharePayload } from '@/engine/search/layout/buffers'
 import { theoryBufferPlan } from '../theoryBudget'
 
 afterEach(() => { vi.unstubAllGlobals(); vi.doUnmock('@/engine/optimizer/target/theoryBatches.ts') })

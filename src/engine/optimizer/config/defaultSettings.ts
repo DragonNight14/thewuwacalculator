@@ -178,11 +178,11 @@ export function deriveOptSets(params: {
   }
 
   const characterId = Number.parseInt(runtime.id, 10)
-  if (characterId === 1206 || characterId === 1209 || characterId === 1412 || characterId === 1505 || characterId === 1110) {
+  if (characterId === 1206 || characterId === 1209 || characterId === 1412 || characterId === 1505 || characterId === 1110 || characterId === 1512) {
     filterSet.add('er')
   }
 
-  if (characterId === 1212) {
+  if (characterId === 1212 || characterId === 1512) {
     filterSet.add('hp%')
   }
 

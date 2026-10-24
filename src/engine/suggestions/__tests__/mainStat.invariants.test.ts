@@ -12,12 +12,10 @@ import { makeEnemy, mkMaxResRt } from '@/engine/runtime/defaults'
 import { makeRuntimeMap } from '@/engine/runtime/runtimeAdapters'
 import { getEchoById } from '@/data/catalog/echoCatalogService'
 import { getResSeedBy } from '@/data/catalog/resonatorSeedService'
-import { mkPrepMainSt, mkPrepSetPla, resSuggDmg, runSuggSmlt } from '@/engine/suggestions/shared'
+import { evalSuggChs, mkPrepMainSt, mkPrepSetPla, resSuggDmg, runSuggSmlt } from '@/engine/suggestions/shared'
 import { runMainStats, runSetPlanqc } from '@/engine/suggestions/core'
-import { applyMainSta } from '@/engine/suggestions/mainStat/utils.ts'
+import { applyMainSta } from '@/engine/suggestions/mainStat/utils'
 import { applySetPlan } from '@/engine/suggestions/mutate'
-import { ECHO_SET_DEFS } from '@/data/gameData/echoSets/effects'
-import { sggsSetPlns } from '@/engine/suggestions/setPlan/suggest.ts'
 import { isOptRotTgt } from '@/engine/search/score/eligibility.ts'
 
 describe('main-stat suggestion worker payload', () => {
@@ -85,23 +83,30 @@ describe('main-stat suggestion worker payload', () => {
     } else if (compactSets?.context.mode === 'target' && preparedSets.context.mode === 'target') {
       expect(compactSets.context.pckdCtx).toEqual(preparedSets.context.pckdCtx)
     }
-    const setResults = runSetPlanqc(structuredClone(preparedSets)).results
+    const setRun = runSetPlanqc(structuredClone(preparedSets))
+    const setResults = setRun.results
     expect(setResults.length).toBeGreaterThan(0)
-    // changing echo bodies during full simulation must not reintroduce plans
-    // suppressed by the original isolated useful-piece comparisons.
-    const isolated = sggsSetPlns({
-      ctx: rotationMode ? null : preparedSets.context,
-      rotationCtx: rotationMode ? preparedSets.context : null,
-      fivePcSets: ECHO_SET_DEFS.filter((set) => set.setMax === 5).map((set) => set.id),
-      thrPcSets: ECHO_SET_DEFS.filter((set) => set.setMax === 3).map((set) => set.id),
-      exhaustive: true, qppdChs: runtime.build.echoes,
-    }).results
-    const signature = (plan: typeof setResults[number]['setPlan']) => JSON.stringify(plan)
-    const usefulSignatures = new Set(isolated.map((result) => signature(result.setPlan)))
+    const planKeys = setResults.map((result) => result.setPlan
+      .map((entry) => `${entry.setId}:${entry.pieces}`).sort().join('|'))
+    // independent plans may tie in damage. each distinct plan still gets
+    // exactly one result, with its best contributing main.
+    expect(new Set(planKeys).size).toBe(setResults.length)
+    expect(setRun.baseAvg).toBeCloseTo(rotationMode
+      ? evalSuggChs(preparedSets.context, runtime.build.echoes)
+      : resSuggDmg(simulation, input), 8)
+    // concrete plans can now remove an inert seating set or have no set at
+    // all. their applied loadout must still reproduce the canonical score.
     for (const result of setResults) {
-      if (result.setPlan.length) expect(usefulSignatures.has(signature(result.setPlan))).toBe(true)
-      const candidate = { ...input, runtime: { ...runtime, build: { ...runtime.build, echoes: applySetPlan(result.setPlan, runtime.build.echoes, result.mainEchoId && result.mainEchoSetId != null ? { id: result.mainEchoId, setId: result.mainEchoSetId } : undefined) } } }
-      expect(result.avgDamage).toBeCloseTo(resSuggDmg(runSuggSmlt(candidate), candidate), 8)
+      expect(result.displayPlan).toHaveLength(result.setPlan.length)
+      result.setPlan.forEach((entry) => {
+        expect(result.displayPlan?.some((shown) => shown.pieces === entry.pieces && shown.setIds.includes(entry.setId))).toBe(true)
+      })
+      const mainChoice = result.mainEchoId && result.mainEchoSetId != null
+        ? { id: result.mainEchoId, setId: result.mainEchoSetId }
+        : undefined
+      const candidate = { ...input, runtime: { ...runtime, build: { ...runtime.build, echoes: applySetPlan(result.setPlan, runtime.build.echoes, mainChoice) } } }
+      const candidateDamage = resSuggDmg(runSuggSmlt(candidate), candidate)
+      expect(result.avgDamage).toBeCloseTo(candidateDamage, 8)
     }
   }, 30_000)
 })

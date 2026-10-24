@@ -7,7 +7,7 @@
 import type { RandGnrtSets } from '@/domain/entities/suggestions'
 import type { EchoInstance } from '@/domain/entities/runtime'
 import type { GameDataMode } from '@/domain/entities/gameDataMode'
-import type { OptStatWeight } from '@/engine/search/score/statWeights.ts'
+import type { OptStatWeight } from '@/engine/search/score/statWeights'
 import type { SuggestContext} from '@/engine/suggestions/types'
 
 export interface RandomEchoPrep {

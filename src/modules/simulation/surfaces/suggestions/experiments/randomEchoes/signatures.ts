@@ -4,7 +4,7 @@
                echo loadouts and retains the first result for each unique build.
 */
 
-import type { RandGenEcho } from './echoSetBuilder'
+import type { RandGenEcho } from './setBuilder'
 
 // sorting makes signatures independent of object insertion order.
 function fmtStatEnts(stats: Record<string, number>): string {

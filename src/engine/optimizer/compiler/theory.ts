@@ -421,7 +421,7 @@ function addNormalCtxMs(
   }
   if (
       options.scalingEr !== 0 ||
-      (options.characterId != null && [1206, 1209, 1412, 1505].includes(options.characterId))
+      (options.characterId != null && [1206, 1209, 1412, 1505, 1512].includes(options.characterId))
   ) {
     statMask[ECHO_STAT.energyRegen] = true
     mainMask[MAIN_BUFF.energyRegen] = true

@@ -6,7 +6,7 @@
 
 import { getSbstStepP } from '@/data/gameData/catalog/echoStats'
 import type { OptStatWeight } from '@/engine/search/score/statWeights.ts'
-import type { RandGenEcho } from './echoSetBuilder'
+import type { RandGenEcho } from './setBuilder'
 import { getSbstScr } from './substats'
 
 const ER_OPTIONS = getSbstStepP('energyRegen')
@@ -90,7 +90,7 @@ function njctErIntoEc(
     return { ...echo, substats }
   }
 
-  // a full echo gives up the substat with the lowest objective weight.
+  // replace the lowest-weight substat when the Echo has no open slot.
   let worstKey: string | null = null
   let worstScore = Infinity
 

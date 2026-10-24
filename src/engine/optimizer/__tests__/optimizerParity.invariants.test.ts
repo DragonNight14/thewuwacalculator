@@ -1,12 +1,6 @@
 /*
   Author: Runor Ewhro
-  description: accuracy guard for the optimizer's fast path. the optimizer scores
-               builds with an encoded re-implementation of the damage formula
-               (cpu/computeDamage + target/evaluate); if it drifts from the
-               canonical calcSkillDamage, every ranking and reported number is
-               wrong. this sweeps real optimizer results and asserts each
-               reported damage equals what you actually get by equipping that
-               build and recomputing through the real pipeline + formula.
+  description: checks optimizer damage results against the simulation formula for the same builds.
 */
 
 import { describe, expect, it } from 'vitest'
@@ -18,7 +12,7 @@ import { listResSds } from '@/data/catalog/resonatorSeedService'
 import { makeEnemy, makeOptSets, makeResRuntime, mkMaxResRt } from '@/engine/runtime/defaults'
 import { makeRuntimeMap } from '@/engine/runtime/runtimeAdapters'
 import { compOptPay, compileBaseline } from '@/engine/optimizer/compiler'
-import { buildSetRows, listDynamicSetStateParts, makeSetMask } from '@/engine/search/encode/sets.ts'
+import { buildSetRows, listDynamicSetStateParts, makeSetMask } from '@/engine/search/encode/sets'
 import { runOptSrch } from '@/engine/optimizer/engine'
 import { evalPrepOptB } from '@/engine/optimizer/results/materialize'
 import { runResSmlt } from '@/engine/pipeline'
@@ -30,6 +24,7 @@ import { AUX0, DMG_AMP } from '@/engine/search/layout/constants.ts'
 import { getGameData } from '@/data/gameData'
 import { listSrcStts } from '@/data/gameData/registry'
 import { combatScenarioId, teamMemberId } from '@/domain/entities/combatScenario'
+import { DEF_SET_COND, withSntSet } from '@/domain/entities/sonataSetConditionals'
 
 const enemy = makeEnemy()
 
@@ -525,6 +520,41 @@ describe('optimizer parity invariants', () => {
     const truth = canonicalDamageForMain(seed, runtime, settings.targetSkillId, echoes, 0)
     expect(Math.abs(packed.damage - truth.damage)).toBeLessThanOrEqual(Math.max(1, truth.damage * 1e-4))
     expect(packed.stats.atk).toBeCloseTo(truth.atk, 3)
+  })
+
+  it('treats a zero packed set mask as all special set effects disabled', () => {
+    const { seed, runtime, echoes } = makeSuiSuiFeatherRuntime()
+    const settings = makeOptSets()
+    settings.enableGpu = false
+    settings.targetSkillId = '1110101'
+    const setConds = withSntSet(DEF_SET_COND, [
+      { setId: 14, partKey: 'fivePiece', checked: false },
+      { setId: 22, partKey: 'flamewingsShadow2pcP1', checked: false },
+      { setId: 22, partKey: 'flamewingsShadow2pcP2', checked: false },
+      { setId: 29, partKey: 'soundOfTrueName5pc', checked: false },
+      { setId: 33, partKey: 'xuanlingsFeather', checked: false },
+      { setId: 33, partKey: 'chongmingsFeather', checked: false },
+    ])
+    const score = (invChs: EchoInstance[]) => {
+      const payload = compOptPay({
+        scenarioId: combatScenarioId('optimizer:set-mask-zero'),
+        memberId: teamMemberId(seed.id),
+        resonatorId: seed.id,
+        resSeed: seed,
+        runtime,
+        settings,
+        invChs,
+        enemyProfile: enemy,
+        setConds,
+      })
+      expect(payload.mode).toBe('targetSkill')
+      if (payload.mode !== 'targetSkill') throw new Error('expected target payload')
+      expect(payload.setRtMask).toBe(0)
+      return evalPrepOptB(payload, 0)?.damage
+    }
+    const twoPiece = echoes.map((echo, index) => index < 2 ? echo : { ...echo, set: 0 })
+
+    expect(score(echoes)).toBeCloseTo(score(twoPiece) ?? 0, 8)
   })
 })
 

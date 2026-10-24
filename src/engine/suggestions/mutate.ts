@@ -157,8 +157,11 @@ export function derSuggMainS(
 
   // special-case characters that often want er in the option pool
   const numericId = Number.parseInt(resonatorId, 10)
-  if (numericId === 1206 || numericId === 1209 || numericId === 1412 || numericId === 1505 || numericId == 1110) {
+  if (numericId === 1206 || numericId === 1209 || numericId === 1412 || numericId === 1505 || numericId == 1110 || numericId === 1512) {
     allowedFilter.add('er')
+  }
+  if (numericId === 1512) {
+    allowedFilter.add('hp%')
   }
 
   return {

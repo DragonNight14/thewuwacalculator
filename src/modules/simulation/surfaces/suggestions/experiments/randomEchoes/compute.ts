@@ -11,7 +11,7 @@ import type { EchoDef } from '@/domain/entities/catalog'
 import { getEchoById, listChsByCos } from '@/data/catalog/echoCatalogService'
 import { evalSuggChs } from '@/engine/suggestions/shared'
 import type { RandomEchoEntry, RandomEchoPrep } from './types'
-import { getDefMainSt } from '@/engine/suggestions/mainStat/context.ts'
+import { getDefMainSt } from '@/engine/suggestions/mainStat/context'
 import type { OptStatWeight } from '@/engine/search/score/statWeights.ts'
 import {
   makeRandomEchoCostPlans,
@@ -19,7 +19,7 @@ import {
   DEFAULT_RESULTS,
   TRIES_PER_COMBO,
 } from './combinations'
-import { mkEchoSetFor, type RandGenEcho } from './echoSetBuilder'
+import { mkEchoSetFor, type RandGenEcho } from './setBuilder'
 import { applyErPlanT } from './energyRegen'
 import { pickNqLdtRsl } from './signatures'
 

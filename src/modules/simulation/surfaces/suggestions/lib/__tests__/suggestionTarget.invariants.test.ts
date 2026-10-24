@@ -17,7 +17,20 @@ import { useSuggestionTarget } from '../useSuggestionTarget.ts'
 import { DEFAULT_ROTATION_TARGET, selectSuggestionTarget, suggestionTargetValue, targetOpts } from '../helpers.ts'
 
 describe('default rotation targets', () => {
-  it('scores the preset after the live rotation is cleared without changing the live runtime or catalog', () => {
+it('selects a live rotation from another scenario', () => {
+    const settings = selectSuggestionTarget(
+      { rotationMode: false, targetFeatureId: 'damage:1308001' },
+      'scenario:legacy:1511',
+    )
+    expect(settings).toMatchObject({
+      rotationMode: true,
+      rotationSourceId: 'scenario:legacy:1511',
+      targetFeatureId: 'damage:1308001',
+    })
+    expect(suggestionTargetValue(settings)).toBe('scenario:legacy:1511')
+  })
+
+it('scores the preset after clearing the live rotation and preserves runtime data', () => {
     const seed = getResSeedBy('1208')!
     const runtime = mkMaxResRt(seed)
     runtime.rotation.sequence = []
@@ -59,12 +72,35 @@ describe('default rotation targets', () => {
     expect(targetOpts(id, null)).toEqual([])
   })
 
-  it('does not carry the previous resonator target mode over a new default', () => {
+  it('clears the previous resonator target mode for a new default', () => {
     expect(preserveToggles()).toEqual({})
     const retained = preserveToggles({ ...makeOptSets(), searchMode: 'theory', enableGpu: false })
     expect(retained.searchMode).toBe('theory')
     expect(retained.enableGpu).toBe(false)
     expect(retained).not.toHaveProperty('rotationMode')
     expect(retained).not.toHaveProperty('targetMode')
+  })
+
+it('selects live and saved rotations while preserving the direct target', () => {
+    const base = { rotationMode: false, targetFeatureId: 'damage:1208011' }
+    const live = selectSuggestionTarget(base, 'live')
+    expect(live).toMatchObject({
+      rotationMode: true, rotationSourceId: 'live', targetFeatureId: base.targetFeatureId,
+    })
+    const saved = selectSuggestionTarget(live, 'saved:one')
+    expect(suggestionTargetValue(saved)).toBe('saved:one')
+    expect(selectSuggestionTarget(saved, base.targetFeatureId)).toMatchObject({
+      rotationMode: false, targetFeatureId: base.targetFeatureId, rotationSourceId: 'saved:one',
+    })
+    const seed = getResSeedBy('1208')!
+    const runtime = mkMaxResRt(seed)
+    const simulation = runResSmlt(runtime, seed, makeEnemy(), makeRuntimeMap(runtime), {})
+    expect(targetOpts(runtime.id, simulation, {}, [
+      { id: 'default:1208', label: 'Default Rotation' },
+      { id: 'live', label: 'Live Rotation' },
+      { id: 'saved:one', label: 'Saved One' },
+    ]).slice(0, 3).map((entry) => entry.value)).toEqual([
+      DEFAULT_ROTATION_TARGET, 'live', 'saved:one',
+    ])
   })
 })

@@ -17,7 +17,7 @@
     "postbuild": "node tools/seo/writeStaticRoutes.mjs",
     "seo:sync": "node tools/seo/writeStaticRoutes.mjs --sync-public",
     "lint": "eslint .",
-    "check:architecture": "node tools/architecture/checkImports.mjs",
+    "check:architecture": "node scripts/architecture/checkImports.mjs",
     "bench:import": "node scripts/analysis/importCardBench.mjs",
     "preview": "vite preview",
     "dev:cloudflare": "wrangler dev",
@@ -51,7 +51,7 @@
     "sync:resonator-images": "node scripts/assets/syncResonatorImages.mjs",
     "test": "vitest run",
     "test:watch": "vitest",
-    "benchmark:rotation": "vitest bench src/engine/rotation/__benchmarks__/rotation.bench.ts --run",
+    "benchmark:rotation": "vitest bench scripts/analysis/rotation.bench.ts --run",
     "analyze:substats": "node scripts/analysis/evaluationSubstatWeights.mjs",
     "generate:char-stat-weights": "node scripts/analysis/generateCharStatWeights.mjs"
   },

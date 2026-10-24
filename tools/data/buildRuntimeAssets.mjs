@@ -1,3 +1,8 @@
+/*
+  Author: Runor Ewhro
+  description: builds runtime data assets consumed by the app and workers.
+*/
+
 import { readFile, mkdir, writeFile } from 'node:fs/promises'
 import { join } from 'node:path'
 import { fileURLToPath } from 'node:url'
@@ -5,6 +10,9 @@ import { buildDisplayAssets } from './buildDisplayAssets.mjs'
 import { normalizeEchoIcons } from './normalizeEchoIcons.mjs'
 import { buildSourceManifest } from './buildSourceManifest.mjs'
 import { buildWeaponCoreCatalog } from './buildWeaponCoreCatalog.mjs'
+import { buildChangelogNotice } from '../content/buildChangelogNotice.ts'
+
+await buildChangelogNotice()
 
 // worker calculations need control/trace semantics, not skill prose or tables.
 function runtimeDetails(detail) {
@@ -18,10 +26,11 @@ function runtimeDetails(detail) {
 }
 
 const publicDir = fileURLToPath(new URL('../../public/', import.meta.url))
+const resonatorsOnly = process.argv.includes('--resonators-only')
 
 for (const mode of ['beta', 'live']) {
   await buildSourceManifest(mode)
-  await buildWeaponCoreCatalog(mode)
+  if (!resonatorsOnly) await buildWeaponCoreCatalog(mode)
   const resonatorDir = join(publicDir, 'data', mode, 'resonators')
   const [sources, damageEntries, details, catalog] = await Promise.all([
     readFile(join(resonatorDir, 'sources.json'), 'utf8').then(JSON.parse),
@@ -59,6 +68,7 @@ for (const mode of ['beta', 'live']) {
       seed: catalog.find((entry) => entry.id === id),
     }))
   }
+  if (resonatorsOnly) continue
   const weaponDir = join(publicDir, 'data', mode, 'weapons')
   const [weaponCatalog, weaponSources] = await Promise.all([
     readFile(join(weaponDir, 'catalog.json'), 'utf8').then(JSON.parse),
@@ -93,5 +103,7 @@ for (const mode of ['beta', 'live']) {
   await writeFile(join(enemyDir, 'summary.json'), JSON.stringify(summary))
 }
 
-await normalizeEchoIcons()
-await buildDisplayAssets()
+if (!resonatorsOnly) {
+  await normalizeEchoIcons()
+  await buildDisplayAssets()
+}

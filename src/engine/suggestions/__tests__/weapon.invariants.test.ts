@@ -11,11 +11,11 @@ import { makeEnemy, mkDefWpnSug, mkMaxResRt } from '@/engine/runtime/defaults'
 import { makeRuntimeMap } from '@/engine/runtime/runtimeAdapters'
 import { getResSeedBy } from '@/data/catalog/resonatorSeedService'
 import { mkPrepWpnSu, resSuggDmg, runSuggSmlt } from '@/engine/suggestions/shared'
-import { runPrepWpn } from '@/engine/suggestions/weapon/compute.ts'
+import { runPrepWpn } from '@/engine/suggestions/weapon/compute'
 import { isOptRotTgt } from '@/engine/search/score/eligibility.ts'
 
 describe('weapon suggestion parity', () => {
-  it('scores rotation candidates through their fully materialized runtime', () => {
+  it.each([false, true])('scores rotation candidates through their fully materialized runtime (combat setup: %s)', (withCombatSetup) => {
     const seed = getResSeedBy('1506')
     expect(seed).toBeTruthy()
     if (!seed) throw new Error('missing weapon suggestion fixture resonator')
@@ -41,6 +41,13 @@ describe('weapon suggestion parity', () => {
       enemy,
       runtimesById: makeRuntimeMap(runtime),
       selectedTargets: {},
+      ...(withCombatSetup ? { combatSetup: {
+        memberIdByResonatorId: { [runtime.id]: teamMemberId('weapon-parity:source-member') },
+        initialOnFieldResonatorId: runtime.id,
+        environmentTargetModifiers: {
+          defenseReduction: 0.2, resistanceReduction: {}, damageTakenAmplification: 0.25,
+        },
+      } } : {}),
       tgtFeatId: null,
       rotationMode: true,
       includeEchoAttacks: true,
@@ -51,6 +58,7 @@ describe('weapon suggestion parity', () => {
     const prep = mkPrepWpnSu(input, simulation)
     expect(prep).toBeTruthy()
     if (!prep) throw new Error('failed to prepare weapon suggestions')
+    expect(prep.combatSetup).toBe(input.combatSetup)
     const compact = mkPrepWpnSu(input, structuredClone({
       finalStats: simulation.finalStats,
       allSkills: simulation.allSkills.filter((entry) => isOptRotTgt(entry, runtime.id, { includeEchoAttacks: true })),

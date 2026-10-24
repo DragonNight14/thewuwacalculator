@@ -1,5 +1,7 @@
-// this kernel takes one workgroup-sized block of optimizer candidates and emits
-// the local top-k winners for that block so the cpu can merge them afterward.
+/*
+  Author: Runor Ewhro
+  description: selects the top candidates from each workgroup for cpu merging.
+*/
 
 struct Candidate {
   // candidate score produced by the main optimizer shader
@@ -29,27 +31,27 @@ struct ReduceParams {
 @group(0) @binding(2) var<uniform> reduceParams: ReduceParams;
 
 // shader constants
-const WORKGROUP_SIZE: u32 = 256u;
-const REDUCE_K: u32 = 8u;
+const WORKGROUP_SIZE: u32 = __OPT_REDUCTION_WORKGROUP_SIZE__u;
+const REDUCE_K: u32 = __OPT_GPU_REDUCE_K__u;
 const NEG_INF: f32 = -1.0e30;
 
 // original candidate data loaded once for this workgroup's block
-var<workgroup> originalDamage: array<f32, 256>;
-var<workgroup> originalRank: array<u32, 256>;
+var<workgroup> originalDamage: array<f32, __OPT_REDUCTION_WORKGROUP_SIZE__>;
+var<workgroup> originalRank: array<u32, __OPT_REDUCTION_WORKGROUP_SIZE__>;
 
 // 0 = still selectable, 1 = already picked into the output top-k
-var<workgroup> blocked: array<u32, 256>;
+var<workgroup> blocked: array<u32, __OPT_REDUCTION_WORKGROUP_SIZE__>;
 
 // temporary arrays used during each reduction round
-var<workgroup> tmpDamage: array<f32, 256>;
-var<workgroup> tmpRank: array<u32, 256>;
-var<workgroup> tmpThread: array<u32, 256>;
+var<workgroup> tmpDamage: array<f32, __OPT_REDUCTION_WORKGROUP_SIZE__>;
+var<workgroup> tmpRank: array<u32, __OPT_REDUCTION_WORKGROUP_SIZE__>;
+var<workgroup> tmpThread: array<u32, __OPT_REDUCTION_WORKGROUP_SIZE__>;
 
 // winning thread/data for the current pick round
 var<workgroup> winningThread: u32;
 var<workgroup> winningDamage: f32;
 
-@compute @workgroup_size(256)
+@compute @workgroup_size(__OPT_REDUCTION_WORKGROUP_SIZE__)
 fn reduceCandidates(
   @builtin(workgroup_id) workgroupId: vec3<u32>,
   @builtin(local_invocation_id) localId3: vec3<u32>,
@@ -90,7 +92,7 @@ fn reduceCandidates(
     tmpDamage[localId] = select(NEG_INF, originalDamage[localId], allowed);
     tmpRank[localId] = originalRank[localId];
 
-    // keep track of which original thread owns each temporary winner
+    // record the original thread for each temporary winner
     tmpThread[localId] = localId;
 
     workgroupBarrier();

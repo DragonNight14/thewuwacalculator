@@ -39,11 +39,11 @@ export function getDefMainSt(
 
   // explicitly force energy regen on for known characters that often need it
   const numericId = Number.parseInt(charId ?? '', 10)
-  if (numericId === 1206 || numericId === 1209 || numericId === 1412 || numericId === 1505 || numericId === 1110) {
+  if (numericId === 1206 || numericId === 1209 || numericId === 1412 || numericId === 1505 || numericId === 1110 || numericId === 1512) {
     result.energyRegen = true
   }
 
-  if (numericId === 1212) {
+  if (numericId === 1212 || numericId === 1512) {
     result.hpPercent = true
   }
 

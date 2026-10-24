@@ -906,6 +906,13 @@ fn evalMainPos(
         critDmgForDmg = critDmgForDmg + min(max(finalER * 0.1, 0.0), 25.0) * INV_100 * toggleValue(pre.toggles, 1u) * toggleValue(pre.toggles, 2u);
     }
 
+    // Lily's enhanced Intro and two finishers carry bit 0 in the packed toggles.
+    if (isChar(pre.charId, 1512.0) && toggleValue(pre.toggles, 0u) == 1.0) {
+        let erOver = max(0.0, finalER - 100.0);
+        critRateForDmg += min(erOver * 0.5, 80.0) * INV_100;
+        critDmgForDmg += min(erOver, 160.0) * INV_100;
+    }
+
     // 1209 er-based bonuses
     if (isChar(pre.charId, 1209.0)) {
         let erOver = max(0.0, finalER - 100.0);
