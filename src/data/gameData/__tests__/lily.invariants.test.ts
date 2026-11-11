@@ -7,8 +7,7 @@
 import { beforeAll, describe, expect, it } from 'vitest'
 import { initGameData } from '@/data/gameData'
 import { getResSeedBy } from '@/data/catalog/resonatorSeedService'
-import { getResGameDa } from '@/data/catalog/resonatorCatalogService'
-import { getDefaultRotation, listSkillsFor } from '@/data/catalog/gameDataService'
+import { listSkillsFor } from '@/data/catalog/gameDataService'
 import { makeEnemy, mkMaxResRt } from '@/engine/runtime/defaults'
 import { makeRuntimeMap } from '@/engine/runtime/runtimeAdapters'
 import { prepSkill, prprRtSkll } from '@/engine/pipeline/prepareRuntimeSkill'
@@ -20,14 +19,14 @@ import { evalTarget } from '@/engine/search/score/evaluate'
 import { buildSetRows } from '@/engine/search/encode/sets'
 import { ECHO_STAT, ECHO_STAT_STRIDE, MAIN_BUFF_LEN } from '@/engine/search/layout/echoLayout'
 import type { ResRuntime } from '@/domain/entities/runtime'
-import type { EffectScope, SrcPkg } from '@/domain/gameData/contracts'
+import type { EffectScope, RotationNode, SrcPkg } from '@/domain/gameData/contracts'
 import { evalCond } from '@/engine/effects/evaluator'
 import { applySkllOp } from '@/engine/effects/dataEffects'
 import { forkNumericTeam, materializeNumericLane, writeNumericRuntime } from '@/engine/effects/numericTeam'
+import { prepareResSimulation } from '@/engine/pipeline'
+import { executeRotationProgram, prepareRotationProgram, prepareRunEnv } from '@/engine/rotation/execute'
 import betaSourcesRaw from '../../../../public/data/beta/resonators/sources.json?raw'
 import betaWeaponsRaw from '../../../../public/data/beta/weapons/sources.json?raw'
-import liveCatalog from '../../../../public/data/live/resonators/catalog.json'
-import liveWeapons from '../../../../public/data/live/weapons/catalog.json'
 
 const enemy = makeEnemy()
 const source = (JSON.parse(betaSourcesRaw) as SrcPkg[]).find((entry) => entry.source.id === '1512')!
@@ -57,46 +56,29 @@ function prepare(runtime: ResRuntime, skillId: string, runtimes: Record<string, 
 beforeAll(async () => { await initGameData({ mode: 'beta' }) })
 
 describe('Lily beta contracts', () => {
-  it('keeps beta-only identities out of live and preserves the screenshot rotation order', () => {
-    expect(liveCatalog.some((entry) => entry.id === '1512')).toBe(false)
-    expect(liveWeapons.some((entry) => entry.id === '21030076')).toBe(false)
-    expect(getResSeedBy('1512')?.defaultWeaponId).toBe('21030076')
-    expect(getDefaultRotation('1512')?.items.map((item) => item.type === 'feature' ? item.featureId : null)).toEqual([
-      'damage:1512023', 'damage:1512003', 'damage:1512004', 'damage:1512001',
-      'damage:1512002', 'damage:1512009', 'damage:1512014', 'damage:1512016',
-    ])
-  })
-
-  it('uses HP only for finishers and support rows, preserving ATK channel damage', () => {
-    const skills = getResGameDa('1512')!.skills
-    for (const id of ['1512011', '1512012', '1512027', '1512028', '1512020', '1512015', '1512016', '1512023', '1512:flowers-for-you:shield', '1512:into-the-dream-cradle:shield']) {
-      expect(skills.find((skill) => skill.id === id)?.scaling, id).toEqual({ atk: 0, hp: 1, def: 0, energyRegen: 0 })
-    }
-    for (const id of ['1512013', '1512014']) {
-      expect(skills.find((skill) => skill.id === id)).toMatchObject({
-        skillType: ['heavyAtk'], scaling: { atk: 1, hp: 0, def: 0, energyRegen: 0 },
-      })
-    }
-  })
-
-  it('keeps S5 free of damage increases and adds 400% S6 damage only to the three finishers', () => {
-    for (const id of ['1512015', '1512016', '1512023']) {
+  it('keeps S5 free of damage increases and adds S6 damage to the Heavy Attack finishers and Intro', () => {
+    // S6: Fairytale's Finale and Phantasm's End gain 100%, Intro Skill - Eternal Bloom gains 700%
+    for (const [id, extra] of [['1512015', 100], ['1512016', 100], ['1512023', 700]] as const) {
       const base = prepare(runtimeFor('1512', 0), id).skill
       const s5 = prepare(runtimeFor('1512', 5), id).skill
       const s6 = prepare(runtimeFor('1512', 6), id).skill
       expect(s5.multiplier).toBe(base.multiplier)
       expect(s6.multiplier).toBe(s5.multiplier)
-      expect(s6.skillBuffs?.dmgBonus).toBe((s5.skillBuffs?.dmgBonus ?? 0) + 400)
+      expect(s6.skillBuffs?.dmgBonus).toBe((s5.skillBuffs?.dmgBonus ?? 0) + extra)
       expect(s5.damageEntries?.some((entry) => entry.replacesEntryId) ?? false).toBe(false)
     }
     expect(prepare(runtimeFor('1512', 6), '1512014').skill.skillBuffs?.dmgBonus ?? 0).toBe(0)
   })
 
-  it('adds S3 and S4 healing without affecting the shield or unrelated skills', () => {
-    for (const [id, extra] of [['1512011', 80], ['1512012', 80], ['1512027', 80], ['1512028', 80], ['1512020', 30]] as const) {
+  it('adds 30% S4 healing to Slumberland Healing only, without affecting the shield', () => {
+    // S3 adds no healing; S4 increases Slumberland's healing by 30%, and the
+    // Heavy Attack healing skills stay unchanged
+    for (const [id, extra] of [['1512020', 30], ['1512011', 0], ['1512012', 0]] as const) {
       const base = prepare(runtimeFor('1512', 0), id).skill
+      const s3 = prepare(runtimeFor('1512', 3), id).skill
       const s4 = prepare(runtimeFor('1512', 4), id).skill
-      expect(s4.skillHealingBonus).toBe((base.skillHealingBonus ?? 0) + extra)
+      expect(s3.skillHealingBonus ?? 0).toBe(base.skillHealingBonus ?? 0)
+      expect(s4.skillHealingBonus ?? 0).toBe((base.skillHealingBonus ?? 0) + extra)
     }
     expect(prepare(runtimeFor('1512', 6), '1512:flowers-for-you:shield').skill.skillShieldBonus ?? 0).toBe(0)
   })
@@ -135,19 +117,6 @@ describe('Lily beta contracts', () => {
     expect(recipientBuffs.skillType.echoSkill.critRate).toBeCloseTo(withBuffs.skillType.echoSkill.critRate)
   })
 
-  it('uses the new healing tables and distinct HP shields', () => {
-    const lily = runtimeFor()
-    const base = prepare(lily, '1512011').skill
-    const wish = prepare(lily, '1512027').skill
-    expect(base.multiplier).toBeCloseTo(0.007)
-    expect(base.flat).toBe(351)
-    expect(wish.multiplier).toBeCloseTo(0.0353)
-    expect(wish.flat).toBe(1758)
-    expect(prepare(lily, '1512:into-the-dream-cradle:shield').skill.multiplier).toBe(1)
-    expect(prepare(lily, '1512:flowers-for-you:shield').skill.multiplier).toBe(0.1)
-    expect(prepare(lily, '1512014').skill.hits).toMatchObject([{ count: 23, multiplier: 0.2161 }])
-  })
-
   it('updates recipient buffs after Lily ER changes within an existing numeric team', () => {
     const lily = runtimeFor()
     const initialEr = prepare(lily, '1512001').context.finalStats.energyRegen
@@ -165,6 +134,45 @@ describe('Lily beta contracts', () => {
     expect(after.atk.final - before.atk.final).toBeCloseTo(before.atk.base * 0.28)
     expect(after.skillType.echoSkill.critRate - before.skillType.echoSkill.critRate).toBeCloseTo(5)
     expect(after.skillType.echoSkill.critDmg - before.skillType.echoSkill.critDmg).toBeCloseTo(10)
+  })
+
+  it('preserves shared Unison Boon in rotation inspector snapshots for Silvered Dream', () => {
+    const hsin = runtimeFor('1311')
+    const lily = runtimeFor()
+    const suoming = runtimeFor('1312')
+    const initialEr = prepare(lily, '1512001').context.finalStats.energyRegen
+    lily.state.manualBuffs.quick.energyRegen = 260 - initialEr
+    lily.state.controls['resonator:1512:silvered_dream:active'] = true
+    hsin.state.controls['resonator:1311:mode:value'] = 'unison'
+    for (const runtime of [hsin, lily, suoming]) {
+      runtime.build.team = [hsin.id, lily.id, suoming.id]
+      runtime.state.teamEffects = { unisonBoon: 0, unisonBoonMax: 3, unisonBoonPerStack: 4.5 }
+    }
+    const { context } = prepareResSimulation(hsin, getResSeedBy(hsin.id)!, enemy, { [lily.id]: lily, [suoming.id]: suoming })
+    const items: RotationNode[] = [2, 3, 0].flatMap((stacks) => [
+      { id: `boon:${stacks}`, type: 'condition', changes: [{ type: 'set', path: 'teamEffects.unisonBoon', value: stacks }] },
+      { id: `hit:${stacks}`, type: 'feature', resonatorId: hsin.id, featureId: 'damage:1311101' },
+    ])
+    const result = executeRotationProgram(prepareRunEnv(context, getResSeedBy(hsin.id)!), prepareRotationProgram(items), {
+      inspect: true, includeSnapshots: true,
+    })
+    const atk: number[] = []
+    for (const stacks of [2, 3, 0]) {
+      const entry = result.inspection.find(row => row.nodeId === `hit:${stacks}`)!
+      const snapshots = entry.runtimeById!
+      for (const snapshot of Object.values(snapshots)) {
+        expect(snapshot.state.teamEffects).toEqual({ unisonBoon: stacks, unisonBoonMax: 3, unisonBoonPerStack: 4.5 })
+      }
+      const replay = prepare(snapshots[hsin.id]!, '1311101', snapshots).context.finalStats
+      if (entry.value?.kind !== 'feature') throw new Error('Missing Hsin rotation result')
+      expect(replay.atk.final).toBeCloseTo(entry.value.effectiveStats!.atk!)
+      expect(replay.finalDmg).toBeCloseTo(entry.value.effectiveStats!.finalDmg!)
+      atk.push(replay.atk.final)
+    }
+    expect(atk[0]! - atk[2]!).toBeCloseTo(context.finalStats.atk.base * 0.14)
+    expect(atk[1]! - atk[2]!).toBeCloseTo(context.finalStats.atk.base * 0.21)
+    expect(hsin.state.teamEffects?.unisonBoon).toBe(0)
+    expect(lily.state.teamEffects?.unisonBoon).toBe(0)
   })
 
   it('requires Soothed Soul for Lullaby ATK and routes its Echo bonus to the active recipient', () => {

@@ -159,6 +159,7 @@ import {
   describeRotationCleanup,
   planRotationCleanup,
 } from '@/modules/simulation/surfaces/rotation/program-editor/model/cleanup.ts'
+import { rotationCleanupSources } from '@/modules/simulation/surfaces/rotation/program-editor/model/cleanupSources.ts'
 import {
   checkinAllLoopPasses,
   checkoutAllLoopPasses,
@@ -207,6 +208,7 @@ import {mainPortal} from '@/shared/lib/portalTarget.ts'
 import { ConfirmHost } from '@/shared/ui/ConfirmationModal.tsx'
 import type {MenuEntry} from '@/shared/ui/CtxMenu.tsx'
 import {makeAddToSelectionMenu, makeSelectedNodesMenu, makeSelectionMenu, makeRowMenu,} from '@/modules/simulation/surfaces/rotation/program-editor/interaction/contextMenus.tsx'
+import { scenarioOpeningValues } from '@/engine/rotation/openingChoices'
 import {
   applyConditionChanges,
   applyFeatureConditionChanges,
@@ -293,7 +295,6 @@ import {
   cloneRotationNodes,
   type SavedRotation,
 } from '@/domain/entities/inventoryStorage.ts'
-import { makeSourceKey } from '@/data/gameData/registry.ts'
 import {
   isLiveRotEntId,
   makeLiveRotationEntry,
@@ -2247,25 +2248,7 @@ export function ProgramEditor() {
     () => {
       if (simulationDirty) return null
 
-      const availableSources = new Set<string>()
-      for (const member of rotMembers) {
-        availableSources.add(makeSourceKey({ type: 'resonator', id: member.id }))
-        const weaponId = member.runtime.build.weapon.id
-        if (weaponId && weaponId !== '0') {
-          availableSources.add(makeSourceKey({ type: 'weapon', id: weaponId }))
-        }
-        for (const echo of member.runtime.build.echoes) {
-          if (!echo) continue
-          availableSources.add(makeSourceKey({ type: 'echo', id: echo.id }))
-          availableSources.add(makeSourceKey({ type: 'echoSet', id: String(echo.set) }))
-        }
-      }
-      /* enemy condition states use the synthetic `target` source, while
-         authored enemy packages use the selected catalog/custom id. */
-      availableSources.add(makeSourceKey({ type: 'enemy', id: 'target' }))
-      availableSources.add(makeSourceKey({ type: 'enemy', id: enemyProfile.id }))
-
-      return planRotationCleanup(sections, { availableSources })
+      return planRotationCleanup(sections, rotationCleanupSources(rotMembers, enemyProfile.id))
     },
     [enemyProfile.id, rotMembers, sections, simulationDirty],
   )
@@ -2410,6 +2393,9 @@ export function ProgramEditor() {
             existing: section.children,
             activeId: actRt?.id ?? startId,
             startId,
+            values: scenarioOpeningValues(
+              Object.fromEntries(rotMembers.map((member) => [member.id, member.runtime])),
+            ),
           }),
         }
         : section
@@ -2422,7 +2408,7 @@ export function ProgramEditor() {
       variant: 'success',
       duration: 2400,
     })
-  }, [actRt?.id, bump, condChoices, expandEditorFold, openingStateCount, preambleMdl, sections, showToast])
+  }, [actRt?.id, bump, condChoices, expandEditorFold, openingStateCount, preambleMdl, rotMembers, sections, showToast])
 
   const featureNodeFor = useCallback((entry: PaletteFeature): EditorStep => {
     return makeFeatureNode(entry, focusedId, rotMembers)
